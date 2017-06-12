@@ -60,6 +60,7 @@
     {
       "id": "c0f20097-e803-4d1f-9d86-7b36bcfaec19",
       "name": "GodAccess",
+      "module": 1,
       "permission": 10000,
       "museumId": 10000,
       "description": "Application administrator with access to all functionality",
@@ -70,6 +71,7 @@
     {
       "id": "869cc344-5515-49c0-a7a5-79e371f4e64b",
       "name": "TestAppAdmin",
+      "module": 1,
       "permission": 40,
       "museumId": 10000,
       "description": "Application administrator with access to all functionality",
@@ -80,6 +82,7 @@
     {
       "id": "2d503a2e-2211-45dd-a99f-fe1a38b5f2a2",
       "name": "TestSfRead",
+      "module": 1,
       "permission": 10,
       "museumId": 99,
       "description": "Read access to storage facility for TEST",
@@ -91,6 +94,7 @@
     {
       "id": "c81c314c-0675-4cd1-8956-c96a7163825b",
       "name": "TestSfWrite",
+      "module": 1,
       "permission": 20,
       "museumId": 99,
       "description": "Write access to storage facility for TEST",
@@ -101,6 +105,7 @@
     {
       "id": "bc4b4d44-9470-4622-8e29-03f0bfaf5149",
       "name": "TestSfAdmin",
+      "module": 1,
       "permission": 30,
       "museumId": 99,
       "description": "Admin access to storage facility for TEST",
@@ -113,6 +118,7 @@
     {
       "id": "3ce7692d-2101-45a4-955b-0ca861540cd9",
       "name": "KhmSfRead",
+      "module": 1,
       "permission": 10,
       "museumId": 3,
       "description": "Read access to storage facility for KHM",
@@ -125,6 +131,7 @@
     {
       "id": "fd34b019-81e1-47a2-987b-64389d6fce04",
       "name": "KhmSfWrite",
+      "module": 1,
       "permission": 20,
       "museumId": 3,
       "description": "Write access to storage facility for KHM",
@@ -137,6 +144,7 @@
     {
       "id": "de48b2dd-f25c-4b06-a5d4-7de45780ef2e",
       "name": "KhmSfAdmin",
+      "module": 1,
       "permission": 30,
       "museumId": 3,
       "description": "Admin access to storage facility for KHM",
@@ -149,6 +157,7 @@
     {
       "id": "92e3b487-c962-43d9-a2ea-b8a7bed1b67a",
       "name": "NhmSfRead",
+      "module": 1,
       "permission": 10,
       "museumId": 4,
       "description": "Read access to storage facility for NHM",
@@ -159,6 +168,7 @@
     {
       "id": "f311dd04-89b8-48a4-b4cd-68092f76ebab",
       "name": "NhmSfWrite",
+      "module": 1,
       "permission": 20,
       "museumId": 4,
       "description": "Write access to storage facility for NHM",
@@ -169,6 +179,7 @@
     {
       "id": "5aa16994-92b3-45df-adfa-7f9fdf54ce34",
       "name": "NhmSfAdmin",
+      "module": 1,
       "permission": 30,
       "museumId": 4,
       "description": "Admin access to storage facility for NHM",
@@ -179,6 +190,7 @@
     {
       "id": "b923b5df-54d3-4724-9386-c1273561f1a1",
       "name": "UmSfRead",
+      "module": 1,
       "permission": 10,
       "museumId": 2,
       "description": "Read access to storage facility for UM",
@@ -191,6 +203,7 @@
     {
       "id": "6ae158a1-398c-4f05-9992-1e19759e3221",
       "name": "UmSfWrite",
+      "module": 1,
       "permission": 20,
       "museumId": 2,
       "description": "Write access to storage facility for UM",
@@ -203,6 +216,7 @@
     {
       "id": "0ccefaff-aee3-4447-98e5-ec29bb9b80b7",
       "name": "UmSfAdmin",
+      "module": 1,
       "permission": 30,
       "museumId": 2,
       "description": "Admin access to storage facility for UM",
@@ -215,6 +229,7 @@
     {
       "id": "428f6108-f376-47e5-80c2-0e166e75ae42",
       "name": "AmSfRead",
+      "module": 1,
       "permission": 10,
       "museumId": 1,
       "description": "Read access to storage facility for AM",
@@ -227,6 +242,7 @@
     {
       "id": "f6a43a29-c0ee-419f-b315-d343629fb9b8",
       "name": "AmSfWrite",
+      "module": 1,
       "permission": 20,
       "museumId": 1,
       "description": "Write access to storage facility for AM",
@@ -239,6 +255,7 @@
     {
       "id": "3a3a173e-cf99-4301-9988-78fcd5d3d153",
       "name": "AmSfAdmin",
+      "module": 1,
       "permission": 30,
       "museumId": 1,
       "description": "Admin access to storage facility for AM",
@@ -251,6 +268,7 @@
     {
       "id": "3eb0b341-6c16-46f7-bd75-b0e12ba6cb8b",
       "name": "VmSfRead",
+      "module": 1,
       "permission": 10,
       "museumId": 5,
       "description": "Read access to storage facility for VM",
@@ -263,6 +281,7 @@
     {
       "id": "b4beaefb-d124-4f10-874d-ef59ffa1bb3b",
       "name": "VmSfWrite",
+      "module": 1,
       "permission": 20,
       "museumId": 5,
       "description": "Write access to storage facility for VM",
@@ -275,6 +294,7 @@
     {
       "id": "cd9ea5bf-7972-45c2-a0fd-b7e75fc2e5db",
       "name": "VmSfAdmin",
+      "module": 1,
       "permission": 30,
       "museumId": 5,
       "description": "Admin access to storage facility for VM",
@@ -287,6 +307,7 @@
     {
       "id": "b08efccf-a4a7-41b0-b208-acc8fc9c9bb4",
       "name": "TmuSfRead",
+      "module": 1,
       "permission": 10,
       "museumId": 6,
       "description": "Read access to storage facility for TMU",
@@ -295,6 +316,7 @@
     {
       "id": "4f8204c3-d48f-4a7c-9c79-1136edc337fb",
       "name": "TmuSfWrite",
+      "module": 1,
       "permission": 20,
       "museumId": 6,
       "description": "Write access to storage facility for TMU",
@@ -303,6 +325,7 @@
     {
       "id": "611202c5-8c69-444d-9b82-6aac5be150e4",
       "name": "TmuSfAdmin",
+      "module": 1,
       "permission": 30,
       "museumId": 6,
       "description": "Admin access to storage facility for TMU",
@@ -311,6 +334,7 @@
     {
       "id": "b1bd705b-a6b4-48ee-b517-f1c7be1bb015",
       "name": "KmnSfRead",
+      "module": 1,
       "permission": 10,
       "museumId": 7,
       "description": "Read access to storage facility for KMN",
@@ -319,6 +343,7 @@
     {
       "id": "c875ae85-7a01-4594-8e3e-7e4fbc792489",
       "name": "KmnSfWrite",
+      "module": 1,
       "permission": 20,
       "museumId": 7,
       "description": "Write access to storage facility for KMN",
@@ -327,6 +352,7 @@
     {
       "id": "53a87b63-4628-482a-b28c-40689129b962",
       "name": "KmnSfAdmin",
+      "module": 1,
       "permission": 30,
       "museumId": 7,
       "description": "Admin access to storage facility for KMN",

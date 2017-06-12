@@ -1,8 +1,10 @@
 @import no.uio.musit.security.EncryptedToken
+@import no.uio.musit.security.AuthenticatedUser
+@import controllers.web.MenuItems
 
-@(etok: EncryptedToken, error: String)
+@(user: AuthenticatedUser, etok: EncryptedToken, error: String)
 
-@main(etok, "Error", activeMenu = 1) {
+@main(user, etok, "Error", activeMenu = MenuItems.Dashboard) {
   <div class="card">
     <div class="header">
       <h4 class="text-danger">An unexpected error occurred.</h4>

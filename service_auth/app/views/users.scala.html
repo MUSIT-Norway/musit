@@ -1,9 +1,11 @@
-@import no.uio.musit.security.UserInfo
 @import no.uio.musit.security.EncryptedToken
+@import no.uio.musit.security.AuthenticatedUser
+@import models.RegisteredUser
+@import controllers.web.MenuItems
 
-@(etok: EncryptedToken, users: Seq[UserInfo])
+@(user: AuthenticatedUser, etok: EncryptedToken, users: Seq[RegisteredUser])
 
-@main(etok, "Users", activeMenu = 4) {
+@main(user, etok, "Users", activeMenu = MenuItems.Users) {
 
   <div class="card">
     <div class="header">
@@ -13,19 +15,21 @@
       <table class="table table-striped">
         <thead>
           <tr>
-            <th>Id</th>
-            <th>Name</th>
             <th>Feide username</th>
+            <th>Has Logged On</th>
+            <th>Name</th>
             <th>Email</th>
+            <th>Id</th>
           </tr>
         </thead>
         <tbody>
           @for(usr <- users) {
             <tr>
-              <td>@usr.id.asString</td>
-              <td>@usr.name.getOrElse("-")</td>
-              <td>@usr.feideUser.map(_.value).getOrElse("-")</td>
-              <td>@usr.email.map(_.value).getOrElse("-")</td>
+              <td><b>@usr.feideEmail.value</b></td>
+              <td>@usr.maybeUserInfo.isDefined</td>
+              <td>@usr.maybeUserInfo.flatMap(_.name).getOrElse("-")</td>
+              <td>@usr.maybeUserInfo.flatMap(_.email.map(_.value)).getOrElse("-")</td>
+              <td>@usr.maybeUserInfo.map(_.id.asString).getOrElse("-")</td>
             </tr>
           }
         </tbody>

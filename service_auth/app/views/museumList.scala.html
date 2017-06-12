@@ -1,0 +1,42 @@
+@import no.uio.musit.models.Museums.Museum
+@import no.uio.musit.security.EncryptedToken
+@import controllers.web.MenuItems
+@import controllers.web.routes.UserController
+@import no.uio.musit.security.AuthenticatedUser
+
+@(user: AuthenticatedUser, etok: EncryptedToken, museums: Seq[Museum])
+
+@main(user, etok, "Museums", activeMenu = MenuItems.Museums) {
+
+  <div class="card">
+    <div class="header">
+      <h4 class="title">Museums</h4>
+    </div>
+    <div class="content table-responsive table-full-width">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Short name</th>
+            <th>City</th>
+          </tr>
+        </thead>
+        <tbody>
+        @for(m <- museums) {
+          <tr>
+            <td>@m.id.underlying</td>
+            <td>
+              <a href="@UserController.usersPerModule(m.id.underlying)?_at=@etok.urlEncoded">
+                @m.fullName
+              </a>
+            </td>
+            <td>@m.shortName</td>
+            <td>@m.location</td>
+          </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

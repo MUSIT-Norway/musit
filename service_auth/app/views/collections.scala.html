@@ -1,16 +1,15 @@
 @import no.uio.musit.MusitResults.MusitError
 @import no.uio.musit.models.MuseumCollection
 @import no.uio.musit.security.EncryptedToken
+@import no.uio.musit.security.AuthenticatedUser
+@import controllers.web.MenuItems
 @import play.api.mvc.Flash
 
-@(etok: EncryptedToken, collections: Seq[MuseumCollection], error: Option[MusitError] = None)(implicit flash: Flash)
+@(user: AuthenticatedUser, etok: EncryptedToken, collections: Seq[MuseumCollection], error: Option[MusitError] = None)(implicit flash: Flash)
 
 
-@main(etok, "Collections", activeMenu = 2) {
+@main(user, etok, "Collections", activeMenu = MenuItems.Collections) {
 
-  @*<p>*@
-    @*<a href="#">Add new collection</a>*@
-  @*</p>*@
   <div class="card">
     <div class="header">
       <h4 class="title">Found @collections.size collections</h4>

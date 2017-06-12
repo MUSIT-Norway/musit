@@ -15,6 +15,6 @@ class Dashboard @Inject()(
 
   def index = MusitAdminAction() { implicit request =>
     val encTok = EncryptedToken.fromBearerToken(request.token)
-    Ok(views.html.index(encTok))
+    Ok(views.html.index(request.user, encTok))
   }
 }

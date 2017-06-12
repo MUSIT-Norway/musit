@@ -1,8 +1,8 @@
 package models
 
-import no.uio.musit.models.{CollectionUUID, GroupId}
-import play.api.data.Form
+import no.uio.musit.models.{CollectionUUID, Email, GroupId}
 import play.api.data.Forms._
+import play.api.data.{Form, Mapping}
 import play.api.libs.json.{Format, Json}
 
 /**
@@ -18,15 +18,7 @@ case class UserAuthAdd(
 object UserAuthAdd {
   implicit val formats: Format[UserAuthAdd] = Json.format[UserAuthAdd]
 
-  def applyForm(
-      email: String,
-      groupId: String,
-      collections: Option[List[CollectionUUID]]
-  ) = UserAuthAdd(email, groupId, collections)
-
-  def unapplyForm(uga: UserAuthAdd) = Some((uga.email, uga.groupId, uga.collections))
-
-  val userAuthForm = Form(
+  val userAuthForm: Form[UserAuthAdd] = Form(
     mapping(
       "email"   -> email,
       "groupId" -> text.verifying(id => GroupId.validate(id).isSuccess),
@@ -36,6 +28,54 @@ object UserAuthAdd {
           _.map(_.underlying)
         )
       )
-    )(applyForm)(unapplyForm)
+    )(UserAuthAdd.apply)(UserAuthAdd.unapply)
   )
+}
+
+// TODO: Remove above code when below is completed.
+
+case class UserAdd(email: Email, accesses: List[ModuleAddAccess])
+
+object UserAdd {
+  val form: Form[UserAdd] = Form(
+    mapping(
+      "email"   -> email.transform[Email](Email.apply, _.value),
+      "modules" -> list[ModuleAddAccess](ModuleAddAccess.formMapping)
+    )(UserAdd.apply)(UserAdd.unapply)
+  )
+}
+
+case class ModuleAddAccess(
+    module: Int,
+    aa: List[AddAccess]
+)
+
+object ModuleAddAccess {
+
+  val formMapping: Mapping[ModuleAddAccess] = mapping(
+    "moduleId" -> number,
+    "groups"   -> list[AddAccess](AddAccess.addAccessFormMapping)
+  )(ModuleAddAccess.apply)(ModuleAddAccess.unapply)
+
+}
+
+case class AddAccess(
+    groupId: GroupId,
+    collections: Option[List[CollectionUUID]]
+) {
+
+  def hasNoCollections: Boolean = !collections.exists(_.nonEmpty)
+
+}
+
+object AddAccess {
+  val addAccessFormMapping: Mapping[AddAccess] = mapping(
+    "groupId" -> uuid.transform[GroupId](GroupId.apply, _.underlying),
+    "collections" -> optional(
+      list(uuid).transform[List[CollectionUUID]](
+        _.map(CollectionUUID.apply),
+        _.map(_.underlying)
+      )
+    )
+  )(AddAccess.apply)(AddAccess.unapply)
 }

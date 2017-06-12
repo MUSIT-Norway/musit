@@ -1,0 +1,128 @@
+@import controllers.web.MenuItems
+@import controllers.web.routes.UserController
+@import helper._
+@import models.{UserAdd, Group}
+@import no.uio.musit.models.MuseumCollection
+@import no.uio.musit.models.Museums.Museum
+@import no.uio.musit.security.{AuthenticatedUser, EncryptedToken}
+@import play.api.i18n.Messages
+@import no.uio.musit.security.ModuleConstraint
+@(
+        user: AuthenticatedUser,
+        etok: EncryptedToken,
+        theForm: play.api.data.Form[UserAdd],
+        museum: Museum,
+        collections: Seq[MuseumCollection],
+        groups: Seq[Group]
+)(implicit messages: Messages)
+
+@main(user, etok, s"Add user to ${museum.shortName}", activeMenu = MenuItems.Museums) {
+  <p>
+    <a href="@UserController.usersPerModule(museum.id.underlying)?_at=@etok.urlEncoded">
+      Go back
+    </a>
+  </p>
+
+  <form method="POST" action="#">
+    <div class="row">
+      <div class="card">
+        <div class="content">
+          <div class="form-group">
+            <div class="row">
+              <div class="col-md-offset-1 col-md-5">
+              @defining(
+                user.userInfo.feideUser.map(_.value.dropWhile(_ != '@')).getOrElse("@uio.no")
+              ) { emailSuffix =>
+                @inputText(
+                  field = theForm("email"),
+                  args = Seq(
+                    'class -> "form-control border-input",
+                    '_label -> "Feide user",
+                    'placeholder -> s"user$emailSuffix"
+                  ): _*
+                )
+              }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      @for(module <- ModuleConstraint.AllModules) {
+        <input
+          type="hidden"
+          id="modules_@(module.id)_moduleId"
+          name="modules[@module.id].moduleId"
+          value="@module.id"
+        >
+        <div class="card">
+          <div class="form-group">
+            <div class="header">
+              <h4 class="title">@module.name</h4>
+            </div>
+            <div class="content">
+              <div class="form-group">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Permission</th>
+                      <th>Collections</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  @defining(collections.map(c => (c.uuid.asString, c.name.getOrElse("")))) { cols =>
+                    @for((grp, groupIdx) <- groups.filter(g => g.module == module && g.museumId == museum.id).zipWithIndex) {
+                      <tr>
+                        <td>
+                          <input
+                            type="hidden"
+                            id="modules_@(module.id)_groups_@(groupIdx)_groupId"
+                            name="modules[@module.id].groups[@groupIdx].groupId"
+                            value="@grp.id.underlying"
+                          >
+                          <label>@grp.permission</label>
+                        </td>
+                        <td>
+                          <dl id="modules_@(module.id)_groups_@(groupIdx)_collections_field">
+                            <dd>
+                              <span class="buttonset" id="modules_@(module.id)_groups_@(groupIdx)_collections">
+                                @for((col, idx) <- cols.zipWithIndex) {
+                                  <input
+                                    class="checkbox-inline"
+                                    type="checkbox"
+                                    id="modules_@(module.id)_groups_@(groupIdx)_collections_@(idx)"
+                                    name="modules[@module.id].groups[@groupIdx].collections[@idx]"
+                                    value="@col._1"
+                                  >
+                                  <label for="modules[@module.id].groups[@groupIdx].collections[@idx]">
+                                    @col._2
+                                  </label>
+                                }
+                              </span>
+                            </dd>
+                          </dl>
+                        </td>
+                      </tr>
+                    }
+                  }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+      <div class="row">
+        <div class="form-group">
+          <div class="row">
+            <div class="col-md-offset-2 col-md-3">
+              <button class="btn btn-info btn-fill btn-wd" type="submit" name="submit" value="submit">
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+}

@@ -1,7 +1,9 @@
 @import no.uio.musit.security.EncryptedToken
+@import no.uio.musit.security.AuthenticatedUser
+@import controllers.web.MenuItems
 
-@(etok: EncryptedToken)
+@(user: AuthenticatedUser, etok: EncryptedToken)
 
-@main(etok, "Dashboard", activeMenu = 1) {
+@main(user, etok, "Dashboard", activeMenu = MenuItems.Dashboard) {
   <p>Foo Bar</p>
 }

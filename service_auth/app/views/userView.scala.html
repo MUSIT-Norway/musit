@@ -1,0 +1,99 @@
+@import controllers.web.MenuItems
+@import controllers.web.routes.UserController
+@import models.{UserPermissions, ModuleAccess}
+@import no.uio.musit.models.Museums.Museum
+@import no.uio.musit.security.{AuthenticatedUser, EncryptedToken}
+@import play.api.i18n.Messages
+@(
+        user: AuthenticatedUser,
+        etok: EncryptedToken,
+        selectedUser: UserPermissions,
+        museum: Option[Museum]
+)(implicit messages: Messages)
+
+@main(user, etok, s"Permissions for ${selectedUser.feideEmail.value}", activeMenu = MenuItems.Museums) {
+
+  <p>
+    @defining(
+      s"${UserController.userEditView(selectedUser.feideEmail.value, museum.map(_.id.underlying))}" +
+        s"${museum.map(_ => "&").getOrElse("?")}"
+    ) { baseUrl =>
+      <a href="@(baseUrl)_at=@etok.urlEncoded">
+        Edit user
+      </a>
+    }
+    &nbsp;&nbsp;
+    <a href="javascript:window.history.back()">
+      Go back
+    </a>
+  </p>
+
+  <div class="row">
+    <div class="col-md-8">
+
+      <h4 class="title">Info</h4>
+
+      <div class="card">
+        <div class="content">
+          <div class="row">
+            <div class="col-md-3 text-right"><label>Feide username:</label></div>
+            <div class="col-md-9">@selectedUser.feideEmail.value</div>
+          </div>
+          <div class="row">
+            <div class="col-md-3 text-right"><label>Full name:</label></div>
+            <div class="col-md-9">@selectedUser.name.getOrElse("-")</div>
+          </div>
+          <div class="row">
+            <div class="col-md-3 text-right"><label>Email:</label></div>
+            <div class="col-md-9">@selectedUser.email.map(_.value).getOrElse("-")</div>
+          </div>
+          <div class="row">
+            <div class="col-md-3 text-right"><label>Actor ID:</label></div>
+            <div class="col-md-9">@selectedUser.userId.map(_.asString).getOrElse("-")</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h4>Module Permissions</h4>
+
+  @defining(
+    selectedUser.access.flatMap(ModuleAccess.unapply).map { t =>
+      (t._1, t._2, t._3.groupBy(_._1))
+    }.grouped(3)
+  ) { grpdModAccess =>
+    @for(modAccess <- grpdModAccess) {
+      <div class="row">
+        @for(access@(id, constraint, permissions) <- modAccess) {
+          <div class="col-md-4">
+            <div class="card">
+              <div class="header">
+                <h4 class="title">@constraint.name</h4>
+              </div>
+              <div class="content table-responsive table-full-width">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Permission</th>
+                      <th>Collections</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for(perm <- permissions) {
+                      <tr>
+                        <td><label>@perm._1:&nbsp;</label></td>
+                        <td>@perm._2.map(_._2.getOrElse("-")).mkString(", ")</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+}

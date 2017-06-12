@@ -28,6 +28,11 @@ object Permissions {
       }
     }
 
+    def isElevated(p: Permission): Boolean = p match {
+      case e: ElevatedPermission => true
+      case _                     => false
+    }
+
   }
 
   /**

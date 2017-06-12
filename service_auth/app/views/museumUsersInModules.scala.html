@@ -1,0 +1,85 @@
+@import controllers.web.routes.UserController
+@import no.uio.musit.MusitResults.MusitError
+@import no.uio.musit.models.Museums.Museum
+@import no.uio.musit.security.EncryptedToken
+@import no.uio.musit.security.AuthenticatedUser
+@import controllers.web.MenuItems
+@import models.UserPermissions
+@import play.api.mvc.Flash
+@import no.uio.musit.security.ModuleConstraint
+
+@(
+        user: AuthenticatedUser,
+        etok: EncryptedToken,
+        museum: Museum,
+        moduleUsers: Map[ModuleConstraint, Seq[UserPermissions]],
+        error: Option[MusitError] = None
+)(implicit flash: Flash)
+
+@main(user, etok, s"Modules for ${museum.fullName}", activeMenu = MenuItems.Museums) {
+
+  <p>
+    <a href="@UserController.userAddView(museum.id.underlying)?_at=@etok.urlEncoded">
+      Add new user
+    </a>
+  </p>
+
+  @moduleUsers.toSeq.sortBy(_._1.name).map { mu =>
+    <div class="card">
+      <div class="header">
+        <h4 class="title">@mu._1.name</h4>
+      </div>
+      @if(mu._2.isEmpty) {
+        <div class="content">
+          <span>No users registered</span>
+        </div>
+      } else {
+        <div class="content table-responsive table-full-width">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Feide username</th>
+                <th>Has Logged On</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Permissions</th>
+                <th>Id</th>
+              </tr>
+            </thead>
+            <tbody>
+            @mu._2.map { usr =>
+              <tr>
+                <td>
+                  <a href="@UserController.userView(usr.feideEmail.value, Some(museum.id.underlying))&_at=@etok.urlEncoded">
+                    @usr.feideEmail.value
+                  </a>
+                </td>
+                <td>@usr.name.isDefined</td>
+                <td>@usr.name.getOrElse("-")</td>
+                <td>@usr.email.map(_.value).getOrElse("-")</td>
+                <td>
+                  @defining(
+                    usr.access
+                      .filter(ma => ma.mid == museum.id)
+                      .flatMap(ma => ma.permissions)
+                      .groupBy(_._1)
+                  ) { perms =>
+                    @for(perm <- perms) {
+                      <div>
+                        <label>@perm._1:&nbsp;</label>
+                        <span>@perm._2.map(_._2.getOrElse("-")).mkString(", ")</span>
+                      </div>
+                    }
+                  }
+                </td>
+                <td>@usr.userId.map(_.asString).getOrElse("-")</td>
+              </tr>
+            }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+}

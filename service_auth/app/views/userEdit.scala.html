@@ -1,0 +1,144 @@
+@import controllers.web.MenuItems
+@import controllers.web.routes.UserController
+@import models.{UserPermissions, Group}
+@import no.uio.musit.models.MuseumCollection
+@import no.uio.musit.models.Museums.Museum
+@import no.uio.musit.security.{AuthenticatedUser, EncryptedToken}
+@import play.api.i18n.Messages
+@import no.uio.musit.security.ModuleConstraint
+@(
+        user: AuthenticatedUser,
+        etok: EncryptedToken,
+        selectedUser: UserPermissions,
+        museum: Option[Museum],
+        collections: Seq[MuseumCollection],
+        groups: Seq[Group]
+)(implicit messages: Messages)
+
+@main(user, etok, s"User Details", activeMenu = MenuItems.Museums) {
+
+  <p>
+    @defining(
+      UserController.userView(selectedUser.feideEmail.value, museum.map(_.id.underlying))
+    ) { callAction =>
+      <a href="@(callAction)@museum.map(_ => "&").getOrElse("?")_at=@etok.urlEncoded">
+        Go back
+      </a>
+    }
+  </p>
+
+  <div class="row">
+    <div class="col-md-8">
+
+      <h4 class="title">Info</h4>
+
+      <div class="card">
+        <div class="content">
+          <div class="row">
+            <div class="col-md-3 text-right"><label>Feide username:</label></div>
+            <div class="col-md-9">@selectedUser.feideEmail.value</div>
+          </div>
+          <div class="row">
+            <div class="col-md-3 text-right"><label>Full name:</label></div>
+            <div class="col-md-9">@selectedUser.name.getOrElse("-")</div>
+          </div>
+          <div class="row">
+            <div class="col-md-3 text-right"><label>Email:</label></div>
+            <div class="col-md-9">@selectedUser.email.map(_.value).getOrElse("-")</div>
+          </div>
+          <div class="row">
+            <div class="col-md-3 text-right"><label>Actor ID:</label></div>
+            <div class="col-md-9">@selectedUser.userId.map(_.asString).getOrElse("-")</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h4>Module Permissions</h4>
+
+  @for(module <- ModuleConstraint.AllModules) {
+    <div class="card">
+      <div class="header">
+        <h4 class="title">@module.name</h4>
+      </div>
+      <div class="content">
+        <div class="form-group">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Permission</th>
+                <th>Collections</th>
+              </tr>
+            </thead>
+            <tbody>
+            @defining(collections.map(c => (c.uuid.asString, c.name.getOrElse("")))) { cols =>
+              @for((grp, groupIdx) <- groups.filter(g => g.module == module).zipWithIndex) {
+                <tr>
+                  <td>
+                    <label>@grp.permission</label>
+                  </td>
+                  <td>
+                    <span class="buttonset" id="modules_@(module.id)_groups_@(groupIdx)_collections">
+                    @for((col, idx) <- cols.zipWithIndex) {
+                      @defining({
+                        val s = s"modules[$module.id].groups[$groupIdx].collections[$idx]"
+                        (s, s.replaceAll("\\.", "").replaceAll("\\[", "_").replaceAll("\\]", "_"))
+                      }) { case (inputName, inputId) =>
+                        @defining(
+                          selectedUser.access.exists { m =>
+                            m.module.id == module.id && m.permissions.exists { pc =>
+                              pc._1 == grp.permission && pc._2.map(_.uuid.asString).contains(col._1)
+                            }
+                          }
+                        ) { isChecked =>
+                          @defining(
+                            if (isChecked) {
+                              UserController.revoke(
+                                email = selectedUser.feideEmail.value,
+                                groupId = grp.id.asString,
+                                colId = col._1,
+                                mid = museum.map(_.id.underlying)
+                              )
+                            } else {
+                              UserController.grant(
+                                email = selectedUser.feideEmail.value,
+                                groupId = grp.id.asString,
+                                colId = col._1,
+                                mid = museum.map(_.id.underlying)
+                              )
+                            }
+                          ) { callAction =>
+                            <form class="inline-form" id="@inputId-form" method="POST" action="@callAction&_at=@etok.urlEncoded">
+                              <input
+                                class="checkbox-inline"
+                                type="checkbox"
+                                id="@inputId"
+                                name="@inputName"
+                                value="@col._1"
+                                @if(isChecked) {
+                                  checked
+                                }
+                                onchange="document.getElementById('@inputId-form').submit()"
+                              >
+                              <label for="@inputName">
+                                @col._2
+                              </label>
+                            </form>
+                          }
+                        }
+                      }
+                    }
+                    </span>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+}

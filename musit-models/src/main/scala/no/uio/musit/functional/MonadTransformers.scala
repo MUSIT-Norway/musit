@@ -1,6 +1,11 @@
 package no.uio.musit.functional
 
-import no.uio.musit.MusitResults.{MusitError, MusitInternalError, MusitResult}
+import no.uio.musit.MusitResults.{
+  MusitError,
+  MusitInternalError,
+  MusitResult,
+  MusitSuccess
+}
 
 import scala.concurrent.Future
 
@@ -55,6 +60,12 @@ object MonadTransformers {
         res: MusitResult[A]
     )(implicit m: Monad[Future]): MusitResultT[Future, A] = {
       MusitResultT(Future.successful(res))
+    }
+
+    def successful[A](
+        res: A
+    )(implicit m: Monad[Future]): MusitResultT[Future, A] = {
+      MusitResultT(Future.successful[MusitResult[A]](MusitSuccess(res)))
     }
 
   }

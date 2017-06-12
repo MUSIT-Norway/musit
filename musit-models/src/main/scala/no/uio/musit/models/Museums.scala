@@ -7,6 +7,8 @@ object Museums {
   sealed trait Museum { self =>
     val id: MuseumId
     val shortName: String
+    val fullName: String
+    val location: String
   }
 
   val museums = List(All, Test, Am, Um, Khm, Nhm, Vm, Tmu, Kmn)
@@ -57,6 +59,8 @@ object Museums {
   case object All extends Museum {
     override val id                = MuseumId(10000)
     override val shortName: String = this.productPrefix
+    override val fullName: String  = "All"
+    override val location: String  = "All"
   }
 
   /**
@@ -65,6 +69,8 @@ object Museums {
   case object Test extends Museum {
     override val id                = MuseumId(99)
     override val shortName: String = this.productPrefix
+    override val fullName: String  = "Test"
+    override val location: String  = "Test"
   }
 
   /**
@@ -73,6 +79,8 @@ object Museums {
   case object Am extends Museum {
     override val id                = MuseumId(1)
     override val shortName: String = this.productPrefix
+    override val fullName: String  = "Arkeologisk museum i Stavanger"
+    override val location: String  = "Stavanger"
   }
 
   /**
@@ -81,6 +89,8 @@ object Museums {
   case object Um extends Museum {
     override val id                = MuseumId(2)
     override val shortName: String = this.productPrefix
+    override val fullName: String  = "Universitetsmuseet i Bergen"
+    override val location: String  = "Bergen"
   }
 
   /**
@@ -89,6 +99,8 @@ object Museums {
   case object Khm extends Museum {
     override val id                = MuseumId(3)
     override val shortName: String = this.productPrefix
+    override val fullName: String  = "Kulturhistorisk museum"
+    override val location: String  = "Oslo"
   }
 
   /**
@@ -97,6 +109,8 @@ object Museums {
   case object Nhm extends Museum {
     override val id                = MuseumId(4)
     override val shortName: String = this.productPrefix
+    override val fullName: String  = "Naturhistorisk museum"
+    override val location: String  = "Oslo"
   }
 
   /**
@@ -105,6 +119,8 @@ object Museums {
   case object Vm extends Museum {
     override val id                = MuseumId(5)
     override val shortName: String = this.productPrefix
+    override val fullName: String  = "Vitenskapsmuseet i Trondheim"
+    override val location: String  = "Trondheim"
   }
 
   /**
@@ -113,6 +129,8 @@ object Museums {
   case object Tmu extends Museum {
     override val id                = MuseumId(6)
     override val shortName: String = this.productPrefix
+    override val fullName: String  = "Tromsø Museum - Universitetsmuseet"
+    override val location: String  = "Tromsø"
   }
 
   /**
@@ -121,6 +139,8 @@ object Museums {
   case object Kmn extends Museum {
     override val id                = MuseumId(7)
     override val shortName: String = this.productPrefix
+    override val fullName: String  = "Agder naturmuseum og botanisk hage"
+    override val location: String  = "Kristiansand"
   }
 
 }

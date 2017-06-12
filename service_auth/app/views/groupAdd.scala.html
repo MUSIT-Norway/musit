@@ -2,11 +2,19 @@
 @import controllers.web.routes.GroupController
 @import no.uio.musit.models.Museums.museums
 @import no.uio.musit.security.EncryptedToken
+@import no.uio.musit.security.AuthenticatedUser
+@import controllers.web.MenuItems
 @import helper._
 
-@(etok: EncryptedToken, form: play.api.data.Form[_], permissions: Seq[(String, String)])(implicit messages: Messages)
+@(
+        user: AuthenticatedUser,
+        etok: EncryptedToken,
+        form: play.api.data.Form[_],
+        permissions: Seq[(String, String)],
+        modules: Seq[(String, String)]
+)(implicit messages: Messages)
 
-@main(etok, "Add group", activeMenu = 3) {
+@main(user, etok, "Add group", activeMenu = MenuItems.Groups) {
   <p>
     <a href="@GroupController.groupList()?_at=@etok.urlEncoded">
       Go to group list
@@ -27,6 +35,18 @@
                   args =
                     'class -> "form-control border-input",
                     '_label -> "Name"
+                )
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-offset-1 col-md-2">
+                @select(
+                  field = form("module"),
+                  options = modules,
+                  args =
+                    'class -> "form-control border-input",
+                    '_default -> "-",
+                    '_label -> "Module"
                 )
               </div>
             </div>

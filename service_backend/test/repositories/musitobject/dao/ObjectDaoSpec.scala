@@ -59,6 +59,7 @@ class ObjectDaoSpec
       GroupInfo(
         id = GroupId.generate(),
         name = "FooBarGroup",
+        module = StorageFacility,
         permission = Permissions.Admin,
         museumId = mid,
         description = None,

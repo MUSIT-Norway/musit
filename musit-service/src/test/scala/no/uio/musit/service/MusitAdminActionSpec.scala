@@ -101,21 +101,32 @@ class MusitAdminActionSpec extends MusitSpecWithAppPerSuite {
     "used with permissions on a controller" should {
 
       "return Forbidden if user has insufficient access rights" in {
-        val uid = ActorId.unsafeFromString(FakeUsers.dbCoordId)
-        val tok = BearerToken(FakeUsers.dbCoordToken)
+        val uid = ActorId.unsafeFromString(FakeUsers.normalUserId)
+        val tok = BearerToken(FakeUsers.normalUserToken)
 
         val req = request("/").withHeaders(tok.asHeader)
-        val res = call(authActionWithPerms(uid, tok, GodMode), req)
+        val res = call(authActionWithPerms(uid, tok), req)
 
         status(res) mustEqual FORBIDDEN
       }
 
-      "return OK if the user has sufficient access rights" in {
+      "return OK if the user is god" in {
         val req = request("/").withHeaders(superUserToken.asHeader)
-        val res = call(authActionWithPerms(superUserId, superUserToken, GodMode), req)
+        val res = call(authActionWithPerms(superUserId, superUserToken), req)
 
         status(res) mustEqual OK
         contentAsString(res) must include(superUserId.asString)
+      }
+
+      "return OK if the user is a DB coordinator" in {
+        val uid = ActorId.unsafeFromString(FakeUsers.dbCoordId)
+        val tok = BearerToken(FakeUsers.dbCoordToken)
+
+        val req = request("/").withHeaders(tok.asHeader)
+        val res = call(authActionWithPerms(uid, tok), req)
+
+        status(res) mustEqual OK
+        contentAsString(res) must include(uid.asString)
       }
 
     }

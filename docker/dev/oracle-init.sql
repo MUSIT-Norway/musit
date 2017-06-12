@@ -21,6 +21,7 @@ ALTER USER musit_mapping QUOTA UNLIMITED ON USERS;
 CREATE TABLE MUSARK_AUTH.AUTH_GROUP (
   group_uuid        VARCHAR2(36) NOT NULL,
   group_name        VARCHAR(100) NOT NULL,
+  group_module      INTEGER      NOT NULL,
   group_permission  INTEGER      NOT NULL,
   group_museumId    INTEGER      NOT NULL,
   group_description VARCHAR(512),
@@ -614,33 +615,66 @@ INSERT INTO musark_auth.museum_collection VALUES ('7352794d-4973-447b-b84e-2635c
 INSERT INTO musark_auth.museum_collection VALUES ('ba3d4d30-810b-4c07-81b3-37751f2196f0', 'Entomologi', '[9]');
 INSERT INTO musark_auth.museum_collection VALUES ('ef4dc066-b6f8-4155-89f8-7aa9aeeb2dc4', 'Marine evertebrater', '[10]');
 
--- auth groups
-INSERT INTO musark_auth.auth_group VALUES ('c0f20097-e803-4d1f-9d86-7b36bcfaec19', 'GodAccess', 10000, 10000, 'Full blown administrator with access to all functionality');
-INSERT INTO musark_auth.auth_group VALUES ('869cc344-5515-49c0-a7a5-79e371f4e64b', 'TestAppAdmin', 40, 10000, 'Application administrator with access to all functionality');
-INSERT INTO musark_auth.auth_group VALUES ('2d503a2e-2211-45dd-a99f-fe1a38b5f2a2', 'TestSfRead', 10, 99, 'Read access to storage facility for TEST');
-INSERT INTO musark_auth.auth_group VALUES ('c81c314c-0675-4cd1-8956-c96a7163825b', 'TestSfWrite', 20, 99, 'Write access to storage facility for TEST');
-INSERT INTO musark_auth.auth_group VALUES ('bc4b4d44-9470-4622-8e29-03f0bfaf5149', 'TestSfAdmin', 30, 99, 'Admin access to storage facility for TEST');
-INSERT INTO musark_auth.auth_group VALUES ('3ce7692d-2101-45a4-955b-0ca861540cd9', 'KhmSfRead', 10, 3, 'Read access to storage facility for KHM');
-INSERT INTO musark_auth.auth_group VALUES ('fd34b019-81e1-47a2-987b-64389d6fce04', 'KhmSfWrite', 20, 3, 'Write access to storage facility for KHM');
-INSERT INTO musark_auth.auth_group VALUES ('de48b2dd-f25c-4b06-a5d4-7de45780ef2e', 'KhmSfAdmin', 30, 3, 'Admin access to storage facility for KHM');
-INSERT INTO musark_auth.auth_group VALUES ('92e3b487-c962-43d9-a2ea-b8a7bed1b67a', 'NhmSfRead', 10, 4, 'Read access to storage facility for NHM');
-INSERT INTO musark_auth.auth_group VALUES ('f311dd04-89b8-48a4-b4cd-68092f76ebab', 'NhmSfWrite', 20, 4, 'Write access to storage facility for NHM');
-INSERT INTO musark_auth.auth_group VALUES ('5aa16994-92b3-45df-adfa-7f9fdf54ce34', 'NhmSfAdmin', 30, 4, 'Admin access to storage facility for NHM');
-INSERT INTO musark_auth.auth_group VALUES ('b923b5df-54d3-4724-9386-c1273561f1a1', 'UmSfRead', 10, 2, 'Read access to storage facility for UM');
-INSERT INTO musark_auth.auth_group VALUES ('6ae158a1-398c-4f05-9992-1e19759e3221', 'UmSfWrite', 20, 2, 'Write access to storage facility for UM');
-INSERT INTO musark_auth.auth_group VALUES ('0ccefaff-aee3-4447-98e5-ec29bb9b80b7', 'UmSfAdmin', 30, 2, 'Admin access to storage facility for UM');
-INSERT INTO musark_auth.auth_group VALUES ('428f6108-f376-47e5-80c2-0e166e75ae42', 'AmSfRead', 10, 1, 'Read access to storage facility for AM');
-INSERT INTO musark_auth.auth_group VALUES ('f6a43a29-c0ee-419f-b315-d343629fb9b8', 'AmSfWrite', 20, 1, 'Write access to storage facility for AM');
-INSERT INTO musark_auth.auth_group VALUES ('3a3a173e-cf99-4301-9988-78fcd5d3d153', 'AmSfAdmin', 30, 1, 'Admin access to storage facility for AM');
-INSERT INTO musark_auth.auth_group VALUES ('3eb0b341-6c16-46f7-bd75-b0e12ba6cb8b', 'VmSfRead', 10, 5, 'Read access to storage facility for VM');
-INSERT INTO musark_auth.auth_group VALUES ('b4beaefb-d124-4f10-874d-ef59ffa1bb3b', 'VmSfWrite', 20, 5, 'Write access to storage facility for VM');
-INSERT INTO musark_auth.auth_group VALUES ('cd9ea5bf-7972-45c2-a0fd-b7e75fc2e5db', 'VmSfAdmin', 30, 5, 'Admin access to storage facility for VM');
-INSERT INTO musark_auth.auth_group VALUES ('b08efccf-a4a7-41b0-b208-acc8fc9c9bb4', 'TmuSfRead', 10, 6, 'Read access to storage facility for TMU');
-INSERT INTO musark_auth.auth_group VALUES ('4f8204c3-d48f-4a7c-9c79-1136edc337fb', 'TmuSfWrite', 20, 6, 'Write access to storage facility for TMU');
-INSERT INTO musark_auth.auth_group VALUES ('611202c5-8c69-444d-9b82-6aac5be150e4', 'TmuSfAdmin', 30, 6, 'Admin access to storage facility for TMU');
-INSERT INTO musark_auth.auth_group VALUES ('b1bd705b-a6b4-48ee-b517-f1c7be1bb015', 'KmnSfRead', 10, 7, 'Read access to storage facility for KMN');
-INSERT INTO musark_auth.auth_group VALUES ('c875ae85-7a01-4594-8e3e-7e4fbc792489', 'KmnSfWrite', 20, 7, 'Write access to storage facility for KMN');
-INSERT INTO musark_auth.auth_group VALUES ('53a87b63-4628-482a-b28c-40689129b962', 'KmnSfAdmin', 30, 7, 'Admin access to storage facility for KMN');
+-- super user auth groups
+INSERT INTO musark_auth.auth_group VALUES ('c0f20097-e803-4d1f-9d86-7b36bcfaec19', 'GodAccess'  , 0, 10000, 10000, 'Full blown administrator with access to all functionality in StorageFacility');
+INSERT INTO musark_auth.auth_group VALUES ('869cc344-5515-49c0-a7a5-79e371f4e64b', 'TestDBAdmin', 0, 40   , 99   , 'Application administrator with access to manage users for the Test museum');
+INSERT INTO musark_auth.auth_group VALUES ('02c89679-a7d9-4d6d-8544-5bf6ede8c999', 'AmDBAdmin'  , 0, 40   , 1    , 'Application administrator with access to manage users for the AM museum');
+INSERT INTO musark_auth.auth_group VALUES ('835769c9-aa45-4d7a-a86a-47b06be23c51', 'UmDBAdmin'  , 0, 40   , 2    , 'Application administrator with access to manage users for the UM museum');
+INSERT INTO musark_auth.auth_group VALUES ('1dc22afb-53b9-4d47-8070-fbf3179b2b97', 'KhmDBAdmin' , 0, 40   , 3    , 'Application administrator with access to manage users for the KHM museum');
+INSERT INTO musark_auth.auth_group VALUES ('b61e3ea7-7916-48fc-b39d-c5b2c9edf698', 'NhmDBAdmin' , 0, 40   , 4    , 'Application administrator with access to manage users for the NHM museum');
+INSERT INTO musark_auth.auth_group VALUES ('35f29646-988a-477b-ae0e-aec68f18aafd', 'VmDBAdmin'  , 0, 40   , 5    , 'Application administrator with access to manage users for the VM museum');
+INSERT INTO musark_auth.auth_group VALUES ('91860af8-dded-4b08-988c-d04f7e76baee', 'TmuDBAdmin' , 0, 40   , 6    , 'Application administrator with access to manage users for the TMU museum');
+INSERT INTO musark_auth.auth_group VALUES ('149a3520-d64e-40f9-a3e7-70e130714b45', 'KmnDBAdmin' , 0, 40   , 7    , 'Application administrator with access to manage users for the KMN museum');
+-- auth groups for storage facility
+INSERT INTO musark_auth.auth_group VALUES ('428f6108-f376-47e5-80c2-0e166e75ae42', 'AmSfRead'   , 1, 10, 1 , 'Read access to storage facility for AM');
+INSERT INTO musark_auth.auth_group VALUES ('f6a43a29-c0ee-419f-b315-d343629fb9b8', 'AmSfWrite'  , 1, 20, 1 , 'Write access to storage facility for AM');
+INSERT INTO musark_auth.auth_group VALUES ('3a3a173e-cf99-4301-9988-78fcd5d3d153', 'AmSfAdmin'  , 1, 30, 1 , 'Admin access to storage facility for AM');
+INSERT INTO musark_auth.auth_group VALUES ('b923b5df-54d3-4724-9386-c1273561f1a1', 'UmSfRead'   , 1, 10, 2 , 'Read access to storage facility for UM');
+INSERT INTO musark_auth.auth_group VALUES ('6ae158a1-398c-4f05-9992-1e19759e3221', 'UmSfWrite'  , 1, 20, 2 , 'Write access to storage facility for UM');
+INSERT INTO musark_auth.auth_group VALUES ('0ccefaff-aee3-4447-98e5-ec29bb9b80b7', 'UmSfAdmin'  , 1, 30, 2 , 'Admin access to storage facility for UM');
+INSERT INTO musark_auth.auth_group VALUES ('3ce7692d-2101-45a4-955b-0ca861540cd9', 'KhmSfRead'  , 1, 10, 3 , 'Read access to storage facility for KHM');
+INSERT INTO musark_auth.auth_group VALUES ('fd34b019-81e1-47a2-987b-64389d6fce04', 'KhmSfWrite' , 1, 20, 3 , 'Write access to storage facility for KHM');
+INSERT INTO musark_auth.auth_group VALUES ('de48b2dd-f25c-4b06-a5d4-7de45780ef2e', 'KhmSfAdmin' , 1, 30, 3 , 'Admin access to storage facility for KHM');
+INSERT INTO musark_auth.auth_group VALUES ('92e3b487-c962-43d9-a2ea-b8a7bed1b67a', 'NhmSfRead'  , 1, 10, 4 , 'Read access to storage facility for NHM');
+INSERT INTO musark_auth.auth_group VALUES ('f311dd04-89b8-48a4-b4cd-68092f76ebab', 'NhmSfWrite' , 1, 20, 4 , 'Write access to storage facility for NHM');
+INSERT INTO musark_auth.auth_group VALUES ('5aa16994-92b3-45df-adfa-7f9fdf54ce34', 'NhmSfAdmin' , 1, 30, 4 , 'Admin access to storage facility for NHM');
+INSERT INTO musark_auth.auth_group VALUES ('3eb0b341-6c16-46f7-bd75-b0e12ba6cb8b', 'VmSfRead'   , 1, 10, 5 , 'Read access to storage facility for VM');
+INSERT INTO musark_auth.auth_group VALUES ('b4beaefb-d124-4f10-874d-ef59ffa1bb3b', 'VmSfWrite'  , 1, 20, 5 , 'Write access to storage facility for VM');
+INSERT INTO musark_auth.auth_group VALUES ('cd9ea5bf-7972-45c2-a0fd-b7e75fc2e5db', 'VmSfAdmin'  , 1, 30, 5 , 'Admin access to storage facility for VM');
+INSERT INTO musark_auth.auth_group VALUES ('b08efccf-a4a7-41b0-b208-acc8fc9c9bb4', 'TmuSfRead'  , 1, 10, 6 , 'Read access to storage facility for TMU');
+INSERT INTO musark_auth.auth_group VALUES ('4f8204c3-d48f-4a7c-9c79-1136edc337fb', 'TmuSfWrite' , 1, 20, 6 , 'Write access to storage facility for TMU');
+INSERT INTO musark_auth.auth_group VALUES ('611202c5-8c69-444d-9b82-6aac5be150e4', 'TmuSfAdmin' , 1, 30, 6 , 'Admin access to storage facility for TMU');
+INSERT INTO musark_auth.auth_group VALUES ('b1bd705b-a6b4-48ee-b517-f1c7be1bb015', 'KmnSfRead'  , 1, 10, 7 , 'Read access to storage facility for KMN');
+INSERT INTO musark_auth.auth_group VALUES ('c875ae85-7a01-4594-8e3e-7e4fbc792489', 'KmnSfWrite' , 1, 20, 7 , 'Write access to storage facility for KMN');
+INSERT INTO musark_auth.auth_group VALUES ('53a87b63-4628-482a-b28c-40689129b962', 'KmnSfAdmin' , 1, 30, 7 , 'Admin access to storage facility for KMN');
+INSERT INTO musark_auth.auth_group VALUES ('2d503a2e-2211-45dd-a99f-fe1a38b5f2a2', 'TestSfRead' , 1, 10, 99, 'Read access to storage facility for TEST');
+INSERT INTO musark_auth.auth_group VALUES ('c81c314c-0675-4cd1-8956-c96a7163825b', 'TestSfWrite', 1, 20, 99, 'Write access to storage facility for TEST');
+INSERT INTO musark_auth.auth_group VALUES ('bc4b4d44-9470-4622-8e29-03f0bfaf5149', 'TestSfAdmin', 1, 30, 99, 'Admin access to storage facility for TEST');
+-- auth groups for collection management
+INSERT INTO musark_auth.auth_group VALUES ('b328dc06-39e3-4fca-aa24-0823048f553a', 'AmCmRead'   , 2, 10, 1 , 'Read access to collection management for AM');
+INSERT INTO musark_auth.auth_group VALUES ('424a4eec-4fa8-48bf-8494-c57e1365a2e0', 'AmCmWrite'  , 2, 20, 1 , 'Write access to collection management for AM');
+INSERT INTO musark_auth.auth_group VALUES ('dfbf0c44-6dba-48d4-ab3f-08af5a2535a4', 'AmCmAdmin'  , 2, 30, 1 , 'Admin access to collection management for AM');
+INSERT INTO musark_auth.auth_group VALUES ('d08c2459-620d-466d-9558-d4bba8ddc60b', 'UmCmRead'   , 2, 10, 2 , 'Read access to collection management for UM');
+INSERT INTO musark_auth.auth_group VALUES ('3a87d19f-3b65-423e-8493-d0db825cef33', 'UmCmWrite'  , 2, 20, 2 , 'Write access to collection management for UM');
+INSERT INTO musark_auth.auth_group VALUES ('4c11bc1a-37c5-41fe-b00c-01963de1774a', 'UmCmAdmin'  , 2, 30, 2 , 'Admin access to collection management for UM');
+INSERT INTO musark_auth.auth_group VALUES ('77b5d898-5095-4652-9cee-855537d487a4', 'KhmCmRead'  , 2, 10, 3 , 'Read access to collection management for KHM');
+INSERT INTO musark_auth.auth_group VALUES ('ef083a59-5630-48ea-858a-58e7559c8bd1', 'KhmCmWrite' , 2, 20, 3 , 'Write access to collection management for KHM');
+INSERT INTO musark_auth.auth_group VALUES ('671cb451-ce43-4d47-8153-b509d3c31ab8', 'KhmCmAdmin' , 2, 30, 3 , 'Admin access to collection management for KHM');
+INSERT INTO musark_auth.auth_group VALUES ('6acd3954-27c3-450a-bebe-ffcfd783e05c', 'NhmCmRead'  , 2, 10, 4 , 'Read access to collection management for NHM');
+INSERT INTO musark_auth.auth_group VALUES ('56d81225-3e50-43f1-967f-d12139aab5eb', 'NhmCmWrite' , 2, 20, 4 , 'Write access to collection management for NHM');
+INSERT INTO musark_auth.auth_group VALUES ('dce23002-3dbc-4de8-97f9-ee83eee04d16', 'NhmCmAdmin' , 2, 30, 4 , 'Admin access to collection management for NHM');
+INSERT INTO musark_auth.auth_group VALUES ('3687ee49-2310-43d5-879e-c18fdcb32064', 'VmCmRead'   , 2, 10, 5 , 'Read access to collection management for VM');
+INSERT INTO musark_auth.auth_group VALUES ('4072d3e3-b2a9-4768-a166-3ffd7a94b3d9', 'VmCmWrite'  , 2, 20, 5 , 'Write access to collection management for VM');
+INSERT INTO musark_auth.auth_group VALUES ('1a988329-fb84-4ef9-8f68-869e1a22b511', 'VmCmAdmin'  , 2, 30, 5 , 'Admin access to collection management for VM');
+INSERT INTO musark_auth.auth_group VALUES ('83d1ea09-d1c8-41bb-a27a-8ce2557bd750', 'TmuCmRead'  , 2, 10, 6 , 'Read access to collection management for TMU');
+INSERT INTO musark_auth.auth_group VALUES ('2b35094e-3906-403c-bd8f-8893e641c361', 'TmuCmWrite' , 2, 20, 6 , 'Write access to collection management for TMU');
+INSERT INTO musark_auth.auth_group VALUES ('f7fc0cb3-dfe3-41af-943b-32ca0445bcbb', 'TmuCmAdmin' , 2, 30, 6 , 'Admin access to collection management for TMU');
+INSERT INTO musark_auth.auth_group VALUES ('f1cfa782-f682-499b-8102-0b0bec07ce23', 'KmnCmRead'  , 2, 10, 7 , 'Read access to collection management for KMN');
+INSERT INTO musark_auth.auth_group VALUES ('dd90adb3-b5e9-4652-87d4-ce1b18c2451b', 'KmnCmWrite' , 2, 20, 7 , 'Write access to collection management for KMN');
+INSERT INTO musark_auth.auth_group VALUES ('7c2bad5e-0de3-4709-ace4-dec6c4c7a02a', 'KmnCmAdmin' , 2, 30, 7 , 'Admin access to collection management for KMN');
+INSERT INTO musark_auth.auth_group VALUES ('86f5ba4f-2e5b-4471-b3b5-be5d68817772', 'TestCmRead' , 2, 10, 99, 'Read access to collection management for TEST');
+INSERT INTO musark_auth.auth_group VALUES ('8bfd2765-58f2-4f5b-b15a-dbba862bcff7', 'TestCmWrite', 2, 20, 99, 'Write access to collection management for TEST');
+INSERT INTO musark_auth.auth_group VALUES ('aa66d5e8-e102-464f-ad41-900b2cf99489', 'TestCmAdmin', 2, 30, 99, 'Admin access to scollection management for TEST');
 
 -- event types
 INSERT INTO musark_storage.event_type (name) VALUES ('MoveObject');

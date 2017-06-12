@@ -1,13 +1,16 @@
 @import controllers.web.routes.GroupController
+@import controllers.web.routes.UserController
 @import models.Group
 @import no.uio.musit.MusitResults.MusitError
 @import no.uio.musit.models.Museums.Museum.fromMuseumId
 @import no.uio.musit.security.EncryptedToken
+@import no.uio.musit.security.AuthenticatedUser
+@import controllers.web.MenuItems
 @import play.api.mvc.Flash
 
-@(etok: EncryptedToken, groups: Seq[Group], error: Option[MusitError] = None)(implicit flash: Flash)
+@(user: AuthenticatedUser, etok: EncryptedToken, groups: Seq[Group], error: Option[MusitError] = None)(implicit flash: Flash)
 
-@main(etok, "Groups", activeMenu = 3) {
+@main(user, etok, "Groups", activeMenu = MenuItems.Groups) {
   @if(error.nonEmpty) {
     <div class="alert alert-warning">
       <button type="button" data-dismiss="alert" aria-hidden="true" class="close">×</button>
@@ -34,6 +37,7 @@
             <th>Group name</th>
             <th>Description</th>
             <th>Museum</th>
+            <th>Module</th>
             <th>Permission</th>
             <th> </th>
           </tr>
@@ -42,12 +46,15 @@
         @for(group <- groups) {
           <tr>
             <td>
-              <a class="text-primary" href="@GroupController.groupUserList(group.id.asString)?_at=@etok.urlEncoded">
-                <b><u>@group.name</u></b>
-              </a>
+              <b><u>@group.name</u></b>
             </td>
             <td>@group.description</td>
-            <td>@fromMuseumId(group.museumId).map(_.shortName).getOrElse("-")</td>
+            <td>
+              <a class="text-primary" href="@UserController.usersPerModule(group.museumId.underlying)?_at=@etok.urlEncoded">
+                @fromMuseumId(group.museumId).map(_.shortName).getOrElse("-")
+              </a>
+            </td>
+            <td>@group.module.toString</td>
             <td>@group.permission.toString</td>
             <td>
               <form method="post" action="@GroupController.deleteGroup(group.id.asString)?_at=@etok.urlEncoded">

@@ -61,6 +61,12 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] with DateTimeImp
       i => MuseumId.fromInt(i)
     )
 
+  implicit lazy val groupModuleMapper: BaseColumnType[ModuleConstraint] =
+    MappedColumnType.base[ModuleConstraint, Int](
+      m => m.id,
+      i => ModuleConstraint.unsafeFromInt(i)
+    )
+
   implicit lazy val permissionMapper: BaseColumnType[Permission] =
     MappedColumnType.base[Permission, Int](
       p => p.priority,
@@ -99,7 +105,8 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] with DateTimeImp
   val musColTable     = TableQuery[MuseumCollectionTable]
   val usrSessionTable = TableQuery[UserSessionTable]
 
-  type GroupDBTuple = ((GroupId, String, Permission, MuseumId, Option[String]))
+  type GroupDBTuple =
+    ((GroupId, String, ModuleConstraint, Permission, MuseumId, Option[String]))
 
   class GroupTable(
       val tag: Tag
@@ -107,11 +114,14 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] with DateTimeImp
 
     val id          = column[GroupId]("GROUP_UUID", O.PrimaryKey)
     val name        = column[String]("GROUP_NAME")
+    val module      = column[ModuleConstraint]("GROUP_MODULE")
     val permission  = column[Permission]("GROUP_PERMISSION")
     val museumId    = column[MuseumId]("GROUP_MUSEUMID")
     val description = column[Option[String]]("GROUP_DESCRIPTION")
 
-    override def * = (id, name, permission, museumId, description) // scalastyle:ignore
+    // scalastyle:off
+    override def * = (id, name, module, permission, museumId, description)
+    // scalastyle:on
 
   }
 
@@ -132,7 +142,15 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] with DateTimeImp
   type UserInfoDBTuple =
     ((ActorId, Option[Email], Option[String], Option[Email], Option[String]))
 
-  // scalastyle:ignore
+  def userInfoFromTuple(tuple: UserInfoDBTuple): UserInfo = {
+    UserInfo(
+      id = tuple._1,
+      secondaryIds = tuple._2.map(sec => Seq(sec.value)),
+      name = tuple._3,
+      email = tuple._4,
+      picture = tuple._5
+    )
+  }
 
   class UserInfoTable(
       val tag: Tag
@@ -196,8 +214,19 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] with DateTimeImp
         )
     )
 
+    // scalastyle:off
     override def * =
-      (uuid, token, userUuid, loginTime, lastActive, isLoggedIn, tokenExpiry, client) <> (create.tupled, destroy) // scalastyle:ignore
+      (
+        uuid,
+        token,
+        userUuid,
+        loginTime,
+        lastActive,
+        isLoggedIn,
+        tokenExpiry,
+        client
+      ) <> (create.tupled, destroy)
+    // scalastyle:on
 
   }
 
@@ -220,8 +249,15 @@ trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] with DateTimeImp
     val destroy = (ugm: UserGroupMembership) =>
       Some((ugm.id, ugm.feideEmail, ugm.groupId, ugm.collection))
 
+    // scalastyle:off
     override def * =
-      (id, feideEmail, groupId, collectionId) <> (create.tupled, destroy) // scalastyle:ignore
+      (
+        id,
+        feideEmail,
+        groupId,
+        collectionId
+      ) <> (create.tupled, destroy)
+    // scalastyle:on
   }
 
   type GrpColTuples = Seq[(GroupDBTuple, CollectionDBTuple)]

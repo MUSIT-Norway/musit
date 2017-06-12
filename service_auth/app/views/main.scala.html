@@ -1,10 +1,12 @@
-@import controllers.web.routes.Dashboard
 @import controllers.web.routes.GroupController
 @import controllers.web.routes.UserController
 @import controllers.web.routes.MuseumCollectionController
+@import controllers.web.routes.MuseumController
+@import controllers.web.MenuItems
 @import no.uio.musit.security.EncryptedToken
+@import no.uio.musit.security.AuthenticatedUser
 
-@(etok: EncryptedToken, title: String, activeMenu: Int = 1)(content: Html)
+@(user: AuthenticatedUser, etok: EncryptedToken, title: String, activeMenu: Int = MenuItems.Dashboard)(content: Html)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -34,46 +36,48 @@
           </div>
 
           <ul class="nav">
-            @if(activeMenu == 1) {
+            @if(activeMenu == MenuItems.Museums) {
               <li class="active">
             } else {
               <li>
             }
-              <a href="@Dashboard.index()?_at=@etok.urlEncoded">
-                <i class="fa fa-home"></i>
-                <p>Dashboard</p>
-              </a>
+            <a href="@MuseumController.listMuseums?_at=@etok.urlEncoded">
+              <i class="fa fa-home"></i>
+              <p>Museums</p>
+            </a>
             </li>
-            @if(activeMenu == 2) {
-              <li class="active">
-            } else {
-              <li>
-            }
-              <a href="@MuseumCollectionController.listCollections?_at=@etok.urlEncoded">
-                <i class="fa fa-archive"></i>
-                <p>Collections</p>
-              </a>
-            </li>
-            @if(activeMenu == 3) {
-              <li class="active">
-            } else {
-              <li>
-            }
-              <a href="@GroupController.groupList()?_at=@etok.urlEncoded">
-                <i class="fa fa-group"></i>
-                <p>Groups</p>
-              </a>
-            </li>
-            @if(activeMenu == 4) {
-              <li class="active">
-            } else {
-              <li>
+            @if(user.hasGodMode) {
+              @if(activeMenu == MenuItems.Collections) {
+                <li class="active">
+              } else {
+                <li>
               }
-              <a href="@UserController.users()?_at=@etok.urlEncoded">
-                <i class="fa fa-user"></i>
-                <p>Users</p>
-              </a>
-            </li>
+                  <a href="@MuseumCollectionController.listCollections?_at=@etok.urlEncoded">
+                    <i class="fa fa-archive"></i>
+                    <p>Collections</p>
+                  </a>
+                </li>
+              @if(activeMenu == MenuItems.Groups) {
+                <li class="active">
+              } else {
+                <li>
+              }
+                  <a href="@GroupController.groupList()?_at=@etok.urlEncoded">
+                    <i class="fa fa-group"></i>
+                    <p>Groups</p>
+                  </a>
+                </li>
+              @if(activeMenu == MenuItems.Users) {
+                <li class="active">
+              } else {
+                <li>
+              }
+                <a href="@UserController.users()?_at=@etok.urlEncoded">
+                  <i class="fa fa-user"></i>
+                  <p>Users</p>
+                </a>
+              </li>
+            }
           </ul>
         </div>
       </div>
@@ -90,9 +94,7 @@
         <div class="content">
           <div class="container-fluid">
             <div class="row">
-              <div class="col-md-12">
-              @content
-              </div>
+              <div class="col-md-12">@content</div>
             </div>
           </div>
         </div>
@@ -101,9 +103,7 @@
             <nav class="pull-right">
               <ul>
                 <li>
-                  <a href="#">
-                    MUSIT
-                  </a>
+                  <label>MUSIT</label>
                 </li>
               </ul>
             </nav>

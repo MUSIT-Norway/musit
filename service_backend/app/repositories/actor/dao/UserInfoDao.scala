@@ -20,16 +20,6 @@ class UserInfoDao @Inject()(
 
   import profile.api._
 
-  private def userInfoFromTuple(tuple: UserInfoDBTuple): UserInfo = {
-    UserInfo(
-      id = tuple._1,
-      secondaryIds = tuple._2.map(sec => Seq(sec.value)),
-      name = tuple._3,
-      email = tuple._4,
-      picture = tuple._5
-    )
-  }
-
   def getById(id: ActorId): Future[Option[UserInfo]] = {
     db.run(usrInfoTable.filter(_.uuid === id).result.headOption)
       .map { musr =>

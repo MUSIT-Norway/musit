@@ -6,7 +6,7 @@ import no.uio.musit.security.crypto.MusitCrypto
 import no.uio.musit.security.{Authenticator, EncryptedToken}
 import no.uio.musit.service.MusitAdminController
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.actor.dao.AuthDao
+import repositories.auth.dao.AuthDao
 
 class MuseumCollectionController @Inject()(
     implicit val authService: Authenticator,
@@ -18,8 +18,9 @@ class MuseumCollectionController @Inject()(
     val encTok = EncryptedToken.fromBearerToken(request.token)
 
     dao.allCollections.map {
-      case MusitSuccess(cols) => Ok(views.html.collections(encTok, cols))
-      case err: MusitError    => InternalServerError(views.html.error(encTok, err.message))
+      case MusitSuccess(cols) => Ok(views.html.collections(request.user, encTok, cols))
+      case err: MusitError =>
+        InternalServerError(views.html.error(request.user, encTok, err.message))
     }
   }
 

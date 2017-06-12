@@ -25,12 +25,12 @@ class Init @Inject()(
 
           logger.trace(s"Encrypted token: $token")
 
-          logger.debug(
-            s"Redirecting to: ${web.routes.Dashboard.index().absoluteURL()}"
-          )
+          val url = web.routes.MuseumController.listMuseums().url
+
+          logger.debug(s"Redirecting to: $url")
 
           Redirect(
-            url = web.routes.Dashboard.index().absoluteURL(),
+            url = url,
             queryString = Map("_at" -> Seq(token))
           )
         }
