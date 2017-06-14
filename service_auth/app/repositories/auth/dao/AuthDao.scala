@@ -109,8 +109,8 @@ class AuthDao @Inject()(
       usrInfoTable on ((t1, t2) => t2.secId === t1._2.map(_.feideEmail))
 
     db.run(q.result).map { rows =>
-      val normalisedRow = rows.map(r => (r._1._1, r._1._2, r._2))
-      val r             = accumulateUserDetails(normalisedRow)
+      val normalisedRows = rows.map(r => (r._1._1, r._1._2, r._2))
+      val r              = accumulateUserDetails(normalisedRows)
       MusitSuccess(r)
     }
   }
@@ -153,7 +153,7 @@ class AuthDao @Inject()(
               )
               ud +: usrs
             }
-        }.getOrElse(Seq.empty)
+        }.getOrElse(usrs)
     }
   }
 
