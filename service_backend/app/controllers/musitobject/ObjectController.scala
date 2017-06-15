@@ -1,16 +1,15 @@
 package controllers.musitobject
 
 import com.google.inject.Inject
-import controllers.parseCollectionIdsParam
+import controllers._
 import models.musitobject.ObjectSearchResult
-import no.uio.musit.MusitResults.{MusitDbError, MusitError, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.models._
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
-import play.api.mvc.Results
 import play.api.{Configuration, Logger}
 import services.musitobject.ObjectService
 import services.storage.StorageNodeService
@@ -81,13 +80,9 @@ class ObjectController @Inject()(
             case MusitSuccess(res) =>
               Ok(Json.toJson[ObjectSearchResult](res))
 
-            case MusitDbError(msg, ex) =>
-              logger.error(msg, ex.orNull)
-              InternalServerError(Json.obj("message" -> msg))
-
             case err: MusitError =>
               logger.error(err.message)
-              Results.InternalServerError(Json.obj("message" -> err.message))
+              internalErr(err)
           }
         }
     }
@@ -115,21 +110,13 @@ class ObjectController @Inject()(
               case MusitSuccess(res) =>
                 Ok(Json.toJson(res))
 
-              case MusitDbError(msg, ex) =>
-                logger.error(msg, ex.orNull)
-                InternalServerError(Json.obj("message" -> msg))
-
               case err: MusitError =>
                 logger.error(err.message)
-                Results.InternalServerError(Json.obj("message" -> err.message))
+                internalErr(err)
             }
         }
       }
-      .getOrElse {
-        Future.successful {
-          BadRequest(Json.obj("message" -> s"Invalid UUID $mainObjectId"))
-        }
-      }
+      .getOrElse(invaludUuidResponse(mainObjectId))
   }
 
   // scalastyle:off method.length
@@ -169,12 +156,8 @@ class ObjectController @Inject()(
                       )
                     )
 
-                  case MusitDbError(msg, ex) =>
-                    logger.error(msg, ex.orNull)
-                    InternalServerError(Json.obj("message" -> msg))
-
                   case r: MusitError =>
-                    InternalServerError(Json.obj("message" -> r.message))
+                    internalErr(r)
                 }
 
               case MusitSuccess(false) =>
@@ -186,21 +169,15 @@ class ObjectController @Inject()(
                   )
                 )
 
-              case MusitDbError(msg, ex) =>
-                logger.error(msg, ex.orNull)
-                Future.successful(InternalServerError(Json.obj("message" -> msg)))
-
               case r: MusitError =>
-                Future.successful(InternalServerError(Json.obj("message" -> r.message)))
+                logger.error(r.message)
+                Future.successful(internalErr(r))
             }
         }
       }
-      .getOrElse {
-        Future.successful {
-          BadRequest(Json.obj("message" -> s"Invalid UUID $nodeId"))
-        }
-      }
+      .getOrElse(invaludUuidResponse(nodeId))
   }
+
   // scalastyle:on method.length
 
   def scanForOldBarcode(
@@ -215,12 +192,9 @@ class ObjectController @Inject()(
           case MusitSuccess(objects) =>
             Ok(Json.toJson(objects))
 
-          case MusitDbError(msg, ex) =>
-            logger.error(msg, ex.orNull)
-            InternalServerError(Json.obj("message" -> msg))
-
           case r: MusitError =>
-            InternalServerError(Json.obj("message" -> r.message))
+            logger.error(r.message)
+            internalErr(r)
         }
     }
   }
@@ -244,19 +218,12 @@ class ObjectController @Inject()(
                   )
                 )(obj => Ok(Json.toJson(obj)))
 
-              case MusitDbError(msg, ex) =>
-                logger.error(msg, ex.orNull)
-                InternalServerError(Json.obj("message" -> msg))
-
               case r: MusitError =>
-                InternalServerError(Json.obj("message" -> r.message))
+                logger.error(r.message)
+                internalErr(r)
             }
           }
-          .getOrElse(
-            Future.successful(
-              BadRequest(Json.obj("message" -> s"Invalid object UUID $objectUUID"))
-            )
-          )
+          .getOrElse(invaludUuidResponse(objectUUID))
     }
   }
 }

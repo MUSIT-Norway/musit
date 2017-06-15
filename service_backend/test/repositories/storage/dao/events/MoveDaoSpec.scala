@@ -53,7 +53,7 @@ class MoveDaoSpec
             mo.doneBy mustBe Some(defaultActorId)
             mo.registeredBy mustBe Some(defaultActorId)
             mo.affectedThing mustBe Some(defaultObjectUUID)
-            mo.objectType mustBe ObjectTypes.CollectionObject
+            mo.objectType mustBe ObjectTypes.CollectionObjectType
 
           case err =>
             fail(s"Expected MoveObject but got ${err.getClass}")

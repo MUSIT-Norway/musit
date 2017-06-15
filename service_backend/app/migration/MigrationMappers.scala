@@ -31,7 +31,7 @@ import models.storage.event.old.observation.ObservationSubEvents.{
   ObservationWaterDamageAssessment => OldObsWater
 }
 import models.storage.event.old.observation.{Observation => OldObservation}
-import no.uio.musit.models.ObjectTypes.CollectionObject
+import no.uio.musit.models.ObjectTypes.CollectionObjectType
 import no.uio.musit.models._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -289,7 +289,7 @@ private[migration] trait MoveObjectMappers extends TypeMappers {
       registeredBy = old.registeredBy,
       registeredDate = old.registeredDate,
       eventType = old.eventType,
-      objectType = CollectionObject,
+      objectType = CollectionObjectType,
       from = old.from.map(o => nodeIdMap(o)._1),
       to = nodeIdMap(old.to)._1
     )

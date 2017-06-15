@@ -5,7 +5,7 @@ import models.analysis.SampleStatuses.SampleStatus
 import models.analysis._
 import models.analysis.events.SampleCreated
 import no.uio.musit.MusitResults.MusitSuccess
-import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
+import no.uio.musit.models.ObjectTypes.{CollectionObjectType, ObjectType}
 import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -42,7 +42,7 @@ class SampleObjectServiceSpec
   def generateSampleObject(
       id: Option[ObjectUUID],
       parentId: Option[ObjectUUID],
-      parentobjType: ObjectType = CollectionObject,
+      parentobjType: ObjectType = CollectionObjectType,
       isExtracted: Boolean = false,
       status: SampleStatus = SampleStatuses.Intact
   ): SampleObject = {

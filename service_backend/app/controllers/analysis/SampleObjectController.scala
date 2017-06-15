@@ -4,27 +4,30 @@ import com.google.inject.{Inject, Singleton}
 import controllers._
 import models.analysis.SaveSampleObject
 import no.uio.musit.MusitResults.{MusitEmpty, MusitError, MusitSuccess}
-import no.uio.musit.models.{MuseumId, ObjectUUID}
+import no.uio.musit.models.{MuseumId, ObjectUUID, StorageNodeId}
 import no.uio.musit.security.Authenticator
+import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsError, JsSuccess, Json}
 import services.analysis.SampleObjectService
+import services.storage.StorageNodeService
 
 import scala.concurrent.Future
 
 @Singleton
 class SampleObjectController @Inject()(
     val authService: Authenticator,
-    val soService: SampleObjectService
+    val soService: SampleObjectService,
+    val nodeService: StorageNodeService
 ) extends MusitController {
 
   val logger = Logger(classOf[SampleObjectController])
 
   def getForMuseum(mid: MuseumId) =
     MusitSecureAction().async { implicit request =>
-      soService.findForMuseum(mid).map {
+      soService.findForMuseum(mid)(request.user).map {
         case MusitSuccess(objects) => listAsPlayResult(objects)
         case err: MusitError       => internalErr(err)
       }
@@ -35,7 +38,7 @@ class SampleObjectController @Inject()(
       ObjectUUID
         .fromString(uuid)
         .map { oid =>
-          soService.findById(oid).map {
+          soService.findById(oid)(request.user).map {
             case MusitSuccess(maybeObject) =>
               maybeObject.map(so => Ok(Json.toJson(so))).getOrElse(NotFound)
 
@@ -43,11 +46,7 @@ class SampleObjectController @Inject()(
 
           }
         }
-        .getOrElse {
-          Future.successful {
-            BadRequest(Json.obj("message" -> s"Invalid object UUID $uuid"))
-          }
-        }
+        .getOrElse(invaludUuidResponse(uuid))
     }
 
   def getForParentObject(mid: MuseumId, uuid: String) =
@@ -55,18 +54,49 @@ class SampleObjectController @Inject()(
       ObjectUUID
         .fromString(uuid)
         .map { oid =>
-          soService.findForParent(oid).map {
+          soService.findForParent(oid)(request.user).map {
             case MusitSuccess(objects) => listAsPlayResult(objects)
             case err: MusitError       => internalErr(err)
 
           }
         }
-        .getOrElse {
-          Future.successful {
-            BadRequest(Json.obj("message" -> s"Invalid object UUID $uuid"))
-          }
-        }
+        .getOrElse(invaludUuidResponse(uuid))
     }
+
+  def getSamplesForNode(
+      mid: Int,
+      nodeId: String,
+      collectionIds: String
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
+    StorageNodeId
+      .fromString(nodeId)
+      .map { nid =>
+        parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+          case Left(res) => Future.successful(res)
+          case Right(cids) =>
+            nodeService.exists(mid, nid).flatMap {
+              case MusitSuccess(true) =>
+                soService.findForNode(mid, nid, cids)(request.user).map {
+                  case MusitSuccess(samples) => listAsPlayResult(samples)
+                  case err: MusitError       => internalErr(err)
+                }
+
+              case MusitSuccess(false) =>
+                Future.successful(
+                  NotFound(
+                    Json.obj(
+                      "message" -> s"Did not find node in museum $mid with nodeId $nodeId"
+                    )
+                  )
+                )
+
+              case r: MusitError =>
+                Future.successful(internalErr(r))
+            }
+        }
+      }
+      .getOrElse(invaludUuidResponse(nodeId))
+  }
 
   def save(mid: MuseumId) =
     MusitSecureAction().async(parse.json) { implicit request =>
@@ -97,11 +127,7 @@ class SampleObjectController @Inject()(
               Future.successful(BadRequest(JsError.toJson(err)))
           }
         }
-        .getOrElse {
-          Future.successful(
-            BadRequest(Json.obj("message" -> s"Invalid object UUID $uuid"))
-          )
-        }
+        .getOrElse(invaludUuidResponse(uuid))
 
     }
 
@@ -117,10 +143,6 @@ class SampleObjectController @Inject()(
             case err: MusitError => internalErr(err)
           }
         }
-        .getOrElse {
-          Future.successful(
-            BadRequest(Json.obj("message" -> s"Invalid object UUID $uuid"))
-          )
-        }
+        .getOrElse(invaludUuidResponse(uuid))
     }
 }

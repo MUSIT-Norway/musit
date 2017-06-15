@@ -10,7 +10,7 @@ import models.storage.event.old.move.{MoveNode, MoveObject}
 import models.storage.event.old.observation.Observation
 import models.storage.event.old.observation.ObservationSubEvents._
 import models.storage.{FromToDouble, Interval, LifeCycle}
-import no.uio.musit.models.ObjectTypes.CollectionObject
+import no.uio.musit.models.ObjectTypes.CollectionObjectType
 import no.uio.musit.models.{MuseumId, ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.test.MusitSpecWithApp
 import org.joda.time.DateTime
@@ -217,7 +217,7 @@ trait EventTypeInitializers_Old { self: BaseDummyData =>
       doneBy = Some(defaultActorId),
       affectedThing = objectId,
       eventType = EventType.fromEventTypeId(MoveObjectType.id),
-      objectType = CollectionObject,
+      objectType = CollectionObjectType,
       from = from,
       to = to
     )

@@ -5,7 +5,7 @@ import models.storage.event.move.{MoveNode, MoveObject}
 import models.storage.nodes._
 import models.storage.{Interval, MovableObject}
 import no.uio.musit.MusitResults.{MusitSuccess, MusitValidationError}
-import no.uio.musit.models.ObjectTypes.CollectionObject
+import no.uio.musit.models.ObjectTypes.CollectionObjectType
 import no.uio.musit.models._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.{DateTimeMatchers, MusitResultValues}
@@ -284,14 +284,16 @@ class StorageNodeServiceSpec
       val oid  = ObjectUUID.unsafeFromString("e2cdc938-70d0-44f8-89b5-ae9387e1cc61")
       val dest = insertedNodeIds.result()(StorageNodeDatabaseId(25))
 
-      val cmd    = MoveObjectsCmd(dest, Seq(MovableObject(oid, CollectionObject)))
+      val cmd    = MoveObjectsCmd(dest, Seq(MovableObject(oid, CollectionObjectType)))
       val events = MoveObject.fromCommand(defaultActorId, cmd)
 
       val res =
         service.moveObjects(defaultMuseumId, dest, events).futureValue.successValue
 
       val loc2 =
-        service.currentObjectLocation(defaultMuseumId, oid, CollectionObject).futureValue
+        service
+          .currentObjectLocation(defaultMuseumId, oid, CollectionObjectType)
+          .futureValue
       loc2.successValue.value.id mustBe Some(StorageNodeDatabaseId(25))
       loc2.successValue.value.pathNames must not be empty
     }
@@ -300,7 +302,7 @@ class StorageNodeServiceSpec
       val oid  = ObjectUUID.unsafeFromString("e2cdc938-70d0-44f8-89b5-ae9387e1cc61")
       val dest = insertedNodeIds.result()(StorageNodeDatabaseId(25))
 
-      val cmd    = MoveObjectsCmd(dest, Seq(MovableObject(oid, CollectionObject)))
+      val cmd    = MoveObjectsCmd(dest, Seq(MovableObject(oid, CollectionObjectType)))
       val events = MoveObject.fromCommand(defaultActorId, cmd)
 
       service
@@ -309,7 +311,7 @@ class StorageNodeServiceSpec
         .isFailure mustBe true
 
       service
-        .currentObjectLocation(defaultMuseumId, oid, CollectionObject)
+        .currentObjectLocation(defaultMuseumId, oid, CollectionObjectType)
         .futureValue
         .successValue
         .value
@@ -320,7 +322,7 @@ class StorageNodeServiceSpec
       val oid  = ObjectUUID.generate()
       val dest = buildingUUID
 
-      val cmd    = MoveObjectsCmd(dest, Seq(MovableObject(oid, CollectionObject)))
+      val cmd    = MoveObjectsCmd(dest, Seq(MovableObject(oid, CollectionObjectType)))
       val events = MoveObject.fromCommand(defaultActorId, cmd)
 
       service
@@ -329,7 +331,7 @@ class StorageNodeServiceSpec
         .isSuccess mustBe true
 
       service
-        .currentObjectLocation(defaultMuseumId, oid, CollectionObject)
+        .currentObjectLocation(defaultMuseumId, oid, CollectionObjectType)
         .futureValue
         .successValue
         .value
@@ -341,7 +343,7 @@ class StorageNodeServiceSpec
       val loc = insertedNodeIds.result()(StorageNodeDatabaseId(25))
 
       service
-        .currentObjectLocation(defaultMuseumId, oid, CollectionObject)
+        .currentObjectLocation(defaultMuseumId, oid, CollectionObjectType)
         .futureValue
         .successValue
         .value

@@ -14,7 +14,7 @@ import models.storage.event.old.envreq.EnvRequirement
 import models.storage.event.old.move.{MoveEvent, MoveNode, MoveObject}
 import models.storage.event.old.observation.Observation
 import models.storage.{FromToDouble, Interval, LifeCycle}
-import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
+import no.uio.musit.models.ObjectTypes.{CollectionObjectType, ObjectType}
 import no.uio.musit.models.{ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.time.Implicits._
 import play.api.Logger
@@ -672,7 +672,7 @@ object DtoConverters {
             registeredDate = dto.registeredDate,
             eventType = eventType,
             objectType =
-              ObjectType.fromOptString(dto.valueString).getOrElse(CollectionObject),
+              ObjectType.fromOptString(dto.valueString).getOrElse(CollectionObjectType),
             from = from,
             to = to
         )

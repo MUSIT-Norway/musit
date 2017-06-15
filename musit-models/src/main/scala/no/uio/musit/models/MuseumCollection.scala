@@ -19,12 +19,8 @@ object MuseumCollection {
 
   implicit val format: Format[MuseumCollection] = Json.format[MuseumCollection]
 
-  def fromTuple(t: (CollectionUUID, Option[String], Seq[Collection])): MuseumCollection = {
-    MuseumCollection(
-      uuid = t._1,
-      name = t._2,
-      oldSchemaNames = t._3
-    )
-  }
+  def fromTuple(
+      t: (CollectionUUID, Option[String], Seq[Collection])
+  ): MuseumCollection = MuseumCollection(t._1, t._2, t._3)
 
 }

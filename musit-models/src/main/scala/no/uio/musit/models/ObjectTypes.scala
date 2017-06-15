@@ -10,10 +10,10 @@ object ObjectTypes {
 
     def fromString(str: String): Option[ObjectType] = {
       str match {
-        case CollectionObject.name => Some(CollectionObject)
-        case SampleObject.name     => Some(SampleObject)
-        case Node.name             => Some(Node)
-        case _                     => None
+        case CollectionObjectType.name => Some(CollectionObjectType)
+        case SampleObjectType.name     => Some(SampleObjectType)
+        case Node.name                 => Some(Node)
+        case _                         => None
       }
     }
 
@@ -39,9 +39,9 @@ object ObjectTypes {
 
   }
 
-  case object CollectionObject extends ObjectType("collection")
+  case object CollectionObjectType extends ObjectType("collection")
 
-  case object SampleObject extends ObjectType("sample")
+  case object SampleObjectType extends ObjectType("sample")
 
   case object Node extends ObjectType("node")
 

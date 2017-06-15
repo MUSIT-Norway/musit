@@ -37,7 +37,7 @@ trait EventGenerators { self: BaseDummyData =>
       doneBy = Some(defaultActorId),
       affectedThing = objectId,
       eventType = EventType.fromEventTypeId(MoveObjectType.id),
-      objectType = ObjectTypes.CollectionObject,
+      objectType = ObjectTypes.CollectionObjectType,
       from = from,
       to = to
     )

@@ -25,6 +25,8 @@ package object controllers {
   val badRequestErr = (err: MusitValidationError) =>
     Results.BadRequest(Json.obj("message" -> err.message))
 
+  val badRequestStr = (msg: String) => Results.BadRequest(Json.obj("message" -> msg))
+
   def invaludUuidResponse(arg: String): Future[Result] = Future.successful {
     Results.BadRequest(Json.obj("message" -> s"Invalid UUID $arg"))
   }

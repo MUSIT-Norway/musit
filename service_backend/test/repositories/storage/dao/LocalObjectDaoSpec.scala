@@ -1,7 +1,7 @@
 package repositories.storage.dao
 
 import models.storage.MovableObject_Old
-import no.uio.musit.models.ObjectTypes.{CollectionObject, Node, SampleObject}
+import no.uio.musit.models.ObjectTypes.{CollectionObjectType, Node, SampleObjectType}
 import no.uio.musit.models.{ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
@@ -13,22 +13,22 @@ class LocalObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues
 
   "LocalObjectDao" should {
     "not return location for the movable objects when ObjectType doesn't match" in {
-      val obj = MovableObject_Old(ObjectId(20), SampleObject)
+      val obj = MovableObject_Old(ObjectId(20), SampleObjectType)
       val res = dao.currentLocationsForMovableObjects(Seq(obj)).futureValue
 
       res.successValue mustBe Map(obj -> None)
     }
 
     "find location for the movable object when the object has a matching ObjectType" in {
-      val obj = MovableObject_Old(ObjectId(20), CollectionObject)
+      val obj = MovableObject_Old(ObjectId(20), CollectionObjectType)
       val res = dao.currentLocationsForMovableObjects(Seq(obj)).futureValue
 
       res.successValue mustBe Map(obj -> Some(StorageNodeDatabaseId(8)))
     }
 
     "find location for the movable object with multiple matching ObjectTypes" in {
-      val objOne = MovableObject_Old(ObjectId(20), CollectionObject)
-      val objTwo = MovableObject_Old(ObjectId(21), SampleObject)
+      val objOne = MovableObject_Old(ObjectId(20), CollectionObjectType)
+      val objTwo = MovableObject_Old(ObjectId(21), SampleObjectType)
 
       val res = dao.currentLocationsForMovableObjects(Seq(objOne, objTwo)).futureValue
 

@@ -127,6 +127,7 @@ PUT           /:mid/samples/:id                                              con
 GET           /:mid/samples/:id                                              controllers.analysis.SampleObjectController.getById(mid: Int, id: String)
 DELETE        /:mid/samples/:id                                              controllers.analysis.SampleObjectController.delete(mid: Int, id: String)
 GET           /:mid/samples/:parentId/children                               controllers.analysis.SampleObjectController.getForParentObject(mid: Int, parentId: String)
+GET           /:mid/node/:nodeId/samples                                     controllers.analysis.SampleObjectController.getSamplesForNode(mid: Int, nodeId: String, collectionIds: String)
 
 # Misc...
 GET           /treatments                                                    controllers.analysis.TreatmentController.getTreatmentList

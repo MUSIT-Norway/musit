@@ -9,7 +9,7 @@ import models.analysis.events.SaveCommands.{
 import models.analysis.events.{Analysis, AnalysisCollection, AnalysisTypeId, Restriction}
 import models.analysis.AnalysisStatuses
 import no.uio.musit.models.{ActorId, Museums, ObjectUUID, OrgId}
-import no.uio.musit.models.ObjectTypes.CollectionObject
+import no.uio.musit.models.ObjectTypes.CollectionObjectType
 import no.uio.musit.time.dateTimeNow
 
 trait AnalysisGenerators {
@@ -40,7 +40,7 @@ trait AnalysisGenerators {
       completedBy = None,
       completedDate = None,
       extraAttributes = None,
-      objectType = CollectionObject
+      objectType = CollectionObjectType
     )
   }
 
@@ -57,7 +57,7 @@ trait AnalysisGenerators {
       administrator = Some(dummyActorById),
       completedBy = None,
       completedDate = None,
-      objects = oids.map(id => ObjectUuidAndType(id, CollectionObject)),
+      objects = oids.map(id => ObjectUuidAndType(id, CollectionObjectType)),
       restriction = None,
       reason = None,
       status = AnalysisStatuses.Preparation,
@@ -113,7 +113,7 @@ trait AnalysisGenerators {
       completedDate = now,
       partOf = None,
       objectId = oid,
-      objectType = oid.map(_ => CollectionObject),
+      objectType = oid.map(_ => CollectionObjectType),
       note = Some("This is the first event"),
       extraAttributes = None,
       result = res

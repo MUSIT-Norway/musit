@@ -2,11 +2,11 @@ package services.analysis
 
 import com.google.inject.Inject
 import models.analysis.events.SampleCreated
-import models.analysis.{ActorStamp, SampleObject}
+import models.analysis.{ActorStamp, EnrichedSampleObject, SampleObject}
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
-import no.uio.musit.models.{MuseumId, ObjectUUID}
+import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
@@ -79,20 +79,36 @@ class SampleObjectService @Inject()(
   private def findById(
       oid: ObjectUUID,
       notFound: MusitError
-  ): Future[MusitResult[SampleObject]] = {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[SampleObject]] = {
     findById(oid).map(_.flatMap(_.map(MusitSuccess.apply).getOrElse(notFound)))
   }
 
-  def findById(oid: ObjectUUID): Future[MusitResult[Option[SampleObject]]] = {
+  def findById(
+      oid: ObjectUUID
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[SampleObject]]] = {
     soDao.findByUUID(oid)
   }
 
-  def findForParent(oid: ObjectUUID): Future[MusitResult[Seq[SampleObject]]] = {
+  def findForParent(
+      oid: ObjectUUID
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[SampleObject]]] = {
     soDao.listForParentObject(oid)
   }
 
-  def findForMuseum(mid: MuseumId): Future[MusitResult[Seq[SampleObject]]] = {
+  def findForMuseum(
+      mid: MuseumId
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[SampleObject]]] = {
     soDao.listForMuseum(mid)
+  }
+
+  def findForNode(
+      mid: MuseumId,
+      nodeId: StorageNodeId,
+      collectionIds: Seq[MuseumCollection]
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): Future[MusitResult[Seq[EnrichedSampleObject]]] = {
+    soDao.listForNode(mid, nodeId, collectionIds)
   }
 
   def delete(

@@ -7,7 +7,7 @@ import models.storage.nodes.dto.{StorageNodeDto, StorageUnitDto}
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
-import no.uio.musit.models.ObjectTypes.CollectionObject
+import no.uio.musit.models.ObjectTypes.CollectionObjectType
 import no.uio.musit.models._
 import no.uio.musit.time.Implicits._
 import no.uio.musit.time.dateTimeNow
@@ -664,7 +664,7 @@ class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
     val findLocalObjectAction = localObjectsTable.filter { lo =>
       lo.museumId === mid &&
       lo.objectUuid === objectId &&
-      lo.objectType === CollectionObject.name
+      lo.objectType === CollectionObjectType.name
     }.map(_.currentLocationId).result.headOption
 
     val findPathAction = (maybeId: Option[StorageNodeId]) =>

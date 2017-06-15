@@ -7,7 +7,7 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents.{
 }
 import models.storage.event.{EventType, MusitEvent_Old}
 import no.uio.musit.formatters.WithDateTimeFormatters
-import no.uio.musit.models.ObjectTypes.{CollectionObject, Node, ObjectType}
+import no.uio.musit.models.ObjectTypes.{CollectionObjectType, Node, ObjectType}
 import no.uio.musit.models.{ActorId, EventId, ObjectId, StorageNodeDatabaseId}
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
@@ -80,7 +80,7 @@ object MoveObject extends WithDateTimeFormatters {
         registeredBy = Option(currUserId),
         registeredDate = Option(now),
         eventType = EventType.fromEventTypeId(MoveObjectType.id),
-        objectType = CollectionObject,
+        objectType = CollectionObjectType,
         from = None,
         to = cmd.destination
       )

@@ -1,7 +1,7 @@
 package models.musitobject
 
 import no.uio.musit.models.MuseumCollections.Collection
-import no.uio.musit.models.ObjectTypes.CollectionObject
+import no.uio.musit.models.ObjectTypes.CollectionObjectType
 import no.uio.musit.models._
 import play.api.libs.json.{Json, Writes}
 
@@ -31,7 +31,7 @@ object MusitObject {
   private val baseWrites = Json.writes[MusitObject]
 
   implicit val writes = Writes[MusitObject] { mo =>
-    baseWrites.writes(mo) ++ Json.obj("objectType" -> CollectionObject.name)
+    baseWrites.writes(mo) ++ Json.obj("objectType" -> CollectionObjectType.name)
   }
 
   type ObjSearchTuple = (

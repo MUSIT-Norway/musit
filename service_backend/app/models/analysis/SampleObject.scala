@@ -2,7 +2,7 @@ package models.analysis
 
 import models.analysis.LeftoverSamples.LeftoverSample
 import models.analysis.SampleStatuses.SampleStatus
-import no.uio.musit.models.{ActorId, MuseumId, ObjectUUID}
+import no.uio.musit.models._
 import play.api.libs.json.{Json, Reads, Writes}
 
 case class SampleObject(
@@ -33,6 +33,19 @@ case class SampleObject(
 object SampleObject {
 
   implicit val writes: Writes[SampleObject] = Json.writes[SampleObject]
+
+}
+
+case class EnrichedSampleObject(
+    museumNo: MuseumNo,
+    subNo: Option[SubNo],
+    term: String,
+    sampleObject: SampleObject
+)
+
+object EnrichedSampleObject {
+
+  implicit val writes: Writes[EnrichedSampleObject] = Json.writes[EnrichedSampleObject]
 
 }
 

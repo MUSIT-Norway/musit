@@ -4,7 +4,7 @@ import com.google.inject.Inject
 import models.storage.MovableObject_Old
 import models.storage.event.dto.{EventDto, LocalObject}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
-import no.uio.musit.models.ObjectTypes.{CollectionObject, ObjectType}
+import no.uio.musit.models.ObjectTypes.{CollectionObjectType, ObjectType}
 import no.uio.musit.models.{EventId, MuseumId, ObjectId, StorageNodeDatabaseId}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -27,7 +27,7 @@ class LocalObjectDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
   def storeLatestMove(mid: MuseumId, eventId: EventId, moveEvent: EventDto): DBIO[Int] = {
     val relObj = moveEvent.relatedObjects.headOption
     val relPlc = moveEvent.relatedPlaces.headOption
-    val objTpe = moveEvent.valueString.getOrElse(CollectionObject.name)
+    val objTpe = moveEvent.valueString.getOrElse(CollectionObjectType.name)
 
     relObj.flatMap { obj =>
       relPlc.map { place =>
@@ -182,7 +182,7 @@ class LocalObjectDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
           latestMoveId = latestMoveId,
           currentLocationId = currentLocationId,
           museumId = museumId,
-          objectType = objectType.getOrElse(CollectionObject.name)
+          objectType = objectType.getOrElse(CollectionObjectType.name)
       )
 
     def destroy(localObject: LocalObject) =

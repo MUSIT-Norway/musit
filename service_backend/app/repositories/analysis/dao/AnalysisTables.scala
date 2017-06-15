@@ -12,7 +12,7 @@ import org.joda.time.DateTime
 import play.api.db.slick.HasDatabaseConfigProvider
 import play.api.libs.json.{JsValue, Json}
 import repositories.shared.dao.ColumnTypeMappers
-import slick.jdbc.JdbcProfile
+import slick.jdbc.{GetResult, JdbcProfile}
 
 /**
  * Defines the table definitions needed to work with analysis data.
@@ -578,5 +578,60 @@ trait AnalysisTables
       noSampleSubType = tuple._4,
       enSampleSubType = tuple._5
     )
+
+  implicit val getEnrichedSampleResult = GetResult { res =>
+    EnrichedSampleObject(
+      museumNo = MuseumNo(res.nextString()),
+      subNo = res.nextStringOption().map(SubNo.apply),
+      term = res.nextString(),
+      sampleObject = SampleObject(
+        objectId = res.nextStringOption().map(ObjectUUID.unsafeFromString),
+        originatedObjectUuid = ObjectUUID.unsafeFromString(res.nextString),
+        parentObject = ParentObject(
+          objectId = res.nextStringOption().map(ObjectUUID.unsafeFromString),
+          objectType = ObjectType.unsafeFromString(res.nextString())
+        ),
+        isExtracted = res.nextBoolean(),
+        museumId = MuseumId.fromInt(res.nextInt()),
+        status = SampleStatus.unsafeFromInt(res.nextInt()),
+        responsible = res.nextStringOption().map(ActorId.unsafeFromString),
+        doneByStamp = {
+          val maybeBy   = res.nextStringOption().map(ActorId.unsafeFromString)
+          val maybeDate = res.nextTimestampOption().map(ts => new DateTime(ts.getTime))
+          maybeBy.flatMap(by => maybeDate.map(ts => ActorStamp(by, ts)))
+        },
+        sampleId = res.nextStringOption(),
+        sampleNum = res.nextIntOption(),
+        externalId = {
+          val maybeExtId  = res.nextStringOption()
+          val maybeExtSrc = res.nextStringOption()
+          maybeExtId.map(id => ExternalId(id, maybeExtSrc))
+        },
+        sampleTypeId = SampleTypeId(res.nextLong()),
+        size = {
+          val sz = res.nextDoubleOption()
+          val un = res.nextStringOption()
+          sz.flatMap(s => un.map(u => Size(u, s)))
+        },
+        container = res.nextStringOption(),
+        storageMedium = res.nextStringOption(),
+        treatment = res.nextStringOption(),
+        leftoverSample = LeftoverSample.unsafeFromInt(res.nextInt()),
+        description = res.nextStringOption(),
+        note = res.nextStringOption(),
+        registeredStamp = {
+          val by  = ActorId.unsafeFromString(res.nextString())
+          val dte = new DateTime(res.nextTimestamp().getTime)
+          Some(ActorStamp(by, dte))
+        },
+        updatedStamp = {
+          val by  = res.nextStringOption().map(ActorId.unsafeFromString)
+          val dte = res.nextTimestampOption().map(ts => new DateTime(ts.getTime))
+          by.flatMap(b => dte.map(d => ActorStamp(b, d)))
+        },
+        isDeleted = res.nextBoolean()
+      )
+    )
+  }
 
 }

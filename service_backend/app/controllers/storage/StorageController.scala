@@ -415,7 +415,7 @@ final class StorageController @Inject()(
       maybeNode.map { node =>
         val dest = node.nodeId.get // safe...since we got the node from the DB.
         val mobs =
-          idTuples.map(_._2).map(i => MovableObject(i, ObjectTypes.CollectionObject))
+          idTuples.map(_._2).map(i => MovableObject(i, ObjectTypes.CollectionObjectType))
         val events = MoveObject.fromCommand(currUser.id, MoveObjectsCmd(dest, mobs))
 
         (idTuples, dest, events)
