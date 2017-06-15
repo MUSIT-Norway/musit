@@ -25,6 +25,10 @@ trait AnalysisGenerators {
   protected val oid2 = ObjectUUID.generate()
   protected val oid3 = ObjectUUID.generate()
 
+  protected val dummyAnalysisNote = "This is from a SaveAnalysis command"
+  protected val dummyAnalysisCollectionNote =
+    "This is from a SaveAnalysisCollection command"
+
   def dummySaveAnalysisCmd(
       oid: ObjectUUID = oid1,
       res: Option[AnalysisResult] = None
@@ -33,7 +37,7 @@ trait AnalysisGenerators {
       analysisTypeId = dummyAnalysisTypeId,
       doneBy = Some(dummyActorId),
       doneDate = Some(dateTimeNow),
-      note = Some("This is from a SaveAnalysis command"),
+      note = Some(dummyAnalysisNote),
       objectId = oid,
       responsible = Some(dummyActorById),
       administrator = Some(dummyActorById),
@@ -52,7 +56,7 @@ trait AnalysisGenerators {
       analysisTypeId = dummyAnalysisTypeId,
       doneBy = Some(dummyActorId),
       doneDate = Some(dateTimeNow),
-      note = Some("This is from a SaveAnalysisCollection command"),
+      note = Some(dummyAnalysisCollectionNote),
       responsible = Some(dummyActorById),
       administrator = Some(dummyActorById),
       completedBy = None,

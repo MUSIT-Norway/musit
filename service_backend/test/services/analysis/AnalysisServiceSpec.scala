@@ -3,7 +3,12 @@ package services.analysis
 import models.analysis.events.AnalysisExtras.{MicroscopyAttributes, TomographyAttributes}
 import models.analysis.events.AnalysisResults.{AgeResult, GenericResult}
 import models.analysis.events.EventCategories.{Genetic, Image}
-import models.analysis.events.{Analysis, AnalysisCollection, AnalysisEvent}
+import models.analysis.events.{
+  Analysis,
+  AnalysisCollection,
+  AnalysisEvent,
+  AnalysisModuleEvent
+}
 import no.uio.musit.models.MuseumCollections.Archeology
 import no.uio.musit.models.{ActorId, EventId, OrgId}
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
@@ -86,26 +91,36 @@ class AnalysisServiceSpec
 
     "successfully add a new Analysis" in {
       val cmd = dummySaveAnalysisCmd()
-      service.add(defaultMid, cmd).futureValue.successValue mustBe EventId(1L)
+      service.add(defaultMid, cmd).futureValue.successValue match {
+        case Some(analysis: Analysis) =>
+          verifyBasicAnalysisFields(analysis, Some(EventId(1L)), Some(dummyAnalysisNote))
+          analysis.objectId must not be empty
+        case wrong =>
+          fail(s"Expected ${Analysis.getClass}, but got $wrong")
+      }
     }
 
     "successfully add a new AnalysisCollection" in {
       val cmd = dummySaveAnalysisCollectionCmd(oids = Seq(oid1, oid2, oid3))
-      service.add(defaultMid, cmd).futureValue.successValue mustBe EventId(2L)
+      service.add(defaultMid, cmd).futureValue.successValue match {
+        case Some(analysis: AnalysisCollection) =>
+          verifyBasicAnalysisFields(
+            analysis,
+            Some(EventId(2L)),
+            Some(dummyAnalysisCollectionNote)
+          )
+          analysis.events must not be empty
+        case wrong =>
+          fail(s"Expected ${AnalysisCollection.getClass}, but got $wrong")
+      }
     }
 
     "return an analysis by its EventId" in {
-      service.findById(defaultMid, EventId(1L)).futureValue.successValue.value match {
+      val expectedId = EventId(1L)
+      service.findById(defaultMid, expectedId).futureValue.successValue.value match {
         case res: AnalysisEvent =>
-          res.analysisTypeId mustBe dummyAnalysisTypeId
-          res.doneBy mustBe Some(dummyActorId)
-          res.doneDate mustApproximate Some(dateTimeNow)
-          res.note mustBe Some("This is from a SaveAnalysis command")
+          verifyBasicAnalysisFields(res, Some(expectedId), Some(dummyAnalysisNote))
           res.objectId must not be empty
-          res.administrator mustBe Some(dummyActorById)
-          res.responsible mustBe Some(dummyActorById)
-          res.completedBy mustBe empty
-          res.completedDate mustBe empty
 
         case wrong =>
           fail(s"Expected an ${AnalysisEvent.getClass}, but got ${wrong.getClass}")
@@ -113,20 +128,17 @@ class AnalysisServiceSpec
     }
 
     "return all child Analysis events for an AnalyisCollection" in {
-      val res = service.childrenFor(defaultMid, EventId(2L)).futureValue.successValue
+      val expectedId = EventId(2L)
+      val res        = service.childrenFor(defaultMid, expectedId).futureValue.successValue
 
       res.size mustBe 3
 
       forAll(res) { r =>
-        r.analysisTypeId mustBe dummyAnalysisTypeId
-        r.doneBy mustBe Some(dummyActorId)
-        r.doneDate mustApproximate Some(dateTimeNow)
-        r.note mustBe Some("This is from a SaveAnalysisCollection command")
-        r.objectId must not be empty
-        r.administrator mustBe Some(dummyActorById)
-        r.responsible mustBe Some(dummyActorById)
-        r.completedBy mustBe empty
-        r.completedDate mustBe empty
+        verifyBasicAnalysisFields(
+          r,
+          None,
+          Some("This is from a SaveAnalysisCollection command")
+        )
       }
     }
 
@@ -250,7 +262,12 @@ class AnalysisServiceSpec
       val expectedId = EventId(6L)
 
       val cmd = dummySaveAnalysisCmd()
-      service.add(defaultMid, cmd).futureValue.successValue mustBe expectedId
+      service.add(defaultMid, cmd).futureValue.successValue match {
+        case Some(analysis: Analysis) =>
+          verifyBasicAnalysisFields(analysis, Some(expectedId), Some(dummyAnalysisNote))
+        case wrong =>
+          fail(s"Expected ${Analysis.getClass}, but got $wrong")
+      }
 
       val updCmd = cmd.copy(note = Some("This is an updated note"))
       val res    = service.update(defaultMid, expectedId, updCmd).futureValue.successValue
@@ -272,7 +289,17 @@ class AnalysisServiceSpec
       val expectedId = EventId(7L)
 
       val cmd = dummySaveAnalysisCollectionCmd()
-      service.add(defaultMid, cmd).futureValue.successValue mustBe expectedId
+      service.add(defaultMid, cmd).futureValue.successValue match {
+        case Some(analysis: AnalysisCollection) =>
+          verifyBasicAnalysisFields(
+            analysis,
+            Some(expectedId),
+            Some(dummyAnalysisCollectionNote)
+          )
+          analysis.events must not be empty
+        case wrong =>
+          fail(s"Expected ${AnalysisCollection.getClass}, but got $wrong")
+      }
 
       val updCmd =
         cmd.copy(note = Some("This is an updated note"), orgId = Some(OrgId(316)))
@@ -294,4 +321,35 @@ class AnalysisServiceSpec
 
   }
 
+  /**
+   * verifies basic fields on an analysis
+   *
+   * @param res the analysis event
+   * @param expectedId if not provided, not checked
+   * @param expectedNote if not provided, not checked
+   * @return
+   */
+  private def verifyBasicAnalysisFields(
+      res: AnalysisEvent,
+      expectedId: Option[EventId],
+      expectedNote: Option[String]
+  ) = {
+    if (expectedId.isDefined) {
+      res.id mustBe expectedId
+    } else {
+      res.id must not be empty
+    }
+    if (expectedNote.isDefined) {
+      res.note mustBe expectedNote
+    } else {
+      res.note must not be empty
+    }
+    res.analysisTypeId mustBe dummyAnalysisTypeId
+    res.doneBy mustBe Some(dummyActorId)
+    res.doneDate mustApproximate Some(dateTimeNow)
+    res.administrator mustBe Some(dummyActorById)
+    res.responsible mustBe Some(dummyActorById)
+    res.completedBy mustBe empty
+    res.completedDate mustBe empty
+  }
 }

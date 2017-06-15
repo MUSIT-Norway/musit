@@ -86,7 +86,7 @@ class AnalysisController @Inject()(
 
       val jsr = request.body.validate[SaveAnalysisEventCommand]
 
-      saveRequest[SaveAnalysisEventCommand, EventId](jsr)(
+      saveRequest[SaveAnalysisEventCommand, Option[AnalysisModuleEvent]](jsr)(
         sc => analysisService.add(mid, sc)
       )
     }

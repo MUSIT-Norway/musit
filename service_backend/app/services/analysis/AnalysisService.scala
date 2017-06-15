@@ -52,11 +52,16 @@ class AnalysisService @Inject()(
    */
   def add(mid: MuseumId, ae: SaveAnalysisEventCommand)(
       implicit currUser: AuthenticatedUser
-  ): Future[MusitResult[EventId]] = {
-    ae match {
+  ): Future[MusitResult[Option[AnalysisModuleEvent]]] = {
+    val eventuallyAdd = ae match {
       case a: SaveAnalysis            => addAnalysis(mid, a)
       case ac: SaveAnalysisCollection => addAnalysisCollection(mid, ac)
     }
+
+    (for {
+      added <- MusitResultT(eventuallyAdd)
+      a     <- MusitResultT(findById(mid, added))
+    } yield a).value
   }
 
   /**
