@@ -36,7 +36,7 @@ class SampleObjectDao @Inject()(
       .recover(nonFatal(s"An unexpected error occurred inserting a sample object"))
   }
 
-  private def insertAnalysisAction(event: EventRow): DBIO[EventId] = {
+  private def insertSampleCreatedAction(event: EventRow): DBIO[EventId] = {
     analysisTable returning analysisTable.map(_.id) += event
   }
 
@@ -49,7 +49,7 @@ class SampleObjectDao @Inject()(
 
     val action = for {
       _ <- sampleObjTable += soTuple
-      _ <- insertAnalysisAction(asEventTuple(mid, eventObj))
+      _ <- insertSampleCreatedAction(asEventTuple(mid, eventObj))
     } yield soTuple._1
 
     db.run(action.transactionally)
@@ -95,6 +95,21 @@ class SampleObjectDao @Inject()(
       .map(MusitSuccess.apply)
       .recover(
         nonFatal(s"An unexpected error occurred fetching child samples for $parent")
+      )
+  }
+
+  def listForOriginatingObject(
+      originating: ObjectUUID
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[SampleObject]]] = {
+    val q = sampleObjTable.filter(_.originatedFrom === originating).result
+
+    db.run(q)
+      .map(_.map(fromSampleObjectRow))
+      .map(MusitSuccess.apply)
+      .recover(
+        nonFatal(
+          s"An unexpected error occurred fetching samples for object $originating"
+        )
       )
   }
 

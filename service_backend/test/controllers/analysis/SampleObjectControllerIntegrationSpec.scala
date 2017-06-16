@@ -3,7 +3,11 @@ package controllers.analysis
 import controllers.storage.MoveObjectUrl
 import models.analysis.SampleStatuses.{Intact, SampleStatus}
 import no.uio.musit.formatters.DateTimeFormatters._
-import no.uio.musit.models.ObjectTypes.{CollectionObjectType, ObjectType}
+import no.uio.musit.models.ObjectTypes.{
+  CollectionObjectType,
+  ObjectType,
+  SampleObjectType
+}
 import no.uio.musit.models._
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.matchers.DateTimeMatchers
@@ -28,14 +32,14 @@ class SampleObjectControllerIntegrationSpec
   val dummyActorId = ActorId.generate().asString
 
   val responsibleActor = ActorId.generate().asString
-  val parentObject     = ObjectUUID.generate().asString
+  val parentObject     = "9dfa0946-3b71-4382-888f-3f924ff48a77"
 
   // scalastyle:off
   def createSaveJSON(
+      originatingObject: String,
       maybeId: Option[String] = None,
       maybeParent: Option[String] = None,
-      originatingObject: Option[String] = None,
-      parentObjectType: ObjectType = CollectionObjectType,
+      parentObjectType: ObjectType,
       isExtracted: Boolean = true,
       status: SampleStatus = Intact,
       doneBy: String,
@@ -44,9 +48,6 @@ class SampleObjectControllerIntegrationSpec
       maybeExtId: Option[String],
       maybeNote: Option[String]
   ) = {
-    val origId: String =
-      originatingObject.getOrElse(maybeParent.getOrElse(ObjectUUID.generate().asString))
-
     val js1 = Json.obj(
       "isExtracted"          -> isExtracted,
       "museumId"             -> mid,
@@ -58,7 +59,7 @@ class SampleObjectControllerIntegrationSpec
       "container"            -> "box",
       "storageMedium"        -> "alcohol",
       "leftoverSample"       -> 1,
-      "originatedObjectUuid" -> origId
+      "originatedObjectUuid" -> originatingObject
     )
     val js2 = maybeParent.map { p =>
       js1 ++ Json.obj(
@@ -78,15 +79,17 @@ class SampleObjectControllerIntegrationSpec
 
   def createAndSave(
       cd: DateTime,
+      origObject: String,
       maybeParent: Option[String],
-      maybeOrigObject: Option[String],
+      parentObjectType: ObjectType = CollectionObjectType,
       numToCreate: Int = 10
   ): Seq[WSResponse] = {
     (1 to numToCreate).map { index =>
       val js = createSaveJSON(
+        originatingObject = origObject,
         maybeParent = maybeParent,
-        originatingObject = maybeOrigObject,
-        doneBy = dummyActorId,
+        parentObjectType = parentObjectType,
+        doneBy = adminId,
         doneDate = cd,
         maybeSampleId = Some(s"sample$index"),
         maybeExtId = Some(s"ext$index"),
@@ -142,6 +145,7 @@ class SampleObjectControllerIntegrationSpec
   val updateUrl    = (mid: Int) => (oid: String) => s"${baseUrl(mid)}/$oid"
   val getUrl       = updateUrl
   val childrenUrl  = (mid: Int) => (oid: String) => s"${getUrl(mid)(oid)}/children"
+  val forOrigUrl   = (mid: Int) => (oid: String) => s"${getUrl(mid)(oid)}/all"
   val deleteUrl    = (mid: Int) => (oid: String) => s"${baseUrl(mid)}/$oid"
   val forNodeUrl =
     (mid: Int) =>
@@ -169,15 +173,26 @@ class SampleObjectControllerIntegrationSpec
     }
   }
 
+  val addedSampleIds = Seq.newBuilder[String]
+
   "Invoking the sample object controller API" should {
 
     "successfully add a few new SampleObjects" in {
       val cd      = DateTime.now.minusWeeks(2)
-      val results = createAndSave(cd, Some(parentObject), Some(parentObject))
+      val results = createAndSave(cd, parentObject, Some(parentObject))
 
       forAll(results) { r =>
         r.status mustBe CREATED
+        addedSampleIds += r.json.as[String]
       }
+    }
+
+    "return 400 BAD_REQUEST if originating object isn't a collection object" in {
+      val cd             = DateTime.now.minusWeeks(2)
+      val invalidOrigObj = ObjectUUID.generate().asString
+      val results =
+        createAndSave(cd, invalidOrigObj, Some(invalidOrigObj), numToCreate = 1)
+      results.headOption.map(_.status) mustBe Some(BAD_REQUEST)
     }
 
     "list all objects for a museum" in {
@@ -194,6 +209,69 @@ class SampleObjectControllerIntegrationSpec
             expectedNote = Some("This is a sample note"),
             js = obj
           )
+      }
+    }
+
+    "return a list of derived samples for a specific originating object" in {
+      val cd   = DateTime.now.minusWeeks(1)
+      val orig = "5a928d42-05a6-44db-adef-c6dfe588f016"
+      val cs1 = createAndSave(cd, orig, Some(orig), numToCreate = 2).map { r =>
+        r.status mustBe CREATED
+        val sid = r.json.as[String]
+        addedSampleIds += sid
+        sid
+      }
+      val (s1, s2) = (cs1.head, cs1.last)
+
+      val cs2 = createAndSave(cd, orig, Some(s2), SampleObjectType, 2).map { r =>
+        r.status mustBe CREATED
+        val sid = r.json.as[String]
+        addedSampleIds += sid
+        sid
+      }
+      val (s3, s4) = (cs2.head, cs2.last)
+
+      val res =
+        wsUrl(forOrigUrl(mid)(orig)).withHeaders(token.asHeader).get().futureValue
+
+      res.status mustBe OK
+      val objects = res.json.as[JsArray].value
+      objects.size mustBe 4
+
+      forAll(objects) { js =>
+        (js \ "originatedObjectUuid").as[String] mustBe orig
+      }
+    }
+
+    "return a list of derived samples for a specific parent" in {
+      val cd   = DateTime.now.minusWeeks(1)
+      val orig = "baec467b-2fd2-48d3-9fe1-6f0ea30a3497"
+      val cs1 = createAndSave(cd, orig, Some(orig), numToCreate = 2).map { r =>
+        r.status mustBe CREATED
+        val sid = r.json.as[String]
+        addedSampleIds += sid
+        sid
+      }
+      val (s1, s2) = (cs1.head, cs1.last)
+
+      val cs2 = createAndSave(cd, orig, Some(s2), SampleObjectType, 2).map { r =>
+        r.status mustBe CREATED
+        val sid = r.json.as[String]
+        addedSampleIds += sid
+        sid
+      }
+      val (s3, s4) = (cs2.head, cs2.last)
+
+      val res = wsUrl(childrenUrl(mid)(s2)).withHeaders(token.asHeader).get().futureValue
+
+      res.status mustBe OK
+      val objects = res.json.as[JsArray].value
+      objects.size mustBe 2
+
+      forAll(objects) { js =>
+        (js \ "originatedObjectUuid").as[String] mustBe orig
+        (js \ "parentObject" \ "objectId").as[String] mustBe s2
+        (js \ "parentObject" \ "objectType").as[String] mustBe SampleObjectType.name
       }
     }
 
@@ -262,7 +340,12 @@ class SampleObjectControllerIntegrationSpec
       val destNode       = "6e5b9810-9bbf-464a-a0b9-c27f6095ba0c"
       val origObjId      = "7de44f6e-51f5-4c90-871b-cef8de0ce93d"
 
-      val results = createAndSave(cd, Some(parentObject), Some(origObjId), 5)
+      val results = createAndSave(cd, origObjId, Some(origObjId), numToCreate = 5)
+
+      forAll(results) { r =>
+        r.status mustBe CREATED
+        addedSampleIds += r.json.as[String]
+      }
 
       val sampleIds = results.map(_.json.as[String])
       val mvItemsJs = sampleIds.map { id =>
@@ -305,7 +388,7 @@ class SampleObjectControllerIntegrationSpec
         val so = (js \ "sampleObject").as[JsObject]
         sampleIds.contains((so \ "objectId").as[String]) mustBe true
         (so \ "originatedObjectUuid").as[String] mustBe origObjId
-        (so \ "parentObject" \ "objectId").as[String] mustBe parentObject
+        (so \ "parentObject" \ "objectId").as[String] mustBe origObjId
         (so \ "parentObject" \ "objectType").as[String] mustBe "collection"
         (so \ "museumId").as[Int] mustBe mid
       }

@@ -1,13 +1,15 @@
 package services.analysis
 
+import java.util.UUID
+
 import models.analysis.LeftoverSamples.NotSpecified
 import models.analysis.SampleStatuses.SampleStatus
 import models.analysis._
 import models.analysis.events.SampleCreated
 import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.models.ObjectTypes.{CollectionObjectType, ObjectType}
-import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
-import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
+import no.uio.musit.models._
+import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.{DateTimeMatchers, MusitResultValues}
 import no.uio.musit.time.dateTimeNow
@@ -20,6 +22,14 @@ class SampleObjectServiceSpec
   val defaultUserId = ActorId.generate()
   val defaultMid    = Museums.Test.id
 
+  val allCollections = Seq(
+    MuseumCollection(
+      uuid = CollectionUUID(UUID.fromString("2e4f2455-1b3b-4a04-80a1-ba92715ff613")),
+      name = Some("Arkeologi"),
+      oldSchemaNames = Seq(MuseumCollections.Archeology)
+    )
+  )
+
   implicit val dummyUser = AuthenticatedUser(
     session = UserSession(uuid = SessionUUID.generate()),
     userInfo = UserInfo(
@@ -29,18 +39,30 @@ class SampleObjectServiceSpec
       email = None,
       picture = None
     ),
-    groups = Seq.empty
+    groups = Seq(
+      GroupInfo(
+        id = GroupId.generate(),
+        name = "FooBarGroup",
+        module = StorageFacility,
+        permission = Permissions.Admin,
+        museumId = defaultMid,
+        description = None,
+        collections = allCollections
+      )
+    )
   )
 
   val dummyActorId   = ActorId.generate()
   val dummyActorName = "Dummy User"
   val dummyActorById = dummyActorId
+  val origObjId      = ObjectUUID.unsafeFromString("67965e71-27ee-4ef0-ad66-e7e321882f33")
 
   val service      = fromInstanceCache[SampleObjectService]
   val eventService = fromInstanceCache[AnalysisService]
 
   def generateSampleObject(
       id: Option[ObjectUUID],
+      originatingId: ObjectUUID,
       parentId: Option[ObjectUUID],
       parentobjType: ObjectType = CollectionObjectType,
       isExtracted: Boolean = false,
@@ -66,7 +88,7 @@ class SampleObjectServiceSpec
       leftoverSample = NotSpecified,
       description = None,
       note = Some("This is a sample note"),
-      originatedObjectUuid = ObjectUUID.generate(),
+      originatedObjectUuid = originatingId,
       registeredStamp = Some(ActorStamp(dummyActorId, now)),
       updatedStamp = None,
       isDeleted = false
@@ -81,6 +103,7 @@ class SampleObjectServiceSpec
       val so =
         generateSampleObject(
           id = None,
+          originatingId = origObjId,
           parentId = Some(parentId),
           isExtracted = true
         )
@@ -126,6 +149,7 @@ class SampleObjectServiceSpec
     "successfully add a new sample object with status 'Degraded' " in {
       val so = generateSampleObject(
         id = None,
+        originatingId = origObjId,
         parentId = Some(parentId),
         isExtracted = true,
         status = SampleStatuses.Degraded
@@ -138,13 +162,18 @@ class SampleObjectServiceSpec
     }
 
     "copy generated values from origin sample when updating" in {
-      val originSo = generateSampleObject(id = None, parentId = Some(parentId))
+      val originSo = generateSampleObject(
+        id = None,
+        originatingId = origObjId,
+        parentId = Some(parentId)
+      )
 
       val id: ObjectUUID = service.add(defaultMid, originSo).futureValue.successValue
       val originSavedSo  = service.findById(id).futureValue.successValue.value
 
       val newSo = generateSampleObject(
         id = Some(id),
+        originatingId = origObjId,
         parentId = Some(parentId)
       )
 

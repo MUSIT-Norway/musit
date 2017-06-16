@@ -2,8 +2,8 @@ package controllers.analysis
 
 import com.google.inject.{Inject, Singleton}
 import controllers._
-import models.analysis.SaveSampleObject
-import no.uio.musit.MusitResults.{MusitEmpty, MusitError, MusitSuccess}
+import models.analysis.{SampleObject, SaveSampleObject}
+import no.uio.musit.MusitResults.{MusitEmpty, MusitError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{MuseumId, ObjectUUID, StorageNodeId}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions.Read
@@ -11,6 +11,7 @@ import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsError, JsSuccess, Json}
+import play.api.mvc.Result
 import services.analysis.SampleObjectService
 import services.storage.StorageNodeService
 
@@ -25,28 +26,35 @@ class SampleObjectController @Inject()(
 
   val logger = Logger(classOf[SampleObjectController])
 
-  def getForMuseum(mid: MuseumId) =
-    MusitSecureAction().async { implicit request =>
-      soService.findForMuseum(mid)(request.user).map {
-        case MusitSuccess(objects) => listAsPlayResult(objects)
-        case err: MusitError       => internalErr(err)
-      }
+  private def get[A](
+      find: => Future[MusitResult[A]]
+  )(
+      jsConvert: A => Result
+  ): Future[Result] = {
+    find.map {
+      case MusitSuccess(res) => jsConvert(res)
+      case err: MusitError   => internalErr(err)
     }
+  }
 
   def getById(mid: MuseumId, uuid: String) =
     MusitSecureAction().async { implicit request =>
       ObjectUUID
         .fromString(uuid)
         .map { oid =>
-          soService.findById(oid)(request.user).map {
-            case MusitSuccess(maybeObject) =>
+          get[Option[SampleObject]](soService.findById(oid)(request.user)) {
+            maybeObject =>
               maybeObject.map(so => Ok(Json.toJson(so))).getOrElse(NotFound)
-
-            case err: MusitError => internalErr(err)
-
           }
         }
         .getOrElse(invaludUuidResponse(uuid))
+    }
+
+  def getForMuseum(mid: MuseumId) =
+    MusitSecureAction().async { implicit request =>
+      get[Seq[SampleObject]](soService.findForMuseum(mid)(request.user))(
+        listAsPlayResult
+      )
     }
 
   def getForParentObject(mid: MuseumId, uuid: String) =
@@ -54,11 +62,21 @@ class SampleObjectController @Inject()(
       ObjectUUID
         .fromString(uuid)
         .map { oid =>
-          soService.findForParent(oid)(request.user).map {
-            case MusitSuccess(objects) => listAsPlayResult(objects)
-            case err: MusitError       => internalErr(err)
+          get[Seq[SampleObject]](soService.findForParent(oid)(request.user))(
+            listAsPlayResult
+          )
+        }
+        .getOrElse(invaludUuidResponse(uuid))
+    }
 
-          }
+  def getForOriginatingObject(mid: MuseumId, uuid: String) =
+    MusitSecureAction().async { implicit request =>
+      ObjectUUID
+        .fromString(uuid)
+        .map { oid =>
+          get[Seq[SampleObject]](soService.findForOriginating(oid)(request.user))(
+            listAsPlayResult
+          )
         }
         .getOrElse(invaludUuidResponse(uuid))
     }

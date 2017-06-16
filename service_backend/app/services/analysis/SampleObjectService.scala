@@ -12,11 +12,13 @@ import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.analysis.dao.SampleObjectDao
+import services.musitobject.ObjectService
 
 import scala.concurrent.Future
 
 class SampleObjectService @Inject()(
-    val soDao: SampleObjectDao
+    val soDao: SampleObjectDao,
+    val objService: ObjectService
 ) {
 
   val logger = Logger(classOf[SampleObjectService])
@@ -25,26 +27,45 @@ class SampleObjectService @Inject()(
       mid: MuseumId,
       so: SampleObject
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[ObjectUUID]] = {
-    val sobj = so.copy(
-      objectId = ObjectUUID.generateAsOpt(),
-      registeredStamp = Some(ActorStamp(currUser.id, dateTimeNow))
-    )
+    objService
+      .findByUUID(mid, so.originatedObjectUuid, currUser.collectionsFor(mid))
+      .flatMap {
+        case MusitSuccess(maybeObject) =>
+          maybeObject.map { origObj =>
+            val sobj = so.copy(
+              objectId = ObjectUUID.generateAsOpt(),
+              registeredStamp = Some(ActorStamp(currUser.id, dateTimeNow))
+            )
 
-    if (so.isExtracted) {
-      val eventObj = SampleCreated(
-        id = None,
-        doneBy = sobj.doneByStamp.map(_.user),
-        doneDate = sobj.doneByStamp.map(_.date),
-        registeredBy = sobj.registeredStamp.map(_.user),
-        registeredDate = sobj.registeredStamp.map(_.date),
-        objectId = sobj.parentObject.objectId,
-        sampleObjectId = sobj.objectId,
-        externalLinks = None
-      )
-      soDao.insert(mid, sobj, eventObj)
-    } else {
-      soDao.insert(sobj)
-    }
+            if (so.isExtracted) {
+              val eventObj = SampleCreated(
+                id = None,
+                doneBy = sobj.doneByStamp.map(_.user),
+                doneDate = sobj.doneByStamp.map(_.date),
+                registeredBy = sobj.registeredStamp.map(_.user),
+                registeredDate = sobj.registeredStamp.map(_.date),
+                objectId = sobj.parentObject.objectId,
+                sampleObjectId = sobj.objectId,
+                externalLinks = None
+              )
+              soDao.insert(mid, sobj, eventObj)
+            } else {
+              soDao.insert(sobj)
+            }
+          }.getOrElse {
+            Future.successful {
+              MusitValidationError(
+                s"Trying to add a SampleObject with an originating object UUID " +
+                  s"[${so.originatedObjectUuid}] that is not referring to a " +
+                  s"collection object."
+              )
+            }
+          }
+
+        case err: MusitError =>
+          Future.successful(err)
+      }
+
   }
 
   def update(
@@ -93,6 +114,12 @@ class SampleObjectService @Inject()(
       oid: ObjectUUID
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[SampleObject]]] = {
     soDao.listForParentObject(oid)
+  }
+
+  def findForOriginating(
+      oid: ObjectUUID
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[SampleObject]]] = {
+    soDao.listForOriginatingObject(oid)
   }
 
   def findForMuseum(

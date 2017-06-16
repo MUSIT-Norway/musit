@@ -8,7 +8,7 @@ import models.analysis.events.SampleCreated
 import models.storage.event.EventType
 import models.storage.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
 import models.storage.event.move.MoveObject
-import no.uio.musit.MusitResults.MusitSuccess
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models.ObjectTypes.{
   CollectionObjectType,
   ObjectType,
@@ -98,8 +98,8 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       id: ObjectUUID,
       parentId: Option[ObjectUUID],
       parentObjType: ObjectType,
-      isExtracted: Boolean = false,
-      origObjectId: ObjectUUID = ObjectUUID.generate()
+      origObjectId: ObjectUUID = ObjectUUID.generate(),
+      isExtracted: Boolean = true
   ): SampleObject = {
     val now = DateTime.now
     SampleObject(
@@ -149,6 +149,10 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
     )
   }
 
+  def insert(samples: SampleObject*): Seq[MusitResult[ObjectUUID]] = {
+    samples.map(s => dao.insert(s).futureValue)
+  }
+
   "The SampleObjectDao" should {
 
     "return the object UUID of the inserted SampleObject" in {
@@ -172,34 +176,57 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       dao.findByUUID(ObjectUUID.generate()).futureValue mustBe MusitSuccess(None)
     }
 
-    "list all SampleObjects derived from a parent Object" in {
+    "list all SampleObjects derived from a parent" in {
       // Create a few sample objects with derived objects
       val parentId = ObjectUUID.generate()
       val childId1 = ObjectUUID.generate()
       val childId2 = ObjectUUID.generate()
       val childId3 = ObjectUUID.generate()
 
-      val parent = generateSample(id = parentId, None, CollectionObjectType)
-      val child1 =
-        generateSample(id = childId1, parentId = Some(parentId), CollectionObjectType)
-      val child2 =
-        generateSample(id = childId2, parentId = Some(parentId), CollectionObjectType)
-      val child3 =
-        generateSample(id = childId3, parentId = Some(parentId), CollectionObjectType)
+      val s1 = generateSample(id = parentId, None, CollectionObjectType)
+      val s2 = generateSample(childId1, Some(parentId), CollectionObjectType, parentId)
+      val s3 = generateSample(childId2, Some(parentId), CollectionObjectType, parentId)
+      val s4 = generateSample(childId3, Some(childId2), SampleObjectType, parentId)
 
-      dao.insert(parent).futureValue.isSuccess mustBe true
-      dao.insert(child1).futureValue.isSuccess mustBe true
-      dao.insert(child2).futureValue.isSuccess mustBe true
-      dao.insert(child3).futureValue.isSuccess mustBe true
+      forAll(insert(s1, s2, s3, s4))(_.isSuccess mustBe true)
 
       val res = dao.listForParentObject(parentId).futureValue
 
-      res.successValue.size mustBe 3
+      res.successValue.size mustBe 2
 
       forAll(res.successValue) { c =>
         c.parentObject.objectId mustBe Some(parentId)
         c.objectId must not be empty
         c.objectId must contain oneOf (childId1, childId2, childId3)
+      }
+    }
+
+    "list all SampleObjects derived from the same originating collection object" in {
+      val origId = ObjectUUID.generate()
+      val sid1   = ObjectUUID.generate()
+      val sid2   = ObjectUUID.generate()
+      val sid3   = ObjectUUID.generate()
+      val sid4   = ObjectUUID.generate()
+      val sid5   = ObjectUUID.generate()
+      val sid6   = ObjectUUID.generate()
+
+      val s1 = generateSample(sid1, Some(origId), CollectionObjectType, origId)
+      val s2 = generateSample(sid2, Some(origId), CollectionObjectType, origId)
+      val s3 = generateSample(sid3, Some(sid1), CollectionObjectType, origId)
+      val s4 = generateSample(sid4, Some(sid1), CollectionObjectType, origId)
+      val s5 = generateSample(sid5, Some(sid4), CollectionObjectType, origId)
+      val s6 = generateSample(sid6, Some(sid5), CollectionObjectType, origId)
+
+      forAll(insert(s1, s2, s3, s4, s5, s6))(_.isSuccess mustBe true)
+
+      val res = dao.listForOriginatingObject(origId).futureValue
+
+      res.successValue.size mustBe 6
+
+      forAll(res.successValue) { c =>
+        c.originatedObjectUuid mustBe origId
+        c.objectId must not be empty
+        c.objectId must contain oneOf (sid1, sid2, sid3, sid4, sid5, sid6)
       }
     }
 
@@ -240,7 +267,7 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
 
     "return the object UUID of the inserted SampleObject and it's event" in {
       val oid = ObjectUUID.generate()
-      val so  = generateSample(oid, None, CollectionObjectType, isExtracted = true)
+      val so  = generateSample(oid, None, CollectionObjectType)
       val se = generateSampleEvent(
         doneBy = so.registeredStamp.map(r => r.user),
         doneDate = so.registeredStamp.map(_.date),
@@ -284,21 +311,18 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
         oid1,
         Some(origObjId),
         CollectionObjectType,
-        isExtracted = true,
         origObjectId = origObjId
       )
       samples += generateSample(
         oid2,
         Some(origObjId),
         CollectionObjectType,
-        isExtracted = true,
         origObjectId = origObjId
       )
       samples += generateSample(
         oid3,
         Some(oid2),
         SampleObjectType,
-        isExtracted = true,
         origObjectId = origObjId
       )
 
