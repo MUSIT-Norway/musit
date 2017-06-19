@@ -1,24 +1,77 @@
 package repositories.analysis.dao
 
+import java.util.UUID
+
+import models.analysis.ParentObject
 import models.analysis.events.AnalysisResults.{AgeResult, AnalysisResult}
 import models.analysis.events.{Analysis, AnalysisCollection}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
-import no.uio.musit.models.{EventId, MuseumId, ObjectUUID, OrgId}
+import no.uio.musit.models.ObjectTypes.{
+  CollectionObjectType,
+  ObjectType,
+  SampleObjectType
+}
+import no.uio.musit.models._
+import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.{DateTimeMatchers, MusitResultValues}
 import no.uio.musit.time.dateTimeNow
 import org.scalatest.Inspectors.forAll
 import org.scalatest.OptionValues
-import utils.testdata.AnalysisGenerators
+import utils.testdata.{AnalysisGenerators, SampleObjectGenerators}
 
 class AnalysisDaoSpec
     extends MusitSpecWithAppPerSuite
     with DateTimeMatchers
     with MusitResultValues
     with OptionValues
-    with AnalysisGenerators {
+    with AnalysisGenerators
+    with SampleObjectGenerators {
 
-  private val dao = fromInstanceCache[AnalysisDao]
+  private val sampleDao = fromInstanceCache[SampleObjectDao]
+  private val dao       = fromInstanceCache[AnalysisDao]
+
+  val collections = Seq(
+    MuseumCollection(
+      uuid = CollectionUUID(UUID.fromString("2e4f2455-1b3b-4a04-80a1-ba92715ff613")),
+      name = Some("Arkeologi"),
+      oldSchemaNames = Seq(MuseumCollections.Archeology)
+    )
+  )
+
+  implicit val dummyUser = AuthenticatedUser(
+    session = UserSession(
+      uuid = SessionUUID.generate(),
+      oauthToken = Option(BearerToken(UUID.randomUUID().toString)),
+      userId = Option(defaultActorId),
+      isLoggedIn = true
+    ),
+    userInfo = UserInfo(
+      id = defaultActorId,
+      secondaryIds = Some(Seq("vader@starwars.com")),
+      name = Some("Darth Vader"),
+      email = None,
+      picture = None
+    ),
+    groups = Seq(
+      GroupInfo(
+        id = GroupId.generate(),
+        name = "FooBarGroup",
+        module = StorageFacility,
+        permission = Permissions.Admin,
+        museumId = mid,
+        description = None,
+        collections = collections
+      )
+    )
+  )
+
+  def saveSamplesFor(origObjectId: ObjectUUID, parentObject: ParentObject) = {
+    val sid = ObjectUUID.generate()
+    val s1 =
+      generateSample(sid, parentObject.objectId, parentObject.objectType, origObjectId)
+    sampleDao.insert(s1).futureValue.successValue
+  }
 
   def saveAnalysis(
       oid: Option[ObjectUUID],
@@ -27,6 +80,15 @@ class AnalysisDaoSpec
   ): MusitResult[EventId] = {
     val a = dummyAnalysis(oid, res)
     dao.insert(mid, a).futureValue
+  }
+
+  def saveAnalysisCol(
+      oid: Option[ObjectUUID],
+      res: Option[AnalysisResult],
+      mid: MuseumId = defaultMid
+  ): MusitResult[EventId] = {
+    val a = dummyAnalysisCollection(res, dummyAnalysis(oid, None))
+    dao.insertCol(mid, a).futureValue
   }
 
   "AnalysisDao" when {
@@ -145,7 +207,22 @@ class AnalysisDaoSpec
       }
 
       "return all analysis events for a given object" in {
-        dao.findByObjectUUID(defaultMid, oid2).futureValue.successValue.size mustBe 1
+        val s1 = saveSamplesFor(oid2, ParentObject(Some(oid2), CollectionObjectType))
+        val s2 = saveSamplesFor(oid2, ParentObject(Some(s1), SampleObjectType))
+        val s3 = saveSamplesFor(oid2, ParentObject(Some(s2), SampleObjectType))
+
+        val r1 = dummyDatingResult(age = Some("Golden oldie"))
+        val r2 = dummyGenericResult(comment = Some("Result 2"))
+
+        val a1 = saveAnalysisCol(Some(s1), Some(r1))
+        val a2 = saveAnalysisCol(Some(s2), Some(r2))
+        val a3 = saveAnalysisCol(Some(s3), None)
+
+        dao
+          .findByCollectionObjectUUID(defaultMid, oid2)
+          .futureValue
+          .successValue
+          .size mustBe 4
       }
 
       "successfully add a result to an analysis" in {

@@ -177,7 +177,7 @@ class AnalysisService @Inject()(
       mid: MuseumId,
       oid: ObjectUUID
   ): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
-    analysisDao.findByObjectUUID(mid, oid)
+    analysisDao.findByCollectionObjectUUID(mid, oid)
   }
 
   /**

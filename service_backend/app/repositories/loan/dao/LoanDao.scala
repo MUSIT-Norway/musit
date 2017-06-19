@@ -4,21 +4,22 @@ import com.google.inject.{Inject, Singleton}
 import models.loan.LoanEventTypes.{ObjectLentType, ObjectReturnedType}
 import models.loan.LoanType
 import models.loan.event.{LoanEvent, ObjectsLent, ObjectsReturned}
-import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, ObjectUUID}
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.shared.dao.DbErrorHandlers
 
 import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 @Singleton
 class LoanDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
-) extends LoanTables {
+) extends LoanTables
+    with DbErrorHandlers {
 
   val logger = Logger(classOf[LoanDao])
 
@@ -67,12 +68,9 @@ class LoanDao @Inject()(
       _  <- deleteActiveLoanRows(retEvt.objects)
       id <- insertEventRow(asEventRowTuple(mid, retEvt))
     } yield id
-    db.run(actions.transactionally).map(MusitSuccess.apply).recover {
-      case NonFatal(t) =>
-        val msg = "Unable to insert returned loan"
-        logger.warn(msg, t)
-        MusitDbError(msg, Some(t))
-    }
+    db.run(actions.transactionally)
+      .map(MusitSuccess.apply)
+      .recover(nonFatal("Unable to insert returned loans"))
   }
 
   def insertLentObjectEvent(
@@ -84,12 +82,9 @@ class LoanDao @Inject()(
       _  <- insertLentObjects(id, objectsLent.objects)
       _  <- insertActiveLoanRows(mid, id, objectsLent.returnDate, objectsLent.objects)
     } yield id
-    db.run(actions.transactionally).map(MusitSuccess.apply).recover {
-      case NonFatal(t) =>
-        val msg = "Unable to insert loan"
-        logger.warn(msg, t)
-        MusitDbError(msg, Some(t))
-    }
+    db.run(actions.transactionally)
+      .map(MusitSuccess.apply)
+      .recover(nonFatal("Unable to insert loan"))
   }
 
   def findExpectedReturnedObjects(
@@ -100,12 +95,9 @@ class LoanDao @Inject()(
       r.returnDate < dateTimeNow
     }.sortBy(_.returnDate).map(r => r.objectUuid -> r.returnDate)
 
-    db.run(action.result).map(MusitSuccess.apply).recover {
-      case NonFatal(t) =>
-        val msg = "Unable to fetch active loans"
-        logger.warn(msg, t)
-        MusitDbError(msg, Some(t))
-    }
+    db.run(action.result)
+      .map(MusitSuccess.apply)
+      .recover(nonFatal("Unable to fetch active loans"))
   }
 
   def findEventForObject(objectUUID: ObjectUUID): Future[MusitResult[Seq[LoanEvent]]] = {

@@ -2,20 +2,21 @@ package repositories.analysis.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.analysis.events.{AnalysisType, AnalysisTypeId, Category}
-import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models.CollectionUUID
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.shared.dao.DbErrorHandlers
 
 import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 @Singleton
 class AnalysisTypeDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
-) extends AnalysisTables {
+) extends AnalysisTables
+    with DbErrorHandlers {
 
   val logger = Logger(classOf[AnalysisTypeDao])
 
@@ -30,12 +31,7 @@ class AnalysisTypeDao @Inject()(
         val ats = res.map(fromAnalysisTypeRow)
         MusitSuccess(ats)
       }
-      .recover {
-        case NonFatal(ex) =>
-          val msg = "A problem occurred fetching all analysis types from the DB"
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
+      .recover(nonFatal("A problem occurred fetching all analysis types from the DB"))
   }
 
   def allFor(maybeCat: Option[Category], maybeColl: Option[CollectionUUID])(
@@ -45,7 +41,7 @@ class AnalysisTypeDao @Inject()(
       .map(cat => analysisTypeTable.filter(_.category === cat))
       .getOrElse(analysisTypeTable)
     val collQuery = {
-      if (currUsr.hasGodMode)
+      if (currUsr.hasGodMode) {
         maybeColl
           .map(coll => {
             catQuery.filter { at =>
@@ -53,22 +49,22 @@ class AnalysisTypeDao @Inject()(
             }
           })
           .getOrElse(catQuery)
-      else
+      } else {
         catQuery
+      }
     }
     db.run(collQuery.result)
       .map { res =>
         val ats = res.map(fromAnalysisTypeRow)
         MusitSuccess(ats)
       }
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"A problem occurred fetching analysis types for category " +
+      .recover(
+        nonFatal(
+          s"A problem occurred fetching analysis types for category " +
             s"${maybeCat.map(_.entryName).getOrElse("N/A")} and collection " +
             s"${maybeColl.map(_.toString).getOrElse("N/A")} from the DB"
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
+        )
+      )
   }
 
   /**
@@ -80,13 +76,12 @@ class AnalysisTypeDao @Inject()(
         val ats = res.map(fromAnalysisTypeRow)
         MusitSuccess(ats)
       }
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"A problem occurred fetching analysis types for category " +
+      .recover(
+        nonFatal(
+          s"A problem occurred fetching analysis types for category " +
             s"${c.entryName} from the DB"
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
+        )
+      )
   }
 
   /**
@@ -96,12 +91,9 @@ class AnalysisTypeDao @Inject()(
   def findById(tid: AnalysisTypeId): Future[MusitResult[Option[AnalysisType]]] = {
     db.run(analysisTypeTable.filter(_.typeId === tid).result.headOption)
       .map(r => MusitSuccess(r.map(fromAnalysisTypeRow)))
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"A problem occurred fetching analysis type by id $tid from the DB"
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
+      .recover(
+        nonFatal(s"A problem occurred fetching analysis type by id $tid from the DB")
+      )
   }
 
   /**
@@ -118,13 +110,11 @@ class AnalysisTypeDao @Inject()(
         val ats = res.map(fromAnalysisTypeRow)
         MusitSuccess(ats)
       }
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"A problem occurred fetching analysis types for collection " +
-            s"$cid from the DB"
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
+      .recover(
+        nonFatal(
+          s"A problem occurred fetching analysis types for collection $cid from the DB"
+        )
+      )
   }
 
 }

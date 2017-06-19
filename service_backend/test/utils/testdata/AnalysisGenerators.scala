@@ -21,9 +21,12 @@ trait AnalysisGenerators {
 
   protected val dummyOrgId = OrgId(315)
 
-  protected val oid1 = ObjectUUID.generate()
-  protected val oid2 = ObjectUUID.generate()
-  protected val oid3 = ObjectUUID.generate()
+  protected val oid1 =
+    ObjectUUID.unsafeFromString("2e5037d5-4952-4571-9de2-709eb22b01f0")
+  protected val oid2 =
+    ObjectUUID.unsafeFromString("4d2e516d-db5f-478e-b409-eac7ff2486e8")
+  protected val oid3 =
+    ObjectUUID.unsafeFromString("5a928d42-05a6-44db-adef-c6dfe588f016")
 
   protected val dummyAnalysisNote = "This is from a SaveAnalysis command"
   protected val dummyAnalysisCollectionNote =

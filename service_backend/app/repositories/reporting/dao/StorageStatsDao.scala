@@ -1,20 +1,20 @@
 package repositories.reporting.dao
 
 import com.google.inject.{Inject, Singleton}
-import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.shared.dao.StorageTables
+import repositories.shared.dao.{DbErrorHandlers, StorageTables}
 
 import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 @Singleton
 class StorageStatsDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
-) extends StorageTables {
+) extends StorageTables
+    with DbErrorHandlers {
 
   val logger = Logger(classOf[StorageStatsDao])
 
@@ -37,12 +37,9 @@ class StorageStatsDao @Inject()(
    * the children
    */
   def numChildren(id: StorageNodeId): Future[MusitResult[Int]] = {
-    db.run(countChildren(id)).map(MusitSuccess.apply).recover {
-      case NonFatal(ex) =>
-        val msg = s"An error occurred counting number node children under $id"
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(countChildren(id))
+      .map(MusitSuccess.apply)
+      .recover(nonFatal(s"An error occurred counting number node children under $id"))
   }
 
   /**
@@ -74,12 +71,9 @@ class StorageStatsDao @Inject()(
         logger.debug(s"Num objects in path $path is $vi")
         MusitSuccess.apply(vi)
       }
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"An error occurred counting total objects for nodes in path $path"
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
+      .recover(
+        nonFatal(s"An error occurred counting total objects for nodes in path $path")
+      )
   }
 
   /**
@@ -108,11 +102,6 @@ class StorageStatsDao @Inject()(
         logger.debug(s"Num objects in node $nodeId is $vi")
         MusitSuccess.apply(vi)
       }
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"An error occurred counting number direct objects in $nodeId"
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
+      .recover(nonFatal(s"An error occurred counting number direct objects in $nodeId"))
   }
 }

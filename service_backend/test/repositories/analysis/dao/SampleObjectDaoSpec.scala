@@ -22,19 +22,20 @@ import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
 import org.scalatest.Inspectors.forAll
 import repositories.storage.dao.events.MoveDao
+import utils.testdata.SampleObjectGenerators
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
+class SampleObjectDaoSpec
+    extends MusitSpecWithAppPerSuite
+    with MusitResultValues
+    with SampleObjectGenerators {
 
   val dao: SampleObjectDao = fromInstanceCache[SampleObjectDao]
 
   // Necessary for testing functionality to list samples for node
   val moveDao: MoveDao = fromInstanceCache[MoveDao]
-
-  val mid            = Museums.Test.id
-  val defaultActorId = ActorId.generate()
 
   val collections = Seq(
     MuseumCollection(
@@ -92,61 +93,6 @@ class SampleObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
     }
 
     moveDao.batchInsertObjects(mid, events)
-  }
-
-  def generateSample(
-      id: ObjectUUID,
-      parentId: Option[ObjectUUID],
-      parentObjType: ObjectType,
-      origObjectId: ObjectUUID = ObjectUUID.generate(),
-      isExtracted: Boolean = true
-  ): SampleObject = {
-    val now = DateTime.now
-    SampleObject(
-      objectId = Some(id),
-      parentObject = ParentObject(parentId, parentObjType),
-      isExtracted = isExtracted,
-      museumId = mid,
-      status = SampleStatuses.Intact,
-      responsible = ActorId.generateAsOpt(),
-      doneByStamp = ActorId.generateAsOpt().map(ActorStamp(_, now)),
-      sampleId = None,
-      sampleNum = None,
-      externalId = Some(ExternalId("external id", Some("external source"))),
-      sampleTypeId = SampleTypeId(1),
-      size = Some(Size("cm2", 12.0)),
-      container = Some("box"),
-      storageMedium = None,
-      treatment = Some("treatment"),
-      leftoverSample = NoLeftover,
-      description = Some("sample description"),
-      note = Some("This is a sample note"),
-      originatedObjectUuid = origObjectId,
-      registeredStamp = Some(ActorStamp(ActorId.generate(), now)),
-      updatedStamp = None,
-      isDeleted = false
-    )
-  }
-
-  def generateSampleEvent(
-      doneBy: Option[ActorId] = None,
-      doneDate: Option[DateTime] = None,
-      registeredBy: Option[ActorId] = Some(defaultActorId),
-      registeredDate: Option[DateTime] = None,
-      objectId: Option[ObjectUUID] = ObjectUUID.generateAsOpt(),
-      sampleObjectId: Option[ObjectUUID] = ObjectUUID.generateAsOpt()
-  ): SampleCreated = {
-    val now = DateTime.now
-    SampleCreated(
-      id = None,
-      doneBy = doneBy,
-      doneDate = doneDate,
-      registeredBy = registeredBy,
-      registeredDate = registeredDate,
-      objectId = objectId,
-      sampleObjectId = sampleObjectId,
-      externalLinks = None
-    )
   }
 
   def insert(samples: SampleObject*): Seq[MusitResult[ObjectUUID]] = {

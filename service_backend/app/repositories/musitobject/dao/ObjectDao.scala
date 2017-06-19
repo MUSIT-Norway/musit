@@ -25,7 +25,6 @@ import repositories.musitobject.dao.SearchFieldValues.{
 import repositories.shared.dao.{DbErrorHandlers, SharedTables}
 
 import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 /**
  * Dao intended for searching through objects
@@ -310,12 +309,9 @@ class ObjectDao @Inject()(
         AND mt."IS_DELETED" = 0 #${collectionFilter(collections)}
       """.as[Int].head
 
-    db.run(count).map(MusitSuccess.apply).recover {
-      case NonFatal(ex) =>
-        val msg = s"An error occurred counting objects in node $nodeId"
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(count)
+      .map(MusitSuccess.apply)
+      .recover(nonFatal(s"An error occurred counting objects in node $nodeId"))
   }
 
   // scalastyle:off line.size.limit method.length
@@ -418,12 +414,7 @@ class ObjectDao @Inject()(
       res <- MusitResultT(objectsFor(mid, nodeId, collections, page, limit))
     } yield {
       PagedResult[MusitObject](tot, res.map(MusitObject.fromSearchTuple))
-    }).value.recover {
-      case NonFatal(ex) =>
-        val msg = s"Error while retrieving objects for nodeId $nodeId"
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    }).value.recover(nonFatal(s"Error while retrieving objects for nodeId $nodeId"))
 
   /**
    * Find the ObjectIds for objects located in the given old schema with the
@@ -443,12 +434,8 @@ class ObjectDao @Inject()(
         (o.oldObjId inSet oldIds)
     }.sortBy(_.id).map(_.id)
 
-    db.run(query.result).map(MusitSuccess.apply).recover {
-      case NonFatal(ex) =>
-        val msg = s"Error locating objectIds for old IDs ${oldIds.mkString(", ")}"
-        logger.error(msg, ex)
-        MusitDbError(msg, Option(ex))
-    }
+    db.run(query.result).map(MusitSuccess.apply)
+      .recover(nonFatal(s"Error locating objectIds for old IDs ${oldIds.mkString(", ")}"))
   }
 
   /**
@@ -470,12 +457,7 @@ class ObjectDao @Inject()(
 
     db.run(query.result.headOption)
       .map(res => MusitSuccess(res.map(MusitObject.fromSearchTuple)))
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"Error while locating object with old object ID $oldId"
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
+      .recover(nonFatal(s"Error while locating object with old object ID $oldId"))
   }
 
   def findByUUID(
@@ -497,12 +479,7 @@ class ObjectDao @Inject()(
 
     db.run(query.result.headOption)
       .map(res => MusitSuccess(res.map(MusitObject.fromSearchTuple)))
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"Error while locating object with uuid $objectUUID"
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
+      .recover(nonFatal(s"Error while locating object with uuid $objectUUID"))
   }
 
   def findByOldBarcode(
@@ -587,8 +564,8 @@ class ObjectDao @Inject()(
         }
       case Ethnography =>
         thingLocationTable.filter(_.objectid === oid.underlying).map { e =>
-          (e.etnPlace, e.etnCountry, e.etnRegion1, e.etnRegion2,e.etnArea)
-        }.result.map(ts => ts.map(t => EtnoLocation(t._1, t._2, t._3,t._4,t._5)))
+          (e.etnPlace, e.etnCountry, e.etnRegion1, e.etnRegion2, e.etnArea)
+        }.result.map(ts => ts.map(t => EtnoLocation(t._1, t._2, t._3, t._4, t._5)))
 
       case noLocations =>
         logger.warn(s"There are no locations for the $noLocations collection")
@@ -604,7 +581,7 @@ class ObjectDao @Inject()(
     collection match {
       case Archeology =>
         thingCoordinateTable.filter(_.objectid === oid.underlying).map { a =>
-          (a.arkProjection, a.arkPresision,a.arkNorth,a.arkEast)
+          (a.arkProjection, a.arkPresision, a.arkNorth, a.arkEast)
         }.result.map(ts => ts.map(t => ArkCoordinate(t._1, t._2, t._3, t._4)))
 
 

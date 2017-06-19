@@ -2,18 +2,19 @@ package repositories.analysis.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.analysis.StorageContainer
-import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.shared.dao.DbErrorHandlers
 
 import scala.concurrent.Future
-import scala.util.control.NonFatal
 
 @Singleton
 class StorageContainerDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
-) extends AnalysisTables {
+) extends AnalysisTables
+    with DbErrorHandlers {
 
   val logger = Logger(classOf[StorageContainerDao])
 
@@ -23,11 +24,6 @@ class StorageContainerDao @Inject()(
     db.run(storageContainerTable.result)
       .map(_.map(fromStorageContainerRow))
       .map(MusitSuccess.apply)
-      .recover {
-        case NonFatal(ex) =>
-          val msg = s"An unexpected error occurred fetching storage container list"
-          logger.error(msg, ex)
-          MusitDbError(msg, Option(ex))
-      }
+      .recover(nonFatal(s"An unexpected error occurred fetching storage container list"))
   }
 }
