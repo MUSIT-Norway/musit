@@ -22,7 +22,7 @@ class SampleTypeControllerIntegrationSpec
       val res = wsUrl(sampleTypeUrl).withHeaders(token.asHeader).get().futureValue
       res.status mustBe OK
       val sampleTypes = res.json.as[JsArray].value
-      sampleTypes.size mustBe 37
+      sampleTypes.size mustBe 51
     }
 
   }

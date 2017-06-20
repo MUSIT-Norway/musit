@@ -648,3 +648,17 @@ INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletyp
 INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(35,'Vev','Tissue','Vinge','Wing');
 INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(36,'Vev','Tissue','Øre','Ear');
 INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype)VALUES(37,'Materiale','Material','','');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype) VALUES (38, 'Arkeologisk materiale', 'Archaeological material','leire ','clay');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype) VALUES (39, 'Arkeologisk materiale', 'Archaeological material','lerret','canvas');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype) VALUES (40, 'Arkeologisk materiale', 'Archaeological material','lin','flax');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype) VALUES (41, 'Arkeologisk materiale', 'Archaeological material','lær','leather');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype) VALUES (164,'Etnografisk materiale', 'Ethnografic material','agat','agate');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype) VALUES (165,'Etnografisk materiale', 'Ethnografic material','akryl','acrylic');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype) VALUES (166,'Etnografisk materiale', 'Ethnografic material','alabast','alabaster');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype) VALUES (167,'Etnografisk materiale', 'Ethnografic material','ametyst','amethyst');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype) VALUES (376,'Numismatisk materiale', 'Numismatic material','Porselen','Porcelain');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype) VALUES (377,'Numismatisk materiale', 'Numismatic material','Sink','Zink');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype) VALUES (378,'Numismatisk materiale', 'Numismatic material','Stål','Steel');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype) VALUES (380,'Sediment-/jordprøver',  'Sediment and soil samples', 'C/N prøver', 'C/N samples');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype) VALUES (381,'Sediment-/jordprøver',  'Sediment and soil samples', 'Jordmikromorfologiske prøver','Soil micromorphology samples');
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype) VALUES (382,'Sediment-/jordprøver',  'Sediment and soil samples', 'Kornfordelingsprøver','Grain size distribution (GSD) samples');

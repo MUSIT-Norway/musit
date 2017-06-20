@@ -10,8 +10,9 @@ class SampleTypeDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues 
   "The SampleTypeDao " should {
     "return sampleType list" in {
       val list = dao.getSampleTypeList.futureValue.successValue
-      list.size mustBe 37
+      list.size mustBe 51
       list.head.noSampleType mustBe "DNA-ekstrakt"
+      list.last.enSampleSubType mustBe Some("Grain size distribution (GSD) samples")
     }
   }
 
