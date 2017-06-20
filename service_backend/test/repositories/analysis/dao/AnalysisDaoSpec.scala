@@ -4,13 +4,9 @@ import java.util.UUID
 
 import models.analysis.ParentObject
 import models.analysis.events.AnalysisResults.{AgeResult, AnalysisResult}
-import models.analysis.events.{Analysis, AnalysisCollection}
+import models.analysis.events.{Analysis, AnalysisCollection, SampleCreated}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
-import no.uio.musit.models.ObjectTypes.{
-  CollectionObjectType,
-  ObjectType,
-  SampleObjectType
-}
+import no.uio.musit.models.ObjectTypes.{CollectionObjectType, SampleObjectType}
 import no.uio.musit.models._
 import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -66,10 +62,20 @@ class AnalysisDaoSpec
     )
   )
 
-  def saveSamplesFor(origObjectId: ObjectUUID, parentObject: ParentObject) = {
+  def saveSamplesFor(
+      origObjectId: ObjectUUID,
+      parentObject: ParentObject,
+      mid: MuseumId = defaultMid
+  ) = {
     val sid = ObjectUUID.generate()
     val s1 =
-      generateSample(sid, parentObject.objectId, parentObject.objectType, origObjectId)
+      generateSample(
+        sid,
+        parentObject.objectId,
+        parentObject.objectType,
+        origObjectId,
+        mid = mid
+      )
     sampleDao.insert(s1).futureValue.successValue
   }
 
@@ -295,6 +301,38 @@ class AnalysisDaoSpec
         val after = dao.findAnalysisEvents(defaultMid).futureValue.successValue
 
         after.size mustBe origin.size
+      }
+
+      "only return AnalysisCollections" in {
+        val mid   = MuseumId(42)
+        val myOid = ObjectUUID.generateAsOpt()
+        val r1    = dummyDatingResult(age = Some("Golden oldie"))
+        val sample = generateSample(
+          ObjectUUID.generate(),
+          myOid,
+          CollectionObjectType,
+          mid = mid
+        )
+        val sampleCreated = SampleCreated(
+          id = None,
+          doneBy = None,
+          doneDate = None,
+          registeredBy = Some(defaultActorId),
+          registeredDate = Some(dateTimeNow),
+          objectId = sample.objectId,
+          sampleObjectId = None,
+          externalLinks = None
+        )
+        sampleDao.insert(mid, sample, sampleCreated).futureValue.successValue
+
+        saveAnalysisCol(myOid, Some(r1), mid).successValue
+
+        val events = dao.findAnalysisEvents(mid).futureValue.successValue
+
+        events must not be empty
+        forAll(events)((event) => {
+          event mustBe a[AnalysisCollection]
+        })
       }
     }
 

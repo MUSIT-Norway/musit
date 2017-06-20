@@ -392,10 +392,9 @@ class AnalysisDao @Inject()(
    */
   def findAnalysisEvents(mid: MuseumId): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
     val allParentAnalysis =
-      analysisTable
-        .filter(a => a.partOf.isEmpty && a.museumId === mid)
-        .sorted(_.registeredDate.desc)
-        .result
+      analysisTable.filter { a =>
+        a.partOf.isEmpty && a.museumId === mid && a.typeId =!= SampleCreated.sampleEventTypeId
+      }.sorted(_.registeredDate.desc).result
 
     db.run(allParentAnalysis)
       .map(_.flatMap(toAnalysisModuleEvent))

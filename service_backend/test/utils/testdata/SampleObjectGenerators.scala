@@ -4,7 +4,7 @@ import models.analysis.LeftoverSamples.NoLeftover
 import models.analysis._
 import models.analysis.events.SampleCreated
 import no.uio.musit.models.ObjectTypes.ObjectType
-import no.uio.musit.models.{ActorId, Museums, ObjectUUID}
+import no.uio.musit.models.{ActorId, MuseumId, Museums, ObjectUUID}
 import org.joda.time.DateTime
 
 trait SampleObjectGenerators {
@@ -17,7 +17,8 @@ trait SampleObjectGenerators {
       parentId: Option[ObjectUUID],
       parentObjType: ObjectType,
       origObjectId: ObjectUUID = ObjectUUID.generate(),
-      isExtracted: Boolean = true
+      isExtracted: Boolean = true,
+      mid: MuseumId = mid
   ): SampleObject = {
     val now = DateTime.now
     SampleObject(
