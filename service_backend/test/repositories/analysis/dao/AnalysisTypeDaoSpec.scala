@@ -15,7 +15,7 @@ class AnalysisTypeDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       val res = dao.all.futureValue
 
       val ats = res.successValue
-      ats.size mustBe 45
+      ats.size mustBe 46
       ats.map(_.category.entryName).distinct.size mustBe 13
     }
 
@@ -23,7 +23,7 @@ class AnalysisTypeDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValue
       val res = dao.allForCategory(Dating).futureValue
 
       val ats = res.successValue
-      ats.size mustBe 2
+      ats.size mustBe 3
 
       val expResAttrs1 = Map(
         "ageEstimate"       -> "String",

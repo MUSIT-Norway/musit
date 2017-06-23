@@ -48,7 +48,7 @@ class AnalysisServiceSpec
 
     "return all known event types" in {
       val res = service.getAllTypes.futureValue.successValue
-      res.size mustBe 45
+      res.size mustBe 46
     }
 
     "return all known event types for an event category" in {

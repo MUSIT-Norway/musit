@@ -53,7 +53,7 @@ class AnalysisControllerIntegrationSpec
         val res = wsUrl(typesUrl(mid)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
-        res.json.as[JsArray].value.size mustBe 45
+        res.json.as[JsArray].value.size mustBe 46
       }
 
       "return all event categories" in {
@@ -71,7 +71,7 @@ class AnalysisControllerIntegrationSpec
           wsUrl(typeCatUrl(mid)(catId)).withHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
-        res.json.as[JsArray].value.size mustBe 2
+        res.json.as[JsArray].value.size mustBe 3
       }
 
       "return all types in a category where some have extra description attributes" in {
