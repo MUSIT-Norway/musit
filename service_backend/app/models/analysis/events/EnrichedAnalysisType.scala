@@ -42,6 +42,7 @@ case class EnrichedAnalysisType(
     collections: Seq[CollectionUUID] = Seq.empty,
     extraDescriptionType: Option[String] = None,
     extraDescriptionAttributes: Option[Seq[EnrichedDescriptionAttribute]] = None,
+    extraResultType: Option[String] = None,
     extraResultAttributes: Option[Map[String, String]] = None
 )
 
@@ -61,6 +62,7 @@ object EnrichedAnalysisType {
       extraDescriptionAttributes = at.extraDescriptionAttributes.map { m =>
         EnrichedDescriptionAttribute.from(at.extraDescriptionType, m)
       },
+      extraResultType = at.extraResultType,
       extraResultAttributes = at.extraResultAttributes
     )
   }

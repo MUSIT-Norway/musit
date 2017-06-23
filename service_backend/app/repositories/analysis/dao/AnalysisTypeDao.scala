@@ -34,14 +34,15 @@ class AnalysisTypeDao @Inject()(
       .recover(nonFatal("A problem occurred fetching all analysis types from the DB"))
   }
 
-  def allFor(maybeCat: Option[Category], maybeColl: Option[CollectionUUID])(
-      implicit currUsr: AuthenticatedUser
-  ): Future[MusitResult[Seq[AnalysisType]]] = {
+  def allFor(
+      maybeCat: Option[Category],
+      maybeColl: Option[CollectionUUID]
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Seq[AnalysisType]]] = {
     val catQuery = maybeCat
       .map(cat => analysisTypeTable.filter(_.category === cat))
       .getOrElse(analysisTypeTable)
     val collQuery = {
-      if (currUsr.hasGodMode) {
+      if (currUser.hasGodMode) {
         maybeColl
           .map(coll => {
             catQuery.filter { at =>

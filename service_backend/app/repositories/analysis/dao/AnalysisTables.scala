@@ -44,6 +44,7 @@ trait AnalysisTables
         Option[String],
         Option[String],
         Option[JsValue],
+        Option[String],
         Option[JsValue]
     )
 
@@ -114,6 +115,7 @@ trait AnalysisTables
     val collections  = column[Option[String]]("COLLECTIONS")
     val descAttrType = column[Option[String]]("EXTRA_DESCRIPTION_TYPE")
     val descAttrs    = column[Option[JsValue]]("EXTRA_DESCRIPTION_ATTRIBUTES")
+    val resAttrType  = column[Option[String]]("EXTRA_RESULT_TYPE")
     val resAttrs     = column[Option[JsValue]]("EXTRA_RESULT_ATTRIBUTES")
 
     // scalastyle:off method.name
@@ -127,6 +129,7 @@ trait AnalysisTables
         collections,
         descAttrType,
         descAttrs,
+        resAttrType,
         resAttrs
       )
 
@@ -349,8 +352,9 @@ trait AnalysisTables
       extraDescriptionType = t._7,
       extraDescriptionAttributes =
         t._8.flatMap(a => Json.fromJson[Map[String, String]](a).asOpt),
+      extraResultType = t._9,
       extraResultAttributes =
-        t._9.flatMap(a => Json.fromJson[Map[String, String]](a).asOpt)
+        t._10.flatMap(a => Json.fromJson[Map[String, String]](a).asOpt)
     )
   }
 

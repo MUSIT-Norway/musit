@@ -101,6 +101,19 @@ class AnalysisControllerIntegrationSpec
         (first \ "noLabel").as[String] mustBe "Lys-/polarisasjonsmikroskopi"
       }
 
+      "return measurement type with extra result type" in {
+        val res =
+          wsUrl(typesUrl(mid)).withHeaders(token.asHeader).get().futureValue
+
+        res.status mustBe OK
+        val arr = res.json.as[JsArray].value
+        arr.size mustBe 46
+
+        val js = res.json
+
+        (js \ 39 \ "extraResultType").as[String] mustBe "MeasurementResult"
+      }
+
       "return all event types related to a museum collection" ignore {
         val cid = MuseumCollections.Entomology.uuid
         val res = wsUrl(typeColUrl(mid)(cid.asString))

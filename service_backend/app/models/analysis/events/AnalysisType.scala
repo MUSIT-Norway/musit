@@ -48,6 +48,7 @@ case class AnalysisType(
     collections: Seq[CollectionUUID] = Seq.empty,
     extraDescriptionType: Option[String] = None,
     extraDescriptionAttributes: Option[Map[String, String]] = None,
+    extraResultType: Option[String] = None,
     extraResultAttributes: Option[Map[String, String]] = None
 )
 
