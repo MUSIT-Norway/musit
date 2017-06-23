@@ -16,7 +16,7 @@ variables:
   DOCKER_DRIVER: overlay
 
 services:
-  - docker:dind
+  - $MUSIT_DOCKER_REGISTRY/library/docker:dind
 
 before_script:
   - echo "Running build $CI_JOB_ID for commit $CI_COMMIT_SHA with commit ref name $CI_COMMIT_REF_NAME"
@@ -40,11 +40,7 @@ test:
     - sbt clean scalastyle scalafmt
     - git status
     - git diff --exit-code || (echo "ERROR Scalariform check failed, see differences above."; false)
-    - sbt -mem 2048 coverage test coverageReport
-    # Aggregate the coverage report
-    - sbt coverageAggregate
-    # Do not publish coverage to codacy if the build is a PR from a forked repo.
-    - if [[ -n "$CODACY_PROJECT_TOKEN" ]]; then sbt codacyCoverage; else echo "Coverage reporting disabled for PR from forks"; fi
+    - if [[ -n "$CODACY_PROJECT_TOKEN" ]]; then echo "Running with code coverage..."; sbt coverage test coverageReport; sbt coverageAggregate; sbt codacyCoverage; else echo "Coverage reporting disabled for forks"; sbt test; fi
 
 build:
   stage: build
@@ -56,7 +52,7 @@ build:
 cleanup:
   stage: cleanup
   script:
-    - docker rm -v $(docker ps -a -q --filter=status=exited --filter=status=dead)
+    - docker rm -v $(docker ps -a -q --filter "status=exited" --filter "status=dead")
     - docker rmi $(docker images --filter "dangling=true" | grep "service_")
   only:
     - master@MUSIT-Norway/musit
