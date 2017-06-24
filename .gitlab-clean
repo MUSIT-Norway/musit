@@ -1,0 +1,10 @@
+#!/bin/bash
+
+echo "Cleaning up Docker images and containers..."
+
+docker rm -v $(docker ps -qa --no-trunc --filter "status=exited" --filter "status=dead" --filter "status=created") > /dev/null 2>&1
+docker rmi $(docker images --filter "dangling=true" -q --no-trunc) > /dev/null 2>&1
+docker rmi $(docker images -a | grep "^.*\/musit\/*" | awk '{print $3}') --force > /dev/null 2>&1
+docker rmi $(docker images -a --no-trunc | grep "^<none>" | awk '{print $3}') > /dev/null 2>&1
+
+echo "Docker cleaning complete..."
