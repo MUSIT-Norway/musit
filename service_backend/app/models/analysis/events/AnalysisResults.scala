@@ -161,6 +161,7 @@ object AnalysisResults {
    * @param registeredDate The date when the result was registered
    * @param extRef A list of references to external systems.
    * @param comment A comment field that may contain a hand written result
+   * @param measurementId A field with the ID value of the measurement type.
    * @param measurementType The type of measurement performed.
    * @param size The measured size.
    * @param precision The precision of the measured size.
@@ -171,7 +172,7 @@ object AnalysisResults {
       registeredDate: Option[DateTime],
       extRef: Option[Seq[String]],
       comment: Option[String],
-//      id: String, // TODO: What is this, and what is it supposed to be used for?
+      measurementId: Option[String],
       measurementType: Option[String],
       size: Option[Size],
       precision: Option[String],

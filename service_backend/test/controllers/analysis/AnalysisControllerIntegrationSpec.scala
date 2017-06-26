@@ -1,7 +1,11 @@
 package controllers.analysis
 
 import models.analysis.events.AnalysisExtras.ElementalICPAttributes.ICP_MS
-import models.analysis.events.AnalysisExtras.TomographyAttributes.ComputerTomography
+import models.analysis.events.AnalysisExtras.TomographyAttributes.{
+  ComputerTomography,
+  NeutronTomography,
+  StructuredLight3DScan
+}
 import models.analysis.events.AnalysisExtras.{
   ElementalICPAttributes,
   TomographyAttributes
@@ -166,25 +170,30 @@ class AnalysisControllerIntegrationSpec
 
       "successfully update an analysis" in {
         val edate = DateTime.now
-        val js = createSaveAnalysisCollectionJSON(
+        val jso = createSaveAnalysisCollectionJSON(
           typeId = tomographyTypeId,
           eventDate = Some(edate),
           objects = Seq(dummyObjectId),
           caseNumbers = Some(Seq("abc", "def")),
           orgId = Some(OrgId(312))
         )
+        val js = appendExtraAttributes(jso, TomographyAttributes(StructuredLight3DScan))
 
         saveAnalysis(js).status mustBe CREATED // creates ids 7 to 8
         val ares =
           wsUrl(getAnalysisUrl(mid)(7L)).withHeaders(token.asHeader).get().futureValue
+
         ares.status mustBe OK
         (ares.json \ "orgId").as[Int] mustBe 312
-        val updJson = js ++ Json.obj(
+        val updJso = js ++ Json.obj(
           "reason"         -> "There's a reason now",
           "status"         -> 2,
           "analysisTypeId" -> 12, // Should not be modified by the server.
           "orgId"          -> 317
         )
+
+        val updJson =
+          appendExtraAttributes(updJso, TomographyAttributes(NeutronTomography))
 
         val updRes = wsUrl(getAnalysisUrl(mid)(7L))
           .withHeaders(token.asHeader)
@@ -197,6 +206,7 @@ class AnalysisControllerIntegrationSpec
         (updRes.json \ "id").as[Int] mustBe 7
         (updRes.json \ "analysisTypeId").as[Int] mustBe tomographyTypeId
         (updRes.json \ "orgId").as[Int] mustBe 317
+        (updRes.json \ "extraAttributes" \ "method").as[Int] mustBe NeutronTomography.id
       }
 
       "return HTTP 400 when using wrong extra attributes for analysis collection" in {

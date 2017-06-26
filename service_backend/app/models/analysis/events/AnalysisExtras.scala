@@ -236,7 +236,7 @@ object AnalysisExtras {
     }
 
     case object NeutronTomography extends TomographyMethod {
-      override val id      = 4
+      override val id      = 5
       override val enLabel = "Neutron tomography"
       override val noLabel = "Neutrontomografi"
     }
