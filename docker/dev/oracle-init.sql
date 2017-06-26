@@ -1136,17 +1136,3 @@ INSERT INTO musit_mapping.musitthing (musitthing_uuid, object_id, museumno, subn
 INSERT INTO musit_mapping.musitthing (musitthing_uuid, object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid, old_schemaname, new_collection_id) VALUES                ('42cfdae4-2fd4-4102-8ad6-d9e504f9fd33', 53, 'MusK113', NULL, 'Fin bendings', 113, NULL, 99, 'USD_ARK_GJENSTAND_O', 1);
 INSERT INTO musit_mapping.musitthing (musitthing_uuid, object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid, old_schemaname, new_collection_id) VALUES                ('aba6a67c-f742-4a44-b13e-0415ec1abb2a', 54, 'MusN13', NULL, 'Makrellsopp', 13, NULL, 99, 'MUSIT_BOTANIKK_SOPP', 6);
 INSERT INTO musit_mapping.musitthing (musitthing_uuid, object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid, old_schemaname, new_collection_id) VALUES                ('59df0090-aff2-4a82-8968-bfa06c2df861', 55, 'MusK108', NULL, 'Skinnpung', 108, NULL, 99, 'USD_ARK_GJENSTAND_O', 1);
-
-
-
-
-INSERT INTO MUSARK_ACTOR.ORGANISATION (ORG_ID, FULL_NAME, TEL, WEB,SYNONYMS,SERVICE_TAGS)
-VALUES (1, 'Kulturhistorisk museum - Universitetet i Oslo', '22 85 19 00', 'www.khm.uio.no','|Kulturhistorisk museum|UKM|KHM|','|storage_facility|');
-INSERT INTO MUSARK_ACTOR.ORGANISATION (ORG_ID, FULL_NAME, TEL, WEB,SYNONYMS,SERVICE_TAGS)
-VALUES (10, 'Arkeologisk museum', '22', 'ee','|Ark museum|AM|','');
-
-
-INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS (ORGADDRESSID,ORG_ID, ADDRESS_TYPE, STREET_ADDRESS, LOCALITY, POSTAL_CODE, COUNTRY_NAME, LATITUDE, LONGITUDE)
-VALUES (10 ,1, 'WORK', 'Fredriks gate 2', 'OSLO', '0255', 'NORWAY', 0.0, 0.0);
-INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS (ORGADDRESSID,ORG_ID, ADDRESS_TYPE, STREET_ADDRESS, LOCALITY, POSTAL_CODE, COUNTRY_NAME, LATITUDE, LONGITUDE)
-VALUES (20, 10, 'WORK', 'Stavangergata 2', 'Stavanger', '4000', 'NORWAY', 0.0, 0.0);
