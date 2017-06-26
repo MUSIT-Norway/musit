@@ -10,8 +10,8 @@ class StorageMediumDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValu
   "The StorageMediumDao " should {
     "return storage medium list" in {
       val list = dao.getStorageMediumList.futureValue.successValue
-      list.size mustBe 26
-      list.head.noStorageMedium mustBe "Lagringsmedium"
+      list.size mustBe 28
+      list.head.noStorageMedium mustBe "Deionisert vann (diH2O)"
     }
   }
 

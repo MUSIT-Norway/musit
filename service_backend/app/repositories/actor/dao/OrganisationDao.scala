@@ -89,6 +89,8 @@ class OrganisationDao @Inject()(
     val web         = column[Option[String]]("WEB")
     val synonyms    = column[Option[String]]("SYNONYMS")
     val serviceTags = column[Option[String]]("SERVICE_TAGS")
+    val contact     = column[Option[String]]("CONTACT")
+    val email       = column[Option[String]]("EMAIL")
 
     val create = (
         orgId: Option[OrgId],
@@ -96,7 +98,9 @@ class OrganisationDao @Inject()(
         tel: Option[String],
         web: Option[String],
         synonyms: Option[String],
-        serviceTags: Option[String]
+        serviceTags: Option[String],
+        contact: Option[String],
+        email: Option[String]
     ) =>
       Organisation(
         orgId,
@@ -104,7 +108,9 @@ class OrganisationDao @Inject()(
         tel,
         web,
         WordList.fromOptDbString(synonyms),
-        WordList.fromOptDbString(serviceTags)
+        WordList.fromOptDbString(serviceTags),
+        contact,
+        email
     )
 
     val destroy = (org: Organisation) =>
@@ -115,13 +121,15 @@ class OrganisationDao @Inject()(
           org.tel,
           org.web,
           org.synonyms.map(_.asDbString),
-          org.serviceTags.map(_.asDbString)
+          org.serviceTags.map(_.asDbString),
+          org.contact,
+          org.email
         )
     )
 
     // scalastyle:off method.name
     def * =
-      (orgId.?, fullName, tel, web, synonyms, serviceTags) <> (create.tupled, destroy)
+      (orgId.?, fullName, tel, web, synonyms, serviceTags, contact, email) <> (create.tupled, destroy)
 
     // scalastyle:on method.name
   }

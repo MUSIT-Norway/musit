@@ -20,15 +20,15 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
   "The OrganisationAddressController" must {
 
     "get by id" in {
-      val res = wsUrl("/organisation/1/address/10")
+      val res = wsUrl("/organisation/355/address/1")
         .withHeaders(fakeToken.asHeader)
         .get()
         .futureValue
 
       res.status mustBe Status.OK
       val addr = res.json
-      (addr \ "id").as[Int] mustBe 10
-      (addr \ "organisationId").as[Int] mustBe 1
+      (addr \ "id").as[Int] mustBe 1
+      (addr \ "organisationId").as[Int] mustBe 355
     }
     "negative get by id" in {
       val res = wsUrl("/organisation/1/address/999")
@@ -38,7 +38,7 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
       (res.json \ "message").as[String] mustBe "Did not find object with id: 999"
     }
     "get all addresses for an organisation" in {
-      val res = wsUrl("/organisation/1/address")
+      val res = wsUrl("/organisation/355/address")
         .withHeaders(fakeToken.asHeader)
         .get()
         .futureValue
@@ -51,8 +51,8 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
 
       (res.json \ "id").asOpt[Int] must not be None
       (res.json \ "organisationId").as[Int] mustBe 1
-      (res.json \ "addressType").as[String] mustBe "TEST"
       (res.json \ "streetAddress").as[String] mustBe "Foo street 2"
+      (res.json \ "streetAddress2").as[String] mustBe "Foo street 3"
     }
 
     "not create organisationAddress with illegal input" in {
@@ -62,24 +62,22 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
 
     "update address" in {
       val reqBody = orgAddressJson.as[JsObject] ++ Json.obj(
-        "id"             -> 20,
-        "organisationId" -> 1,
-        "streetAddress"  -> "Foo street 3",
-        "locality"       -> "Bar place",
+        "id"             -> 2,
+        "organisationId" -> 356,
+        "streetAddress"  -> "Foo street 4",
+        "streetAddress2" -> "Foo street 5",
         "postalCode"     -> "0001",
-        "countryName"    -> "Norway",
-        "latitude"       -> 70,
-        "longitude"      -> 12
+        "countryName"    -> "Norway"
       )
 
-      val res = wsUrl("/organisation/1/address/20")
+      val res = wsUrl("/organisation/356/address/2")
         .withHeaders(fakeToken.asHeader)
         .put(reqBody)
         .futureValue
       (res.json \ "message").as[String] mustBe "Record was updated!"
     }
 
-    "not update address with illegal id" in {
+    "not update of address with illegal id" in {
       val reqBody = orgAddressJson.as[JsObject] ++ Json.obj("id" -> 999)
       val res = wsUrl("/organisation/1/address/999")
         .withHeaders(fakeToken.asHeader)
@@ -92,16 +90,13 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
     "not update address with illegal json" in {
       val reqBody = Json.obj(
         "id"             -> 2,
-        "organisationId" -> 1,
-        "adresseType"    -> "TEST",
+        "organisationId" -> 356,
         "stretAddress"   -> "Foo street 3",
-        "locality"       -> "Bar place",
+        "stretAddress2"  -> "Foo street 4",
         "postalCode"     -> "0001",
-        "countryName"    -> "Norway",
-        "latitude"       -> 0.0,
-        "longitude"      -> 0.0
+        "countryName"    -> "Norway"
       )
-      val res = wsUrl("/organisation/1/address/2")
+      val res = wsUrl("/organisation/356/address/2")
         .withHeaders(fakeToken.asHeader)
         .put(reqBody)
         .futureValue
@@ -109,7 +104,7 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
     }
 
     "delete address" in {
-      val res = wsUrl("/organisation/1/address/20")
+      val res = wsUrl("/organisation/357/address/3")
         .withHeaders(fakeToken.asHeader)
         .delete()
         .futureValue

@@ -57,37 +57,28 @@ class AddressDao @Inject()(
       tag: Tag
   ) extends Table[OrganisationAddress](tag, Some(SchemaName), OrgAdrTableName) {
 
-    val id             = column[Option[DatabaseId]]("ORGADDRESSID", O.PrimaryKey, O.AutoInc)
-    val organisationId = column[Option[OrgId]]("ORG_ID")
-    val addressType    = column[String]("ADDRESS_TYPE")
-    val streetAddress  = column[String]("STREET_ADDRESS")
-    val locality       = column[String]("LOCALITY")
-    val postalCode     = column[String]("POSTAL_CODE")
-    val countryName    = column[String]("COUNTRY_NAME")
-    val latitude       = column[Double]("LATITUDE")
-    val longitude      = column[Double]("LONGITUDE")
+    val id              = column[Option[DatabaseId]]("ORGADDRESSID", O.PrimaryKey, O.AutoInc)
+    val organisationId  = column[Option[OrgId]]("ORG_ID")
+    val streetAddress   = column[Option[String]]("STREET_ADDRESS")
+    val streetAddress2  = column[Option[String]]("STREET_ADDRESS_2")
+    val postalCodePlace = column[String]("POSTAL_CODE_PLACE")
+    val countryName     = column[String]("COUNTRY_NAME")
 
     val create = (
         id: Option[DatabaseId],
         organisationId: Option[OrgId],
-        addressType: String,
-        streetAddress: String,
-        locality: String,
-        postalCode: String,
-        countryName: String,
-        latitude: Double,
-        longitude: Double
+        streetAddress: Option[String],
+        streetAddress2: Option[String],
+        postalCodePlace: String,
+        countryName: String
     ) =>
       OrganisationAddress(
         id = id,
         organisationId = organisationId,
-        addressType = addressType,
         streetAddress = streetAddress,
-        locality = locality,
-        postalCode = postalCode,
-        countryName = countryName,
-        latitude = latitude,
-        longitude = longitude
+        streetAddress2 = streetAddress2,
+        postalCodePlace = postalCodePlace,
+        countryName = countryName
     )
 
     val destroy = (addr: OrganisationAddress) =>
@@ -95,13 +86,10 @@ class AddressDao @Inject()(
         (
           addr.id,
           addr.organisationId,
-          addr.addressType,
           addr.streetAddress,
-          addr.locality,
-          addr.postalCode,
-          addr.countryName,
-          addr.latitude,
-          addr.longitude
+          addr.streetAddress2,
+          addr.postalCodePlace,
+          addr.countryName
         )
     )
 
@@ -110,13 +98,10 @@ class AddressDao @Inject()(
       (
         id,
         organisationId,
-        addressType,
         streetAddress,
-        locality,
-        postalCode,
-        countryName,
-        latitude,
-        longitude
+        streetAddress2,
+        postalCodePlace,
+        countryName
       ) <> (create.tupled, destroy)
 
     // scalastyle:on method.name

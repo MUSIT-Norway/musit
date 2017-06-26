@@ -9,13 +9,10 @@ import play.api.libs.json.Json
 case class OrganisationAddress(
     id: Option[DatabaseId],
     organisationId: Option[OrgId],
-    addressType: String,
-    streetAddress: String,
-    locality: String,
-    postalCode: String,
-    countryName: String,
-    latitude: Double,
-    longitude: Double
+    streetAddress: Option[String],
+    streetAddress2: Option[String],
+    postalCodePlace: String,
+    countryName: String
 )
 
 object OrganisationAddress {

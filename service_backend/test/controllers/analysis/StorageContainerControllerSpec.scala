@@ -22,7 +22,7 @@ class StorageContainerControllerSpec
       val res = wsUrl(scUrl).withHeaders(token.asHeader).get().futureValue
       res.status mustBe OK
       val storageContainer = res.json.as[JsArray].value
-      storageContainer.size mustBe 30
+      storageContainer.size mustBe 29
     }
   }
 

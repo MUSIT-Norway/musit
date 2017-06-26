@@ -71,7 +71,9 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
         Some("12345678"),
         Some("http://www.foo.bar"),
         Some(Seq("FooCode")),
-        Some(Seq("storage_facility"))
+        Some(Seq("storage_facility")),
+        None,
+        None
       )
       val res = postOrganization(reqBody).futureValue
       res.status mustBe Status.CREATED
@@ -95,7 +97,9 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
         Some("22334455"),
         Some("http://www.foo.barcode.com"),
         Some(Seq("FooCode")),
-        Some(Seq("storage_facility"))
+        Some(Seq("storage_facility")),
+        None,
+        None
       ) // scalastyle:ignore
       val res1 = postOrganization(addJson).futureValue
       res1.status mustBe Status.CREATED
@@ -107,7 +111,9 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
         "tel"         -> "12345123",
         "web"         -> "http://www.foo123.bar",
         "synonyms"    -> Seq("FooCode"),
-        "serviceTags" -> Seq("storage_facility")
+        "serviceTags" -> Seq("storage_facility"),
+        "contact"     -> "Nissen",
+        "email"       -> "nissen@humbug.com"
       )
 
       val res2 = putOrganization(id1, updJson).futureValue
@@ -126,16 +132,19 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
       (res3.json \ "web").as[String] mustBe "http://www.foo123.bar"
       (res3.json \ "synonyms").as[Seq[String]] mustBe Seq("FooCode")
       (res3.json \ "serviceTags").as[Seq[String]] mustBe Seq("storage_facility")
+      (res3.json \ "contact").as[String] mustBe "Nissen"
     }
 
-    "not update organisation with illegal input" in {
+    "not update of organisation with illegal input" in {
       val addJson = orgJson(
         None,
         "Foo Barcode",
         Some("22334455"),
         Some("http://www.foo.barcode.com"),
         Some(Seq("FooCode")),
-        Some(Seq("storage_facility"))
+        Some(Seq("storage_facility")),
+        None,
+        None
       ) // scalastyle:ignore
       val res1 = postOrganization(addJson).futureValue
       res1.status mustBe Status.CREATED
@@ -145,7 +154,7 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
       res2.status mustBe Status.BAD_REQUEST
     }
 
-    "not update organisation with illegal id" in {
+    "not update of organisation with illegal id" in {
       val js = orgIllegalJson.as[JsObject] ++ Json.obj("id" -> 999999)
       putOrganization(999999, js).futureValue.status mustBe Status.BAD_REQUEST
     }
@@ -157,7 +166,9 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
         Some("22334499"),
         Some("http://www.foo.barcode999.com"),
         Some(Seq("FooCode")),
-        Some(Seq("storage_facility"))
+        Some(Seq("storage_facility")),
+        None,
+        None
       ) // scalastyle:ignore
       val res1 = postOrganization(crJson).futureValue
       res1.status mustBe Status.CREATED

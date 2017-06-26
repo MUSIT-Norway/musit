@@ -10,7 +10,9 @@ object ActorJsonGenerator {
       tel: Option[String],
       web: Option[String],
       synonyms: Option[Seq[String]],
-      serviceTags: Option[Seq[String]]
+      serviceTags: Option[Seq[String]],
+      contact: Option[String],
+      email: Option[String]
   ): JsValue = {
     val js1 = Json.obj(
       "fullName" -> fullName,
@@ -21,7 +23,9 @@ object ActorJsonGenerator {
     // format: off
     val js2 = id.map(i => js1 ++ Json.obj("id" -> i)).getOrElse(js1)
     val js3 = synonyms.map(s => js2 ++ Json.obj("synonyms" -> s)).getOrElse(js2)
-    serviceTags.map(s => js3 ++ Json.obj("serviceTags" -> s)).getOrElse(js3)
+    val js4 = serviceTags.map(s => js3 ++ Json.obj("serviceTags" -> s)).getOrElse(js3)
+    val js5 = contact.map(c => js4 ++ Json.obj("contact" -> c)).getOrElse(js4)
+    email.map(e => js4 ++ Json.obj("email" -> e)).getOrElse(js5)
     // format: on
   }
 
@@ -38,13 +42,10 @@ object ActorJsonGenerator {
     Json.parse(
       s"""{
          |  "organizationId" : 1,
-         |  "addressType" : "TEST",
          |  "streetAddress" : "Foo street 2",
-         |  "locality" : "OSLO",
-         |  "postalCode" : "0342",
-         |  "countryName" : "NORWAY",
-         |  "latitude" : 60,
-         |  "longitude" : 11.05
+         |  "streetAddress2" : "Foo street 3",
+         |  "postalCodePlace" : "0342",
+         |  "countryName" : "NORWAY"
          |}
        """.stripMargin
     )
@@ -55,13 +56,10 @@ object ActorJsonGenerator {
       s"""{
          |  "id" : 999,
          |  "organizationId" : 123,
-         |  "adressType" : "WORK",
          |  "stretAddres" : "Kirkeveien",
          |  "locality" : "OSLO",
          |  "postalCode" : "0342",
-         |  "countryName" : "NORWAY",
-         |  "latitude" : 60,
-         |  "longitude" : 11.05
+         |  "countryName" : "NORWAY"
          |}
        """.stripMargin
     )

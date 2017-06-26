@@ -22,7 +22,7 @@ class StorageMediumControllerSpec
       val res = wsUrl(smUrl).withHeaders(token.asHeader).get().futureValue
       res.status mustBe OK
       val treatments = res.json.as[JsArray].value
-      treatments.size mustBe 26
+      treatments.size mustBe 28
     }
 
   }

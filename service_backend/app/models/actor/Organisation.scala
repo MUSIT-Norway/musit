@@ -46,7 +46,9 @@ case class Organisation(
     tel: Option[String],
     web: Option[String],
     synonyms: Option[WordList],
-    serviceTags: Option[WordList]
+    serviceTags: Option[WordList],
+    contact: Option[String],
+    email: Option[String]
 )
 
 object Organisation {

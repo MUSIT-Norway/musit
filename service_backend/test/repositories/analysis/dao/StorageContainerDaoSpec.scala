@@ -10,7 +10,7 @@ class StorageContainerDaoSpec extends MusitSpecWithAppPerSuite with MusitResultV
   "The StorageContainerDao " should {
     "return storage container list" in {
       val list = dao.getStorageContainerList.futureValue.successValue
-      list.size mustBe 30
+      list.size mustBe 29
       list.head.noStorageContainer mustBe "Eppendorfrør"
     }
   }
