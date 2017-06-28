@@ -72,7 +72,7 @@ trait AnalysisJsonGenerators {
       "restriction" -> Json.obj(
         "requester"      -> adminId,
         "reason"         -> "secret",
-        "expirationDate" -> time.dateTimeNow.plusDays(20).toString("yyyy-MM-dd")
+        "expirationDate" -> time.dateTimeNow.plusDays(20)
       )
     )
   }

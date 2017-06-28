@@ -115,7 +115,7 @@ object SaveCommands {
       cancelledReason: Option[String]
   )
 
-  object SaveRestriction {
+  object SaveRestriction extends WithDateTimeFormatters {
     implicit val reads: Reads[SaveRestriction] = Json.reads[SaveRestriction]
   }
 
