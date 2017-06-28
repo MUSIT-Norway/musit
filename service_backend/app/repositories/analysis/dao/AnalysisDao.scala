@@ -4,7 +4,8 @@ import com.google.inject.{Inject, Singleton}
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events._
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
-import no.uio.musit.models.{EventId, MuseumId, ObjectUUID}
+import no.uio.musit.models.{EventId, MuseumCollection, MuseumId, ObjectUUID}
+import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -390,13 +391,58 @@ class AnalysisDao @Inject()(
    * @param mid The Museum id.
    * @return a collection of the events.
    */
-  def findAnalysisEvents(mid: MuseumId): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
-    val allParentAnalysis =
-      analysisTable.filter { a =>
-        a.partOf.isEmpty && a.museumId === mid && a.typeId =!= SampleCreated.sampleEventTypeId
-      }.sorted(_.registeredDate.desc).result
+  // scalastyle:off
+  def findAnalysisEvents(
+      mid: MuseumId,
+      museumCollections: Seq[MuseumCollection]
+  )(
+      implicit currUser: AuthenticatedUser
+  ): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
 
-    db.run(allParentAnalysis)
+    type AEQuery = Query[AnalysisTable, AnalysisTable#TableElementType, Seq]
+
+    def buildQuery(ids: Seq[EventId]): AEQuery = analysisTable.filter(_.id inSet ids)
+
+    val musColFilter = {
+      val cids = museumCollections.map(_.collection.id)
+      if (currUser.hasGodMode) ""
+      else
+        s"""AND e2.NEW_COLLECTION_ID in (${cids.mkString(",")})"""
+    }
+
+    val eventIdQuery =
+      sql"""
+        SELECT DISTINCT e1.EVENT_ID FROM
+          MUSARK_ANALYSIS.EVENT e1,
+          (
+            SELECT ee.PART_OF, so.ORIGINATED_OBJECT_UUID, mt.NEW_COLLECTION_ID
+            FROM MUSARK_ANALYSIS.EVENT ee
+              LEFT OUTER JOIN MUSARK_ANALYSIS.SAMPLE_OBJECT so
+                ON ee.OBJECT_UUID = so.SAMPLE_UUID
+              LEFT OUTER JOIN MUSIT_MAPPING.MUSITTHING mt
+                ON ee.OBJECT_UUID = mt.MUSITTHING_UUID
+                OR so.ORIGINATED_OBJECT_UUID = mt.MUSITTHING_UUID
+            WHERE ee.MUSEUM_ID = ${mid.underlying}
+              AND ee.TYPE_ID != 0
+              AND ee.PART_OF IS NOT NULL
+          ) e2
+        WHERE e1.PART_OF IS NULL
+        AND e1.TYPE_ID != 0
+        AND e1.MUSEUM_ID = ${mid.underlying}
+        AND e1.EVENT_ID = e2.PART_OF
+        #${musColFilter}
+      """.as[Long]
+
+    db.run(eventIdQuery)
+      .flatMap { eventIds =>
+        val eids = eventIds.map(EventId.fromLong).grouped(500)
+        val query = eids.foldLeft[(Int, AEQuery)]((0, analysisTable)) {
+          case (qry, ids) =>
+            if (qry._1 == 0) (1, buildQuery(ids))
+            else (qry._1 + 1, qry._2 unionAll buildQuery(ids))
+        }
+        db.run(query._2.result)
+      }
       .map(_.flatMap(toAnalysisModuleEvent))
       .map(MusitSuccess.apply)
       .recover(nonFatal(s"An unexpected error occurred while fetching analysis events"))

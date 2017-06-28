@@ -7,7 +7,7 @@ import no.uio.musit.MusitResults.{
   MusitSuccess
 }
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 object MonadTransformers {
 
@@ -66,6 +66,42 @@ object MonadTransformers {
         res: A
     )(implicit m: Monad[Future]): MusitResultT[Future, A] = {
       MusitResultT(Future.successful[MusitResult[A]](MusitSuccess(res)))
+    }
+
+    def failed[A](
+        err: MusitError
+    )(implicit m: Monad[Future]): MusitResultT[Future, A] = {
+      MusitResultT(Future.successful[MusitResult[A]](err))
+    }
+
+    def sequenceF[A](res: Seq[Future[MusitResult[A]]])(
+        implicit m: Monad[Future],
+        ec: ExecutionContext
+    ): MusitResultT[Future, Seq[A]] = {
+      MusitResultT(
+        Future.sequence(res).map { results =>
+          results
+            .find(_.isFailure)
+            .map {
+              case err: MusitError => err
+              case bad =>
+                throw new IllegalStateException(
+                  s"Somehow a successful MusitResult managed to sneak its way into " +
+                    s"the failed branch of execution $bad"
+                )
+            }
+            .getOrElse {
+              MusitSuccess(results.map {
+                case MusitSuccess(value) => value
+                case err =>
+                  throw new IllegalStateException(
+                    s"Somehow a failed MusitResult managed to sneak its way into " +
+                      s"the successful branch of execution $err"
+                  )
+              })
+            }
+        }
+      )
     }
 
   }

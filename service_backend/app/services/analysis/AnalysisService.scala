@@ -11,7 +11,7 @@ import models.analysis.events._
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
-import no.uio.musit.models.{CollectionUUID, EventId, MuseumId, ObjectUUID}
+import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
@@ -183,8 +183,13 @@ class AnalysisService @Inject()(
   /**
    * Find analysis collection events
    */
-  def findAnalysisEvents(mid: MuseumId): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
-    analysisDao.findAnalysisEvents(mid)
+  def findAnalysisEvents(
+      mid: MuseumId,
+      museumCollections: Seq[MuseumCollection]
+  )(
+      implicit currUser: AuthenticatedUser
+  ): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
+    analysisDao.findAnalysisEvents(mid, museumCollections)
   }
 
 }

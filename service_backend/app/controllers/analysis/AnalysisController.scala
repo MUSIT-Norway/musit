@@ -1,6 +1,7 @@
 package controllers.analysis
 
 import com.google.inject.{Inject, Singleton}
+import controllers._
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events.SaveCommands._
 import models.analysis.events._
@@ -12,7 +13,6 @@ import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import services.analysis.AnalysisService
-import controllers._
 import scala.concurrent.Future
 
 @Singleton
@@ -127,11 +127,22 @@ class AnalysisController @Inject()(
       }
     }
 
-  def getAnalysisEvents(mid: MuseumId) =
+  def getAnalysisEvents(mid: MuseumId, collectionIds: String) =
     MusitSecureAction().async { implicit request =>
-      analysisService.findAnalysisEvents(mid).map {
-        case MusitSuccess(res) => listAsPlayResult(res)
-        case err: MusitError   => InternalServerError(Json.obj("message" -> err.message))
+      implicit val currUser = implicitly(request.user)
+
+      parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+        case Left(res) =>
+          Future.successful(res)
+
+        case Right(cids) =>
+          analysisService.findAnalysisEvents(mid, cids).map {
+            case MusitSuccess(res) =>
+              listAsPlayResult(res)
+
+            case err: MusitError =>
+              InternalServerError(Json.obj("message" -> err.message))
+          }
       }
     }
 }

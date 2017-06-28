@@ -4,7 +4,7 @@ import java.util.UUID
 
 import models.analysis.ParentObject
 import models.analysis.events.AnalysisResults.{AgeResult, AnalysisResult}
-import models.analysis.events.{Analysis, AnalysisCollection, SampleCreated}
+import models.analysis.events.{Analysis, AnalysisCollection}
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.ObjectTypes.{CollectionObjectType, SampleObjectType}
 import no.uio.musit.models._
@@ -29,7 +29,7 @@ class AnalysisDaoSpec
 
   val collections = Seq(
     MuseumCollection(
-      uuid = CollectionUUID(UUID.fromString("2e4f2455-1b3b-4a04-80a1-ba92715ff613")),
+      uuid = MuseumCollections.Archeology.uuid,
       name = Some("Arkeologi"),
       oldSchemaNames = Seq(MuseumCollections.Archeology)
     )
@@ -53,7 +53,7 @@ class AnalysisDaoSpec
       GroupInfo(
         id = GroupId.generate(),
         name = "FooBarGroup",
-        module = StorageFacility,
+        module = CollectionManagement,
         permission = Permissions.Admin,
         museumId = mid,
         description = None,
@@ -287,52 +287,21 @@ class AnalysisDaoSpec
         res mustBe a[MusitDbError]
       }
 
-      "return analyses for the museum" in {
-        val res = dao.findAnalysisEvents(defaultMid).futureValue.successValue
-
-        res must not be empty
-        res.filter(_.partOf.isDefined) mustBe empty
-      }
-
-      "not return analyses related to another museum" in {
-        val origin = dao.findAnalysisEvents(defaultMid).futureValue.successValue
+      "return analyses for a museum and specified collection" in {
+        val orig =
+          dao.findAnalysisEvents(defaultMid, collections).futureValue.successValue
+        // Add an analysis to KHM
         saveAnalysis(Some(oid2), Some(dummyGenericResult()), MuseumId(3))
 
-        val after = dao.findAnalysisEvents(defaultMid).futureValue.successValue
+        val res =
+          dao.findAnalysisEvents(defaultMid, collections).futureValue.successValue
 
-        after.size mustBe origin.size
-      }
+        res.size mustBe orig.size
 
-      "only return AnalysisCollections" in {
-        val mid   = MuseumId(42)
-        val myOid = ObjectUUID.generateAsOpt()
-        val r1    = dummyDatingResult(age = Some("Golden oldie"))
-        val sample = generateSample(
-          ObjectUUID.generate(),
-          myOid,
-          CollectionObjectType,
-          mid = mid
-        )
-        val sampleCreated = SampleCreated(
-          id = None,
-          doneBy = None,
-          doneDate = None,
-          registeredBy = Some(defaultActorId),
-          registeredDate = Some(dateTimeNow),
-          objectId = sample.objectId,
-          sampleObjectId = None,
-          externalLinks = None
-        )
-        sampleDao.insert(mid, sample, sampleCreated).futureValue.successValue
-
-        saveAnalysisCol(myOid, Some(r1), mid).successValue
-
-        val events = dao.findAnalysisEvents(mid).futureValue.successValue
-
-        events must not be empty
-        forAll(events)((event) => {
+        forAll(res) { event =>
           event mustBe a[AnalysisCollection]
-        })
+          event.partOf mustBe None
+        }
       }
     }
 

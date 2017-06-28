@@ -12,6 +12,7 @@ import models.analysis.events.AnalysisExtras.{
 }
 import models.analysis.events.EventCategories
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
+import no.uio.musit.models.MuseumCollections.Archeology
 import no.uio.musit.models._
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.matchers.DateTimeMatchers
@@ -137,7 +138,7 @@ class AnalysisControllerIntegrationSpec
         val edate = DateTime.now
         val js = createSaveAnalysisCollectionJSON(
           eventDate = Some(edate),
-          objects = Seq(dummyObjectId)
+          objects = Seq(testObjectUUID)
         )
 
         saveAnalysis(js).status mustBe CREATED // creates ids 1 to 2
@@ -148,7 +149,7 @@ class AnalysisControllerIntegrationSpec
         val jso = createSaveAnalysisCollectionJSON(
           typeId = tomographyTypeId,
           eventDate = Some(edate),
-          objects = Seq(dummyObjectId),
+          objects = Seq(testObjectUUID),
           caseNumbers = Some(Seq("abc", "def"))
         )
         val js = appendExtraAttributes(jso, TomographyAttributes(ComputerTomography))
@@ -161,7 +162,7 @@ class AnalysisControllerIntegrationSpec
         val js = createSaveAnalysisCollectionJSON(
           typeId = tomographyTypeId,
           eventDate = Some(edate),
-          objects = Seq(dummyObjectId),
+          objects = Seq(testObjectUUID),
           caseNumbers = Some(Seq("abc", "def"))
         )
 
@@ -173,7 +174,7 @@ class AnalysisControllerIntegrationSpec
         val jso = createSaveAnalysisCollectionJSON(
           typeId = tomographyTypeId,
           eventDate = Some(edate),
-          objects = Seq(dummyObjectId),
+          objects = Seq(testObjectUUID),
           caseNumbers = Some(Seq("abc", "def")),
           orgId = Some(OrgId(312))
         )
@@ -214,7 +215,7 @@ class AnalysisControllerIntegrationSpec
         val jso = createSaveAnalysisCollectionJSON(
           typeId = tomographyTypeId,
           eventDate = Some(edate),
-          objects = Seq(dummyObjectId),
+          objects = Seq(testObjectUUID),
           caseNumbers = Some(Seq("abc", "def"))
         )
         val js = appendExtraAttributes(jso, ElementalICPAttributes(ICP_MS))
@@ -224,7 +225,7 @@ class AnalysisControllerIntegrationSpec
 
       "get an analysis with a specific Id" in {
         val edate = DateTime.now
-        val oid   = ObjectUUID.generate()
+        val oid   = validObjectUUIDs(8)
         val note  = Some("Foobar")
         val ajs = createSaveAnalysisCollectionJSON(
           eventDate = Some(edate),
@@ -270,7 +271,7 @@ class AnalysisControllerIntegrationSpec
           .withSecondOfMinute(44)
 
         val note = Some("Foobar")
-        val oids = (1 to 4).map(_ => ObjectUUID.generate()) :+ dummyObjectId
+        val oids = (2 to 5).map(i => validObjectUUIDs(i)) :+ testObjectUUID
         val js = createSaveAnalysisCollectionJSON(
           eventDate = Some(edate),
           objects = oids,
@@ -313,7 +314,7 @@ class AnalysisControllerIntegrationSpec
       }
 
       "get all analyses related to an object" in {
-        val res = wsUrl(getForObjectUrl(mid)(dummyObjectId.asString))
+        val res = wsUrl(getForObjectUrl(mid)(testObjectUUID.asString))
           .withHeaders(token.asHeader)
           .get()
           .futureValue
@@ -372,9 +373,13 @@ class AnalysisControllerIntegrationSpec
         (res.json \ "result" \ "comment").as[String] mustBe "A new result was added"
       }
 
-      "get all analyses related to the museum" in {
+      "only return analyses related to a collection in a museum" in {
         val res =
-          wsUrl(getAnalysesUrl(mid)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(getAnalysesUrl(mid))
+            .withHeaders(token.asHeader)
+            .withQueryString("collectionIds" -> Archeology.uuid.asString)
+            .get()
+            .futureValue
 
         res.status mustBe OK
         res.json.as[JsArray].value.length mustBe 6
