@@ -435,13 +435,17 @@ class AnalysisDao @Inject()(
 
     db.run(eventIdQuery)
       .flatMap { eventIds =>
-        val eids = eventIds.map(EventId.fromLong).grouped(500)
-        val query = eids.foldLeft[(Int, AEQuery)]((0, analysisTable)) {
-          case (qry, ids) =>
-            if (qry._1 == 0) (1, buildQuery(ids))
-            else (qry._1 + 1, qry._2 unionAll buildQuery(ids))
+        if (eventIds.nonEmpty) {
+          val eids = eventIds.map(EventId.fromLong).grouped(500)
+          val query = eids.foldLeft[(Int, AEQuery)]((0, analysisTable)) {
+            case (qry, ids) =>
+              if (qry._1 == 0) (1, buildQuery(ids))
+              else (qry._1 + 1, qry._2 unionAll buildQuery(ids))
+          }
+          db.run(query._2.result)
+        } else {
+          Future.successful(Vector.empty)
         }
-        db.run(query._2.result)
       }
       .map(_.flatMap(toAnalysisModuleEvent))
       .map(MusitSuccess.apply)
