@@ -40,7 +40,6 @@
 
   <!-- musit play packages -->
   <logger name="controllers" level="DEBUG"/>
-  <logger name="migration" level="INFO"/>
   <logger name="models" level="INFO"/>
   <logger name="modules" level="INFO"/>
   <logger name="repositories" level="DEBUG"/>

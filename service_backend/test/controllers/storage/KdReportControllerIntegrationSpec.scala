@@ -10,7 +10,6 @@ import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers._
 import utils.testdata.StorageNodeJsonGenerator._
-import utils.testhelpers._
 
 import scala.util.Try
 

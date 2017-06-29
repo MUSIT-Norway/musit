@@ -1,48 +1,56 @@
 package repositories.storage.dao
 
-import models.storage.MovableObject_Old
 import no.uio.musit.models.ObjectTypes.{CollectionObjectType, Node, SampleObjectType}
-import no.uio.musit.models.{ObjectId, StorageNodeDatabaseId}
+import no.uio.musit.models.{ObjectUUID, StorageNodeId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
-import repositories.storage.old_dao.{LocalObjectDao => LocalObjectDaoOld}
 
 class LocalObjectDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
 
-  val dao = fromInstanceCache[LocalObjectDaoOld]
+  val dao = fromInstanceCache[LocalObjectDao]
+
+  val objectId1 = ObjectUUID.unsafeFromString("3a71f423-52b2-4437-a62b-6e37ad406bcd")
+  val objectId2 = ObjectUUID.unsafeFromString("baab2f60-4f49-40fe-99c8-174b13b12d46")
+
+  val location = StorageNodeId.unsafeFromString("244f09a3-eb1a-49e7-80ee-7a07baa016dd")
 
   "LocalObjectDao" should {
-    "not return location for the movable objects when ObjectType doesn't match" in {
-      val obj = MovableObject_Old(ObjectId(20), SampleObjectType)
-      val res = dao.currentLocationsForMovableObjects(Seq(obj)).futureValue
+    "find location for a list of ObjectUUIDs of different object types" in {
+      val res = dao.currentLocations(Seq(objectId1, objectId2)).futureValue.successValue
 
-      res.successValue mustBe Map(obj -> None)
-    }
-
-    "find location for the movable object when the object has a matching ObjectType" in {
-      val obj = MovableObject_Old(ObjectId(20), CollectionObjectType)
-      val res = dao.currentLocationsForMovableObjects(Seq(obj)).futureValue
-
-      res.successValue mustBe Map(obj -> Some(StorageNodeDatabaseId(8)))
-    }
-
-    "find location for the movable object with multiple matching ObjectTypes" in {
-      val objOne = MovableObject_Old(ObjectId(20), CollectionObjectType)
-      val objTwo = MovableObject_Old(ObjectId(21), SampleObjectType)
-
-      val res = dao.currentLocationsForMovableObjects(Seq(objOne, objTwo)).futureValue
-
-      res.successValue mustBe Map(
-        objOne -> Some(StorageNodeDatabaseId(8)),
-        objTwo -> Some(StorageNodeDatabaseId(9))
+      res.size mustBe 2
+      res mustBe Map(
+        objectId1 -> Some(location),
+        objectId2 -> Some(location)
       )
     }
 
-    "not find location for movable object when ObjectType isn't provided" in {
-      val obj = MovableObject_Old(ObjectId(13), Node)
-      val res = dao.currentLocationsForMovableObjects(Seq(obj)).futureValue
+    "find location for a single collection object" in {
+      val res =
+        dao.currentLocation(objectId1, CollectionObjectType).futureValue.successValue
 
-      res.successValue mustBe Map(obj -> None)
+      res mustBe Some(location)
+    }
+
+    "find a location for a single sample object" in {
+      val res =
+        dao.currentLocation(objectId2, SampleObjectType).futureValue.successValue
+
+      res mustBe Some(location)
+    }
+
+    "return an empty result when object has no location" in {
+      val noSuchObject = ObjectUUID.generate()
+      val res          = dao.currentLocations(Seq(noSuchObject)).futureValue
+
+      res.successValue mustBe Map(noSuchObject -> None)
+    }
+
+    "return an empty result when object type is wrong" in {
+      val res =
+        dao.currentLocation(objectId1, Node).futureValue.successValue
+
+      res mustBe None
     }
   }
 

@@ -16,7 +16,6 @@ import play.api.libs.json.{JsArray, JsObject, JsSuccess, Json}
 import play.api.test.Helpers._
 import utils.testdata.EventJsonGenerator
 import utils.testdata.StorageNodeJsonGenerator._
-import utils.testhelpers._
 
 import scala.util.Try
 
