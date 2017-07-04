@@ -5,7 +5,7 @@ import controllers._
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events.SaveCommands._
 import models.analysis.events._
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitError, MusitSuccess, MusitValidationError}
 import no.uio.musit.models.{CollectionUUID, EventId, MuseumId, ObjectUUID}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
@@ -13,6 +13,7 @@ import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import services.analysis.AnalysisService
+
 import scala.concurrent.Future
 
 @Singleton
@@ -47,8 +48,7 @@ class AnalysisController @Inject()(
 
   def getAnalysisById(mid: MuseumId, id: Long) =
     MusitSecureAction().async { implicit request =>
-      val eventId = EventId.fromLong(id)
-      analysisService.findById(mid, eventId).map {
+      analysisService.findById(mid, id).map {
         case MusitSuccess(ma) => ma.map(ae => Ok(Json.toJson(ae))).getOrElse(NotFound)
         case err: MusitError  => internalErr(err)
       }
@@ -56,8 +56,7 @@ class AnalysisController @Inject()(
 
   def getChildAnalyses(mid: MuseumId, id: Long) =
     MusitSecureAction().async { implicit request =>
-      val eventId = EventId.fromLong(id)
-      analysisService.childrenFor(mid, eventId).map {
+      analysisService.childrenFor(mid, id).map {
         case MusitSuccess(analyses) => listAsPlayResult(analyses)
         case err: MusitError        => internalErr(err)
       }
@@ -83,8 +82,7 @@ class AnalysisController @Inject()(
   def saveAnalysisEvent(mid: MuseumId) =
     MusitSecureAction().async(parse.json) { implicit request =>
       implicit val currUser = implicitly(request.user)
-
-      val jsr = request.body.validate[SaveAnalysisEventCommand]
+      val jsr               = request.body.validate[SaveAnalysisEventCommand]
 
       saveRequest[SaveAnalysisEventCommand, Option[AnalysisModuleEvent]](jsr)(
         sc => analysisService.add(mid, sc)
@@ -94,36 +92,46 @@ class AnalysisController @Inject()(
   def addResult(mid: MuseumId, id: Long) =
     MusitSecureAction().async(parse.json) { implicit request =>
       implicit val currUser = implicitly(request.user)
-
-      val eventId = EventId.fromLong(id)
-      val jsr     = request.body.validate[AnalysisResult]
+      val jsr               = request.body.validate[AnalysisResult]
 
       saveRequest[AnalysisResult, EventId](jsr) { r =>
-        analysisService.addResult(mid, eventId, r)
+        analysisService.addResult(mid, id, r)
       }
     }
 
   def updateResult(mid: MuseumId, eid: Long) =
     MusitSecureAction().async(parse.json) { implicit request =>
       implicit val currUser = implicitly(request.user)
-
-      val eventId = EventId.fromLong(eid)
-      val jsr     = request.body.validate[AnalysisResult]
+      val jsr               = request.body.validate[AnalysisResult]
 
       updateRequest[AnalysisResult, EventId](jsr) { r =>
-        analysisService.updateResult(mid, eventId, r)
+        analysisService.updateResult(mid, eid, r)
+      }
+    }
+
+  def importResults(mid: MuseumId, eid: Long) =
+    MusitSecureAction().async(parse.json) { implicit request =>
+      implicit val currUser = implicitly(request.user)
+
+      request.body.validate[AnalysisResultImport] match {
+        case JsSuccess(resImport, _) =>
+          analysisService.updateResults(mid, eid, resImport).map {
+            case MusitSuccess(())              => Ok
+            case invalid: MusitValidationError => badRequestErr(invalid)
+            case err: MusitError               => internalErr(err)
+          }
+
+        case err: JsError => Future.successful(badRequestJsErr(err))
       }
     }
 
   def updateAnalysisEvent(mid: MuseumId, eid: Long) =
     MusitSecureAction().async(parse.json) { implicit request =>
       implicit val currUser = implicitly(request.user)
-
-      val eventId = EventId.fromLong(eid)
-      val jsr     = request.body.validate[SaveAnalysisEventCommand]
+      val jsr               = request.body.validate[SaveAnalysisEventCommand]
 
       updateRequestOpt[SaveAnalysisEventCommand, AnalysisEvent](jsr) { sc =>
-        analysisService.update(mid, eventId, sc)
+        analysisService.update(mid, eid, sc)
       }
     }
 

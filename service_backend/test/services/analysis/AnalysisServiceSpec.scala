@@ -3,18 +3,14 @@ package services.analysis
 import models.analysis.events.AnalysisExtras.{MicroscopyAttributes, TomographyAttributes}
 import models.analysis.events.AnalysisResults.{AgeResult, GenericResult}
 import models.analysis.events.EventCategories.{Genetic, Image}
-import models.analysis.events.{
-  Analysis,
-  AnalysisCollection,
-  AnalysisEvent,
-  AnalysisModuleEvent
-}
+import models.analysis.events._
 import no.uio.musit.models.MuseumCollections.Archeology
-import no.uio.musit.models.{ActorId, EventId, OrgId}
+import no.uio.musit.models.{EventId, ObjectUUID, OrgId}
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.{DateTimeMatchers, MusitResultValues}
 import no.uio.musit.time.dateTimeNow
+import org.scalatest.Inside.inside
 import org.scalatest.Inspectors.forAll
 import org.scalatest.OptionValues
 import utils.testdata.AnalysisGenerators
@@ -28,12 +24,10 @@ class AnalysisServiceSpec
     with AnalysisGenerators
     with AnalysisValidators {
 
-  private val defaultUserId = ActorId.generate()
-
   implicit val dummyUser = AuthenticatedUser(
     session = UserSession(uuid = SessionUUID.generate()),
     userInfo = UserInfo(
-      id = defaultUserId,
+      id = dummyActorId,
       secondaryIds = Some(Seq("vader@starwars.com")),
       name = Some("Darth Vader"),
       email = None,
@@ -173,7 +167,7 @@ class AnalysisServiceSpec
       ares match {
         case a: Analysis =>
           a.result must not be empty
-          validateResult(a.result.value, gr, Some(defaultUserId), Some(dateTimeNow))
+          validateResult(a.result.value, gr, Some(dummyActorId), Some(dateTimeNow))
 
         case other =>
           fail(s"Expected an ${classOf[Analysis]} but got ${other.getClass}")
@@ -181,7 +175,7 @@ class AnalysisServiceSpec
     }
 
     "successfully add a result to an AnalysisCollection and its children" in {
-      val dr = dummyDatingResult(
+      val dr = dummyAgeResult(
         extRef = Some(Seq("foobar", "fizzbuzz")),
         comment = Some("This is a generic result"),
         age = Some("really old")
@@ -199,7 +193,7 @@ class AnalysisServiceSpec
           a.result must not be empty
           a.result.value match {
             case r: AgeResult =>
-              validateResult(r, dr, Some(defaultUserId), Some(dateTimeNow))
+              validateResult(r, dr, Some(dummyActorId), Some(dateTimeNow))
 
             case boo =>
               fail(s"Expected a ${classOf[AgeResult]} but got ${boo.getClass}")
@@ -277,7 +271,7 @@ class AnalysisServiceSpec
       res.value match {
         case a: Analysis =>
           a.note mustBe updCmd.note
-          a.updatedBy mustBe Some(defaultUserId)
+          a.updatedBy mustBe Some(dummyActorId)
           a.updatedDate mustApproximate Some(dateTimeNow)
 
         case other =>
@@ -310,7 +304,7 @@ class AnalysisServiceSpec
       res.value match {
         case a: AnalysisCollection =>
           a.note mustBe updCmd.note
-          a.updatedBy mustBe Some(defaultUserId)
+          a.updatedBy mustBe Some(dummyActorId)
           a.updatedDate mustApproximate Some(dateTimeNow)
           a.orgId.get.underlying mustBe 316
 
@@ -319,13 +313,93 @@ class AnalysisServiceSpec
       }
     }
 
+    "successfully add results to an AnalysisCollection and its children" in {
+      val oids = Seq(
+        "376d41e7-c463-45e8-9bde-7a2c9844637e",
+        "2350578d-0bb0-4601-92d4-817478ad0952",
+        "c182206b-530c-4a40-b9aa-fba044ecb953",
+        "bf53f481-1db3-4474-98ee-c94df31ec251",
+        "373bb138-ed93-472b-ad57-ccb77ab8c151",
+        "62272640-e29e-4af4-a537-3c49b5f1cf42",
+        "f4a189c3-4d8f-4258-9000-b23282814278",
+        "67965e71-27ee-4ef0-ad66-e7e321882f33"
+      ).map(ObjectUUID.unsafeFromString)
+
+      val cmd = dummySaveAnalysisCollectionCmd(oids, None)
+
+      val ac = service.add(defaultMid, cmd).futureValue.successValue.value
+      ac.id must not be empty
+      ac mustBe an[AnalysisCollection]
+      val eventId        = ac.id.value
+      val analysisEvents = ac.asInstanceOf[AnalysisCollection].events
+
+      val colResult = dummyAgeResult(
+        extRef = None,
+        comment = Some("Collection Result"),
+        age = None
+      )
+      val childResults =
+        analysisEvents.zipWithIndex.map {
+          case (analysis, idx) =>
+            ResultForObjectEvent(
+              analysis.objectId.value,
+              analysis.id.value,
+              dummyAgeResult(
+                extRef = None,
+                comment = Some(s"res for ${analysis.id.value}"),
+                age = Some(s"$idx years")
+              )
+            )
+        }
+
+      val resultImport = AnalysisResultImport(colResult, childResults)
+
+      service
+        .updateResults(defaultMid, eventId, resultImport)
+        .futureValue
+        .isSuccess mustBe true
+
+      // verify results
+      service.findById(defaultMid, eventId).futureValue.successValue.value match {
+        case ac: AnalysisCollection =>
+          ac.id mustBe Some(eventId)
+          inside(ac.result.value) {
+            case AgeResult(registeredBy, _, extRef, comment, age) =>
+              registeredBy mustBe Some(dummyActorId)
+              extRef mustBe None
+              comment mustBe Some("Collection Result")
+              age mustBe None
+
+            case e2 =>
+              fail(s"Expected an AgeResult but got ${e2.getClass}")
+          }
+          ac.events.size mustBe 8
+
+          val results = ac.events.flatMap(_.result)
+          results.size mustBe 8
+          forAll(results) {
+            case AgeResult(registeredBy, _, extRef, comment, age) =>
+              registeredBy mustBe Some(dummyActorId)
+              extRef mustBe None
+              comment.value must startWith("res for ")
+              age.value must endWith(" years")
+
+            case e2 =>
+              fail(s"Expected an AgeResult but got ${e2.getClass}")
+          }
+
+        case e1 =>
+          fail(s"Expected an AnalysisCollection but got ${e1.getClass}")
+      }
+    }
+
   }
 
   /**
    * verifies basic fields on an analysis
    *
-   * @param res the analysis event
-   * @param expectedId if not provided, not checked
+   * @param res          the analysis event
+   * @param expectedId   if not provided, not checked
    * @param expectedNote if not provided, not checked
    * @return
    */

@@ -8,7 +8,12 @@ import models.analysis.events.SaveCommands.{
   SaveAnalysisEventCommand
 }
 import models.analysis.events._
-import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{
+  MusitError,
+  MusitResult,
+  MusitSuccess,
+  MusitValidationError
+}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models._
@@ -119,13 +124,87 @@ class AnalysisService @Inject()(
       res: AnalysisResult
   )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
     MusitResultT(analysisDao.findResultFor(mid, eid)).flatMap { orig =>
-      val ar = orig.map { o =>
-        res.withRegisteredBy(o.registeredBy).withtRegisteredDate(o.registeredDate)
-      }.getOrElse {
-        val now = Some(dateTimeNow)
-        res.withRegisteredBy(Some(currUser.id)).withtRegisteredDate(now)
-      }
+      val ar = enrichResult(res, orig)
       MusitResultT(analysisDao.upsertResult(mid, eid, ar))
+    }.value
+  }
+
+  private[this] def enrichResult(
+      res: AnalysisResult,
+      orig: Option[AnalysisResult]
+  )(implicit currUser: AuthenticatedUser): AnalysisResult = {
+    orig.map { o =>
+      res.withRegisteredBy(o.registeredBy).withRegisteredDate(o.registeredDate)
+    }.getOrElse {
+      val now = Some(dateTimeNow)
+      res.withRegisteredBy(Some(currUser.id)).withRegisteredDate(now)
+    }
+  }
+
+  private[this] def enrichImportResults(
+      eid: EventId,
+      res: AnalysisResultImport,
+      orig: AnalysisCollection
+  )(implicit currUser: AuthenticatedUser): Seq[(EventId, AnalysisResult)] = {
+    val now     = Some(dateTimeNow)
+    val results = Seq.newBuilder[(EventId, AnalysisResult)]
+    // Add the enriched result for the AnalysisCollection
+    results += (eid -> enrichResult(res.collectionResult, orig.result))
+    // Add the enriched results for Analyses on the AnalysisCollection
+    results ++= res.objectResults.flatMap { rfoe =>
+      orig.events.find(_.id.contains(rfoe.eventId)).map { analysis =>
+        rfoe.eventId -> enrichResult(rfoe.result, analysis.result)
+      }
+    }
+    results.result()
+  }
+
+  def updateResults(
+      mid: MuseumId,
+      eid: EventId,
+      res: AnalysisResultImport
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Unit]] = {
+    // Checks each result and returns a list of results that didn't match
+    // the expected eventId + objectId
+    def validate(ac: AnalysisCollection): Seq[ResultForObjectEvent] = {
+      val invalid = Seq.newBuilder[ResultForObjectEvent]
+      res.objectResults.foreach { rfoe =>
+        val valid = ac.events.exists { analysis =>
+          analysis.id.contains(rfoe.eventId) &&
+          analysis.objectId.contains(rfoe.objectId)
+        }
+        if (!valid) invalid += rfoe
+      }
+      invalid.result()
+    }
+
+    MusitResultT(findById(mid, eid)).flatMap {
+      case Some(ac: AnalysisCollection) =>
+        val invalid = validate(ac)
+        if (invalid.isEmpty) {
+          val results = enrichImportResults(eid, res, ac)
+          MusitResultT(analysisDao.upsertResults(mid, results))
+        } else {
+          MusitResultT.failed[Unit](
+            MusitValidationError(
+              s"The results with the following objectId+eventId could not" +
+                s" be found on the AnalysisCollection: " +
+                s"${invalid.map(i => s"(${i.eventId} - ${i.objectId}")})"
+            )
+          )
+        }
+
+      case Some(bad) =>
+        MusitResultT.failed[Unit](
+          MusitValidationError(
+            s"Expected an AnalysisCollection, but found an ${bad.getClass}"
+          )
+        )
+
+      case None =>
+        MusitResultT.failed[Unit](
+          MusitValidationError(s"AnalysisCollection with id $eid could not be found")
+        )
     }.value
   }
 

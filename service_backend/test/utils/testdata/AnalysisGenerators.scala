@@ -1,5 +1,6 @@
 package utils.testdata
 
+import models.analysis.AnalysisStatuses
 import models.analysis.events.AnalysisResults.{AgeResult, AnalysisResult, GenericResult}
 import models.analysis.events.SaveCommands.{
   ObjectUuidAndType,
@@ -7,9 +8,8 @@ import models.analysis.events.SaveCommands.{
   SaveAnalysisCollection
 }
 import models.analysis.events.{Analysis, AnalysisCollection, AnalysisTypeId, Restriction}
-import models.analysis.AnalysisStatuses
-import no.uio.musit.models.{ActorId, Museums, ObjectUUID, OrgId}
 import no.uio.musit.models.ObjectTypes.CollectionObjectType
+import no.uio.musit.models.{ActorId, Museums, ObjectUUID, OrgId}
 import no.uio.musit.time.dateTimeNow
 
 trait AnalysisGenerators {
@@ -86,7 +86,7 @@ trait AnalysisGenerators {
     )
   }
 
-  def dummyDatingResult(
+  def dummyAgeResult(
       extRef: Option[Seq[String]] = None,
       comment: Option[String] = None,
       age: Option[String] = None
@@ -94,8 +94,8 @@ trait AnalysisGenerators {
     AgeResult(
       registeredBy = Some(dummyActorId),
       registeredDate = Some(dateTimeNow),
-      extRef = None,
-      comment = None,
+      extRef = extRef,
+      comment = comment,
       age = age
     )
   }

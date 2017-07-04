@@ -386,6 +386,30 @@ class AnalysisDao @Inject()(
   }
 
   /**
+   * Adds or updates a list of tupled EventId and AnalysisResult. The result
+   * is added to the EventId in the same tuple instance.
+   *
+   * @param mid the MuseumId
+   * @param results the list of tupled EventId and AnalysisResults to add
+   * @return eventually returns a MusitResult[Unit]
+   */
+  def upsertResults(
+      mid: MuseumId,
+      results: Seq[(EventId, AnalysisResult)]
+  ): Future[MusitResult[Unit]] = {
+    val actions = DBIO.sequence(results.map(er => upsertResultAction(mid, er._1, er._2)))
+
+    db.run(actions.transactionally)
+      .map(_ => MusitSuccess(()))
+      .recover(
+        nonFatal(
+          s"An unexpected error occurred batch inserting a results to " +
+            s"analyses: ${results.map(_._1).mkString(", ")}"
+        )
+      )
+  }
+
+  /**
    * Find all analysis events.
    *
    * @param mid The Museum id.

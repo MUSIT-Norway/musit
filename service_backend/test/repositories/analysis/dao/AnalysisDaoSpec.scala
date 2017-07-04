@@ -195,7 +195,7 @@ class AnalysisDaoSpec
       }
 
       "return an analysis event with a dating result" in {
-        val dr = dummyDatingResult(age = Some("really really old"))
+        val dr = dummyAgeResult(age = Some("really really old"))
 
         val mra = saveAnalysis(Some(oid2), Some(dr))
 
@@ -217,7 +217,7 @@ class AnalysisDaoSpec
         val s2 = saveSamplesFor(oid2, ParentObject(Some(s1), SampleObjectType))
         val s3 = saveSamplesFor(oid2, ParentObject(Some(s2), SampleObjectType))
 
-        val r1 = dummyDatingResult(age = Some("Golden oldie"))
+        val r1 = dummyAgeResult(age = Some("Golden oldie"))
         val r2 = dummyGenericResult(comment = Some("Result 2"))
 
         val a1 = saveAnalysisCol(Some(s1), Some(r1))

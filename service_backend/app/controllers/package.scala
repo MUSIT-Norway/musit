@@ -22,6 +22,8 @@ package object controllers {
   val internalErr = (err: MusitError) =>
     Results.InternalServerError(Json.obj("message" -> err.message))
 
+  val badRequestJsErr = (jsErr: JsError) => Results.BadRequest(JsError.toJson(jsErr))
+
   val badRequestErr = (err: MusitValidationError) =>
     Results.BadRequest(Json.obj("message" -> err.message))
 
@@ -73,7 +75,7 @@ package object controllers {
     }
   }
 
-  private def updateRequestFunc[A, B](
+  private def handleUpdateRequest[A, B](
       jsr: JsResult[A]
   )(
       update: A => Future[Result]
@@ -102,7 +104,7 @@ package object controllers {
       writes: Writes[B],
       ec: ExecutionContext
   ): Future[Result] = {
-    updateRequestFunc(jsr) { a =>
+    handleUpdateRequest(jsr) { a =>
       update(a).map {
         case MusitSuccess(b)  => Results.Ok(Json.toJson(b))
         case merr: MusitError => internalErr(merr)
@@ -119,7 +121,7 @@ package object controllers {
       writes: Writes[B],
       ec: ExecutionContext
   ): Future[Result] = {
-    updateRequestFunc(jsr) { a =>
+    handleUpdateRequest(jsr) { a =>
       update(a).map {
         case MusitSuccess(b) =>
           b.map(r => Results.Ok(Json.toJson(r))).getOrElse(Results.NoContent)
@@ -134,11 +136,6 @@ package object controllers {
 
   /**
    * TODO: This is quite dirty... should be improved when time allows.
-   *
-   * @param mid
-   * @param str
-   * @param currUsr
-   * @return
    */
   def parseCollectionIdsParam(
       mid: MuseumId,

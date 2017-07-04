@@ -116,6 +116,7 @@ PUT           /:mid/analyses/:id                                             con
 GET           /:mid/analyses/:id/children                                    controllers.analysis.AnalysisController.getChildAnalyses(mid: Int, id: Long)
 POST          /:mid/analyses/:id/results                                     controllers.analysis.AnalysisController.addResult(mid: Int, id: Long)
 PUT           /:mid/analyses/:id/results                                     controllers.analysis.AnalysisController.updateResult(mid: Int, id: Long)
+PUT           /:mid/analyses/:id/results/import                              controllers.analysis.AnalysisController.importResults(mid: Int, id: Long)
 
 # Returns _all_ analysis module events, including SampleCreated.
 GET           /:mid/analyses/objects/:id                                     controllers.analysis.AnalysisController.getAnalysisForObject(mid: Int, id: String)

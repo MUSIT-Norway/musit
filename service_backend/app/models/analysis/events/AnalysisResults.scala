@@ -22,7 +22,7 @@ object AnalysisResults {
     val extRef: Option[Seq[String]]
     val comment: Option[String]
 
-    def withtRegisteredDate(d: Option[DateTime]): AnalysisResult = {
+    def withRegisteredDate(d: Option[DateTime]): AnalysisResult = {
       this match {
         case gr: GenericResult     => gr.copy(registeredDate = d)
         case dr: AgeResult         => dr.copy(registeredDate = d)
