@@ -16,6 +16,15 @@ services:
     ports:
       - "1521:1521"
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.4.3
+    container_name: dev_elasticsearch
+    environment:
+      - cluster.name=musit-cluster
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - 9200:9200
+
   backend:
     image: service_backend:0.1-SNAPSHOT
     ports:
@@ -35,6 +44,7 @@ services:
       - SLICK_DB_PASSWORD
     links:
       - db
+      - elasticsearch
 
   auth:
     image: service_auth:0.1-SNAPSHOT
