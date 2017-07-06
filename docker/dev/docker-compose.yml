@@ -22,6 +22,7 @@ services:
     environment:
       - cluster.name=musit-cluster
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
     ports:
       - 9200:9200
 
