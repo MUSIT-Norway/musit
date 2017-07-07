@@ -7,11 +7,12 @@ import no.uio.musit.MusitResults
 import no.uio.musit.MusitResults.{MusitHttpError, MusitSuccess}
 import play.api.http.{ContentTypes, HeaderNames, Status}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.JsValue
+import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.WSClient
 import play.api.{Configuration, Logger}
 import services.elasticsearch.client.RefreshIndex.{NoRefresh, Refresh}
-import services.elasticsearch.client.models.IndexResponse
+import services.elasticsearch.client.models.BulkActions.BulkAction
+import services.elasticsearch.client.models.{BulkResponse, IndexResponse}
 
 import scala.concurrent.Future
 
@@ -23,12 +24,14 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
 
   val logger = Logger(classOf[ElasticSearchClient])
 
-  def client(parts: String*) = {
+  def baseClient(parts: String*) = {
     val path = s"${clientConfig.url}/${parts.mkString("/")}"
     logger.debug(s"calling path $path parts: $parts")
-    ws.url(path)
-      .withHeaders(HeaderNames.ACCEPT -> ContentTypes.JSON)
-      .withHeaders(HeaderNames.CONTENT_TYPE -> ContentTypes.JSON)
+    ws.url(path).withHeaders(HeaderNames.ACCEPT -> ContentTypes.JSON)
+  }
+
+  def jsonClient(parts: String*) = {
+    baseClient(parts: _*).withHeaders(HeaderNames.CONTENT_TYPE -> ContentTypes.JSON)
   }
 
   def index(
@@ -38,7 +41,7 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
       document: JsValue,
       refresh: Refresh = NoRefresh
   ) =
-    client(index, tpy, id)
+    jsonClient(index, tpy, id)
       .withQueryString("refresh" -> refresh.underlying)
       .put(document)
       .map { response =>
@@ -50,7 +53,7 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
       }
 
   def indices: Future[MusitResults.MusitResult[Seq[IndexResponse]]] =
-    client("_cat", "indices").get().map { response =>
+    jsonClient("_cat", "indices").get().map { response =>
       response.status match {
         case Status.OK => MusitSuccess(response.json.as[Seq[IndexResponse]])
         case httpCode  => MusitHttpError(httpCode, response.body)
@@ -58,7 +61,7 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
     }
 
   def get(index: String, tpy: String, id: String) =
-    client(index, tpy, id).get().map { response =>
+    jsonClient(index, tpy, id).get().map { response =>
       response.status match {
         case Status.OK        => MusitSuccess(Some(response.json))
         case Status.NOT_FOUND => MusitSuccess(None)
@@ -67,7 +70,7 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
     }
 
   def delete(index: String, tpy: String, id: String, refresh: Refresh = NoRefresh) =
-    client(index, tpy, id)
+    jsonClient(index, tpy, id)
       .withQueryString("refresh" -> refresh.underlying)
       .delete()
       .map { response =>
@@ -78,7 +81,7 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
       }
 
   def deleteIndex(index: String) =
-    client(index).delete().map { response =>
+    jsonClient(index).delete().map { response =>
       response.status match {
         case Status.OK => MusitSuccess(response.json)
         case httpCode  => MusitHttpError(httpCode, response.body)
@@ -89,12 +92,32 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
     val parts = index.map {
       List(_) ++ typ.map(List(_)).getOrElse(Nil)
     }.getOrElse(Nil) :+ "_search"
-    client(parts: _*).withQueryString("q" -> query).get().map { response =>
+    jsonClient(parts: _*).withQueryString("q" -> query).get().map { response =>
       response.status match {
         case Status.OK => MusitSuccess(response.json)
         case httpCode  => MusitHttpError(httpCode, response.body)
       }
     }
+  }
+
+  def bulkAction(actions: Seq[BulkAction], refresh: Refresh = NoRefresh) = {
+    val content = actions.flatMap { action =>
+      action.source match {
+        case Some(source) => Json.toJson(action) :: source :: Nil
+        case None         => Json.toJson(action) :: Nil
+      }
+    }.map(Json.stringify).mkString("", "\n", "\n")
+
+    baseClient("_bulk")
+      .withHeaders(HeaderNames.CONTENT_TYPE -> "application/x-ndjson")
+      .withQueryString("refresh" -> refresh.underlying)
+      .post(content)
+      .map { response =>
+        response.status match {
+          case Status.OK => MusitSuccess(response.json.as[BulkResponse])
+          case httpCode  => MusitHttpError(httpCode, response.body)
+        }
+      }
   }
 
 }
