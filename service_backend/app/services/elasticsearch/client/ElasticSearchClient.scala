@@ -29,7 +29,7 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
 
   def baseClient(parts: String*) = {
     val path = s"${clientConfig.url}/${parts.mkString("/")}"
-    logger.debug(s"calling path $path parts: $parts")
+    logger.debug(s"creating client with path $path")
     ws.url(path).withHeaders(HeaderNames.ACCEPT -> ContentTypes.JSON)
   }
 
