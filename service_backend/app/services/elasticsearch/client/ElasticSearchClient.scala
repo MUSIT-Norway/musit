@@ -13,7 +13,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.{StreamedBody, WSClient}
 import play.api.{Configuration, Logger}
-import services.elasticsearch.client.RefreshIndex.{NoRefresh, Refresh}
+import services.elasticsearch.client.models.RefreshIndex.{NoRefresh, Refresh}
 import services.elasticsearch.client.models.BulkActions.BulkAction
 import services.elasticsearch.client.models.{BulkResponse, IndexResponse}
 

@@ -7,7 +7,7 @@ import no.uio.musit.test.matchers.MusitResultValues
 import org.scalatest.{BeforeAndAfter, Inside}
 import play.api.http.Status
 import play.api.libs.json.{JsNumber, JsObject, JsValue, Json}
-import services.elasticsearch.client.RefreshIndex.Immediately
+import services.elasticsearch.client.models.RefreshIndex.Immediately
 import services.elasticsearch.client.models.BulkActions.{
   CreateAction,
   DeleteAction,

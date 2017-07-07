@@ -1,4 +1,4 @@
-package services.elasticsearch.client
+package services.elasticsearch.client.models
 
 /**
  * Controls the ?refresh query param.
