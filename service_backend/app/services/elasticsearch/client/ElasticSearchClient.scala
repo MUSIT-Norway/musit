@@ -43,7 +43,7 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
       id: String,
       document: JsValue,
       refresh: Refresh = NoRefresh
-  ) =
+  ): Future[MusitResults.MusitResult[JsValue]] =
     jsonClient(index, tpy, id)
       .withQueryString("refresh" -> refresh.underlying)
       .put(document)
@@ -63,7 +63,11 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
       }
     }
 
-  def get(index: String, tpy: String, id: String) =
+  def get(
+      index: String,
+      tpy: String,
+      id: String
+  ): Future[MusitResults.MusitResult[Option[JsValue]]] =
     jsonClient(index, tpy, id).get().map { response =>
       response.status match {
         case Status.OK        => MusitSuccess(Some(response.json))
@@ -72,7 +76,12 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
       }
     }
 
-  def delete(index: String, tpy: String, id: String, refresh: Refresh = NoRefresh) =
+  def delete(
+      index: String,
+      tpy: String,
+      id: String,
+      refresh: Refresh = NoRefresh
+  ): Future[MusitResults.MusitResult[JsValue]] =
     jsonClient(index, tpy, id)
       .withQueryString("refresh" -> refresh.underlying)
       .delete()
@@ -83,7 +92,7 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
         }
       }
 
-  def deleteIndex(index: String) =
+  def deleteIndex(index: String): Future[MusitResults.MusitResult[JsValue]] =
     jsonClient(index).delete().map { response =>
       response.status match {
         case Status.OK => MusitSuccess(response.json)
@@ -91,7 +100,11 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
       }
     }
 
-  def search(query: String, index: Option[String] = None, typ: Option[String] = None) = {
+  def search(
+      query: String,
+      index: Option[String] = None,
+      typ: Option[String] = None
+  ): Future[MusitResults.MusitResult[JsValue]] = {
     val parts = index.map {
       List(_) ++ typ.map(List(_)).getOrElse(Nil)
     }.getOrElse(Nil) :+ "_search"
@@ -103,7 +116,10 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
     }
   }
 
-  def bulkAction(source: Source[BulkAction, NotUsed], refresh: Refresh = NoRefresh) = {
+  def bulkAction(
+      source: Source[BulkAction, NotUsed],
+      refresh: Refresh = NoRefresh
+  ): Future[MusitResults.MusitResult[BulkResponse]] = {
     def toByteString(jsValue: JsValue): ByteString =
       ByteString(Json.stringify(jsValue) + "\n")
 
