@@ -13,22 +13,25 @@ class BulkActionsSpec extends WordSpec with MustMatchers with OptionValues {
   "Bulk actions" must {
 
     "create json from Index action" in {
-      val res = Json.toJson(IndexAction(index, typ, id, content))
+      val res =
+        Json.toJson(IndexAction(index, typ, id, content).asInstanceOf[BulkAction])
       verifyAction("index", res)
     }
 
     "create json from Create action" in {
-      val res = Json.toJson(CreateAction(index, typ, id, content))
+      val res =
+        Json.toJson(CreateAction(index, typ, id, content).asInstanceOf[BulkAction])
       verifyAction("create", res)
     }
 
     "create json from Update action" in {
-      val res = Json.toJson(UpdateAction(index, typ, id, Some(content)))
+      val res =
+        Json.toJson(UpdateAction(index, typ, id, Some(content)).asInstanceOf[BulkAction])
       verifyAction("update", res)
     }
 
     "create json from Delete action" in {
-      val res = Json.toJson(DeleteAction(index, typ, id))
+      val res = Json.toJson(DeleteAction(index, typ, id).asInstanceOf[BulkAction])
       verifyAction("delete", res)
     }
   }
