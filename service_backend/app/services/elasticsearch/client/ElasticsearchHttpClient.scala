@@ -19,13 +19,15 @@ import services.elasticsearch.client.models.{BulkResponse, IndexResponse}
 
 import scala.concurrent.Future
 
-case class ElasticSearchClientConfig(url: String)
+case class ElasticsearchClientConfig(url: String)
 
-class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration) {
+class ElasticsearchHttpClient @Inject()(ws: WSClient)(implicit config: Configuration)
+    extends ElasticsearchClient {
+
   val clientConfig =
-    config.underlying.as[ElasticSearchClientConfig]("musit.elasticsearch")
+    config.underlying.as[ElasticsearchClientConfig]("musit.elasticsearch")
 
-  val logger = Logger(classOf[ElasticSearchClient])
+  val logger = Logger(classOf[ElasticsearchHttpClient])
 
   def baseClient(parts: String*) = {
     val path = s"${clientConfig.url}/${parts.mkString("/")}"
@@ -37,7 +39,7 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
     baseClient(parts: _*).withHeaders(HeaderNames.CONTENT_TYPE -> ContentTypes.JSON)
   }
 
-  def index(
+  override def index(
       index: String,
       tpy: String,
       id: String,
@@ -55,7 +57,7 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
         }
       }
 
-  def indices: Future[MusitResults.MusitResult[Seq[IndexResponse]]] =
+  override def indices: Future[MusitResults.MusitResult[Seq[IndexResponse]]] =
     jsonClient("_cat", "indices").get().map { response =>
       response.status match {
         case Status.OK => MusitSuccess(response.json.as[Seq[IndexResponse]])
@@ -63,7 +65,7 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
       }
     }
 
-  def get(
+  override def get(
       index: String,
       tpy: String,
       id: String
@@ -76,7 +78,7 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
       }
     }
 
-  def delete(
+  override def delete(
       index: String,
       tpy: String,
       id: String,
@@ -92,7 +94,7 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
         }
       }
 
-  def deleteIndex(index: String): Future[MusitResults.MusitResult[JsValue]] =
+  override def deleteIndex(index: String): Future[MusitResults.MusitResult[JsValue]] =
     jsonClient(index).delete().map { response =>
       response.status match {
         case Status.OK => MusitSuccess(response.json)
@@ -100,7 +102,7 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
       }
     }
 
-  def search(
+  override def search(
       query: String,
       index: Option[String] = None,
       typ: Option[String] = None
@@ -116,7 +118,7 @@ class ElasticSearchClient @Inject()(ws: WSClient)(implicit config: Configuration
     }
   }
 
-  def bulkAction(
+  override def bulkAction(
       source: Source[BulkAction, NotUsed],
       refresh: Refresh = NoRefresh
   ): Future[MusitResults.MusitResult[BulkResponse]] = {

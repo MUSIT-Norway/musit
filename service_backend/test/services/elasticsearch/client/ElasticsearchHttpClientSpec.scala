@@ -23,14 +23,14 @@ import services.elasticsearch.client.models.ItemResponses.{
 
 import scala.util.Random
 
-class ElasticSearchClientSpec
+class ElasticsearchHttpClientSpec
     extends MusitSpecWithAppPerSuite
     with MusitResultValues
     with Inside
     with BeforeAndAfter {
   implicit val format = Json.format[TestUser]
 
-  val client = fromInstanceCache[ElasticSearchClient]
+  val client = fromInstanceCache[ElasticsearchHttpClient]
   val index  = s"es-spec-${Random.nextInt(Int.MaxValue)}"
 
   "ElasticsearchClient" when {
