@@ -1,7 +1,7 @@
 package services.elasticsearch.client
 
 import no.uio.musit.MusitResults.{MusitHttpError, MusitSuccess}
-import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
 import no.uio.musit.test.matchers.MusitResultValues
 import org.scalatest.{BeforeAndAfter, Inside}
 import play.api.http.Status
@@ -36,7 +36,7 @@ class ElasticSearchClientSpec
 
     "using single operation" should {
 
-      "insert document into index" in {
+      "insert document into index" taggedAs ElasticsearchContainer in {
         val doc = TestUser("Ola", " Nordmann", 42)
 
         val result = client
@@ -53,7 +53,7 @@ class ElasticSearchClientSpec
         (result.get \ "_version").as[Int] mustBe 1
       }
 
-      "list out created index" in {
+      "find all indices" taggedAs ElasticsearchContainer in {
         val doc = TestUser("Ola", " Nordmann", 42)
 
         client
@@ -70,7 +70,7 @@ class ElasticSearchClientSpec
         result.successValue.map(_.index) must contain(index)
       }
 
-      "delete index when it exist" in {
+      "delete existing index" taggedAs ElasticsearchContainer in {
         val doc = TestUser("Ola", " Nordmann", 42)
 
         client
@@ -90,7 +90,7 @@ class ElasticSearchClientSpec
         result.successValue.map(_.index) must not contain index
       }
 
-      "delete non existing index" in {
+      "report error when deleting index that doesn't exist" taggedAs ElasticsearchContainer in {
         val res =
           client.deleteIndex("some-random-index").futureValue
 
@@ -99,7 +99,7 @@ class ElasticSearchClientSpec
         }
       }
 
-      "delete document" in {
+      "delete existing document" taggedAs ElasticsearchContainer in {
         val doc = TestUser("Ola", " Nordmann", 42)
         val tpy = "test"
         val id  = "to_delete"
@@ -125,7 +125,7 @@ class ElasticSearchClientSpec
         document mustBe None
       }
 
-      "delete non existing document" in {
+      "report error when delete non existing document" taggedAs ElasticsearchContainer in {
         val doc = TestUser("Ola", " Nordmann", 42)
 
         val res = client
@@ -142,7 +142,7 @@ class ElasticSearchClientSpec
         }
       }
 
-      "update existing document into index" in {
+      "update existing document into index" taggedAs ElasticsearchContainer in {
         val docV1 = TestUser("Ola", "Nordmann", 42)
         val docV2 = TestUser("Ola", "Nordmann", 43)
 
@@ -172,7 +172,7 @@ class ElasticSearchClientSpec
         (secondResult.get \ "_version").as[Int] mustBe 2
       }
 
-      "retrieve inserted document" in {
+      "retrieve inserted document" taggedAs ElasticsearchContainer in {
         val doc = TestUser("Ola", "Nordmann", 42)
 
         val result =
@@ -193,7 +193,7 @@ class ElasticSearchClientSpec
         (document.get.get \ "_source").get.as[TestUser] mustBe doc
       }
 
-      "retrieve non existing document" in {
+      "not fail when retriving document that doens't exist" taggedAs ElasticsearchContainer in {
         val document = client.get(index, "test", "42").futureValue
         document mustBe a[MusitSuccess[_]]
 
@@ -203,7 +203,7 @@ class ElasticSearchClientSpec
     }
 
     "searching" should {
-      "find documents" in {
+      "find documents matching query" taggedAs ElasticsearchContainer in {
         client
           .index(
             index = index,
@@ -240,7 +240,7 @@ class ElasticSearchClientSpec
     }
 
     "using bulk operation" should {
-      "insert one document" in {
+      "insert one document" taggedAs ElasticsearchContainer in {
         val document = Json.toJson(TestUser("Ola", "Nordmann", 42))
         val res = client
           .bulkAction(Seq(IndexAction(index, "bulk-test", "1", document)), Immediately)
@@ -255,7 +255,7 @@ class ElasticSearchClientSpec
           Some("created")
       }
 
-      "update one document" in {
+      "update one document" taggedAs ElasticsearchContainer in {
         insertDoc("1", Json.toJson(TestUser("Ola", "Nordmann", 42)))
 
         val document = Json.toJson(TestUser("Kari", "Nordmann", 20))
@@ -275,7 +275,7 @@ class ElasticSearchClientSpec
           Some("updated")
       }
 
-      "delete one document" in {
+      "delete one document" taggedAs ElasticsearchContainer in {
         insertDoc("1", Json.toJson(TestUser("Ola", "Nordmann", 42)))
         val res = client
           .bulkAction(Seq(DeleteAction(index, "bulk-test", "1")), Immediately)
@@ -290,7 +290,7 @@ class ElasticSearchClientSpec
           Some("deleted")
       }
 
-      "create one document" in {
+      "create one document" taggedAs ElasticsearchContainer in {
         val document = Json.toJson(TestUser("Ola", "Nordmann", 42))
         val res = client
           .bulkAction(Seq(CreateAction(index, "bulk-test", "1", document)), Immediately)
@@ -305,7 +305,7 @@ class ElasticSearchClientSpec
           Some("created")
       }
 
-      "combine multiple actions" in {
+      "combine multiple actions" taggedAs ElasticsearchContainer in {
         val document = Json.toJson(TestUser("Ola", "Nordmann", 42))
         val res = client
           .bulkAction(
