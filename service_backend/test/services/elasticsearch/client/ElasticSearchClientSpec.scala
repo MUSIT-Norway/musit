@@ -1,5 +1,6 @@
 package services.elasticsearch.client
 
+import akka.stream.scaladsl.Source
 import no.uio.musit.MusitResults.{MusitHttpError, MusitSuccess}
 import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
 import no.uio.musit.test.matchers.MusitResultValues
@@ -243,7 +244,10 @@ class ElasticSearchClientSpec
       "insert one document" taggedAs ElasticsearchContainer in {
         val document = Json.toJson(TestUser("Ola", "Nordmann", 42))
         val res = client
-          .bulkAction(Seq(IndexAction(index, "bulk-test", "1", document)), Immediately)
+          .bulkAction(
+            Source(List(IndexAction(index, "bulk-test", "1", document))),
+            Immediately
+          )
           .futureValue
           .successValue
 
@@ -261,7 +265,7 @@ class ElasticSearchClientSpec
         val document = Json.toJson(TestUser("Kari", "Nordmann", 20))
         val res = client
           .bulkAction(
-            Seq(UpdateAction(index, "bulk-test", "1", Some(document))),
+            Source(List(UpdateAction(index, "bulk-test", "1", Some(document)))),
             Immediately
           )
           .futureValue
@@ -278,7 +282,7 @@ class ElasticSearchClientSpec
       "delete one document" taggedAs ElasticsearchContainer in {
         insertDoc("1", Json.toJson(TestUser("Ola", "Nordmann", 42)))
         val res = client
-          .bulkAction(Seq(DeleteAction(index, "bulk-test", "1")), Immediately)
+          .bulkAction(Source(List(DeleteAction(index, "bulk-test", "1"))), Immediately)
           .futureValue
           .successValue
 
@@ -293,7 +297,10 @@ class ElasticSearchClientSpec
       "create one document" taggedAs ElasticsearchContainer in {
         val document = Json.toJson(TestUser("Ola", "Nordmann", 42))
         val res = client
-          .bulkAction(Seq(CreateAction(index, "bulk-test", "1", document)), Immediately)
+          .bulkAction(
+            Source(List(CreateAction(index, "bulk-test", "1", document))),
+            Immediately
+          )
           .futureValue
           .successValue
 
@@ -309,14 +316,16 @@ class ElasticSearchClientSpec
         val document = Json.toJson(TestUser("Ola", "Nordmann", 42))
         val res = client
           .bulkAction(
-            Seq(
-              CreateAction(index, "bulk-test", "1", document),
-              CreateAction(index, "bulk-test", "2", document),
-              UpdateAction(index, "bulk-test", "1", Some(document)),
-              DeleteAction(index, "bulk-test", "3"),
-              IndexAction(index, "bulk-test", "4", document),
-              IndexAction(index, "bulk-test", "5", document),
-              IndexAction(index, "bulk-test", "6", document)
+            Source(
+              List(
+                CreateAction(index, "bulk-test", "1", document),
+                CreateAction(index, "bulk-test", "2", document),
+                UpdateAction(index, "bulk-test", "1", Some(document)),
+                DeleteAction(index, "bulk-test", "3"),
+                IndexAction(index, "bulk-test", "4", document),
+                IndexAction(index, "bulk-test", "5", document),
+                IndexAction(index, "bulk-test", "6", document)
+              )
             ),
             Immediately
           )
