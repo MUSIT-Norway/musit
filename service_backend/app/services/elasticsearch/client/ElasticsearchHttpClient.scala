@@ -6,16 +6,20 @@ import akka.util.ByteString
 import com.google.inject.Inject
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
-import no.uio.musit.MusitResults
-import no.uio.musit.MusitResults.{MusitHttpError, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitHttpError, MusitResult, MusitSuccess}
 import play.api.http.{ContentTypes, HeaderNames, Status}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.libs.ws.{StreamedBody, WSClient}
 import play.api.{Configuration, Logger}
 import services.elasticsearch.client.models.RefreshIndex.{NoRefresh, Refresh}
 import services.elasticsearch.client.models.BulkActions.BulkAction
-import services.elasticsearch.client.models.{BulkResponse, IndexResponse}
+import services.elasticsearch.client.models.{
+  AliasActions,
+  Aliases,
+  BulkResponse,
+  IndexResponse
+}
 
 import scala.concurrent.Future
 
@@ -45,7 +49,7 @@ class ElasticsearchHttpClient @Inject()(ws: WSClient)(implicit config: Configura
       id: String,
       document: JsValue,
       refresh: Refresh = NoRefresh
-  ): Future[MusitResults.MusitResult[JsValue]] =
+  ): Future[MusitResult[JsValue]] =
     jsonClient(index, tpy, id)
       .withQueryString("refresh" -> refresh.underlying)
       .put(document)
@@ -57,7 +61,7 @@ class ElasticsearchHttpClient @Inject()(ws: WSClient)(implicit config: Configura
         }
       }
 
-  override def indices: Future[MusitResults.MusitResult[Seq[IndexResponse]]] =
+  override def indices: Future[MusitResult[Seq[IndexResponse]]] =
     jsonClient("_cat", "indices").get().map { response =>
       response.status match {
         case Status.OK => MusitSuccess(response.json.as[Seq[IndexResponse]])
@@ -69,7 +73,7 @@ class ElasticsearchHttpClient @Inject()(ws: WSClient)(implicit config: Configura
       index: String,
       tpy: String,
       id: String
-  ): Future[MusitResults.MusitResult[Option[JsValue]]] =
+  ): Future[MusitResult[Option[JsValue]]] =
     jsonClient(index, tpy, id).get().map { response =>
       response.status match {
         case Status.OK        => MusitSuccess(Some(response.json))
@@ -83,7 +87,7 @@ class ElasticsearchHttpClient @Inject()(ws: WSClient)(implicit config: Configura
       tpy: String,
       id: String,
       refresh: Refresh = NoRefresh
-  ): Future[MusitResults.MusitResult[JsValue]] =
+  ): Future[MusitResult[JsValue]] =
     jsonClient(index, tpy, id)
       .withQueryString("refresh" -> refresh.underlying)
       .delete()
@@ -94,7 +98,7 @@ class ElasticsearchHttpClient @Inject()(ws: WSClient)(implicit config: Configura
         }
       }
 
-  override def deleteIndex(index: String): Future[MusitResults.MusitResult[JsValue]] =
+  override def deleteIndex(index: String): Future[MusitResult[JsValue]] =
     jsonClient(index).delete().map { response =>
       response.status match {
         case Status.OK => MusitSuccess(response.json)
@@ -106,7 +110,7 @@ class ElasticsearchHttpClient @Inject()(ws: WSClient)(implicit config: Configura
       query: String,
       index: Option[String] = None,
       typ: Option[String] = None
-  ): Future[MusitResults.MusitResult[JsValue]] = {
+  ): Future[MusitResult[JsValue]] = {
     val parts = index.map {
       List(_) ++ typ.map(List(_)).getOrElse(Nil)
     }.getOrElse(Nil) :+ "_search"
@@ -121,7 +125,7 @@ class ElasticsearchHttpClient @Inject()(ws: WSClient)(implicit config: Configura
   override def bulkAction(
       source: Source[BulkAction, NotUsed],
       refresh: Refresh = NoRefresh
-  ): Future[MusitResults.MusitResult[BulkResponse]] = {
+  ): Future[MusitResult[BulkResponse]] = {
     def toByteString(jsValue: JsValue): ByteString =
       ByteString(Json.stringify(jsValue) + "\n")
 
@@ -146,4 +150,35 @@ class ElasticsearchHttpClient @Inject()(ws: WSClient)(implicit config: Configura
       }
   }
 
+  override def aliases(actions: Seq[AliasActions.AliasAction]) = {
+    logger.info(s"Aliases actions $actions")
+    jsonClient("_aliases").post(Json.obj("actions" -> Json.toJson(actions))).map {
+      response =>
+        response.status match {
+          case Status.OK => MusitSuccess(())
+          case httpCode  => MusitHttpError(httpCode, response.body)
+        }
+    }
+  }
+
+  def aliases: Future[MusitResult[Seq[Aliases]]] = {
+    jsonClient("_all", "_alias").get().map { response =>
+      response.status match {
+        case Status.OK =>
+          MusitSuccess(response.json match {
+            case ob: JsObject =>
+              ob.keys.toSeq.map { index =>
+                val aliases: Seq[String] =
+                  (ob \ index \ "aliases").getOrElse(JsObject(Seq())) match {
+                    case a: JsObject => a.keys.toSeq
+                    case _           => Seq()
+                  }
+                Aliases(index, aliases)
+              }
+            case _ => Seq()
+          })
+        case httpCode => MusitHttpError(httpCode, response.body)
+      }
+    }
+  }
 }

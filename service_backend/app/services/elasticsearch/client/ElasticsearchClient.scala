@@ -2,14 +2,18 @@ package services.elasticsearch.client
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
+import com.google.inject.ImplementedBy
 import no.uio.musit.MusitResults
+import no.uio.musit.MusitResults.MusitResult
 import play.api.libs.json.JsValue
+import services.elasticsearch.client.models.AliasActions.AliasAction
 import services.elasticsearch.client.models.BulkActions.BulkAction
 import services.elasticsearch.client.models.RefreshIndex.{NoRefresh, Refresh}
-import services.elasticsearch.client.models.{BulkResponse, IndexResponse}
+import services.elasticsearch.client.models.{Aliases, BulkResponse, IndexResponse}
 
 import scala.concurrent.Future
 
+@ImplementedBy(classOf[ElasticsearchHttpClient])
 trait ElasticsearchClient {
 
   /**
@@ -69,5 +73,15 @@ trait ElasticsearchClient {
       source: Source[BulkAction, NotUsed],
       refresh: Refresh = NoRefresh
   ): Future[MusitResults.MusitResult[BulkResponse]]
+
+  /**
+   * Operations to add and remove aliases and remove indices.
+   */
+  def aliases(actions: Seq[AliasAction]): Future[MusitResults.MusitResult[Unit]]
+
+  /**
+   * List out the aliases related to the indices.
+   */
+  def aliases: Future[MusitResult[Seq[Aliases]]]
 
 }

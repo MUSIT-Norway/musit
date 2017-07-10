@@ -2,11 +2,19 @@ package services.elasticsearch.client
 
 import akka.stream.scaladsl.Source
 import no.uio.musit.MusitResults.{MusitHttpError, MusitSuccess}
+import no.uio.musit.test
 import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
 import no.uio.musit.test.matchers.MusitResultValues
+import org.scalatest.concurrent.Eventually
 import org.scalatest.{BeforeAndAfter, Inside}
 import play.api.http.Status
-import play.api.libs.json.{JsNumber, JsObject, JsValue, Json}
+import play.api.libs.json._
+import services.elasticsearch.client.models.AliasActions.{
+  AddAlias,
+  DeleteIndex,
+  RemoveAlias
+}
+import services.elasticsearch.client.models.Aliases
 import services.elasticsearch.client.models.RefreshIndex.Immediately
 import services.elasticsearch.client.models.BulkActions.{
   CreateAction,
@@ -27,6 +35,7 @@ class ElasticsearchHttpClientSpec
     extends MusitSpecWithAppPerSuite
     with MusitResultValues
     with Inside
+    with Eventually
     with BeforeAndAfter {
   implicit val format = Json.format[TestUser]
 
@@ -336,20 +345,45 @@ class ElasticsearchHttpClientSpec
         res.items must have length 7
       }
 
-      def insertDoc(id: String, doc: JsValue) = {
-        client
-          .index(
-            index = index,
-            tpy = "bulk-test",
-            id = id,
-            document = doc,
-            refresh = Immediately
-          )
-          .futureValue
-          .successValue
+    }
+
+    "operation on aliases" should {
+      "create alias" taggedAs ElasticsearchContainer in {
+        client.aliases(Seq(AddAlias("foo", "baz"))).futureValue.successValue
       }
 
+      "remove alias" taggedAs ElasticsearchContainer in {
+        client.aliases(Seq(AddAlias("foo", "baz"))).futureValue
+        client.aliases(Seq(RemoveAlias("foo", "baz"))).futureValue.successValue
+      }
+
+      "delete index via alias action" taggedAs ElasticsearchContainer in {
+        client.aliases(Seq(DeleteIndex("foo"))).futureValue.successValue
+      }
+
+      "list all aliases" taggedAs test.ElasticsearchContainer in {
+        insertDoc("alias_test", Json.obj("foo" -> JsString("Bar")))
+        client.aliases(Seq(AddAlias(index, "bar"), AddAlias(index, "baz"))).futureValue
+
+        eventually {
+          val res = client.aliases.futureValue.successValue
+          res.find(_.index == index) mustBe Some(Aliases(index, Seq("bar", "baz")))
+        }
+      }
     }
+  }
+
+  def insertDoc(id: String, doc: JsValue) = {
+    client
+      .index(
+        index = index,
+        tpy = "bulk-test",
+        id = id,
+        document = doc,
+        refresh = Immediately
+      )
+      .futureValue
+      .successValue
   }
 
   before {
@@ -371,7 +405,7 @@ class ElasticsearchHttpClientSpec
   }
 
   after {
-    client.deleteIndex(index).futureValue
+//    client.deleteIndex(index).futureValue
   }
 }
 
