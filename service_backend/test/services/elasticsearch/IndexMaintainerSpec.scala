@@ -1,17 +1,14 @@
 package services.elasticsearch
 
-import akka.NotUsed
-import akka.stream.scaladsl.Source
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import org.scalatest.{MustMatchers, WordSpec}
-import play.api.libs.json.JsValue
-import services.elasticsearch.client.ElasticsearchClient
+import services.elasticsearch.client.ElasticsearchAliasApi
 import services.elasticsearch.client.models.AliasActions.{
   AddAlias,
   AliasAction,
   DeleteIndex
 }
-import services.elasticsearch.client.models.{Aliases, BulkActions, RefreshIndex}
+import services.elasticsearch.client.models.Aliases
 
 import scala.concurrent.Future
 
@@ -67,42 +64,14 @@ class IndexMaintainerSpec extends WordSpec with MustMatchers {
   class DummyEsClient(
       var aliasActions: Seq[AliasAction] = Seq(),
       var aliasesResponse: Seq[Aliases] = Seq()
-  ) extends ElasticsearchClient {
-
-    override def index(
-        index: String,
-        tpy: String,
-        id: String,
-        document: JsValue,
-        refresh: RefreshIndex.Refresh
-    ) = ???
-
-    override def indices = ???
-
-    override def get(index: String, tpy: String, id: String) = ???
-
-    override def delete(
-        index: String,
-        tpy: String,
-        id: String,
-        refresh: RefreshIndex.Refresh
-    ) = ???
-
-    override def deleteIndex(index: String) = ???
-
-    override def search(query: String, index: Option[String], typ: Option[String]) = ???
-
-    override def bulkAction(
-        source: Source[BulkActions.BulkAction, NotUsed],
-        refresh: RefreshIndex.Refresh
-    ) = ???
+  ) extends ElasticsearchAliasApi {
 
     override def aliases(actions: Seq[AliasAction]) = {
       aliasActions = aliasActions ++ actions
       Future.successful(MusitSuccess(()))
     }
 
-    override def aliases() = Future.successful(MusitSuccess(aliasesResponse))
+    override def aliases = Future.successful(MusitSuccess(aliasesResponse))
   }
 
 }

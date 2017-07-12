@@ -5,7 +5,7 @@ import no.uio.musit.MusitResults.{MusitHttpError, MusitSuccess}
 import no.uio.musit.functional.Implicits._
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import play.api.Logger
-import services.elasticsearch.client.ElasticsearchClient
+import services.elasticsearch.client.{ElasticsearchAliasApi, ElasticsearchClient}
 import services.elasticsearch.client.models.AliasActions.{AddAlias, DeleteIndex}
 import services.elasticsearch.client.models.Aliases
 
@@ -13,7 +13,7 @@ import scala.concurrent.duration.DurationDouble
 import scala.concurrent.{Await, ExecutionContext}
 
 class IndexMaintainer @Inject()(
-    esClient: ElasticsearchClient
+    esClient: ElasticsearchAliasApi
 )(implicit ec: ExecutionContext) {
 
   val logger = Logger(classOf[IndexMaintainer])

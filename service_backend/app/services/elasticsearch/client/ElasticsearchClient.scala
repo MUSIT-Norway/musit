@@ -14,7 +14,27 @@ import services.elasticsearch.client.models.{Aliases, BulkResponse, IndexRespons
 import scala.concurrent.Future
 
 @ImplementedBy(classOf[ElasticsearchHttpClient])
-trait ElasticsearchClient {
+trait ElasticsearchClient
+    extends ElasticsearchIndicesApi
+    with ElasticsearchAliasApi
+    with ElasticsearchSearchApi
+
+@ImplementedBy(classOf[ElasticsearchClient])
+trait ElasticsearchSearchApi {
+
+  /**
+   * Execute a search in Elasticsearch.
+   */
+  def search(
+      query: String,
+      index: Option[String] = None,
+      typ: Option[String] = None
+  ): Future[MusitResults.MusitResult[JsValue]]
+
+}
+
+@ImplementedBy(classOf[ElasticsearchClient])
+trait ElasticsearchIndicesApi {
 
   /**
    * Upsert a document to Elasticsearch.
@@ -57,15 +77,6 @@ trait ElasticsearchClient {
   def deleteIndex(index: String): Future[MusitResults.MusitResult[JsValue]]
 
   /**
-   * Execute a search in Elasticsearch.
-   */
-  def search(
-      query: String,
-      index: Option[String] = None,
-      typ: Option[String] = None
-  ): Future[MusitResults.MusitResult[JsValue]]
-
-  /**
    * Send multiple actions to Elasticsearch. The source have be a finite stream since
    * the client will try to send all document in the source to ES in one request.
    */
@@ -73,6 +84,11 @@ trait ElasticsearchClient {
       source: Source[BulkAction, NotUsed],
       refresh: Refresh = NoRefresh
   ): Future[MusitResults.MusitResult[BulkResponse]]
+
+}
+
+@ImplementedBy(classOf[ElasticsearchClient])
+trait ElasticsearchAliasApi {
 
   /**
    * Operations to add and remove aliases and remove indices.
