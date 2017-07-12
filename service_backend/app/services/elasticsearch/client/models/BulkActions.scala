@@ -53,42 +53,22 @@ object BulkActions {
   }
 
   object BulkAction {
-    def toJson(ba: BulkAction) =
+
+    private[this] def toActionName[A >: BulkAction](ba: A) = ba match {
+      case _: IndexAction  => "index"
+      case _: CreateAction => "create"
+      case _: UpdateAction => "update"
+      case _: DeleteAction => "delete"
+    }
+
+    implicit val writes: Writes[BulkAction] = Writes { action =>
       Json.obj(
-        "_index" -> JsString(ba.index),
-        "_type"  -> JsString(ba.typ),
-        "_id"    -> JsString(ba.id)
+        toActionName(action) -> Json.obj(
+          "_index" -> JsString(action.index),
+          "_type"  -> JsString(action.typ),
+          "_id"    -> JsString(action.id)
+        )
       )
-
-    implicit val write: Writes[BulkAction] = Writes {
-      case ba: IndexAction  => IndexAction.write.writes(ba)
-      case ba: CreateAction => CreateAction.write.writes(ba)
-      case ba: UpdateAction => UpdateAction.write.writes(ba)
-      case ba: DeleteAction => DeleteAction.write.writes(ba)
-    }
-  }
-
-  object IndexAction {
-    implicit val write: Writes[IndexAction] = Writes[IndexAction] { obj =>
-      Json.obj("index" -> BulkAction.toJson(obj))
-    }
-  }
-
-  object CreateAction {
-    implicit val write: Writes[CreateAction] = Writes[CreateAction] { obj =>
-      Json.obj("create" -> BulkAction.toJson(obj))
-    }
-  }
-
-  object UpdateAction {
-    implicit val write: Writes[UpdateAction] = Writes[UpdateAction] { obj =>
-      Json.obj("update" -> BulkAction.toJson(obj))
-    }
-  }
-
-  object DeleteAction {
-    implicit val write: Writes[DeleteAction] = Writes[DeleteAction] { obj =>
-      Json.obj("delete" -> BulkAction.toJson(obj))
     }
   }
 
