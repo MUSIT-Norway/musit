@@ -5,8 +5,9 @@ import java.util.UUID
 import models.actor.Person
 import no.uio.musit.models.{ActorId, DatabaseId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.MusitResultValues
 
-class ActorDaoSpec extends MusitSpecWithAppPerSuite {
+class ActorDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
 
   val actorDao: ActorDao = fromInstanceCache[ActorDao]
 
@@ -54,6 +55,18 @@ class ActorDaoSpec extends MusitSpecWithAppPerSuite {
           .getByDataportenId(ActorId(UUID.randomUUID()))
           .futureValue
           .isDefined mustBe false
+      }
+
+      "get names for actorId" in {
+        val notExisting = ActorId.generate()
+        val res = actorDao
+          .getNamesForActorIds(Set(andersAndAppId, kalleKaninAppId, notExisting))
+          .futureValue
+          .successValue
+
+        res must contain(kalleKaninAppId -> "Kanin, Kalle1")
+        res must contain(andersAndAppId  -> "And, Arne1")
+        res must not contain key(notExisting)
       }
     }
   }
