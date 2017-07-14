@@ -12,14 +12,20 @@ object BulkActions {
     def index: String
     def typ: String
     def id: String
+    def parent: Option[String]
   }
 
   /**
    * Inserts a document into elastic search. Will override the current document if it
    * exists.
    */
-  case class IndexAction(index: String, typ: String, id: String, document: JsValue)
-      extends BulkAction {
+  case class IndexAction(
+      index: String,
+      typ: String,
+      id: String,
+      document: JsValue,
+      parent: Option[String] = None
+  ) extends BulkAction {
     val source = Some(document)
   }
 
@@ -27,8 +33,13 @@ object BulkActions {
    * Inserts a document into elastic search. Will fail if a document with the same
    * index, type and id exists.
    */
-  case class CreateAction(index: String, typ: String, id: String, document: JsValue)
-      extends BulkAction {
+  case class CreateAction(
+      index: String,
+      typ: String,
+      id: String,
+      document: JsValue,
+      parent: Option[String] = None
+  ) extends BulkAction {
     val source = Some(document)
   }
 
@@ -40,7 +51,8 @@ object BulkActions {
       index: String,
       typ: String,
       id: String,
-      document: Option[JsValue]
+      document: Option[JsValue],
+      parent: Option[String] = None
   ) extends BulkAction {
     override def source = document.map(d => Json.obj("doc" -> d))
   }
@@ -48,7 +60,12 @@ object BulkActions {
   /**
    * Delete an existing document.
    */
-  case class DeleteAction(index: String, typ: String, id: String) extends BulkAction {
+  case class DeleteAction(
+      index: String,
+      typ: String,
+      id: String,
+      parent: Option[String] = None
+  ) extends BulkAction {
     val source = None
   }
 
@@ -63,11 +80,13 @@ object BulkActions {
 
     implicit val writes: Writes[BulkAction] = Writes { action =>
       Json.obj(
-        toActionName(action) -> Json.obj(
+        toActionName(action) -> (Json.obj(
           "_index" -> JsString(action.index),
           "_type"  -> JsString(action.typ),
           "_id"    -> JsString(action.id)
-        )
+        ) ++ action.parent.map { parent =>
+          Json.obj("parent" -> JsString(parent))
+        }.getOrElse(Json.obj()))
       )
     }
   }

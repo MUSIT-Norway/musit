@@ -14,7 +14,12 @@ import services.elasticsearch.client.models.AliasActions.{
   DeleteIndex,
   RemoveAlias
 }
-import services.elasticsearch.client.models.Aliases
+import services.elasticsearch.client.models.{
+  Aliases,
+  IndexMapping,
+  ElasticsearchConfig,
+  TextField
+}
 import services.elasticsearch.client.models.RefreshIndex.Immediately
 import services.elasticsearch.client.models.BulkActions.{
   CreateAction,
@@ -40,7 +45,12 @@ class ElasticsearchHttpClientSpec
   implicit val format = Json.format[TestUser]
 
   val client = fromInstanceCache[ElasticsearchHttpClient]
-  val index  = s"es-spec-${Random.nextInt(Int.MaxValue)}"
+
+  var index: String = _
+
+  before {
+    index = s"es-spec-${Random.nextInt(Int.MaxValue)}"
+  }
 
   "ElasticsearchClient" when {
 
@@ -371,13 +381,74 @@ class ElasticsearchHttpClientSpec
         }
       }
     }
+
+    "config" should {
+      "insert mapping on new index" in {
+        val doc = Json.toJson(TestUser("Ola", "Nordmann", 42))
+
+        val mappings = ElasticsearchConfig(
+          Set(
+            IndexMapping(
+              name = "foo",
+              properties = Set(
+                TextField("firstName"),
+                TextField("lastName")
+              )
+            )
+          )
+        )
+        client.config(index, mappings).futureValue.successValue
+
+        client
+          .bulkAction(Source(List(IndexAction(index, "foo", "1", doc))))
+          .futureValue
+          .successValue
+      }
+
+      "insert mapping on new index with parent" in {
+        val doc = Json.toJson(TestUser("Ola", "Nordmann", 42))
+
+        val mappings = ElasticsearchConfig(
+          Set(
+            IndexMapping(
+              name = "foo",
+              properties = Set(
+                TextField("firstName"),
+                TextField("lastName")
+              ),
+              parent = Some("baz")
+            ),
+            IndexMapping(
+              name = "baz",
+              properties = Set(
+                TextField("firstName"),
+                TextField("lastName")
+              )
+            )
+          )
+        )
+        client.config(index, mappings).futureValue.successValue
+
+        client
+          .bulkAction(
+            Source(
+              List(
+                IndexAction(index, "foo", "1", doc, Some("2")),
+                IndexAction(index, "bar", "2", doc)
+              )
+            )
+          )
+          .futureValue
+          .successValue
+      }
+    }
   }
 
-  def insertDoc(id: String, doc: JsValue) = {
+  def insertDoc(id: String, doc: JsValue, typ: String = "bulk-test") = {
     client
       .index(
         index = index,
-        tpy = "bulk-test",
+        tpy = typ,
         id = id,
         document = doc,
         refresh = Immediately
@@ -386,26 +457,8 @@ class ElasticsearchHttpClientSpec
       .successValue
   }
 
-  before {
-    val createIndex: JsValue = JsObject(
-      Map(
-        "settings" -> JsObject(
-          Map(
-            "index" -> JsObject(
-              Map(
-                "number_of_shards"   -> JsNumber(2),
-                "number_of_replicas" -> JsNumber(1)
-              )
-            )
-          )
-        )
-      )
-    )
-    client.jsonClient(index).put(createIndex).futureValue
-  }
-
   after {
-//    client.deleteIndex(index).futureValue
+    client.deleteIndex(index).futureValue
   }
 }
 

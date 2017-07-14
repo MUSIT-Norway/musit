@@ -12,14 +12,9 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.libs.ws.{StreamedBody, WSClient}
 import play.api.{Configuration, Logger}
-import services.elasticsearch.client.models.RefreshIndex.{NoRefresh, Refresh}
 import services.elasticsearch.client.models.BulkActions.BulkAction
-import services.elasticsearch.client.models.{
-  AliasActions,
-  Aliases,
-  BulkResponse,
-  IndexResponse
-}
+import services.elasticsearch.client.models.RefreshIndex.{NoRefresh, Refresh}
+import services.elasticsearch.client.models._
 
 import scala.concurrent.Future
 
@@ -177,6 +172,17 @@ class ElasticsearchHttpClient @Inject()(ws: WSClient)(implicit config: Configura
               }
             case _ => Seq()
           })
+        case httpCode => MusitHttpError(httpCode, response.body)
+      }
+    }
+  }
+
+  override def config(index: String, mappings: ElasticsearchConfig) = {
+    jsonClient(index).put(Json.toJson(mappings)).map { response =>
+      response.status match {
+        case Status.OK =>
+          println(response.body)
+          MusitSuccess(())
         case httpCode => MusitHttpError(httpCode, response.body)
       }
     }
