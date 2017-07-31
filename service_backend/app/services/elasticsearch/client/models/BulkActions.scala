@@ -8,7 +8,7 @@ import play.api.libs.json._
 object BulkActions {
 
   sealed trait BulkAction {
-    def source: Option[JsValue]
+    def sourceDocument: Option[JsValue]
     def index: String
     def typ: String
     def id: String
@@ -26,7 +26,7 @@ object BulkActions {
       document: JsValue,
       parent: Option[String] = None
   ) extends BulkAction {
-    val source = Some(document)
+    val sourceDocument = Some(document)
   }
 
   /**
@@ -40,7 +40,7 @@ object BulkActions {
       document: JsValue,
       parent: Option[String] = None
   ) extends BulkAction {
-    val source = Some(document)
+    val sourceDocument = Some(document)
   }
 
   /**
@@ -54,7 +54,7 @@ object BulkActions {
       document: Option[JsValue],
       parent: Option[String] = None
   ) extends BulkAction {
-    override def source = document.map(d => Json.obj("doc" -> d))
+    override def sourceDocument = document.map(d => Json.obj("doc" -> d))
   }
 
   /**
@@ -66,7 +66,7 @@ object BulkActions {
       id: String,
       parent: Option[String] = None
   ) extends BulkAction {
-    val source = None
+    val sourceDocument = None
   }
 
   object BulkAction {

@@ -125,7 +125,7 @@ class ElasticsearchHttpClient @Inject()(ws: WSClient)(implicit config: Configura
       ByteString(Json.stringify(jsValue) + "\n")
 
     val actionFlow = Flow[BulkAction].map { action =>
-      action.source match {
+      action.sourceDocument match {
         case Some(document) =>
           toByteString(Json.toJson(action)) ++ toByteString(document)
         case None => toByteString(Json.toJson(action))
