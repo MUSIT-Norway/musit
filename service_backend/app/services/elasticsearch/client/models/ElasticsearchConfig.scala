@@ -84,13 +84,20 @@ object FieldProperties {
 }
 
 /**
- * Number value
+ * Number value integer
  *
  * Note: this is a naive implementation and we should probably implement all number types,
  * but it will be good enough for now.
  */
 case class IntegerField(name: String) extends FieldProperties {
   val typ = Some("integer")
+}
+
+/**
+ * Number value of double
+ */
+case class DoubleField(name: String) extends FieldProperties {
+  val typ = Some("double")
 }
 
 /**
