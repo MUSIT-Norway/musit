@@ -2,7 +2,7 @@ package services.elasticsearch.client.models
 
 import services.elasticsearch.client.models.ItemResponses.ItemResponse
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{JsError, JsPath, Json, Reads}
+import play.api.libs.json._
 
 case class BulkResponse(
     took: Int,
@@ -25,20 +25,24 @@ object ItemResponses {
     def index: String
     def typ: String
     def id: String
-    def version: Int
-    def result: String
-    def shards: Shards
     def status: Int
+
+    def version: Option[Int]
+    def result: Option[String]
+    def shards: Option[Shards]
+    def error: Option[JsValue]
+
   }
 
   object ItemResponse {
-    val base = (JsPath \ "_index").read[String] and
+    val baseExtended = (JsPath \ "_index").read[String] and
       (JsPath \ "_type").read[String] and
       (JsPath \ "_id").read[String] and
-      (JsPath \ "_version").read[Int] and
-      (JsPath \ "result").read[String] and
-      (JsPath \ "_shards").read[Shards] and
-      (JsPath \ "status").read[Int]
+      (JsPath \ "status").read[Int] and
+      (JsPath \ "_version").readNullable[Int] and
+      (JsPath \ "result").readNullable[String] and
+      (JsPath \ "_shards").readNullable[Shards] and
+      (JsPath \ "error").readNullable[JsValue]
 
     implicit val reads: Reads[ItemResponse] = Reads { item =>
       Seq(
@@ -54,67 +58,71 @@ object ItemResponses {
       index: String,
       typ: String,
       id: String,
-      version: Int,
-      result: String,
-      shards: Shards,
       status: Int,
-      created: Boolean
+      version: Option[Int],
+      result: Option[String],
+      shards: Option[Shards],
+      error: Option[JsValue],
+      created: Option[Boolean]
   ) extends ItemResponse
 
   case class CreateItemResponse(
       index: String,
       typ: String,
       id: String,
-      version: Int,
-      result: String,
-      shards: Shards,
       status: Int,
-      created: Boolean
+      version: Option[Int],
+      result: Option[String],
+      shards: Option[Shards],
+      error: Option[JsValue],
+      created: Option[Boolean]
   ) extends ItemResponse
 
   case class UpdateItemResponse(
       index: String,
       typ: String,
       id: String,
-      version: Int,
-      result: String,
-      shards: Shards,
-      status: Int
+      status: Int,
+      version: Option[Int],
+      result: Option[String],
+      shards: Option[Shards],
+      error: Option[JsValue]
   ) extends ItemResponse
 
   case class DeleteItemResponse(
       index: String,
       typ: String,
       id: String,
-      version: Int,
-      result: String,
-      shards: Shards,
       status: Int,
-      found: Boolean
+      version: Option[Int],
+      result: Option[String],
+      shards: Option[Shards],
+      error: Option[JsValue],
+      found: Option[Boolean]
   ) extends ItemResponse
 
   object IndexItemResponse {
     implicit val reads: Reads[IndexItemResponse] =
-      (ItemResponse.base and (JsPath \ "created").read[Boolean])(
+      (ItemResponse.baseExtended and (JsPath \ "created").readNullable[Boolean])(
         IndexItemResponse.apply _
       )
   }
 
   object CreateItemResponse {
     implicit val reads: Reads[CreateItemResponse] =
-      (ItemResponse.base and (JsPath \ "created").read[Boolean])(
+      (ItemResponse.baseExtended and (JsPath \ "created").readNullable[Boolean])(
         CreateItemResponse.apply _
       )
   }
 
   object UpdateItemResponse {
     implicit val reads: Reads[UpdateItemResponse] =
-      ItemResponse.base(UpdateItemResponse.apply _)
+      ItemResponse.baseExtended(UpdateItemResponse.apply _)
   }
 
   object DeleteItemResponse {
     implicit val reads: Reads[DeleteItemResponse] =
-      (ItemResponse.base and (JsPath \ "found").read[Boolean])(
+      (ItemResponse.baseExtended and (JsPath \ "found").readNullable[Boolean])(
         DeleteItemResponse.apply _
       )
   }
