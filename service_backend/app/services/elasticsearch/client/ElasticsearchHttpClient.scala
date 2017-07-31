@@ -181,7 +181,6 @@ class ElasticsearchHttpClient @Inject()(ws: WSClient)(implicit config: Configura
     jsonClient(index).put(Json.toJson(mappings)).map { response =>
       response.status match {
         case Status.OK =>
-          println(response.body)
           MusitSuccess(())
         case httpCode => MusitHttpError(httpCode, response.body)
       }
