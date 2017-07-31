@@ -1,6 +1,7 @@
 package services.elasticsearch
 
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{MustMatchers, WordSpec}
 import services.elasticsearch.client.ElasticsearchAliasApi
 import services.elasticsearch.client.models.AliasActions.{
@@ -12,7 +13,7 @@ import services.elasticsearch.client.models.Aliases
 
 import scala.concurrent.Future
 
-class IndexMaintainerSpec extends WordSpec with MustMatchers {
+class IndexMaintainerSpec extends WordSpec with MustMatchers with ScalaFutures {
 
   implicit val ec = scala.concurrent.ExecutionContext.global
 
@@ -20,7 +21,7 @@ class IndexMaintainerSpec extends WordSpec with MustMatchers {
 
     "add the new alias to the index" in {
       val es = new DummyEsClient()
-      new IndexMaintainer(es).activateIndex("foo_new", "foo")
+      new IndexMaintainer(es).activateIndex("foo_new", "foo").futureValue
 
       es.aliasActions mustBe Seq(AddAlias("foo_new", "foo"))
     }
@@ -28,7 +29,7 @@ class IndexMaintainerSpec extends WordSpec with MustMatchers {
     "remove the old index when it exists" in {
       val es =
         new DummyEsClient(aliasesResponse = Seq(Aliases("foo_old", Seq("foo"))))
-      new IndexMaintainer(es).activateIndex("foo_new", "foo")
+      new IndexMaintainer(es).activateIndex("foo_new", "foo").futureValue
 
       es.aliasActions mustBe Seq(
         AddAlias("foo_new", "foo"),
@@ -39,7 +40,7 @@ class IndexMaintainerSpec extends WordSpec with MustMatchers {
     "not remove indices that's not prefixed with the alias name" in {
       val es =
         new DummyEsClient(aliasesResponse = Seq(Aliases("baz", Seq("foo"))))
-      new IndexMaintainer(es).activateIndex("foo_new", "foo")
+      new IndexMaintainer(es).activateIndex("foo_new", "foo").futureValue
 
       es.aliasActions mustBe Seq(
         AddAlias("foo_new", "foo")
@@ -49,7 +50,7 @@ class IndexMaintainerSpec extends WordSpec with MustMatchers {
     "move aliases from old to new index " in {
       val es =
         new DummyEsClient(aliasesResponse = Seq(Aliases("foo_old", Seq("foo", "bar"))))
-      new IndexMaintainer(es).activateIndex("foo_new", "foo")
+      new IndexMaintainer(es).activateIndex("foo_new", "foo").futureValue
 
       es.aliasActions mustBe Seq(
         AddAlias("foo_new", "foo"),

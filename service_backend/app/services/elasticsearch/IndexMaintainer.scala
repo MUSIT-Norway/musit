@@ -9,8 +9,7 @@ import services.elasticsearch.client.ElasticsearchAliasApi
 import services.elasticsearch.client.models.AliasActions.{AddAlias, DeleteIndex}
 import services.elasticsearch.client.models.Aliases
 
-import scala.concurrent.duration.DurationDouble
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class IndexMaintainer @Inject()(
     esClient: ElasticsearchAliasApi
@@ -18,23 +17,21 @@ class IndexMaintainer @Inject()(
 
   val logger = Logger(classOf[IndexMaintainer])
 
-  def activateIndex(index: String, aliasName: String) = {
-    val res = Await.result(
-      (for {
-        allAliases <- MusitResultT(esClient.aliases)
+  def activateIndex(index: String, aliasName: String): Future[Unit] = {
+    val res = (for {
+      allAliases <- MusitResultT(esClient.aliases)
 
-        aliasesToRemove = allAliases.filter { alias =>
-          alias.index.startsWith(aliasName) &&
-          alias.aliases.contains(aliasName)
-        }
+      aliasesToRemove = allAliases.filter { alias =>
+        alias.index.startsWith(aliasName) &&
+        alias.aliases.contains(aliasName)
+      }
 
-        aliasActions = toAliasAction(index, aliasName, aliasesToRemove)
+      aliasActions = toAliasAction(index, aliasName, aliasesToRemove)
 
-        _ <- MusitResultT(esClient.aliases(aliasActions))
-      } yield aliasActions).value,
-      30 seconds
-    )
-    res match {
+      _ <- MusitResultT(esClient.aliases(aliasActions))
+    } yield aliasActions).value
+
+    res.map {
       case MusitSuccess(actions) =>
         logger.info(s"Updated indices and aliases: $actions")
       case MusitHttpError(code, msg) =>
