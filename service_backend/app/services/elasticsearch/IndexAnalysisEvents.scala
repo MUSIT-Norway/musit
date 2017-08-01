@@ -86,9 +86,9 @@ class IndexAnalysisEvents @Inject()(
           a match {
             case aer: AnalysisEventRow =>
               aer.event match {
-                case a: Analysis            => AnalysisSearch(a, ActorNames(s))
-                case ac: AnalysisCollection => AnalysisCollectionSearch(ac, ActorNames(s))
-                case sa: SampleCreated      => SampleCreatedSearch(sa, ActorNames(s))
+                case a: Analysis           => AnalysisSearch(a, ActorNames(s))
+                case c: AnalysisCollection => AnalysisCollectionSearch(c, ActorNames(s))
+                case sa: SampleCreated     => SampleCreatedSearch(sa, ActorNames(s))
               }
         },
         limit = 10
