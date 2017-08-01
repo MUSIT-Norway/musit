@@ -17,12 +17,8 @@ services:
       - "1521:1521"
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.4.3
+    image: registry.gitlab.com/musit-norway/docker-elasticsearch:latest
     container_name: dev_elasticsearch
-    environment:
-      - cluster.name=musit-cluster
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-      - xpack.security.enabled=false
     ports:
       - 9200:9200
 
