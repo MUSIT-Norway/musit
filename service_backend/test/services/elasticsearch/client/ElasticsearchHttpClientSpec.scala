@@ -383,7 +383,7 @@ class ElasticsearchHttpClientSpec
     }
 
     "config" should {
-      "insert mapping on new index" in {
+      "insert mapping on new index" taggedAs ElasticsearchContainer in {
         val doc = Json.toJson(TestUser("Ola", "Nordmann", 42))
 
         val mappings = ElasticsearchConfig(
@@ -405,7 +405,7 @@ class ElasticsearchHttpClientSpec
           .successValue
       }
 
-      "insert mapping on new index with parent" in {
+      "insert mapping on new index with parent" taggedAs ElasticsearchContainer in {
         val doc = Json.toJson(TestUser("Ola", "Nordmann", 42))
 
         val mappings = ElasticsearchConfig(
