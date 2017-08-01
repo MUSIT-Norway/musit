@@ -24,11 +24,13 @@ test:
   variables:
     MUSIT_FUTURE_TIMEOUT: "15000"
     MUSIT_FUTURE_INTERVAL: "50"
+    ELASTICSEARCH_URL: "http://elasticsearch:9200"
 
   coverage: '/\[info]\sAll\sdone\.\sCoverage\swas\s\[(.*)%\]/'
 
   services:
-   - registry.gitlab.com/musit-norway/docker-elasticsearch:latest
+    - name: registry.gitlab.com/musit-norway/docker-elasticsearch:latest
+      alias: elasticsearch
 
   script:
     - echo "Building and running tests..."
