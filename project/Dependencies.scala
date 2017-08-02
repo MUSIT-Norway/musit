@@ -31,10 +31,11 @@ object Dependencies {
     val logbackVersion = "1.2.3"
     val slf4jVersion   = "1.7.25"
     val logback        = "ch.qos.logback" % "logback-classic" % logbackVersion
+    val log4jBridge    = "org.apache.logging.log4j" % "log4j-to-slf4j" % "2.8.2"
     val slf4jLibs      = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j")
     val slf4j          = slf4jLibs.map("org.slf4j" % _ % slf4jVersion)
     val slf4jApi       = "org.slf4j" % slf4jLibs.head % slf4jVersion
-    val loggingDeps    = slf4j ++ Seq(logback)
+    val loggingDeps    = slf4j ++ Seq(logback, log4jBridge)
   }
 
   object ScalaTest {
@@ -68,6 +69,13 @@ object Dependencies {
     libs.map("com.beachape" %% _ % enumeratumVersion)
   }
 
+  val elastic4sVersion: String = "5.4.9"
+  val elastic4s: Seq[ModuleID] = Seq(
+    "com.sksamuel.elastic4s" %% "elastic4s-core"         % elastic4sVersion,
+    "com.sksamuel.elastic4s" %% "elastic4s-http-streams" % elastic4sVersion,
+    "com.sksamuel.elastic4s" %% "elastic4s-play-json"    % elastic4sVersion
+      excludeAll ExclusionRule(organization = "com.typesafe.play")
+  )
   val playDependencies: Seq[ModuleID] = Seq(
     PlayFrameWork.cache,
     PlayFrameWork.ws,
