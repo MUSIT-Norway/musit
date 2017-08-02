@@ -1,58 +1,76 @@
 package services.elasticsearch
 
 import com.google.inject.Inject
-import no.uio.musit.MusitResults.{MusitHttpError, MusitSuccess}
-import no.uio.musit.functional.Implicits._
-import no.uio.musit.functional.MonadTransformers.MusitResultT
+import com.sksamuel.elastic4s.http.ElasticDsl.{catAliases, _}
+import com.sksamuel.elastic4s.http.HttpClient
+import com.sksamuel.elastic4s.http.cat.CatAlias
+import com.sksamuel.elastic4s.http.index.admin.DeleteIndexResponse
 import play.api.Logger
-import services.elasticsearch.client.ElasticsearchAliasApi
-import services.elasticsearch.client.models.AliasActions.{AddAlias, DeleteIndex}
-import services.elasticsearch.client.models.Aliases
+import services.elasticsearch.IndexMaintainer._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class IndexMaintainer @Inject()(
-    esClient: ElasticsearchAliasApi
+    client: HttpClient
 )(implicit ec: ExecutionContext) {
 
   val logger = Logger(classOf[IndexMaintainer])
 
   def activateIndex(index: String, aliasName: String): Future[Unit] = {
-    val res = (for {
-      allAliases <- MusitResultT(esClient.aliases)
+    val res = for {
+      allAliases <- client.execute(catAliases())
 
-      aliasesToRemove = allAliases.filter { alias =>
-        alias.index.startsWith(aliasName) &&
-        alias.aliases.contains(aliasName)
-      }
+      move   = findAliasesToMove(allAliases, aliasName)
+      delete = findIndicesToDelete(allAliases, aliasName)
 
-      aliasActions = toAliasAction(index, aliasName, aliasesToRemove)
+      aliasResponse <- client.execute(
+                        aliases(
+                          (addAlias(aliasName) on index)
+                            +: move.map(a => addAlias(a) on index).toList
+                        )
+                      )
 
-      _ <- MusitResultT(esClient.aliases(aliasActions))
-    } yield aliasActions).value
+      indexResponse <- if (delete.nonEmpty)
+                        client.execute(deleteIndex(delete))
+                      else
+                        Future.successful(DeleteIndexResponse(true))
+
+    } yield (aliasResponse, indexResponse, move, delete)
 
     res.map {
-      case MusitSuccess(actions) =>
-        logger.info(s"Updated indices and aliases: $actions")
-      case MusitHttpError(code, msg) =>
-        logger.error(
-          s"Unable to setup index and alias for index: $index, alias: $aliasName, msg: $msg"
-        )
-      case err =>
-        logger.error(
-          s"Unable to setup index and alias for index: $index and alias: $aliasName"
-        )
+      case (aliasResponse, indexResponse, movedAliases, deletedIndices) =>
+        if (aliasResponse.acknowledged && indexResponse.acknowledged) {
+          logger.info(
+            s"Updated indices and aliases. Moved aliases $movedAliases, deleted indices: $deletedIndices"
+          )
+        } else {
+          logger.warn(
+            s"Failed to update indices and aliases for index: $index with" +
+              s" alias: $aliasName." +
+              s"Alias response $aliasResponse, $movedAliases. " +
+              s"Indices response $indexResponse, $deletedIndices."
+          )
+        }
     }
   }
 
-  private def toAliasAction(
-      index: String,
-      aliasName: String,
-      aliasesToRemove: Seq[Aliases]
-  ) = {
-    List(AddAlias(index, aliasName)) ++ aliasesToRemove.flatMap { alias =>
-      alias.aliases.filter(_ != aliasName).map(AddAlias(index, _)) ++
-        List(DeleteIndex(alias.index))
-    }
+}
+
+object IndexMaintainer {
+
+  def findIndicesToDelete(alias: Seq[CatAlias], aliasName: String): Set[String] = {
+    alias
+      .filter(_.index.startsWith(aliasName))
+      .filter(_.alias == aliasName)
+      .map(_.index)
+      .toSet
   }
+
+  def findAliasesToMove(alias: Seq[CatAlias], aliasName: String): Set[String] =
+    alias
+      .filterNot(_.alias == aliasName)
+      .filter(_.index.startsWith(aliasName))
+      .map(_.alias)
+      .toSet
+
 }
