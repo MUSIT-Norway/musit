@@ -1,6 +1,7 @@
 package services.elasticsearch
 
-import services.elasticsearch.client.models._
+import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.indexes.CreateIndexDefinition
 
 object EventIndexConfig {
 
@@ -8,76 +9,72 @@ object EventIndexConfig {
   val analysisCollectionType = "analysisCollection"
   val sampleType             = "sample"
 
-  private val analysis = IndexMapping(
-    name = analysisType,
-    parent = Some(analysisCollectionType),
-    properties = Set(
-      TextField("id")
-    )
-  )
-
-  private val sample = IndexMapping(
-    name = sampleType,
-    properties = Set(
-      TextField("id"),
-      actorSearchStamp("doneBy"),
-      actorSearchStamp("registeredBy"),
-      TextField("objectId"),
-      TextField("sampleObjectId")
-      //externalLinks
-    )
-  )
-
-  private val analysisCollection = IndexMapping(
-    name = analysisCollectionType,
-    properties = Set(
-      TextField("id"),
-      IntegerField("analysisTypeId"),
-      actorSearchStamp("doneBy"),
-      actorSearchStamp("registeredBy"),
-      actorStamp("responsible"),
-      actorStamp("administrator"),
-      actorSearchStamp("updatedBy"),
-      actorSearchStamp("completedBy"),
-      TextField("note"),
-      ObjectField(
-        "extraAttributes",
-        Set(
-          // todo: verify and add missing fields in extraAttributes
-          TextField("method"),
-          TextField("types")
-        )
+  def config(indexName: String): CreateIndexDefinition =
+    createIndex(indexName) mappings (
+      mapping(analysisType) as (
+        textField("id"),
+        intField("analysisTypeId"),
+        actorSearchStamp("doneBy"),
+        actorSearchStamp("registeredBy"),
+        actorStamp("responsible"),
+        actorStamp("administrator"),
+        actorSearchStamp("updatedBy"),
+        actorSearchStamp("completedBy"),
+        textField("objectId"),
+        textField("objectType"),
+        textField("partOf"),
+        textField("note"),
+        objectField("extraAttributes") fields (
+          textField("method"),
+          textField("types")
+        ),
+        objectField("result") fields size
+      ) parent analysisCollectionType,
+      mapping(analysisCollectionType) as (
+        textField("id"),
+        intField("analysisTypeId"),
+        actorSearchStamp("doneBy"),
+        actorSearchStamp("registeredBy"),
+        actorStamp("responsible"),
+        actorStamp("administrator"),
+        actorSearchStamp("updatedBy"),
+        actorSearchStamp("completedBy"),
+        textField("note"),
+        objectField("extraAttributes") fields (
+          textField("method"),
+          textField("types")
+        ),
+        objectField("result") fields size,
+        textField("reason"),
+        intField("status"),
+        textField("orgId")
       ),
-      ObjectField(
-        "result",
-        Set(
-          // todo: add missing fields in result
-          size
-        )
-      ),
-//      restriction
-      TextField("reason"),
-      IntegerField("status"),
-      //caseNumbers
-      IntegerField("orgId")
+      mapping(sampleType) as (
+        textField("id"),
+        actorSearchStamp("doneBy"),
+        actorSearchStamp("registeredBy"),
+        textField("objectId"),
+        textField("sampleObjectId")
+        //externalLinks
+      )
     )
-  )
 
-  val config = ElasticsearchConfig(Set(analysis, analysisCollection, sample))
+  private def actorSearchStamp(name: String) =
+    objectField(name) fields (
+      textField("id"),
+      textField("date"),
+      textField("name")
+    )
+
+  private def actorStamp(name: String) =
+    objectField(name) fields (textField("id"),
+    textField("name"))
 
   private def size = {
-    ObjectField(
-      "size",
-      Set(
-        TextField("unit"),
-        DoubleField("value")
-      )
+    objectField("size") fields (
+      textField("unit"),
+      doubleField("value")
     )
   }
 
-  def actorSearchStamp(name: String) =
-    ObjectField(name, Set(TextField("id"), DateField("date"), TextField("name")))
-
-  def actorStamp(name: String) =
-    ObjectField(name, Set(TextField("id"), TextField("name")))
 }

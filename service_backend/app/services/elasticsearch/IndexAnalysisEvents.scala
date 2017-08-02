@@ -4,9 +4,10 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.{Flow, Source}
 import akka.{Done, NotUsed}
 import com.google.inject.Inject
+import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.http.HttpClient
 import models.analysis.events.{Analysis, AnalysisCollection, SampleCreated}
 import no.uio.musit.models.ActorId
-import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.json.Json
 import repositories.elasticsearch.dao.{
@@ -25,6 +26,7 @@ class IndexAnalysisEvents @Inject()(
     analysisEventsExportDao: ElasticsearchEventDao,
     actorDao: ActorService,
     esClient: ElasticsearchClient,
+    client: HttpClient,
     override val indexMaintainer: IndexMaintainer
 )(implicit ec: ExecutionContext, mat: Materializer)
     extends Indexer[EventSearch] {
@@ -34,6 +36,37 @@ class IndexAnalysisEvents @Inject()(
   override val indexAliasName = "events"
 
   override val elasticsearchFlow = new ElasticsearchFlow(esClient, 1000)
+
+  val populateActors =
+    new GroupAndEnrichStage[ExportEventRow, EventSearch, ActorId, (ActorId, String)](
+      group = findActorIds,
+      transform = actors =>
+        Await
+          .result(
+            actorDao.findDetails(actors).map { ps =>
+              ps.foldLeft(Map.empty[ActorId, String]) {
+                case (state, per) =>
+                  val tmp = Map.newBuilder[ActorId, String]
+                  per.applicationId.foreach(id => tmp += id -> per.fn)
+                  per.dataportenId.foreach(id => tmp += id  -> per.fn)
+
+                  state ++ tmp.result()
+              }
+            },
+            1 minute
+          )
+          .toSet,
+      reducer = (a, s) =>
+        a match {
+          case aer: AnalysisEventRow =>
+            aer.event match {
+              case a: Analysis           => AnalysisSearch(a, ActorNames(s))
+              case c: AnalysisCollection => AnalysisCollectionSearch(c, ActorNames(s))
+              case sa: SampleCreated     => SampleCreatedSearch(sa, ActorNames(s))
+            }
+      },
+      limit = 10
+    )
 
   override def toAction[B >: BulkAction](
       indexName: IndexName
@@ -57,46 +90,13 @@ class IndexAnalysisEvents @Inject()(
         )
     }
 
-  def indexUpdated(from: Option[DateTime]) = {}
-
   def reindexAll(): Future[Done] = {
     val indexName = createIndexName()
-    esClient.config(indexName.name, EventIndexConfig.config)
-
-    val populateActors =
-      new GroupAndEnrichStage[ExportEventRow, EventSearch, ActorId, (ActorId, String)](
-        group = findActorIds,
-        transform = actors =>
-          Await
-            .result(
-              actorDao.findDetails(actors).map { ps =>
-                ps.foldLeft(Map.empty[ActorId, String]) {
-                  case (state, per) =>
-                    val tmp = Map.newBuilder[ActorId, String]
-                    per.applicationId.foreach(id => tmp += id -> per.fn)
-                    per.dataportenId.foreach(id => tmp += id  -> per.fn)
-
-                    state ++ tmp.result()
-                }
-              },
-              1 minute
-            )
-            .toSet,
-        reducer = (a, s) =>
-          a match {
-            case aer: AnalysisEventRow =>
-              aer.event match {
-                case a: Analysis           => AnalysisSearch(a, ActorNames(s))
-                case c: AnalysisCollection => AnalysisCollectionSearch(c, ActorNames(s))
-                case sa: SampleCreated     => SampleCreatedSearch(sa, ActorNames(s))
-              }
-        },
-        limit = 10
-      )
-    val source =
-      Source.fromPublisher(analysisEventsExportDao.analysisEvents()).via(populateActors)
-
-    reindex(source, Some(indexName))
+    val source    = Source.fromPublisher(analysisEventsExportDao.analysisEvents())
+    for {
+      _    <- client.execute(EventIndexConfig.config(indexName.name))
+      done <- reindex(source.via(populateActors), Some(indexName))
+    } yield done
   }
 
   def findActorIds(event: ExportEventRow): Set[ActorId] = event match {
