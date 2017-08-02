@@ -4,28 +4,26 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.{Flow, Source}
 import akka.{Done, NotUsed}
 import com.google.inject.Inject
+import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.HttpClient
 import models.analysis.events.{Analysis, AnalysisCollection, SampleCreated}
 import no.uio.musit.models.ActorId
 import play.api.Logger
-import play.api.libs.json.Json
 import repositories.elasticsearch.dao.{
   AnalysisEventRow,
   ElasticsearchEventDao,
   ExportEventRow
 }
 import services.actor.ActorService
-import services.elasticsearch.client.ElasticsearchClient
-import services.elasticsearch.client.models.BulkActions.{BulkAction, IndexAction}
 
 import scala.concurrent.duration.DurationDouble
 import scala.concurrent.{Await, ExecutionContext, Future}
+import com.sksamuel.elastic4s.playjson._
 
 class IndexAnalysisEvents @Inject()(
     analysisEventsExportDao: ElasticsearchEventDao,
     actorDao: ActorService,
-    esClient: ElasticsearchClient,
     client: HttpClient,
     override val indexMaintainer: IndexMaintainer
 )(implicit ec: ExecutionContext, mat: Materializer)
@@ -35,7 +33,7 @@ class IndexAnalysisEvents @Inject()(
 
   override val indexAliasName = "events"
 
-  override val elasticsearchFlow = new ElasticsearchFlow(esClient, 1000)
+  override val elasticsearchFlow = new ElasticsearchFlow(client, 1000)
 
   val populateActors =
     new GroupAndEnrichStage[ExportEventRow, EventSearch, ActorId, (ActorId, String)](
@@ -68,26 +66,15 @@ class IndexAnalysisEvents @Inject()(
       limit = 10
     )
 
-  override def toAction[B >: BulkAction](
+  override def toAction(
       indexName: IndexName
-  ): Flow[EventSearch, B, NotUsed] =
+  ): Flow[EventSearch, BulkCompatibleDefinition, NotUsed] =
     Flow[EventSearch].map {
       case event: AnalysisSearch =>
-        IndexAction(
-          indexName.name,
-          event.documentType,
-          event.documentId,
-          Json.toJson(event),
-          Some(event.id.underlying.toString)
-        )
-
+        val action = indexInto(indexName.name, event.documentType) id event.documentId doc event
+        event.partOf.map(action parent _.underlying.toString).getOrElse(action)
       case event =>
-        IndexAction(
-          indexName.name,
-          event.documentType,
-          event.documentId,
-          Json.toJson(event)
-        )
+        indexInto(indexName.name, event.documentType) id event.documentId doc event
     }
 
   def reindexAll(): Future[Done] = {

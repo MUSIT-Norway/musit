@@ -3,7 +3,7 @@ package services.elasticsearch
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.{Done, NotUsed}
-import services.elasticsearch.client.models.BulkActions.BulkAction
+import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -27,7 +27,7 @@ trait Indexer[S] {
   /**
    * Convert an element to an action that will be executed by elestic search
    */
-  def toAction[B >: BulkAction](index: IndexName): Flow[S, B, NotUsed]
+  def toAction(index: IndexName): Flow[S, BulkCompatibleDefinition, NotUsed]
 
   /**
    * Tha actual index that we will use. We will hide this behind an alias. That's why

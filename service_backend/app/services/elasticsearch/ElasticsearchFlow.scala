@@ -3,64 +3,44 @@ package services.elasticsearch
 import akka.NotUsed
 import akka.event.Logging
 import akka.stream.Attributes
-import akka.stream.scaladsl.{Flow, Source}
-import no.uio.musit.MusitResults.{MusitError, MusitHttpError, MusitResult, MusitSuccess}
+import akka.stream.scaladsl.Flow
+import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
+import com.sksamuel.elastic4s.http.HttpClient
+import com.sksamuel.elastic4s.http.bulk.BulkResponse
 import no.uio.musit.healthcheck.StopWatch
 import play.api.Logger
-import play.api.libs.json.Json
-import services.elasticsearch.client.ElasticsearchIndicesApi
-import services.elasticsearch.client.models.BulkActions.BulkAction
-import services.elasticsearch.client.models.BulkResponse
-import services.elasticsearch.client.models.ItemResponses.IndexItemResponse
+import com.sksamuel.elastic4s.http.ElasticDsl._
 
 import scala.collection.immutable.Seq
 import scala.concurrent.ExecutionContext
 
 class ElasticsearchFlow(
-    client: ElasticsearchIndicesApi,
+    client: HttpClient,
     maxBulkSize: Int
 )(implicit ec: ExecutionContext) {
 
   val logger = Logger(classOf[ElasticsearchFlow])
 
-  def flow(): Flow[BulkAction, MusitResult[BulkResponse], NotUsed] =
-    Flow[BulkAction]
+  def flow(): Flow[BulkCompatibleDefinition, BulkResponse, NotUsed] =
+    Flow[BulkCompatibleDefinition]
       .grouped(maxBulkSize)
       .via(startStopWatch)
-      .mapAsync(1)(ba => client.bulkAction(Source(ba._1)).map((_, ba._2)))
+      .mapAsync(1)(ba => client.execute(bulk(ba._1)).map((_, ba._2)))
       .via(logStopWatch)
 
-  private val startStopWatch = Flow[Seq[BulkAction]].map((_, StopWatch()))
-  private val logStopWatch =
-    Flow[(MusitResult[BulkResponse], StopWatch)]
+  private def startStopWatch[A] = Flow[Seq[A]].map((_, StopWatch()))
+
+  private val logStopWatch: Flow[(BulkResponse, StopWatch), BulkResponse, NotUsed] =
+    Flow[(BulkResponse, StopWatch)]
       .log("stream.elasticsearch", r => toLog(r._2, r._1))
       .withAttributes(Attributes.logLevels(onElement = Logging.InfoLevel))
       .map(_._1)
 
-  private def toLog(sw: StopWatch, res: MusitResult[BulkResponse]) = {
-    res match {
-      case MusitSuccess(response) =>
-        val results = response.items.foldLeft(Map[String, Int]()) { (aggCount, item) =>
-          item match {
-            case indexItem: IndexItemResponse =>
-              val result = indexItem.result.getOrElse("error")
-              indexItem.error.foreach { err =>
-                logger.warn(
-                  s"Document error, id=${indexItem.id} type=${indexItem.typ}" +
-                    s" index=${indexItem.index}, error=${Json.stringify(err)}"
-                )
-              }
-              val newCount = aggCount.getOrElse(result, 0) + 1
-              aggCount + (result -> newCount)
-            case _ => aggCount
-          }
-        }
-        s"Elasticsearch responded in ${sw.elapsed()} ms, result: $results"
-      case MusitHttpError(code, msg) =>
-        s"Elasticsearch request failed with httpCode: $code, msg: $msg "
-      case err: MusitError =>
-        s"Unknown fault from Elasticsearch after ${sw.elapsed()} ms, msg: ${err.message}"
-    }
+  private def toLog(sw: StopWatch, res: BulkResponse) = {
+    res.failures.foreach(item => logger.warn(item.error.toString))
+    s"Elasticsearch responded in ${sw.elapsed()} ms," +
+      s" successes: ${res.successes.size}," +
+      s" failures: ${res.failures.size}, took: ${res.took}"
   }
 
 }
