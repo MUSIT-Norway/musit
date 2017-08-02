@@ -163,10 +163,8 @@ class DataportenAuthenticator @Inject()(
    */
   def touch(token: BearerToken): Future[MusitResult[UserSession]] = {
     logger.debug("Registering UserSession activity.")
-    val sid = SessionUUID.fromBearerToken(token)
-    MusitResultT(authResolver.userSession(sid)).flatMap { maybeSession =>
+    val res =
       for {
-        _ <- delphiAuth(token, maybeSession)
         us <- MusitResultT(updateSession(token) { session =>
                session.tokenExpiry.map {
                  expiration =>
@@ -187,64 +185,9 @@ class DataportenAuthenticator @Inject()(
                }
              })
       } yield us
-    }.value
-  }
 
-  //============================================================================
-  // TODO: Remove me when Delphi has updated its login handling
-  private def delphiAuth(
-      token: BearerToken,
-      maybeSession: Option[UserSession]
-  ): MusitResultT[Future, UserSession] = {
-    val now = dateTimeNow
-    maybeSession.map { s =>
-      // So...we have a session. To identify if the request comes from a Delphi
-      // client, we need to check the presence of "loginTime". If it isn't set,
-      // we can assume the session belongs to a Delphi client. Then we need to
-      // override any indication of an invalidated session by re-setting both
-      // the "isLoggedIn", "lastActive" and "tokenExpiry" values.
-      // If the session _has_ a "loginTime" value, it is a regular session and
-      // we do nothing more.
-      val expired = s.tokenExpiry.exists(now.isAfter)
-      if (s.loginTime.isEmpty && (!s.isLoggedIn || expired)) {
-        logger.warn(s"Resetting invalidated Delphi session.")
-        val us = s.copy(
-          lastActive = Option(now),
-          isLoggedIn = true,
-          tokenExpiry = Option(now.plus(config.sessionTimeout.toMillis).getMillis)
-        )
-        MusitResultT(authResolver.upsertUserSession(us)).map(_ => us)
-      } else {
-        MusitResultT(Future.successful[MusitResult[UserSession]](MusitSuccess(s)))
-      }
-    }.getOrElse {
-      logger.warn(s"Delphi application authenticating using Dataporten token.")
-      for {
-        // We need to validate the token in Dataporten by calling the userInfo service.
-        userInfo <- MusitResultT(userInfoDataporten(token))
-        // Then we need to save it, in case the info changed.
-        _ <- MusitResultT(authResolver.saveUserInfo(userInfo))
-        // since we can safely assume we have no previously initialised
-        // UserSession by arriving here, we initialise one now.
-        session <- {
-          val s = UserSession(
-            // Using the oauth token from Dataporten as SessionUUID. This is not
-            // optimal, but necessary to reduce impact of support for the legacy
-            // login process.
-            uuid = SessionUUID.fromBearerToken(token),
-            oauthToken = Option(token),
-            userId = Option(userInfo.id),
-            lastActive = Option(now),
-            isLoggedIn = true,
-            tokenExpiry = Option(now.plus(config.sessionTimeout.toMillis).getMillis)
-          )
-          MusitResultT(authResolver.upsertUserSession(s)).map(_ => s)
-        }
-      } yield session
-    }
+    res.value
   }
-
-  //======================= Remove until here ==================================
 
   private def invalidateWithError[A](
       token: BearerToken
@@ -327,11 +270,13 @@ class DataportenAuthenticator @Inject()(
     val sid = SessionUUID.fromBearerToken(token)
     MusitResultT(authResolver.userSession(sid)).flatMap {
       case Some(session) =>
-        if (session.isLoggedIn) update(session)
-        else
+        if (session.isLoggedIn) {
+          update(session)
+        } else {
           MusitResultT[Future, A](Future.successful {
             MusitNotAuthenticated("Session is no longer active.")
           })
+        }
 
       case None =>
         val msg = s"There is no session with ID $sid"
