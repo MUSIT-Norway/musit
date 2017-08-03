@@ -39,12 +39,13 @@ class SampleObjectController @Inject()(
 
   def getById(mid: MuseumId, uuid: String) =
     MusitSecureAction().async { implicit request =>
+      implicit val currUser = request.user
+
       ObjectUUID
         .fromString(uuid)
         .map { oid =>
-          get[Option[SampleObject]](soService.findById(oid)(request.user)) {
-            maybeObject =>
-              maybeObject.map(so => Ok(Json.toJson(so))).getOrElse(NotFound)
+          get[Option[SampleObject]](soService.findById(oid)) { maybeObject =>
+            maybeObject.map(so => Ok(Json.toJson(so))).getOrElse(NotFound)
           }
         }
         .getOrElse(invaludUuidResponse(uuid))
@@ -52,17 +53,21 @@ class SampleObjectController @Inject()(
 
   def getForMuseum(mid: MuseumId) =
     MusitSecureAction().async { implicit request =>
-      get[Seq[SampleObject]](soService.findForMuseum(mid)(request.user))(
+      implicit val currUser = request.user
+
+      get[Seq[SampleObject]](soService.findForMuseum(mid))(
         listAsPlayResult
       )
     }
 
   def getForParentObject(mid: MuseumId, uuid: String) =
     MusitSecureAction().async { implicit request =>
+      implicit val currUser = request.user
+
       ObjectUUID
         .fromString(uuid)
         .map { oid =>
-          get[Seq[SampleObject]](soService.findForParent(oid)(request.user))(
+          get[Seq[SampleObject]](soService.findForParent(oid))(
             listAsPlayResult
           )
         }
@@ -71,10 +76,12 @@ class SampleObjectController @Inject()(
 
   def getForOriginatingObject(mid: MuseumId, uuid: String) =
     MusitSecureAction().async { implicit request =>
+      implicit val currUser = request.user
+
       ObjectUUID
         .fromString(uuid)
         .map { oid =>
-          get[Seq[SampleObject]](soService.findForOriginating(oid)(request.user))(
+          get[Seq[SampleObject]](soService.findForOriginating(oid))(
             listAsPlayResult
           )
         }
@@ -86,15 +93,17 @@ class SampleObjectController @Inject()(
       nodeId: String,
       collectionIds: String
   ) = MusitSecureAction(mid, Read).async { implicit request =>
+    implicit val currUser = request.user
+
     StorageNodeId
       .fromString(nodeId)
       .map { nid =>
-        parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+        parseCollectionIdsParam(mid, collectionIds) match {
           case Left(res) => Future.successful(res)
           case Right(cids) =>
             nodeService.exists(mid, nid).flatMap {
               case MusitSuccess(true) =>
-                soService.findForNode(mid, nid, cids)(request.user).map {
+                soService.findForNode(mid, nid, cids).map {
                   case MusitSuccess(samples) => listAsPlayResult(samples)
                   case err: MusitError       => internalErr(err)
                 }
@@ -118,7 +127,7 @@ class SampleObjectController @Inject()(
 
   def save(mid: MuseumId) =
     MusitSecureAction().async(parse.json) { implicit request =>
-      implicit val currUser = implicitly(request.user)
+      implicit val currUser = request.user
 
       saveRequest(request.body.validate[SaveSampleObject]) { cso =>
         soService.add(mid, cso.asSampleObject)
@@ -127,7 +136,8 @@ class SampleObjectController @Inject()(
 
   def update(mid: MuseumId, uuid: String) =
     MusitSecureAction().async(parse.json) { implicit request =>
-      implicit val currUser = implicitly(request.user)
+      implicit val currUser = request.user
+
       ObjectUUID
         .fromString(uuid)
         .map { oid =>
@@ -151,7 +161,8 @@ class SampleObjectController @Inject()(
 
   def delete(mid: MuseumId, uuid: String) =
     MusitSecureAction().async { implicit request =>
-      implicit val currUser = implicitly(request.user)
+      implicit val currUser = request.user
+
       ObjectUUID
         .fromString(uuid)
         .map { oid =>

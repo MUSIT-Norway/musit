@@ -21,7 +21,10 @@ trait RoomServiceOps { self: NodeService =>
   def getRoomByDatabaseId(
       mid: MuseumId,
       id: StorageNodeDatabaseId
-  )(implicit ec: ExecutionContext): Future[MusitResult[Option[Room]]] = {
+  )(
+      implicit currUsr: AuthenticatedUser,
+      ec: ExecutionContext
+  ): Future[MusitResult[Option[Room]]] = {
     val eventuallyRoom = roomDao.getById(mid, id)
     getNode(mid, eventuallyRoom) { (n, maybeReq, maybeNames) =>
       n.copy(

@@ -6,12 +6,12 @@ import models.loan.LoanType
 import models.loan.event.{LoanEvent, ObjectsLent, ObjectsReturned}
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, ObjectUUID}
+import no.uio.musit.repositories.DbErrorHandlers
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.shared.dao.DbErrorHandlers
 
 import scala.concurrent.Future
 

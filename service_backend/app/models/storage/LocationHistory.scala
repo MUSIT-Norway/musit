@@ -11,7 +11,7 @@ case class LocationHistory(
     registeredBy: ActorId,
     registeredDate: DateTime,
     doneBy: Option[ActorId],
-    doneDate: DateTime,
+    doneDate: Option[DateTime],
     id: ObjectUUID,
     objectType: ObjectType,
     from: FacilityLocation,

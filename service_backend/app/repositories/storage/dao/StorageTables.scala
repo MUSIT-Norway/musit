@@ -1,14 +1,15 @@
-package repositories.shared.dao
+package repositories.storage.dao
 
 import java.sql.{Timestamp => JSqlTimestamp}
 
 import models.storage.nodes.StorageType
 import models.storage.nodes.dto.{BuildingDto, OrganisationDto, RoomDto, StorageUnitDto}
 import no.uio.musit.models._
+import no.uio.musit.repositories.DbErrorHandlers
 import play.api.Logger
 import play.api.db.slick.HasDatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.dao._
+import repositories.shared.dao.ColumnTypeMappers
 import slick.jdbc.JdbcProfile
 
 private[repositories] trait StorageTables
@@ -211,7 +212,7 @@ private[repositories] trait StorageTables
    */
   private[dao] class StorageNodeTable(
       val tag: Tag
-  ) extends Table[StorageUnitDto](tag, SchemaName, StorageNodeTable) {
+  ) extends Table[StorageUnitDto](tag, SchemaNameOpt, StorageNodeTable) {
     // scalastyle:off method.name
     def * =
       (
@@ -322,7 +323,7 @@ private[repositories] trait StorageTables
 
   private[dao] class RoomTable(
       val tag: Tag
-  ) extends Table[RoomDto](tag, SchemaName, RoomTable) {
+  ) extends Table[RoomDto](tag, SchemaNameOpt, RoomTable) {
     // scalastyle:off method.name
     def * =
       (
@@ -398,7 +399,7 @@ private[repositories] trait StorageTables
 
   private[dao] class BuildingTable(
       val tag: Tag
-  ) extends Table[BuildingDto](tag, SchemaName, BuildingTable) {
+  ) extends Table[BuildingDto](tag, SchemaNameOpt, BuildingTable) {
 
     // scalastyle:off method.name
     def * = (id.?, address) <> (create.tupled, destroy)
@@ -420,7 +421,7 @@ private[repositories] trait StorageTables
 
   private[dao] class OrganisationTable(
       val tag: Tag
-  ) extends Table[OrganisationDto](tag, SchemaName, OrganisationTable) {
+  ) extends Table[OrganisationDto](tag, SchemaNameOpt, OrganisationTable) {
 
     // scalastyle:off method.name
     def * = (id, address) <> (create.tupled, destroy)

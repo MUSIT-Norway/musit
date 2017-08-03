@@ -197,7 +197,7 @@ trait AnalysisJsonValidators {
     (actual \ "id").as[Long] mustBe expectedId
     (actual \ "analysisTypeId").as[Int] mustBe expectedTypeId
     (actual \ "eventDate").asOpt[DateTime] mustApproximate expectedEventDate
-    (actual \ "objectId").asOpt[String] mustBe expectedObject.map(_.asString)
+    (actual \ "affectedThing").asOpt[String] mustBe expectedObject.map(_.asString)
     (actual \ "partOf").asOpt[Long] mustBe expectedParent
     (actual \ "note").asOpt[String] mustBe expectedNote
     (actual \ "registeredBy").asOpt[String] must not be empty

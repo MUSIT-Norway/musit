@@ -7,7 +7,7 @@ import models.analysis.events.SaveCommands.{
   SaveAnalysis,
   SaveAnalysisCollection
 }
-import models.analysis.events.{Analysis, AnalysisCollection, AnalysisTypeId, Restriction}
+import models.analysis.events._
 import no.uio.musit.models.ObjectTypes.CollectionObjectType
 import no.uio.musit.models.{ActorId, Museums, ObjectUUID, OrgId}
 import no.uio.musit.time.dateTimeNow
@@ -17,7 +17,7 @@ trait AnalysisGenerators {
   protected val defaultMid          = Museums.Test.id
   protected val dummyActorId        = ActorId.generate()
   protected val dummyActorById      = ActorId.generate()
-  protected val dummyAnalysisTypeId = AnalysisTypeId(1L)
+  protected val dummyAnalysisTypeId = AnalysisTypeId(1)
 
   protected val dummyOrgId = OrgId(315)
 
@@ -119,8 +119,8 @@ trait AnalysisGenerators {
       completedBy = Some(dummyActorById),
       completedDate = now,
       partOf = None,
-      objectId = oid,
-      objectType = oid.map(_ => CollectionObjectType),
+      affectedThing = oid,
+      affectedType = oid.map(_ => CollectionObjectType),
       note = Some("This is the first event"),
       extraAttributes = None,
       result = res

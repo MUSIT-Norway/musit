@@ -1,6 +1,6 @@
 package repositories.storage.dao.events
 
-import models.storage.event.EventType
+import models.storage.event.StorageFacilityEventType
 import models.storage.event.EventTypeRegistry.TopLevelEvents.ObservationEventType
 import no.uio.musit.models.{EventId, MuseumId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -34,7 +34,9 @@ class ObservationDaoSpec
 
         val res = dao.findById(mid, eid).futureValue.successValue.value
 
-        res.eventType mustBe EventType.fromEventTypeId(ObservationEventType.id)
+        res.eventType mustBe StorageFacilityEventType.fromEventTypeId(
+          ObservationEventType.id
+        )
         res.registeredBy mustBe Some(defaultActorId)
         res.registeredDate must not be None
         res.alcohol mustBe obs.alcohol

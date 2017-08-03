@@ -44,7 +44,7 @@ class SampleObjectService @Inject()(
                 doneDate = sobj.doneByStamp.map(_.date),
                 registeredBy = sobj.registeredStamp.map(_.user),
                 registeredDate = sobj.registeredStamp.map(_.date),
-                objectId = sobj.parentObject.objectId,
+                affectedThing = sobj.parentObject.objectId,
                 sampleObjectId = sobj.objectId,
                 externalLinks = None
               )

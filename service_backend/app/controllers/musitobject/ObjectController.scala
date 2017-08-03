@@ -60,7 +60,9 @@ class ObjectController @Inject()(
       subNo: Option[String],
       term: Option[String]
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+    implicit val currUser = request.user
+
+    parseCollectionIdsParam(mid, collectionIds) match {
       case Left(res) => Future.successful(res)
       case Right(cids) =>
         if (museumNo.isEmpty && subNo.isEmpty && term.isEmpty) {
@@ -76,7 +78,7 @@ class ObjectController @Inject()(
           val sno = subNo.map(SubNo.apply)
           val lim = calcLimit(limit)
 
-          objService.search(mid, cids, page, lim, mno, sno, term)(request.user).map {
+          objService.search(mid, cids, page, lim, mno, sno, term).map {
             case MusitSuccess(res) =>
               Ok(Json.toJson[ObjectSearchResult](res))
 
@@ -100,13 +102,15 @@ class ObjectController @Inject()(
       mainObjectId: String,
       collectionIds: String
   ) = MusitSecureAction(mid, Read).async { implicit request =>
+    implicit val currUser = request.user
+
     ObjectUUID
       .fromString(mainObjectId)
       .map { oid =>
-        parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+        parseCollectionIdsParam(mid, collectionIds) match {
           case Left(res) => Future.successful(res)
           case Right(cids) =>
-            objService.findMainObjectChildren(mid, oid, cids)(request.user).map {
+            objService.findMainObjectChildren(mid, oid, cids).map {
               case MusitSuccess(res) =>
                 Ok(Json.toJson(res))
 
@@ -139,15 +143,17 @@ class ObjectController @Inject()(
       page: Int,
       limit: Int = defaultLimit
   ) = MusitSecureAction(mid, Read).async { implicit request =>
+    implicit val currUser = request.user
+
     StorageNodeId
       .fromString(nodeId)
       .map { nid =>
-        parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+        parseCollectionIdsParam(mid, collectionIds) match {
           case Left(res) => Future.successful(res)
           case Right(cids) =>
             nodeService.exists(mid, nid).flatMap {
               case MusitSuccess(true) =>
-                objService.findObjects(mid, nid, cids, page, limit)(request.user).map {
+                objService.findObjects(mid, nid, cids, page, limit).map {
                   case MusitSuccess(pagedObjects) =>
                     Ok(
                       Json.obj(
@@ -185,10 +191,12 @@ class ObjectController @Inject()(
       oldBarcode: Long,
       collectionIds: String
   ) = MusitSecureAction(mid, Read).async { request =>
-    parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+    implicit val currUser = request.user
+
+    parseCollectionIdsParam(mid, collectionIds) match {
       case Left(res) => Future.successful(res)
       case Right(cids) =>
-        objService.findByOldBarcode(mid, oldBarcode, cids)(request.user).map {
+        objService.findByOldBarcode(mid, oldBarcode, cids).map {
           case MusitSuccess(objects) =>
             Ok(Json.toJson(objects))
 
@@ -204,13 +212,15 @@ class ObjectController @Inject()(
       objectUUID: String,
       collectionIds: String
   ) = MusitSecureAction(mid, Read).async { request =>
-    parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+    implicit val currUser = request.user
+
+    parseCollectionIdsParam(mid, collectionIds) match {
       case Left(res) => Future.successful(res)
       case Right(cids) =>
         ObjectUUID
           .fromString(objectUUID)
           .map { uuid =>
-            objService.findByUUID(mid, uuid, cids)(request.user).map {
+            objService.findByUUID(mid, uuid, cids).map {
               case MusitSuccess(maybeObject) =>
                 maybeObject.fold(
                   NotFound(

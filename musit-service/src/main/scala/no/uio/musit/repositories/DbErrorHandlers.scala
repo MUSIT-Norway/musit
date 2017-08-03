@@ -1,4 +1,4 @@
-package repositories.shared.dao
+package no.uio.musit.repositories
 
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult}
 import play.api.Logger

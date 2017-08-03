@@ -1,11 +1,9 @@
 package repositories.analysis.dao
 
-import models.analysis.AnalysisStatuses.AnalysisStatus
 import models.analysis.LeftoverSamples.LeftoverSample
 import models.analysis.SampleStatuses.SampleStatus
-import models.analysis._
-import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events._
+import models.analysis._
 import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
 import org.joda.time.DateTime
@@ -25,8 +23,6 @@ trait AnalysisTables
   import profile.api._
 
   val analysisTypeTable     = TableQuery[AnalysisTypeTable]
-  val analysisTable         = TableQuery[AnalysisTable]
-  val resultTable           = TableQuery[AnalysisResultTable]
   val sampleObjTable        = TableQuery[SampleObjectTable]
   val treatmentTable        = TableQuery[TreatmentTable]
   val storageMediumTable    = TableQuery[StorageMediumTable]
@@ -47,24 +43,6 @@ trait AnalysisTables
         Option[String],
         Option[JsValue]
     )
-
-  type EventRow = (
-      Option[EventId],
-      AnalysisTypeId,
-      MuseumId,
-      Option[ActorId],
-      Option[DateTime],
-      Option[ActorId],
-      Option[DateTime],
-      Option[EventId],
-      Option[ObjectUUID],
-      Option[String],
-      Option[AnalysisStatus],
-      Option[CaseNumbers],
-      JsValue
-  )
-  type ResultRow =
-    (EventId, MuseumId, Option[ActorId], Option[DateTime], JsValue)
 
   type SampleObjectRow = (
       ObjectUUID,
@@ -91,12 +69,10 @@ trait AnalysisTables
       Boolean
   )
 
-  type TreatmentRow = (Int, String, String)
-
+  type TreatmentRow        = (Int, String, String)
   type StorageMediumRow    = (Int, String, String)
   type StorageContainerRow = (Int, String, String)
-
-  type SampleTypeRow = (SampleTypeId, String, String, Option[String], Option[String])
+  type SampleTypeRow       = (SampleTypeId, String, String, Option[String], Option[String])
 
   // scalastyle:on line.size.limit
 
@@ -132,67 +108,6 @@ trait AnalysisTables
         resAttrType,
         resAttrs
       )
-
-    // scalastyle:on method.name
-  }
-
-  /**
-   * Representation of the MUSARK_ANALYSIS.EVENT table
-   */
-  class AnalysisTable(
-      val tag: Tag
-  ) extends Table[EventRow](tag, Some(SchemaName), AnalysisEventTableName) {
-
-    val id             = column[EventId]("EVENT_ID", O.PrimaryKey, O.AutoInc)
-    val typeId         = column[AnalysisTypeId]("TYPE_ID")
-    val museumId       = column[MuseumId]("MUSEUM_ID")
-    val doneBy         = column[Option[ActorId]]("DONE_BY")
-    val doneDate       = column[Option[DateTime]]("DONE_DATE")
-    val registeredBy   = column[Option[ActorId]]("REGISTERED_BY")
-    val registeredDate = column[Option[DateTime]]("REGISTERED_DATE")
-    val partOf         = column[Option[EventId]]("PART_OF")
-    val objectUuid     = column[Option[ObjectUUID]]("OBJECT_UUID")
-    val note           = column[Option[String]]("NOTE")
-    val caseNumbers    = column[Option[CaseNumbers]]("CASE_NUMBERS")
-    val status         = column[Option[AnalysisStatus]]("STATUS")
-    val eventJson      = column[JsValue]("EVENT_JSON")
-
-    // scalastyle:off method.name line.size.limit
-    def * =
-      (
-        id.?,
-        typeId,
-        museumId,
-        doneBy,
-        doneDate,
-        registeredBy,
-        registeredDate,
-        partOf,
-        objectUuid,
-        note,
-        status,
-        caseNumbers,
-        eventJson
-      )
-
-    // scalastyle:on method.name line.size.limit
-  }
-
-  /**
-   * Representation of the MUSARK_ANALUSIS.RESULT table
-   */
-  class AnalysisResultTable(
-      val tag: Tag
-  ) extends Table[ResultRow](tag, Some(SchemaName), AnalysisResultTableName) {
-
-    val eventId        = column[EventId]("EVENT_ID", O.PrimaryKey)
-    val museumId       = column[MuseumId]("MUSEUM_ID")
-    val registeredBy   = column[Option[ActorId]]("REGISTERED_BY")
-    val registeredDate = column[Option[DateTime]]("REGISTERED_DATE")
-    val resultJson     = column[JsValue]("RESULT_JSON")
-
-    // scalastyle:off method.name
-    def * = (eventId, museumId, registeredBy, registeredDate, resultJson)
 
     // scalastyle:on method.name
   }
@@ -357,95 +272,6 @@ trait AnalysisTables
         t._10.flatMap(a => Json.fromJson[Map[String, String]](a).asOpt)
     )
   }
-
-  /**
-   * Converts an AnalysisEvent into an EventRow tuple that can be inserted into
-   * the database table.
-   *
-   * @param event the event to convert to a tuple
-   * @return an EventRow tuple
-   */
-  protected[dao] def asEventTuple(mid: MuseumId, event: AnalysisModuleEvent): EventRow = {
-    (
-      event.id,
-      event.analysisTypeId,
-      mid,
-      event.doneBy,
-      event.doneDate,
-      event.registeredBy,
-      event.registeredDate,
-      event.partOf,
-      event.objectId,
-      event.note,
-      event.status,
-      event.caseNumbers,
-      Json.toJson[AnalysisModuleEvent](event)
-    )
-  }
-
-  /**
-   * Converts an EventRow tuple into an instance of analysis AnalysisModuleEvent.
-   *
-   * @param tuple EventRow
-   * @return an Option of AnalysisModuleEvent.
-   */
-  protected[dao] def toAnalysisModuleEvent(
-      tuple: EventRow
-  ): Option[AnalysisModuleEvent] =
-    Json.fromJson[AnalysisModuleEvent](tuple._13).asOpt.map {
-      case a: Analysis            => a.copy(id = tuple._1)
-      case ac: AnalysisCollection => ac.copy(id = tuple._1)
-      case sc: SampleCreated      => sc.copy(id = tuple._1)
-    }
-
-  protected[dao] def toAnalysis(tuple: EventRow): Option[Analysis] =
-    Json.fromJson[AnalysisModuleEvent](tuple._13).asOpt.flatMap {
-      case a: Analysis => Some(a.copy(id = tuple._1))
-      case _           => None
-    }
-
-  protected[dao] def toAnalysisCollection(
-      tuple: EventRow
-  ): Option[AnalysisCollection] =
-    Json.fromJson[AnalysisModuleEvent](tuple._13).asOpt.flatMap {
-      case ac: AnalysisCollection => Some(ac.copy(id = tuple._1))
-      case _                      => None
-    }
-
-  /**
-   * Converts an AnalysisResult into a ResultRow tuple.
-   *
-   * @param eid the EventId the AnalysisResult belongs to
-   * @param res the AnalysisResult to convert to a tuple
-   * @return the corresponding ResultRow tuple
-   */
-  protected[dao] def asResultTuple(
-      mid: MuseumId,
-      eid: EventId,
-      res: AnalysisResult
-  ): ResultRow = {
-    (
-      eid,
-      mid,
-      res.registeredBy,
-      res.registeredDate,
-      Json.toJson[AnalysisResult](res)
-    )
-  }
-
-  /**
-   * Converts a ResultRow tuple into an instance of an AnalysisResult
-   *
-   * @param tuple the ResultRow tuple to convert
-   * @return an Option of the corresponding AnalysisResult
-   */
-  protected[dao] def fromResultRow(tuple: ResultRow): Option[AnalysisResult] =
-    Json.fromJson[AnalysisResult](tuple._5).asOpt
-
-  protected[dao] def fromResultRow(
-      maybeTuple: Option[ResultRow]
-  ): Option[AnalysisResult] =
-    maybeTuple.flatMap(fromResultRow)
 
   protected[dao] def asSampleObjectTuple(so: SampleObject): SampleObjectRow = {
     (

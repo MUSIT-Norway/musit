@@ -57,14 +57,17 @@ class ControlService @Inject()(
     }
   }
 
-  def findBy(mid: MuseumId, id: EventId): Future[MusitResult[Option[Control]]] = {
+  def findBy(
+      mid: MuseumId,
+      id: EventId
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[Control]]] = {
     controlDao.findById(mid, id)
   }
 
   def listFor(
       mid: MuseumId,
       nodeId: StorageNodeId
-  ): Future[MusitResult[Seq[Control]]] = {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[Control]]] = {
     controlDao.list(mid, nodeId)
   }
 }

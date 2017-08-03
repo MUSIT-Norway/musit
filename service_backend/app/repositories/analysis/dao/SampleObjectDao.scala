@@ -4,13 +4,14 @@ import com.google.inject.{Inject, Singleton}
 import models.analysis._
 import models.analysis.events.SampleCreated
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
+import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.models.ObjectTypes.SampleObjectType
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.shared.dao.{DbErrorHandlers, SharedTables}
+import repositories.shared.dao.SharedTables
 
 import scala.concurrent.Future
 
@@ -18,8 +19,10 @@ import scala.concurrent.Future
 class SampleObjectDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
 ) extends AnalysisTables
-    with SharedTables
-    with DbErrorHandlers {
+    with AnalysisEventTableProvider
+    with EventActions
+    with AnalysisEventRowMappers
+    with SharedTables {
 
   val logger = Logger(classOf[SampleObjectDao])
 
@@ -36,10 +39,6 @@ class SampleObjectDao @Inject()(
       .recover(nonFatal(s"An unexpected error occurred inserting a sample object"))
   }
 
-  private def insertSampleCreatedAction(event: EventRow): DBIO[EventId] = {
-    analysisTable returning analysisTable.map(_.id) += event
-  }
-
   def insert(
       mid: MuseumId,
       so: SampleObject,
@@ -47,13 +46,8 @@ class SampleObjectDao @Inject()(
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[ObjectUUID]] = {
     val soTuple = asSampleObjectTuple(so)
 
-    val action = for {
-      _ <- sampleObjTable += soTuple
-      _ <- insertSampleCreatedAction(asEventTuple(mid, eventObj))
-    } yield soTuple._1
-
-    db.run(action.transactionally)
-      .map(MusitSuccess.apply)
+    insertAdditionalWithEvent(mid, eventObj)(asRow)(_ => sampleObjTable += soTuple)
+      .map(_.map(_ => soTuple._1))
       .recover(nonFatal(s"An unexpected error occurred inserting a sample object"))
   }
 

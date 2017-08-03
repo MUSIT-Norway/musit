@@ -2,7 +2,7 @@ package repositories.shared.dao
 
 import no.uio.musit.models._
 import play.api.db.slick.HasDatabaseConfigProvider
-import repositories.storage.dao.SchemaName
+import repositories.storage.dao.SchemaNameOpt
 import slick.jdbc.JdbcProfile
 
 private[repositories] trait SharedTables
@@ -17,7 +17,7 @@ private[repositories] trait SharedTables
 
   class LocalObjectsTable(
       tag: Tag
-  ) extends Table[LocalObjectRow](tag, SchemaName, "NEW_LOCAL_OBJECT") {
+  ) extends Table[LocalObjectRow](tag, SchemaNameOpt, "NEW_LOCAL_OBJECT") {
     // scalastyle:off method.name
     def * =
       (

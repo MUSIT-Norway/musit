@@ -198,8 +198,9 @@ NOCACHE;
 CREATE TABLE MUSARK_STORAGE.NEW_EVENT (
   event_id        NUMBER(20) DEFAULT nevent_sequence.nextval,
   type_id         VARCHAR2(36) NOT NULL,
-  museum_id       INTEGER,
-  event_date      TIMESTAMP    NOT NULL,
+  museum_id       INTEGER      NOT NULL,
+  done_by         VARCHAR2(512),
+  done_date       TIMESTAMP,
   registered_by   VARCHAR2(36) NOT NULL,
   registered_date TIMESTAMP    NOT NULL,
   part_of         NUMBER(20),
@@ -207,7 +208,8 @@ CREATE TABLE MUSARK_STORAGE.NEW_EVENT (
   affected_type   VARCHAR2(50), -- collection | sample | node | ...
   note            VARCHAR2(500),
   event_json      CLOB,
-  PRIMARY KEY (event_id)
+  PRIMARY KEY (event_id),
+  CONSTRAINT ensure_storage_event_json CHECK (event_json IS JSON)
 );
 
 CREATE TABLE MUSARK_STORAGE.NEW_LOCAL_OBJECT (
@@ -344,7 +346,7 @@ CREATE TABLE MUSARK_ANALYSIS.EVENT (
   registered_by   VARCHAR2(36)             NOT NULL,
   registered_date TIMESTAMP WITH TIME ZONE NOT NULL,
   part_of         NUMBER(20),
-  object_uuid     VARCHAR2(36),
+  affected_uuid   VARCHAR2(36),
   note            VARCHAR2(500),
   status          INTEGER,
   case_numbers    VARCHAR2(1000),

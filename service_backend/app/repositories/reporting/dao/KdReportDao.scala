@@ -7,7 +7,7 @@ import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models.MuseumId
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.shared.dao.StorageTables
+import repositories.storage.dao.StorageTables
 
 import scala.concurrent.Future
 

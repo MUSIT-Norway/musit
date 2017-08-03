@@ -1,17 +1,7 @@
 package models.analysis.events
 
-import no.uio.musit.models.{CollectionUUID, MusitId}
+import no.uio.musit.models.CollectionUUID
 import play.api.libs.json._
-
-case class AnalysisTypeId(underlying: Long) extends MusitId
-
-object AnalysisTypeId {
-
-  implicit val reads: Reads[AnalysisTypeId] = __.read[Long].map(AnalysisTypeId.apply)
-
-  implicit val writes: Writes[AnalysisTypeId] = Writes(n => JsNumber(n.underlying))
-
-}
 
 /**
  * Represents an {{{AnalysisType}}} as it is stored in the database. The fields

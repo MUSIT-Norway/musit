@@ -1,6 +1,6 @@
 package utils.testdata
 
-import models.storage.event.EventType
+import models.storage.event.StorageFacilityEventType
 import models.storage.event.EventTypeRegistry.TopLevelEvents._
 import models.storage.event.control.Control
 import models.storage.event.control.ControlAttributes.{
@@ -31,12 +31,12 @@ trait EventGenerators { self: BaseDummyData =>
   ): MoveObject = {
     MoveObject(
       id = None,
-      doneDate = DateTime.now.minusDays(1),
+      doneDate = Some(DateTime.now.minusDays(1)),
       registeredBy = Some(defaultActorId),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),
       affectedThing = objectId,
-      eventType = EventType.fromEventTypeId(MoveObjectType.id),
+      eventType = StorageFacilityEventType.fromEventTypeId(MoveObjectType.id),
       objectType = ObjectTypes.CollectionObjectType,
       from = from,
       to = to
@@ -50,12 +50,12 @@ trait EventGenerators { self: BaseDummyData =>
   ): MoveNode = {
     MoveNode(
       id = None,
-      doneDate = DateTime.now.minusDays(1),
+      doneDate = Some(DateTime.now.minusDays(1)),
       registeredBy = Some(defaultActorId),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),
       affectedThing = nodeId,
-      eventType = EventType.fromEventTypeId(MoveNodeType.id),
+      eventType = StorageFacilityEventType.fromEventTypeId(MoveNodeType.id),
       from = from,
       to = to
     )
@@ -64,13 +64,13 @@ trait EventGenerators { self: BaseDummyData =>
   def createEnvRequirement(affectedNodeId: Option[StorageNodeId] = None) = {
     EnvRequirement(
       id = None,
-      doneDate = DateTime.now.minusDays(1),
+      doneDate = Some(DateTime.now.minusDays(1)),
       note = Some("This is an envreq note"),
       registeredBy = Some(defaultActorId),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),
       affectedThing = affectedNodeId,
-      eventType = EventType.fromEventTypeId(EnvRequirementEventType.id),
+      eventType = StorageFacilityEventType.fromEventTypeId(EnvRequirementEventType.id),
       temperature = Some(Interval(20, Some(5))),
       airHumidity = Some(Interval(60.0, Some(10))),
       hypoxicAir = Some(Interval(0, Some(15))),
@@ -82,12 +82,12 @@ trait EventGenerators { self: BaseDummyData =>
   def createControl(affectedNodeId: Option[StorageNodeId] = None) = {
     Control(
       id = None,
-      doneDate = DateTime.now.minusDays(1),
+      doneDate = Some(DateTime.now.minusDays(1)),
       registeredBy = Some(defaultActorId),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),
       affectedThing = affectedNodeId,
-      eventType = EventType.fromEventTypeId(ControlEventType.id),
+      eventType = StorageFacilityEventType.fromEventTypeId(ControlEventType.id),
       temperature = Some(createTemperatureControl()),
       alcohol = Some(createAlcoholControl()),
       cleaning = Some(createCleaningControl(ok = true)),
@@ -98,12 +98,12 @@ trait EventGenerators { self: BaseDummyData =>
   def createObservation(affectedNodeId: Option[StorageNodeId] = None) = {
     Observation(
       id = None,
-      doneDate = DateTime.now.minusDays(1),
+      doneDate = Some(DateTime.now.minusDays(1)),
       registeredBy = Some(defaultActorId),
       registeredDate = Some(DateTime.now),
       doneBy = Some(defaultActorId),
       affectedThing = affectedNodeId,
-      eventType = EventType.fromEventTypeId(ObservationEventType.id),
+      eventType = StorageFacilityEventType.fromEventTypeId(ObservationEventType.id),
       alcohol = Some(createAlcoholObservation),
       cleaning = Some(createCleaningObservation),
       gas = Some(createGasObservation),

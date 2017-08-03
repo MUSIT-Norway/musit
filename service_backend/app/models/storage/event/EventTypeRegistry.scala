@@ -3,22 +3,11 @@ package models.storage.event
 import java.util.NoSuchElementException
 
 import enumeratum._
-import play.api.libs.json._
+import no.uio.musit.models.EventTypeId
 
 import scala.reflect.ClassTag
 
 // scalastyle:off number.of.types
-
-case class EventTypeId(underlying: Int) extends AnyVal
-
-object EventTypeId {
-
-  implicit val reads: Reads[EventTypeId] = __.read[Int].map(EventTypeId.apply)
-  implicit val writes: Writes[EventTypeId] = Writes { etid =>
-    Json.toJson[Int](etid.underlying)
-  }
-
-}
 
 /**
  * All events that need to be handled, in some form or other, should be
@@ -243,4 +232,5 @@ object EventTypeRegistry {
   }
 
 }
+
 // scalastyle:on number.of.types

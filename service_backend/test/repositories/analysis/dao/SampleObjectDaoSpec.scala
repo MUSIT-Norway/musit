@@ -2,24 +2,17 @@ package repositories.analysis.dao
 
 import java.util.UUID
 
-import models.analysis.LeftoverSamples.NoLeftover
 import models.analysis._
-import models.analysis.events.SampleCreated
-import models.storage.event.EventType
 import models.storage.event.EventTypeRegistry.TopLevelEvents.MoveObjectType
+import models.storage.event.StorageFacilityEventType
 import models.storage.event.move.MoveObject
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
-import no.uio.musit.models.ObjectTypes.{
-  CollectionObjectType,
-  ObjectType,
-  SampleObjectType
-}
+import no.uio.musit.models.ObjectTypes.{CollectionObjectType, SampleObjectType}
 import no.uio.musit.models._
 import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
 import no.uio.musit.time.dateTimeNow
-import org.joda.time.DateTime
 import org.scalatest.Inspectors.forAll
 import repositories.storage.dao.events.MoveDao
 import utils.testdata.SampleObjectGenerators
@@ -81,11 +74,11 @@ class SampleObjectDaoSpec
       MoveObject(
         id = None,
         doneBy = Some(defaultActorId),
-        doneDate = dateTimeNow,
+        doneDate = Some(dateTimeNow),
         affectedThing = Some(sampleId),
         registeredBy = Some(defaultActorId),
         registeredDate = Some(dateTimeNow),
-        eventType = EventType.fromEventTypeId(MoveObjectType.id),
+        eventType = StorageFacilityEventType.fromEventTypeId(MoveObjectType.id),
         objectType = ObjectTypes.SampleObjectType,
         from = None,
         to = nodeId

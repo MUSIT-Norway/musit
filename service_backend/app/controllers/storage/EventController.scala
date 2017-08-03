@@ -33,12 +33,14 @@ class EventController @Inject()(
       mid: Int,
       nodeId: String
   ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
+    implicit val currUser = request.user
+
     StorageNodeId
       .fromString(nodeId)
       .map { nid =>
         request.body.validate[Control] match {
           case JsSuccess(ctrl, jsPath) =>
-            controlService.add(mid, nid, ctrl)(request.user).map {
+            controlService.add(mid, nid, ctrl).map {
               case MusitSuccess(addedCtrl) =>
                 Created(Json.toJson(addedCtrl))
 
@@ -60,12 +62,14 @@ class EventController @Inject()(
       mid: Int,
       nodeId: String
   ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
+    implicit val currUser = request.user
+
     StorageNodeId
       .fromString(nodeId)
       .map { nid =>
         request.body.validate[Observation] match {
           case JsSuccess(obs, jsPath) =>
-            observationService.add(mid, nid, obs)(request.user).map {
+            observationService.add(mid, nid, obs).map {
               case MusitSuccess(addedObs) =>
                 Created(Json.toJson(addedObs))
 
@@ -88,6 +92,8 @@ class EventController @Inject()(
       nodeId: String,
       eventId: Long
   ) = MusitSecureAction(mid, Read).async { implicit request =>
+    implicit val currUser = request.user
+
     StorageNodeId
       .fromString(nodeId)
       .map { nid =>
@@ -115,6 +121,8 @@ class EventController @Inject()(
       nodeId: String,
       eventId: Long
   ) = MusitSecureAction(mid, Read).async { implicit request =>
+    implicit val currUser = request.user
+
     StorageNodeId
       .fromString(nodeId)
       .map { nid =>
@@ -139,6 +147,8 @@ class EventController @Inject()(
       mid: Int,
       nodeId: String
   ) = MusitSecureAction(mid, Read).async { implicit request =>
+    implicit val currUser = request.user
+
     StorageNodeId
       .fromString(nodeId)
       .map { nid =>
@@ -160,6 +170,8 @@ class EventController @Inject()(
       mid: Int,
       nodeId: String
   ) = MusitSecureAction(mid, Read).async { implicit request =>
+    implicit val currUser = request.user
+
     StorageNodeId
       .fromString(nodeId)
       .map { nid =>
@@ -182,6 +194,8 @@ class EventController @Inject()(
       mid: Int,
       nodeId: String
   ) = MusitSecureAction(mid, Read).async { implicit request =>
+    implicit val currUser = request.user
+
     StorageNodeId
       .fromString(nodeId)
       .map { nid =>
@@ -195,7 +209,10 @@ class EventController @Inject()(
             controls     <- ctrlRes
             observations <- obsRes
           } yield {
-            controls.union(observations).sortBy(_.doneDate.getMillis)
+            controls
+              .union(observations)
+              // Sorting by doneDate. If None place last in list.
+              .sortBy(_.doneDate.map(_.getMillis).getOrElse(Long.MaxValue))
           }
 
           sortedRes match {

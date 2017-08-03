@@ -88,7 +88,7 @@ class AnalysisServiceSpec
       service.add(defaultMid, cmd).futureValue.successValue match {
         case Some(analysis: Analysis) =>
           verifyBasicAnalysisFields(analysis, Some(EventId(1L)), Some(dummyAnalysisNote))
-          analysis.objectId must not be empty
+          analysis.affectedThing must not be empty
         case wrong =>
           fail(s"Expected ${Analysis.getClass}, but got $wrong")
       }
@@ -114,7 +114,7 @@ class AnalysisServiceSpec
       service.findById(defaultMid, expectedId).futureValue.successValue.value match {
         case res: AnalysisEvent =>
           verifyBasicAnalysisFields(res, Some(expectedId), Some(dummyAnalysisNote))
-          res.objectId must not be empty
+          res.affectedThing must not be empty
 
         case wrong =>
           fail(s"Expected an ${AnalysisEvent.getClass}, but got ${wrong.getClass}")
@@ -122,11 +122,11 @@ class AnalysisServiceSpec
     }
 
     "return all child Analysis events for an AnalyisCollection" in {
-      val expectedId = EventId(2L)
-      val res        = service.childrenFor(defaultMid, expectedId).futureValue.successValue
+      val eventId = EventId(2L)
+
+      val res = service.childrenFor(defaultMid, eventId).futureValue.successValue
 
       res.size mustBe 3
-
       forAll(res) { r =>
         verifyBasicAnalysisFields(
           r,
@@ -147,7 +147,7 @@ class AnalysisServiceSpec
         r.doneDate mustApproximate Some(dateTimeNow)
         r.note must not be empty
         r.note.value must startWith("This is from a SaveAnalysis")
-        r.objectId mustBe empty
+        r.affectedThing mustBe empty
       }
     }
 
@@ -342,7 +342,7 @@ class AnalysisServiceSpec
         analysisEvents.zipWithIndex.map {
           case (analysis, idx) =>
             ResultForObjectEvent(
-              analysis.objectId.value,
+              analysis.affectedThing.value,
               analysis.id.value,
               dummyAgeResult(
                 extRef = None,

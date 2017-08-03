@@ -5,34 +5,61 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents.{
   MoveNodeType,
   MoveObjectType
 }
-import models.storage.event.{EventType, MusitEvent}
+import models.storage.event.{StorageFacilityEvent, StorageFacilityEventType}
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.ObjectTypes.{Node, ObjectType}
 import no.uio.musit.models._
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json._
 
-sealed trait MoveEvent extends MusitEvent {
+sealed trait MoveEvent extends StorageFacilityEvent {
   val objectType: ObjectType
   val from: Option[StorageNodeId]
   val to: StorageNodeId
+
+  override type T = MoveEvent
+}
+
+object MoveEvent {
+
+  implicit val writes: Writes[MoveEvent] = Writes {
+    case mo: MoveObject => MoveObject.format.writes(mo)
+    case mn: MoveNode   => MoveNode.format.writes(mn)
+  }
+
+  implicit val reads: Reads[MoveEvent] = Reads { jsv =>
+    (jsv \ "eventType").validate[StorageFacilityEventType] match {
+      case JsSuccess(tpe, path) =>
+        tpe.registeredEventId match {
+          case MoveObjectType.id =>
+            MoveObject.format.reads(jsv)
+
+          case MoveNodeType.id =>
+            MoveNode.format.reads(jsv)
+
+          case bad =>
+            JsError(path, s"Illegal EventType ${tpe.name} for Move operations")
+        }
+
+      case err: JsError => err
+    }
+  }
+
 }
 
 case class MoveObject(
     id: Option[EventId],
     doneBy: Option[ActorId],
-    doneDate: DateTime,
+    doneDate: Option[DateTime],
     affectedThing: Option[ObjectUUID],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
-    eventType: EventType,
+    eventType: StorageFacilityEventType,
     objectType: ObjectType,
     from: Option[StorageNodeId],
     to: StorageNodeId
 ) extends MoveEvent {
-
-  override type T = MoveObject
 
   override def withId(id: Option[EventId]) = copy(id = id)
 
@@ -51,11 +78,11 @@ object MoveObject extends WithDateTimeFormatters {
       MoveObject(
         id = None,
         doneBy = Option(currUserId),
-        doneDate = now,
+        doneDate = Some(now),
         affectedThing = Option(movables.id),
         registeredBy = Option(currUserId),
         registeredDate = Option(now),
-        eventType = EventType.fromEventTypeId(MoveObjectType.id),
+        eventType = StorageFacilityEventType.fromEventTypeId(MoveObjectType.id),
         objectType = movables.objectType,
         from = None,
         to = cmd.destination
@@ -67,16 +94,14 @@ object MoveObject extends WithDateTimeFormatters {
 case class MoveNode(
     id: Option[EventId],
     doneBy: Option[ActorId],
-    doneDate: DateTime,
+    doneDate: Option[DateTime],
     affectedThing: Option[StorageNodeId],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
-    eventType: EventType,
+    eventType: StorageFacilityEventType,
     from: Option[StorageNodeId],
     to: StorageNodeId
 ) extends MoveEvent {
-
-  override type T = MoveNode
 
   override val objectType: ObjectType = Node
 
@@ -96,11 +121,11 @@ object MoveNode extends WithDateTimeFormatters {
     MoveNode(
       id = None,
       doneBy = Option(currUserId),
-      doneDate = now,
+      doneDate = Some(now),
       affectedThing = Option(nodeId),
       registeredBy = Option(currUserId),
       registeredDate = Option(now),
-      eventType = EventType.fromEventTypeId(MoveNodeType.id),
+      eventType = StorageFacilityEventType.fromEventTypeId(MoveNodeType.id),
       from = None,
       to = cmd.destination
     )

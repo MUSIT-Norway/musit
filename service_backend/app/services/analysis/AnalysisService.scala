@@ -8,12 +8,7 @@ import models.analysis.events.SaveCommands.{
   SaveAnalysisEventCommand
 }
 import models.analysis.events._
-import no.uio.musit.MusitResults.{
-  MusitError,
-  MusitResult,
-  MusitSuccess,
-  MusitValidationError
-}
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models._
@@ -171,7 +166,7 @@ class AnalysisService @Inject()(
       res.objectResults.foreach { rfoe =>
         val valid = ac.events.exists { analysis =>
           analysis.id.contains(rfoe.eventId) &&
-          analysis.objectId.contains(rfoe.objectId)
+          analysis.affectedThing.contains(rfoe.objectId)
         }
         if (!valid) invalid += rfoe
       }
@@ -237,6 +232,8 @@ class AnalysisService @Inject()(
   def findById(
       mid: MuseumId,
       id: EventId
+  )(
+      implicit currUser: AuthenticatedUser
   ): Future[MusitResult[Option[AnalysisModuleEvent]]] = {
     analysisDao.findById(mid, id)
   }
@@ -245,7 +242,10 @@ class AnalysisService @Inject()(
    * Fetch all children (which are all instances of Analysis) for the
    * event with the given EventId.
    */
-  def childrenFor(mid: MuseumId, id: EventId): Future[MusitResult[Seq[Analysis]]] = {
+  def childrenFor(
+      mid: MuseumId,
+      id: EventId
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Seq[Analysis]]] = {
     analysisDao.listChildren(mid, id)
   }
 
@@ -255,6 +255,8 @@ class AnalysisService @Inject()(
   def findByObject(
       mid: MuseumId,
       oid: ObjectUUID
+  )(
+      implicit currUser: AuthenticatedUser
   ): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
     analysisDao.findByCollectionObjectUUID(mid, oid)
   }
@@ -267,7 +269,7 @@ class AnalysisService @Inject()(
       museumCollections: Seq[MuseumCollection]
   )(
       implicit currUser: AuthenticatedUser
-  ): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
+  ): Future[MusitResult[Seq[AnalysisCollection]]] = {
     analysisDao.findAnalysisEvents(mid, museumCollections)
   }
 

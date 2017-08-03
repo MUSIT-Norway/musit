@@ -34,7 +34,7 @@ class EnvironmentRequirementService @Inject()(
    */
   private def compareWithLatest(
       envReq: EnvRequirement
-  ): Future[Option[EnvRequirement]] = {
+  )(implicit currUser: AuthenticatedUser): Future[Option[EnvRequirement]] = {
     envReq.affectedThing.map { snid =>
       latestForNodeId(snid)
         .map(_.map { mer =>
@@ -112,7 +112,10 @@ class EnvironmentRequirementService @Inject()(
   /**
    * TODO: Document me!!!!
    */
-  def findBy(mid: MuseumId, id: EventId): Future[MusitResult[Option[EnvRequirement]]] = {
+  def findBy(
+      mid: MuseumId,
+      id: EventId
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Option[EnvRequirement]]] = {
     envReqDao.findById(mid, id)
   }
 
@@ -125,7 +128,7 @@ class EnvironmentRequirementService @Inject()(
    */
   private def latestForNodeId(
       nodeId: StorageNodeId
-  ): Future[MusitResult[Option[EnvRequirement]]] = {
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Option[EnvRequirement]]] = {
     envReqDao.latestForNodeId(nodeId)
   }
 
@@ -138,6 +141,8 @@ class EnvironmentRequirementService @Inject()(
    */
   def findLatestForNodeId(
       nodeId: StorageNodeId
+  )(
+      implicit currUser: AuthenticatedUser
   ): Future[MusitResult[Option[EnvironmentRequirement]]] = {
     latestForNodeId(nodeId).map(_.map(_.map(EnvRequirement.fromEnvRequirementEvent)))
   }

@@ -2,7 +2,7 @@ package models.storage.event.envreq
 
 import models.storage.Interval
 import models.storage.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
-import models.storage.event.{EventType, MusitEvent}
+import models.storage.event.{StorageFacilityEventType, StorageFacilityEvent}
 import models.storage.nodes.EnvironmentRequirement
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.{ActorId, EventId, StorageNodeId}
@@ -12,18 +12,18 @@ import play.api.libs.json.{Format, Json}
 case class EnvRequirement(
     id: Option[EventId],
     doneBy: Option[ActorId],
-    doneDate: DateTime,
+    doneDate: Option[DateTime],
     note: Option[String],
     affectedThing: Option[StorageNodeId],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
-    eventType: EventType,
+    eventType: StorageFacilityEventType,
     temperature: Option[Interval[Double]],
     airHumidity: Option[Interval[Double]],
     hypoxicAir: Option[Interval[Double]],
     cleaning: Option[String],
     light: Option[String]
-) extends MusitEvent {
+) extends StorageFacilityEvent {
 
   override type T = EnvRequirement
 
@@ -64,12 +64,12 @@ object EnvRequirement extends WithDateTimeFormatters {
     EnvRequirement(
       id = None,
       doneBy = Some(doneBy),
-      doneDate = now,
+      doneDate = Some(now),
       note = er.comment,
       affectedThing = Some(affectedNodeId),
       registeredBy = Some(doneBy),
       registeredDate = Some(now),
-      eventType = EventType.fromEventTypeId(EnvRequirementEventType.id),
+      eventType = StorageFacilityEventType.fromEventTypeId(EnvRequirementEventType.id),
       temperature = er.temperature,
       airHumidity = er.relativeHumidity,
       hypoxicAir = er.hypoxicAir,

@@ -14,7 +14,8 @@ import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.shared.dao.{SharedTables, StorageTables}
+import repositories.shared.dao.SharedTables
+import repositories.storage.dao.StorageTables
 import slick.jdbc.GetResult
 
 import scala.concurrent.Future

@@ -14,88 +14,18 @@ import slick.ast._
 import slick.jdbc.JdbcProfile
 import slick.lifted._
 import FunctionSymbolExtensionMethods._
+import no.uio.musit.repositories.BaseColumnTypeMappers
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait AuthTables extends HasDatabaseConfigProvider[JdbcProfile] with DateTimeImplicits {
+trait AuthTables
+    extends HasDatabaseConfigProvider[JdbcProfile]
+    with DateTimeImplicits
+    with BaseColumnTypeMappers {
 
   private val logger = Logger(classOf[AuthTables])
 
   import profile.api._
-
-  implicit lazy val actorIdMapper: BaseColumnType[ActorId] =
-    MappedColumnType.base[ActorId, String](
-      gid => gid.asString,
-      str => ActorId.unsafeFromString(str)
-    )
-
-  // Implicit that extends Email typed columns with a toLowerCase method
-  implicit class EmailColumnExtensionMethods[P1](val c: Rep[Email]) {
-    implicit def emailTypedType = implicitly[TypedType[Email]]
-
-    def toLowerCase(implicit tt: TypedType[Email]) =
-      Library.LCase.column[Email](c.toNode)
-  }
-
-  implicit lazy val emailMapper: BaseColumnType[Email] =
-    MappedColumnType.base[Email, String](
-      email => email.value.toLowerCase,
-      str => Email.fromString(str)
-    )
-
-  implicit lazy val collectionIdMapper: BaseColumnType[CollectionUUID] =
-    MappedColumnType.base[CollectionUUID, String](
-      cid => cid.asString,
-      str => CollectionUUID.unsafeFromString(str)
-    )
-
-  implicit lazy val groupIdMapper: BaseColumnType[GroupId] =
-    MappedColumnType.base[GroupId, String](
-      gid => gid.asString,
-      str => GroupId.unsafeFromString(str)
-    )
-
-  implicit lazy val museumIdMapper: BaseColumnType[MuseumId] =
-    MappedColumnType.base[MuseumId, Int](
-      m => m.underlying,
-      i => MuseumId.fromInt(i)
-    )
-
-  implicit lazy val groupModuleMapper: BaseColumnType[ModuleConstraint] =
-    MappedColumnType.base[ModuleConstraint, Int](
-      m => m.id,
-      i => ModuleConstraint.unsafeFromInt(i)
-    )
-
-  implicit lazy val permissionMapper: BaseColumnType[Permission] =
-    MappedColumnType.base[Permission, Int](
-      p => p.priority,
-      i => Permission.fromInt(i)
-    )
-
-  implicit lazy val oldSchemaMapper: BaseColumnType[Seq[Collection]] =
-    MappedColumnType.base[Seq[Collection], String](
-      seqSchemas => seqSchemas.map(_.id).mkString("[", ",", "]"),
-      str => MuseumCollections.fromJsonString(str)
-    )
-
-  implicit lazy val sessionIdMapper: BaseColumnType[SessionUUID] =
-    MappedColumnType.base[SessionUUID, String](
-      sid => sid.asString,
-      str => SessionUUID.unsafeFromString(str)
-    )
-
-  implicit lazy val bearerTokenMapper: BaseColumnType[BearerToken] =
-    MappedColumnType.base[BearerToken, String](
-      bt => bt.underlying,
-      str => BearerToken(str)
-    )
-
-  implicit lazy val dateTimeMapper: BaseColumnType[DateTime] =
-    MappedColumnType.base[DateTime, JSqlTimestamp](
-      dt => dateTimeToJTimestamp(dt),
-      jst => jSqlTimestampToDateTime(jst)
-    )
 
   val schema = "MUSARK_AUTH"
 

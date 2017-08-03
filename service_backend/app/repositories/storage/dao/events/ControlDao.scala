@@ -5,17 +5,19 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents.ControlEventType
 import models.storage.event.control.Control
 import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
+import no.uio.musit.repositories.events.EventActions
+import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.dao.EventTables
 
 import scala.concurrent.Future
 
 @Singleton
 class ControlDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
-    extends EventTables
-    with EventActions {
+    extends StorageEventTableProvider
+    with EventActions
+    with StorageFacilityEventRowMappers[Control] {
 
   override val logger = Logger(classOf[ControlDao])
 
@@ -29,8 +31,8 @@ class ControlDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
   def insert(
       mid: MuseumId,
       ctrl: Control
-  ): Future[MusitResult[EventId]] =
-    insertEvent[Control](mid, ctrl)(asRow[Control])
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[EventId]] =
+    insertEvent[Control](mid, ctrl)(asRow)
 
   /**
    * Find the Control with the given EventId
@@ -42,8 +44,8 @@ class ControlDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
   def findById(
       mid: MuseumId,
       id: EventId
-  ): Future[MusitResult[Option[Control]]] =
-    findEventById[Control](mid, id)(fromRow[Control])
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[Control]]] =
+    findEventById[Control](mid, id)(row => fromRow(row._1, row._11))
 
   /**
    * List all Control events for the given nodeId.
@@ -57,12 +59,12 @@ class ControlDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       mid: MuseumId,
       nodeId: StorageNodeId,
       limit: Option[Int] = None
-  ): Future[MusitResult[Seq[Control]]] =
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[Control]]] =
     listEvents[Control, StorageNodeId](
       mid,
       nodeId,
       ControlEventType.id,
       limit
-    )(fromRow[Control])
+    )(row => fromRow(row._1, row._11))
 
 }

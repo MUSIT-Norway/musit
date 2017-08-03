@@ -28,7 +28,9 @@ class DelphiBridgeController @Inject()(
       oldObjectId: Long,
       schemaName: String
   ) = MusitSecureAction().async { implicit request =>
-    nodeService.currNodeForOldObject(oldObjectId, schemaName)(request.user).map {
+    implicit val currUser = request.user
+
+    nodeService.currNodeForOldObject(oldObjectId, schemaName).map {
       case MusitSuccess(mres) =>
         mres.map { res =>
           Ok(
@@ -55,6 +57,8 @@ class DelphiBridgeController @Inject()(
    * Endpoint that returns all the nodes under a museums external root nodes.
    */
   def outsideNodes(mid: Int) = MusitSecureAction(Read).async { implicit request =>
+    implicit val currUser = request.user
+
     nodeService.nodesOutsideMuseum(mid).map {
       case MusitSuccess(res) =>
         val jsSeq = JsArray(
@@ -84,6 +88,8 @@ class DelphiBridgeController @Inject()(
    * to an objectId recognized by the new system.
    */
   def translateOldObjectIds = MusitSecureAction().async(parse.json) { implicit request =>
+    implicit val currUser = request.user
+
     request.body.validate[TranslateIdRequest] match {
       case JsSuccess(trans, _) =>
         objService.findByOldObjectIds(trans.schemaName, trans.oldObjectIds).map {

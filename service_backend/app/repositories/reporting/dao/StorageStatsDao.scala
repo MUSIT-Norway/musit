@@ -3,10 +3,11 @@ package repositories.reporting.dao
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models._
+import no.uio.musit.repositories.DbErrorHandlers
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.shared.dao.{DbErrorHandlers, StorageTables}
+import repositories.storage.dao.StorageTables
 
 import scala.concurrent.Future
 

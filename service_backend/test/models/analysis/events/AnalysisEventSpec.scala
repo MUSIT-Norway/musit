@@ -1,7 +1,7 @@
-package models.analysis
+package models.analysis.events
 
+import models.analysis.AnalysisStatuses
 import models.analysis.events.AnalysisResults.GenericResult
-import models.analysis.events._
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.models.ObjectTypes.CollectionObjectType
 import no.uio.musit.models._
@@ -48,8 +48,8 @@ class AnalysisEventSpec
       updatedDate = Some(dummyDate),
       completedBy = Some(dummyActor),
       completedDate = Some(dummyDate),
-      objectId = Some(dummyObject),
-      objectType = Some(CollectionObjectType),
+      affectedThing = Some(dummyObject),
+      affectedType = Some(CollectionObjectType),
       partOf = None,
       note = Some(dummyNote),
       extraAttributes = None,

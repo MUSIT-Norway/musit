@@ -18,7 +18,10 @@ trait StorageUnitServiceOps { self: NodeService =>
   def getStorageUnitByDatabaseId(
       mid: MuseumId,
       id: StorageNodeDatabaseId
-  )(implicit ec: ExecutionContext): Future[MusitResult[Option[StorageUnit]]] = {
+  )(
+      implicit currUsr: AuthenticatedUser,
+      ec: ExecutionContext
+  ): Future[MusitResult[Option[StorageUnit]]] = {
     val eventuallyUnit = unitDao.getByDatabaseId(mid, id)
     getNode(mid, eventuallyUnit) { (n, maybeReq, maybeNames) =>
       n.copy(

@@ -21,7 +21,10 @@ trait BuildingServiceOps { self: NodeService =>
   def getBuildingByDatabaseId(
       mid: MuseumId,
       id: StorageNodeDatabaseId
-  )(implicit ec: ExecutionContext): Future[MusitResult[Option[Building]]] = {
+  )(
+      implicit currUsr: AuthenticatedUser,
+      ec: ExecutionContext
+  ): Future[MusitResult[Option[Building]]] = {
     val eventuallyBuilding = buildingDao.getById(mid, id)
     getNode(mid, eventuallyBuilding) { (n, maybeReq, maybeNames) =>
       n.copy(

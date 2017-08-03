@@ -4,11 +4,11 @@ import com.google.inject.{Inject, Singleton}
 import models.analysis.events.{AnalysisType, AnalysisTypeId, Category}
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models.CollectionUUID
+import no.uio.musit.repositories.DbErrorHandlers
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.shared.dao.DbErrorHandlers
 
 import scala.concurrent.Future
 

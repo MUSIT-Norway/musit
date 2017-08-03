@@ -25,7 +25,7 @@ test:
     # Check if the scalafmt modified any files during the build. If yes, fail the build.
     - sbt clean scalastyle scalafmt
     - git status
-    - git diff --exit-code || (echo "ERROR Scalariform check failed, see differences above."; false)
+    - git diff --exit-code || (echo "ERROR Scala formatting check failed, see differences above."; false)
     - if [[ -n "$CODACY_PROJECT_TOKEN" ]]; then echo "Running with code coverage..."; sbt coverage test coverageReport; sbt coverageAggregate; sbt codacyCoverage; else echo "Coverage reporting disabled for forks"; sbt test; fi
 
 build:

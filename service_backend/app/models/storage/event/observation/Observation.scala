@@ -1,7 +1,7 @@
 package models.storage.event.observation
 
 import models.storage.event.observation.ObservationAttributes._
-import models.storage.event.{EventType, MusitEvent}
+import models.storage.event.{StorageFacilityEventType, StorageFacilityEvent}
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.{ActorId, EventId, StorageNodeId}
 import org.joda.time.DateTime
@@ -10,11 +10,11 @@ import play.api.libs.json.{Format, _}
 case class Observation(
     id: Option[EventId],
     doneBy: Option[ActorId],
-    doneDate: DateTime,
+    doneDate: Option[DateTime],
     affectedThing: Option[StorageNodeId],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
-    eventType: EventType,
+    eventType: StorageFacilityEventType,
     alcohol: Option[ObservationAlcohol] = None,
     cleaning: Option[ObservationCleaning] = None,
     gas: Option[ObservationGas] = None,
@@ -28,7 +28,7 @@ case class Observation(
     fireProtection: Option[ObservationFireProtection] = None,
     perimeterSecurity: Option[ObservationPerimeterSecurity] = None,
     waterDamageAssessment: Option[ObservationWaterDamageAssessment] = None
-) extends MusitEvent {
+) extends StorageFacilityEvent {
 
   override type T = Observation
 

@@ -21,7 +21,10 @@ trait OrganisationServiceOps { self: NodeService =>
   def getOrganisationByDatabaseId(
       mid: MuseumId,
       id: StorageNodeDatabaseId
-  )(implicit ec: ExecutionContext): Future[MusitResult[Option[Organisation]]] = {
+  )(
+      implicit currUsr: AuthenticatedUser,
+      ec: ExecutionContext
+  ): Future[MusitResult[Option[Organisation]]] = {
     val eventuallyOrg = orgDao.getById(mid, id)
     getNode(mid, eventuallyOrg) { (n, maybeReq, maybeNames) =>
       n.copy(

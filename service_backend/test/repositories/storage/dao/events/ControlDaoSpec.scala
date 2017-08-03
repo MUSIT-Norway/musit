@@ -1,6 +1,6 @@
 package repositories.storage.dao.events
 
-import models.storage.event.EventType
+import models.storage.event.StorageFacilityEventType
 import models.storage.event.EventTypeRegistry.TopLevelEvents.ControlEventType
 import no.uio.musit.models._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -33,7 +33,9 @@ class ControlDaoSpec
 
         val res = dao.findById(mid, eid).futureValue.successValue.value
 
-        res.eventType mustBe EventType.fromEventTypeId(ControlEventType.id)
+        res.eventType mustBe StorageFacilityEventType.fromEventTypeId(
+          ControlEventType.id
+        )
         res.registeredBy mustBe Some(defaultActorId)
         res.registeredDate must not be empty
         res.alcohol mustBe ctrl.alcohol

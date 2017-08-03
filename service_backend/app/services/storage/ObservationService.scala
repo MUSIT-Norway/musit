@@ -59,14 +59,17 @@ class ObservationService @Inject()(
     }
   }
 
-  def findBy(mid: MuseumId, id: EventId): Future[MusitResult[Option[Observation]]] = {
+  def findBy(
+      mid: MuseumId,
+      id: EventId
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[Observation]]] = {
     observationDao.findById(mid, id)
   }
 
   def listFor(
       mid: MuseumId,
       nodeId: StorageNodeId
-  ): Future[MusitResult[Seq[Observation]]] = {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[Observation]]] = {
     observationDao.list(mid, nodeId)
   }
 

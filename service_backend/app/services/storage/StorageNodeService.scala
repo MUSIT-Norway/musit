@@ -46,7 +46,10 @@ class StorageNodeService @Inject()(
   /**
    * Simple check to see if a node with the given exists in a museum.
    */
-  def exists(mid: MuseumId, id: StorageNodeId): Future[MusitResult[Boolean]] = {
+  def exists(
+      mid: MuseumId,
+      id: StorageNodeId
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Boolean]] = {
     unitDao.exists(mid, id)
   }
 
@@ -55,7 +58,7 @@ class StorageNodeService @Inject()(
       searchStr: String,
       page: Int,
       limit: Int
-  ): Future[MusitResult[Seq[GenericStorageNode]]] = {
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Seq[GenericStorageNode]]] = {
     if (searchStr.length > 2) {
       unitDao.getStorageNodeByName(mid, searchStr, page, limit)
     } else {
@@ -121,7 +124,7 @@ class StorageNodeService @Inject()(
   def disambiguateAndGet(
       mid: MuseumId,
       maybeIdType: Option[(StorageNodeDatabaseId, StorageType)]
-  ): Future[MusitResult[Option[StorageNode]]] = {
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Option[StorageNode]]] = {
     maybeIdType.map { idt =>
       disambiguateAndGet(mid, idt._1, Some(idt._2))
     }.getOrElse {
@@ -133,7 +136,7 @@ class StorageNodeService @Inject()(
       mid: MuseumId,
       id: StorageNodeDatabaseId,
       maybeType: Option[StorageType]
-  ): Future[MusitResult[Option[StorageNode]]] = {
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Option[StorageNode]]] = {
     logger.debug(s"Disambiguating StorageType $maybeType")
     maybeType.map {
       case StorageType.RootType =>
@@ -163,7 +166,7 @@ class StorageNodeService @Inject()(
   def getNodeByDatabaseId(
       mid: MuseumId,
       id: StorageNodeDatabaseId
-  ): Future[MusitResult[Option[StorageNode]]] = {
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Option[StorageNode]]] = {
     unitDao.getStorageTypeFor(mid, id).flatMap { res =>
       res.map(maybeType => disambiguateAndGet(mid, id, maybeType)).getOrElse {
         logger.debug(s"Node $id not found")
@@ -175,7 +178,7 @@ class StorageNodeService @Inject()(
   def getNodeById(
       mid: MuseumId,
       uuid: StorageNodeId
-  ): Future[MusitResult[Option[StorageNode]]] = {
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Option[StorageNode]]] = {
     unitDao.getStorageTypeFor(mid, uuid).flatMap { res =>
       res.map { maybeIdType =>
         disambiguateAndGet(mid, maybeIdType).map {
@@ -190,7 +193,7 @@ class StorageNodeService @Inject()(
   def getNodeByOldBarcode(
       mid: MuseumId,
       oldBarcode: Long
-  ): Future[MusitResult[Option[StorageNode]]] = {
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Option[StorageNode]]] = {
     (for {
       tuple <- MusitResultT(unitDao.getStorageTypeFor(mid, oldBarcode))
       node <- tuple.map(t => MusitResultT(getNodeByDatabaseId(mid, t._1))).getOrElse {
@@ -201,7 +204,9 @@ class StorageNodeService @Inject()(
     } yield node).value
   }
 
-  def rootNodes(mid: MuseumId): Future[MusitResult[Seq[RootNode]]] = {
+  def rootNodes(
+      mid: MuseumId
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Seq[RootNode]]] = {
     (for {
       rootNodes <- MusitResultT(unitDao.findRootNodes(mid))
       sortedNodes = rootNodes.sortBy(_.storageType.displayOrder)
@@ -213,6 +218,8 @@ class StorageNodeService @Inject()(
       id: StorageNodeId,
       page: Int,
       limit: Int
+  )(
+      implicit currUser: AuthenticatedUser
   ): Future[MusitResult[PagedResult[GenericStorageNode]]] = {
     unitDao.getChildren(mid, id, page, limit)
   }
@@ -251,7 +258,7 @@ class StorageNodeService @Inject()(
       batchInsert: (MuseumId, Seq[E]) => Future[MusitResult[Seq[EventId]]]
   )(
       f: Seq[EventId] => MusitResult[Seq[ID]]
-  ): Future[MusitResult[Seq[ID]]] = {
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Seq[ID]]] = {
     batchInsert(mid, events).map(_.flatMap(ids => f(ids)))
   }
 
@@ -260,7 +267,7 @@ class StorageNodeService @Inject()(
       affectedNodes: Seq[GenericStorageNode],
       to: GenericStorageNode,
       events: Seq[MoveNode]
-  ): Future[MusitResult[Seq[StorageNodeId]]] = {
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Seq[StorageNodeId]]] = {
     logger.debug(s"Destination node is ${to.id} with path ${to.path}")
     logger.debug(s"Filtering away invalid placement of nodes in ${to.id}.")
     // Filter away nodes that didn't pass first round of validation
@@ -364,7 +371,10 @@ class StorageNodeService @Inject()(
     res.value
   }
 
-  private def toLocHistory(mid: MuseumId, mo: MoveObject) = {
+  private def toLocHistory(
+      mid: MuseumId,
+      mo: MoveObject
+  )(implicit currUser: AuthenticatedUser) = {
     val fromTuple = findPathAndNamesById(mid, mo.from)
     val toTuple   = findPathAndNamesById(mid, Option(mo.to))
 
@@ -385,7 +395,7 @@ class StorageNodeService @Inject()(
       mid: MuseumId,
       oid: ObjectUUID,
       limit: Option[Int]
-  ): Future[MusitResult[Seq[LocationHistory]]] = {
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Seq[LocationHistory]]] = {
     moveDao.listForObject(mid, oid, limit).flatMap {
       case MusitSuccess(events) =>
         events
@@ -403,7 +413,7 @@ class StorageNodeService @Inject()(
       mid: MuseumId,
       oid: ObjectUUID,
       tpe: ObjectType
-  ): Future[MusitResult[Option[StorageNode]]] = {
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Option[StorageNode]]] = {
     locObjDao.currentLocation(oid, tpe).flatMap {
       case MusitSuccess(maybeNodeId) =>
         maybeNodeId.map(id => getNodeById(mid, id)).getOrElse {
@@ -418,7 +428,7 @@ class StorageNodeService @Inject()(
   def currentObjectLocations(
       mid: MuseumId,
       oids: Seq[ObjectUUID]
-  ): Future[MusitResult[Seq[ObjectsLocation]]] = {
+  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Seq[ObjectsLocation]]] = {
 
     def buildLocationPaths(
         objNodeMap: Map[ObjectUUID, Option[StorageNodeId]],
@@ -508,6 +518,8 @@ class StorageNodeService @Inject()(
 
   def nodesOutsideMuseum(
       museumId: MuseumId
+  )(
+      implicit currUser: AuthenticatedUser
   ): Future[MusitResult[Seq[(StorageNodeDatabaseId, String)]]] = {
     unitDao.findRootLoanNodes(museumId).flatMap {
       case MusitSuccess(rids) =>

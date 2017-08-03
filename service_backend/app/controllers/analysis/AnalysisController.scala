@@ -30,9 +30,10 @@ class AnalysisController @Inject()(
       collectionIds: Option[String]
   ) =
     MusitSecureAction().async { implicit request =>
-      implicit val currUser = implicitly(request.user)
-      val maybeCat          = categoryId.flatMap(EventCategories.fromId)
-      val maybeColl         = collectionIds.flatMap(CollectionUUID.fromString)
+      implicit val currUser = request.user
+
+      val maybeCat  = categoryId.flatMap(EventCategories.fromId)
+      val maybeColl = collectionIds.flatMap(CollectionUUID.fromString)
       analysisService.getTypesFor(maybeCat, maybeColl).map {
         case MusitSuccess(types) => listAsPlayResult(types)
         case err: MusitError     => internalErr(err)
@@ -48,6 +49,7 @@ class AnalysisController @Inject()(
 
   def getAnalysisById(mid: MuseumId, id: Long) =
     MusitSecureAction().async { implicit request =>
+      implicit val currUser = request.user
       analysisService.findById(mid, id).map {
         case MusitSuccess(ma) => ma.map(ae => Ok(Json.toJson(ae))).getOrElse(NotFound)
         case err: MusitError  => internalErr(err)
@@ -56,6 +58,7 @@ class AnalysisController @Inject()(
 
   def getChildAnalyses(mid: MuseumId, id: Long) =
     MusitSecureAction().async { implicit request =>
+      implicit val currUser = request.user
       analysisService.childrenFor(mid, id).map {
         case MusitSuccess(analyses) => listAsPlayResult(analyses)
         case err: MusitError        => internalErr(err)
@@ -64,6 +67,8 @@ class AnalysisController @Inject()(
 
   def getAnalysisForObject(mid: MuseumId, oid: String) =
     MusitSecureAction().async { implicit request =>
+      implicit val currUser = request.user
+
       ObjectUUID
         .fromString(oid)
         .map { uuid =>
@@ -81,8 +86,9 @@ class AnalysisController @Inject()(
 
   def saveAnalysisEvent(mid: MuseumId) =
     MusitSecureAction().async(parse.json) { implicit request =>
-      implicit val currUser = implicitly(request.user)
-      val jsr               = request.body.validate[SaveAnalysisEventCommand]
+      implicit val currUser = request.user
+
+      val jsr = request.body.validate[SaveAnalysisEventCommand]
 
       saveRequest[SaveAnalysisEventCommand, Option[AnalysisModuleEvent]](jsr)(
         sc => analysisService.add(mid, sc)
@@ -91,7 +97,7 @@ class AnalysisController @Inject()(
 
   def addResult(mid: MuseumId, id: Long) =
     MusitSecureAction().async(parse.json) { implicit request =>
-      implicit val currUser = implicitly(request.user)
+      implicit val currUser = request.user
       val jsr               = request.body.validate[AnalysisResult]
 
       saveRequest[AnalysisResult, EventId](jsr) { r =>
@@ -101,7 +107,7 @@ class AnalysisController @Inject()(
 
   def updateResult(mid: MuseumId, eid: Long) =
     MusitSecureAction().async(parse.json) { implicit request =>
-      implicit val currUser = implicitly(request.user)
+      implicit val currUser = request.user
       val jsr               = request.body.validate[AnalysisResult]
 
       updateRequest[AnalysisResult, EventId](jsr) { r =>
@@ -111,7 +117,7 @@ class AnalysisController @Inject()(
 
   def importResults(mid: MuseumId, eid: Long) =
     MusitSecureAction().async(parse.json) { implicit request =>
-      implicit val currUser = implicitly(request.user)
+      implicit val currUser = request.user
 
       request.body.validate[AnalysisResultImport] match {
         case JsSuccess(resImport, _) =>
@@ -137,7 +143,7 @@ class AnalysisController @Inject()(
 
   def getAnalysisEvents(mid: MuseumId, collectionIds: String) =
     MusitSecureAction().async { implicit request =>
-      implicit val currUser = implicitly(request.user)
+      implicit val currUser = request.user
 
       parseCollectionIdsParam(mid, collectionIds)(request.user) match {
         case Left(res) =>

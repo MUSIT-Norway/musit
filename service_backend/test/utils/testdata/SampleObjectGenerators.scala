@@ -62,7 +62,7 @@ trait SampleObjectGenerators {
       doneDate = doneDate,
       registeredBy = registeredBy,
       registeredDate = registeredDate,
-      objectId = objectId,
+      affectedThing = objectId,
       sampleObjectId = sampleObjectId,
       externalLinks = None
     )

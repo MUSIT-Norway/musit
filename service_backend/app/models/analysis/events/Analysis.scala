@@ -13,18 +13,14 @@ import play.api.libs.json._
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 
-sealed trait AnalysisModuleEvent {
-  val id: Option[EventId]
+sealed trait AnalysisModuleEvent extends MusitEvent {
   val analysisTypeId: AnalysisTypeId
-  val registeredBy: Option[ActorId]
-  val registeredDate: Option[DateTime]
-  val doneBy: Option[ActorId]
-  val doneDate: Option[DateTime]
-  val objectId: Option[ObjectUUID]
   val partOf: Option[EventId]
   val note: Option[String]
   val status: Option[AnalysisStatus]
   val caseNumbers: Option[CaseNumbers]
+
+  override type T = AnalysisModuleEvent
 }
 
 trait TypedAnalysisEvent {
@@ -259,16 +255,19 @@ case class Analysis(
     updatedDate: Option[DateTime],
     completedBy: Option[ActorId],
     completedDate: Option[DateTime],
-    objectId: Option[ObjectUUID],
-    objectType: Option[ObjectType],
+    affectedThing: Option[ObjectUUID],
+    affectedType: Option[ObjectType],
     partOf: Option[EventId],
     note: Option[String],
     extraAttributes: Option[ExtraAttributes],
     result: Option[AnalysisResult]
 ) extends AnalysisEvent {
+  // These fields are not relevant for the Analysis type
   val reason: Option[String]           = None
   val status: Option[AnalysisStatus]   = None
   val caseNumbers: Option[CaseNumbers] = None
+
+  override def withId(id: Option[EventId]) = copy(id = id)
 }
 
 object Analysis extends WithDateTimeFormatters {
@@ -309,8 +308,11 @@ case class AnalysisCollection(
     orgId: Option[OrgId]
 ) extends AnalysisEvent {
 
-  val partOf: Option[EventId]      = None
-  val objectId: Option[ObjectUUID] = None
+  // These fields are not relevant for the AnalysisCollection type.
+  val partOf: Option[EventId]           = None
+  val affectedThing: Option[ObjectUUID] = None
+
+  override def withId(id: Option[EventId]) = copy(id = id)
 
   def withoutChildren = copy(events = Seq.empty)
 
@@ -334,19 +336,22 @@ case class SampleCreated(
     doneDate: Option[DateTime],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
-    objectId: Option[ObjectUUID],
+    affectedThing: Option[ObjectUUID],
     sampleObjectId: Option[ObjectUUID],
     externalLinks: Option[Seq[String]]
 ) extends AnalysisModuleEvent {
+  // These fields are not relevant for SampleCreated type.
   val partOf         = None
   val analysisTypeId = SampleCreated.sampleEventTypeId
   val note           = None
   val status         = None
   val caseNumbers    = None
+
+  override def withId(id: Option[EventId]) = copy(id = id)
 }
 
 object SampleCreated extends WithDateTimeFormatters {
-  val sampleEventTypeId: AnalysisTypeId = AnalysisTypeId(0L)
+  val sampleEventTypeId: AnalysisTypeId = EventTypeId(0)
 
   val discriminator = "SampleCreated"
 

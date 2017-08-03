@@ -8,12 +8,14 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents.{
 }
 import models.storage.event.move._
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
+import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.models._
-import oracle.net.aso.e
+import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.dao.{EventTables, LocalObjectDao}
+import play.api.libs.json.{Json, Writes}
+import repositories.storage.dao.LocalObjectDao
 
 import scala.concurrent.Future
 
@@ -21,8 +23,9 @@ import scala.concurrent.Future
 class MoveDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider,
     val localObjectsDao: LocalObjectDao
-) extends EventTables
-    with EventActions {
+) extends StorageEventTableProvider
+    with EventActions
+    with StorageFacilityEventRowMappers[MoveEvent] {
 
   val logger = Logger(classOf[MoveDao])
 
@@ -39,13 +42,13 @@ class MoveDao @Inject()(
   def insert[A <: MoveEvent](
       mid: MuseumId,
       moveEvent: A
-  ): Future[MusitResult[EventId]] =
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[EventId]] =
     moveEvent match {
       case mn: MoveNode =>
-        insertEvent(mid, mn)(asRow[MoveNode])
+        insertEvent(mid, mn)(asRow)
 
       case mo: MoveObject =>
-        insertEventAnd(mid, mo)(asRow[MoveObject]) { (event, eid) =>
+        insertEventWithAdditional(mid, mo)(asRow) { (event, eid) =>
           localObjectsDao.storeLatestMoveAction(mid, eid, event)
         }
     }
@@ -60,15 +63,15 @@ class MoveDao @Inject()(
   def batchInsertNodes(
       mid: MuseumId,
       moveEvents: Seq[MoveNode]
-  ): Future[MusitResult[Seq[EventId]]] = {
-    insertBatch[MoveNode](mid, moveEvents)((mid, row) => asRow[MoveNode](mid, row))
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[EventId]]] = {
+    insertBatch[MoveNode](mid, moveEvents)((mid, row) => asRow(mid, row))
   }
 
   def batchInsertObjects(
       mid: MuseumId,
       moveEvents: Seq[MoveObject]
-  ): Future[MusitResult[Seq[EventId]]] = {
-    insertBatchAnd(mid, moveEvents)((mid, row) => asRow[MoveObject](mid, row)) {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[EventId]]] = {
+    insertBatchWithAdditional(mid, moveEvents)((mid, row) => asRow(mid, row)) {
       case (event, eid) =>
         localObjectsDao.storeLatestMoveAction(mid, eid, event)
     }
@@ -84,11 +87,11 @@ class MoveDao @Inject()(
   def findById(
       mid: MuseumId,
       id: EventId
-  ): Future[MusitResult[Option[MoveEvent]]] =
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[MoveEvent]]] =
     findEventById[MoveEvent](mid, id) { row =>
       TopLevelEvents.unsafeFromId(row._2) match {
-        case MoveNodeType   => fromRow[MoveNode](row)
-        case MoveObjectType => fromRow[MoveObject](row)
+        case MoveNodeType   => fromRow(row._1, row._11)
+        case MoveObjectType => fromRow(row._1, row._11)
         case _              => None
       }
     }
@@ -105,13 +108,19 @@ class MoveDao @Inject()(
       mid: MuseumId,
       nodeId: StorageNodeId,
       limit: Option[Int] = None
-  ): Future[MusitResult[Seq[MoveNode]]] =
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MoveNode]]] =
     listEvents[MoveNode, StorageNodeId](
       mid,
       nodeId,
       MoveNodeType.id,
       limit
-    )(fromRow[MoveNode])
+    )(
+      row =>
+        fromRow(row._1, row._11).flatMap[MoveNode] {
+          case mn: MoveNode   => Some(mn)
+          case mo: MoveObject => None
+      }
+    )
 
   /**
    * List all MoveObject events for the given objectUUID.
@@ -125,38 +134,18 @@ class MoveDao @Inject()(
       mid: MuseumId,
       objectUUID: ObjectUUID,
       limit: Option[Int] = None
-  ): Future[MusitResult[Seq[MoveObject]]] =
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[MoveObject]]] =
     listEvents[MoveObject, ObjectUUID](
       mid,
       objectUUID,
       MoveObjectType.id,
       limit
-    )(fromRow[MoveObject])
-
-  // ==========================================================================
-  // TODO: Remove me after data migration
-  def batchInsertMigratedObjects(
-      moveEvents: Seq[(MuseumId, MoveObject)]
-  ): Future[MusitResult[Seq[EventId]]] = {
-    val actions = DBIO.sequence(moveEvents.map {
-      case (mid, e) =>
-        val row = asRow(mid, e)
-        for {
-          eid <- insertAction(row)
-          _   <- localObjectsDao.storeLatestMoveAction(mid, eid, e)
-        } yield eid
-    })
-
-    db.run(actions.transactionally)
-      .map(MusitSuccess.apply)
-      .recover(
-        nonFatal(
-          "An exception occurred registering a batch move with ids: " +
-            s" ${moveEvents.map(_._2.id.getOrElse("<empty>")).mkString(", ")}"
-        )
-      )
-  }
-  // TODO: Remove until here!
-  // ==========================================================================
+    )(
+      row =>
+        fromRow(row._1, row._11).flatMap[MoveObject] {
+          case mn: MoveNode   => None
+          case mo: MoveObject => Some(mo)
+      }
+    )
 
 }

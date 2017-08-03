@@ -2,7 +2,8 @@ package repositories.storage
 
 package object dao {
 
-  val SchemaName = Some("MUSARK_STORAGE")
+  val SchemaName    = "MUSARK_STORAGE"
+  val SchemaNameOpt = Some(SchemaName)
 
   val StorageEventTable = "NEW_EVENT"
   val OrganisationTable = "ORGANISATION"

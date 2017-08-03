@@ -5,17 +5,19 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEvent
 import models.storage.event.envreq.EnvRequirement
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
+import no.uio.musit.repositories.events.EventActions
+import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.storage.dao.EventTables
 
 import scala.concurrent.Future
 
 @Singleton
 class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
-    extends EventTables
-    with EventActions {
+    extends StorageEventTableProvider
+    with EventActions
+    with StorageFacilityEventRowMappers[EnvRequirement] {
 
   val logger = Logger(classOf[EnvReqDao])
 
@@ -31,8 +33,8 @@ class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
   def insert(
       mid: MuseumId,
       envReq: EnvRequirement
-  ): Future[MusitResult[EventId]] =
-    insertEvent[EnvRequirement](mid, envReq)(asRow[EnvRequirement])
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[EventId]] =
+    insertEvent[EnvRequirement](mid, envReq)(asRow)
 
   /**
    * Find the EnvRequirement with the given EventId
@@ -44,8 +46,8 @@ class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
   def findById(
       mid: MuseumId,
       id: EventId
-  ): Future[MusitResult[Option[EnvRequirement]]] =
-    findEventById[EnvRequirement](mid, id)(fromRow[EnvRequirement])
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[EnvRequirement]]] =
+    findEventById[EnvRequirement](mid, id)(row => fromRow(row._1, row._11))
 
   /**
    * List all EnvRequirement events for the given nodeId.
@@ -59,13 +61,13 @@ class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       mid: MuseumId,
       nodeId: StorageNodeId,
       limit: Option[Int] = None
-  ): Future[MusitResult[Seq[EnvRequirement]]] =
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[EnvRequirement]]] =
     listEvents[EnvRequirement, StorageNodeId](
       mid,
       nodeId,
       EnvRequirementEventType.id,
       limit
-    )(fromRow[EnvRequirement])
+    )(row => fromRow(row._1, row._11))
 
   /**
    * Tries to find the latest EnvRequirement event for the given nodeId.
@@ -75,16 +77,16 @@ class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
    */
   def latestForNodeId(
       nodeId: StorageNodeId
-  ): Future[MusitResult[Option[EnvRequirement]]] = {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[EnvRequirement]]] = {
     val query = for {
-      maybeEid <- storageEventTable.filter { e =>
+      maybeEid <- eventTable.filter { e =>
                    e.eventTypeId === EnvRequirementEventType.id &&
                    e.affectedUuid === nodeId.asString
                  }.map(_.eventId).max.result
       me <- maybeEid
-             .map(eid => storageEventTable.filter(_.eventId === eid).result.headOption)
+             .map(eid => eventTable.filter(_.eventId === eid).result.headOption)
              .getOrElse(DBIO.successful[Option[EventRow]](None))
-    } yield me.flatMap(fromRow[EnvRequirement])
+    } yield me.flatMap(row => fromRow(row._1, row._11))
 
     db.run(query)
       .map(MusitSuccess.apply)

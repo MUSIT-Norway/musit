@@ -1,19 +1,17 @@
-package models.storage.event
+package no.uio.musit.models
 
-import no.uio.musit.models.{ActorId, EventId, MusitUUID}
 import org.joda.time.DateTime
 
-trait MusitEvent { self =>
+trait MusitEvent {
 
   type T
 
   val id: Option[EventId]
   val doneBy: Option[ActorId]
-  val doneDate: DateTime
+  val doneDate: Option[DateTime]
   val affectedThing: Option[MusitUUID]
   val registeredBy: Option[ActorId]
   val registeredDate: Option[DateTime]
-  val eventType: EventType
 
   def withId(id: Option[EventId]): T
 

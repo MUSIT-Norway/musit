@@ -83,7 +83,10 @@ trait NodeService {
   private[services] def findPathByDatabaseId(
       mid: MuseumId,
       maybeId: Option[StorageNodeDatabaseId]
-  )(implicit ec: ExecutionContext): Future[MusitResult[Option[NodePath]]] = {
+  )(
+      implicit currUsr: AuthenticatedUser,
+      ec: ExecutionContext
+  ): Future[MusitResult[Option[NodePath]]] = {
     maybeId
       .map(id => unitDao.getPathByDatabaseId(mid, id))
       .getOrElse(Future.successful(MusitSuccess(None)))
@@ -100,13 +103,12 @@ trait NodeService {
       mid: MuseumId,
       maybeId: Option[StorageNodeDatabaseId]
   )(
-      implicit ec: ExecutionContext
+      implicit currUsr: AuthenticatedUser,
+      ec: ExecutionContext
   ): Future[MusitResult[(NodePath, Seq[NamedPathElement])]] = {
 
     def findNodes(
         maybePath: Option[NodePath]
-    )(
-        implicit ec: ExecutionContext
     ): Future[MusitResult[(NodePath, Seq[NamedPathElement])]] = {
       maybePath.map { p =>
         unitDao.namesForPath(p).map {
@@ -127,7 +129,10 @@ trait NodeService {
   private[services] def findPathById(
       mid: MuseumId,
       maybeId: Option[StorageNodeId]
-  )(implicit ec: ExecutionContext): Future[MusitResult[Option[NodePath]]] = {
+  )(
+      implicit currUsr: AuthenticatedUser,
+      ec: ExecutionContext
+  ): Future[MusitResult[Option[NodePath]]] = {
     maybeId
       .map(id => unitDao.getPathById(mid, id))
       .getOrElse(Future.successful(MusitSuccess(None)))
@@ -137,7 +142,8 @@ trait NodeService {
       mid: MuseumId,
       maybeId: Option[StorageNodeId]
   )(
-      implicit ec: ExecutionContext
+      implicit currUsr: AuthenticatedUser,
+      ec: ExecutionContext
   ): Future[MusitResult[(NodePath, Seq[NamedPathElement])]] = {
 
     def findNodes(
@@ -167,7 +173,10 @@ trait NodeService {
    */
   private[services] def isEmpty(
       node: StorageNode
-  )(implicit ec: ExecutionContext): Future[Boolean] = {
+  )(
+      implicit currUsr: AuthenticatedUser,
+      ec: ExecutionContext
+  ): Future[Boolean] = {
     val n = for {
       dbid <- node.id
       nid  <- node.nodeId
@@ -191,7 +200,10 @@ trait NodeService {
       maybeDestId: Option[StorageNodeDatabaseId],
       node: T,
       dest: NodePath
-  )(implicit ec: ExecutionContext): Future[MusitResult[Unit]] = Future.successful {
+  )(
+      implicit currUsr: AuthenticatedUser,
+      ec: ExecutionContext
+  ): Future[MusitResult[Unit]] = Future.successful {
     logger.debug(
       s"Found types for node IDs in destination path" +
         s": ${idTypeTuples.mkString(", ")}"
@@ -246,7 +258,10 @@ trait NodeService {
       mid: MuseumId,
       node: T,
       dest: NodePath
-  )(implicit ec: ExecutionContext): Future[MusitResult[Unit]] = {
+  )(
+      implicit currUsr: AuthenticatedUser,
+      ec: ExecutionContext
+  ): Future[MusitResult[Unit]] = {
     if (!dest.childOf(node.path)) {
       val maybeDestId = dest.asIdSeq.lastOption
       // Get the StorageType for the elements in the destination path so we can
@@ -278,7 +293,10 @@ trait NodeService {
       mid: MuseumId,
       dest: NodePath,
       nodes: Seq[GenericStorageNode]
-  )(implicit ec: ExecutionContext): Future[Seq[GenericStorageNode]] = {
+  )(
+      implicit currUsr: AuthenticatedUser,
+      ec: ExecutionContext
+  ): Future[Seq[GenericStorageNode]] = {
     Future.sequence {
       nodes.map { node =>
         validatePosition(mid, node, dest).map {
@@ -360,7 +378,10 @@ trait NodeService {
 
   private[services] def getEnvReq(
       id: StorageNodeId
-  )(implicit ec: ExecutionContext): Future[MusitResult[Option[EnvironmentRequirement]]] = {
+  )(
+      implicit currUsr: AuthenticatedUser,
+      ec: ExecutionContext
+  ): Future[MusitResult[Option[EnvironmentRequirement]]] = {
     envReqService.findLatestForNodeId(id).recover {
       case NonFatal(ex) =>
         // If we fail fetching the envreq event, we'll return None.
@@ -387,7 +408,10 @@ trait NodeService {
       eventuallyMaybeNode: Future[MusitResult[Option[A]]]
   )(
       cp: CopyNode[A]
-  )(implicit ec: ExecutionContext): Future[MusitResult[Option[A]]] = {
+  )(
+      implicit currUsr: AuthenticatedUser,
+      ec: ExecutionContext
+  ): Future[MusitResult[Option[A]]] = {
     (for {
       maybeNode <- MusitResultT(eventuallyMaybeNode)
       nodeId <- MusitResultT.successful(
@@ -413,7 +437,12 @@ trait NodeService {
       current: CurrLocType[ID],
       ids: Vector[ID],
       moveEvents: Seq[E]
-  )(implicit ctId: ClassTag[ID], ctEvt: ClassTag[E], ec: ExecutionContext): Seq[E] = {
+  )(
+      implicit ctId: ClassTag[ID],
+      ctEvt: ClassTag[E],
+      currUsr: AuthenticatedUser,
+      ec: ExecutionContext
+  ): Seq[E] = {
     moveEvents.filter(_.affectedThing.exists(ids.contains)).map { e =>
       val currId = e.affectedThing.get.asInstanceOf[ID]
       // scalastyle:ignore
@@ -444,6 +473,7 @@ trait NodeService {
   )(
       implicit ctId: ClassTag[ID],
       ctEvt: ClassTag[E],
+      currUsr: AuthenticatedUser,
       ec: ExecutionContext
   ): Future[MusitResult[Seq[ID]]] = {
 

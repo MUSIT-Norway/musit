@@ -113,6 +113,8 @@ final class StorageController @Inject()(
    * @see [[models.storage.nodes.RootNode]]
    */
   def root(mid: Int) = MusitSecureAction(mid, Read).async { implicit request =>
+    implicit val currUser = request.user
+
     service.rootNodes(mid).map {
       case MusitSuccess(roots) =>
         Ok(Json.toJson[Seq[StorageNode]](roots))
@@ -142,6 +144,8 @@ final class StorageController @Inject()(
       page: Int,
       limit: Int
   ) = MusitSecureAction(mid, Read).async { implicit request =>
+    implicit val currUser = request.user
+
     StorageNodeId
       .fromString(id)
       .map { nid =>
@@ -160,7 +164,10 @@ final class StorageController @Inject()(
       .getOrElse(invaludUuidResponse(id))
   }
 
-  private def getByStorageNodeId(mid: Int, nodeId: String): Future[Result] = {
+  private def getByStorageNodeId(
+      mid: Int,
+      nodeId: String
+  )(implicit currUser: AuthenticatedUser): Future[Result] = {
     StorageNodeId
       .fromString(nodeId)
       .map { nid =>
@@ -181,7 +188,10 @@ final class StorageController @Inject()(
       .getOrElse(invaludUuidResponse(nodeId))
   }
 
-  private def getByOldBarcode(mid: Int, barcode: Long): Future[Result] = {
+  private def getByOldBarcode(
+      mid: Int,
+      barcode: Long
+  )(implicit currUser: AuthenticatedUser): Future[Result] = {
     service.getNodeByOldBarcode(mid, barcode).map {
       case MusitSuccess(maybeNode) =>
         maybeNode.map(node => Ok(Json.toJson(node))).getOrElse(NoContent)
@@ -198,7 +208,11 @@ final class StorageController @Inject()(
   def getById(
       mid: Int,
       id: String
-  ) = MusitSecureAction(mid, Read).async(getByStorageNodeId(mid, id))
+  ) = MusitSecureAction(mid, Read).async { implicit request =>
+    implicit val currUser = request.user
+
+    getByStorageNodeId(mid, id)
+  }
 
   /**
    * Service for looking up a storage node based on UUID.
@@ -208,6 +222,8 @@ final class StorageController @Inject()(
       storageNodeId: Option[String],
       oldBarcode: Option[Long]
   ) = MusitSecureAction(mid, Read).async { implicit request =>
+    implicit val currUser = request.user
+
     storageNodeId
       .map(sid => getByStorageNodeId(mid, sid))
       .orElse(oldBarcode.map(bc => getByOldBarcode(mid, bc)))
@@ -258,6 +274,7 @@ final class StorageController @Inject()(
       id: String
   ) = MusitSecureAction(mid, Admin).async { implicit request =>
     implicit val currUsr = request.user
+
     StorageNodeId
       .fromString(id)
       .map { sid =>
@@ -454,6 +471,8 @@ final class StorageController @Inject()(
       objectType: String,
       limit: Int
   ) = MusitSecureAction(mid, Read).async { implicit request =>
+    implicit val currUser = request.user
+
     ObjectUUID
       .fromString(objectId)
       .map { oid =>
@@ -476,6 +495,8 @@ final class StorageController @Inject()(
       objectId: String,
       objectType: String
   ) = MusitSecureAction(mid, Read).async { implicit request =>
+    implicit val currUser = request.user
+
     ObjectUUID
       .fromString(objectId)
       .map { oid =>
@@ -517,6 +538,8 @@ final class StorageController @Inject()(
   def currentObjectLocations(
       mid: Int
   ) = MusitSecureAction(mid, Read).async(parse.json) { implicit request =>
+    implicit val currUser = request.user
+
     request.body.validate[Seq[MovableObject]] match {
       case JsSuccess(objs, _) =>
         service.currentObjectLocations(mid, objs.map(_.id)).map {
@@ -550,6 +573,8 @@ final class StorageController @Inject()(
       page: Int,
       limit: Int
   ) = MusitSecureAction(mid, Read).async { request =>
+    implicit val currUser = request.user
+
     searchStr match {
       case Some(criteria) if criteria.length >= 3 =>
         service.searchByName(mid, criteria, page, limit).map {

@@ -12,6 +12,7 @@ import no.uio.musit.models.MuseumCollections.{
   Nature
 }
 import no.uio.musit.models._
+import no.uio.musit.repositories.DbErrorHandlers
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
@@ -22,7 +23,7 @@ import repositories.musitobject.dao.SearchFieldValues.{
   LiteralValue,
   WildcardValue
 }
-import repositories.shared.dao.{DbErrorHandlers, SharedTables}
+import repositories.shared.dao.SharedTables
 
 import scala.concurrent.Future
 

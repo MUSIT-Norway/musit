@@ -128,7 +128,7 @@ class SampleObjectServiceSpec
           theHead.doneDate mustApproximate Some(dateTimeNow)
           theHead.registeredBy mustBe Some(dummyUser.id)
           theHead.registeredDate mustApproximate Some(dateTimeNow)
-          theHead.objectId mustBe Some(parentId)
+          theHead.affectedThing mustBe Some(parentId)
 
         case _ =>
           fail(s"The list contained ${sce.size} elements, expected 1.")

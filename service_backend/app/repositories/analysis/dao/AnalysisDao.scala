@@ -4,87 +4,81 @@ import com.google.inject.{Inject, Singleton}
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events._
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
+import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.models.{EventId, MuseumCollection, MuseumId, ObjectUUID}
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import repositories.shared.dao.DbErrorHandlers
 
 import scala.concurrent.Future
 
 @Singleton
 class AnalysisDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider
-) extends AnalysisTables
-    with DbErrorHandlers {
+) extends AnalysisEventTableProvider
+    with AnalysisTables
+    with EventActions
+    with AnalysisEventRowMappers {
 
   val logger = Logger(classOf[AnalysisDao])
 
   import profile.api._
-
-  private val noaction: DBIO[Unit] = DBIO.successful(())
-
-  private def insertAnalysisAction(event: EventRow): DBIO[EventId] = {
-    analysisTable returning analysisTable.map(_.id) += event
-  }
 
   private def upsertResultAction(
       mid: MuseumId,
       id: EventId,
       result: AnalysisResult
   ): DBIO[Int] = {
-    resultTable.insertOrUpdate(asResultTuple(mid, id, result))
+    resultTable.insertOrUpdate(asResultRow(mid, id, result))
   }
 
   private def insertAnalysisWithResultAction(
       mid: MuseumId,
       ae: AnalysisEvent,
       maybeRes: Option[AnalysisResult]
-  ): DBIO[EventId] = {
-    for {
-      id <- insertAnalysisAction(asEventTuple(mid, ae))
-      _  <- maybeRes.map(r => upsertResultAction(mid, id, r)).getOrElse(noaction)
-    } yield id
+  )(implicit currUsr: AuthenticatedUser): DBIO[EventId] = {
+    insertEventWithAdditionalAction(mid, ae)(asRow) { (event, eid) =>
+      maybeRes.map(res => upsertResultAction(mid, eid, res)).getOrElse(noaction)
+    }
   }
 
   private def insertChildEventsAction(
       mid: MuseumId,
       pid: EventId,
       events: Seq[Analysis]
-  ): DBIO[Seq[EventId]] = {
-    val batch = events.map { e =>
-      insertAnalysisWithResultAction(mid, e.copy(partOf = Some(pid)), e.result)
+  )(implicit currUsr: AuthenticatedUser): DBIO[Seq[EventId]] = {
+    insertBatchWithAdditionalAction(mid, events.map(_.copy(partOf = Some(pid))))(asRow) {
+      (event, eid) =>
+        event.result.map(res => upsertResultAction(mid, eid, res)).getOrElse(noaction)
     }
-    DBIO.sequence(batch)
   }
 
   private def updateAction(
       mid: MuseumId,
       id: EventId,
       event: AnalysisEvent
-  ): DBIO[Int] = analysisTable.filter(_.id === id).update(asEventTuple(mid, event))
+  )(implicit currUsr: AuthenticatedUser): DBIO[Int] =
+    eventTable.filter(_.eventId === id).update(asRow(mid, event))
 
   private def findByIdAction(
       mid: MuseumId,
       id: EventId,
       includeSample: Boolean
-  ): DBIO[Option[AnalysisModuleEvent]] = {
-    val q1 = analysisTable.filter(a => a.id === id && a.museumId === mid)
+  )(implicit currUsr: AuthenticatedUser): DBIO[Option[AnalysisModuleEvent]] = {
+    val q1 = eventTable.filter(a => a.eventId === id && a.museumId === mid)
     val q2 = {
       if (includeSample) q1
-      else q1.filter(_.typeId =!= SampleCreated.sampleEventTypeId)
+      else q1.filter(_.eventTypeId =!= SampleCreated.sampleEventTypeId)
     }
 
-    q2.result.headOption.map { res =>
-      res.flatMap(toAnalysisModuleEvent)
-    }
+    q2.result.headOption.map(_.flatMap(row => fromRow(row._1, row._13)))
   }
 
   private def resultForEventIdAction(
       mid: MuseumId,
       id: EventId
-  ): DBIO[Option[AnalysisResult]] = {
+  )(implicit currUsr: AuthenticatedUser): DBIO[Option[AnalysisResult]] = {
     resultTable
       .filter(r => r.eventId === id && r.museumId === mid)
       .result
@@ -97,35 +91,16 @@ class AnalysisDao @Inject()(
   private def listChildrenAction(
       mid: MuseumId,
       parentId: EventId
-  ): DBIO[Seq[Analysis]] = {
-    val query = analysisTable.filter { a =>
+  )(implicit currUsr: AuthenticatedUser): DBIO[Seq[Analysis]] = {
+    val query = eventTable.filter { a =>
       a.partOf === parentId && a.museumId === mid
-    } joinLeft resultTable on (_.id === _.eventId)
+    } joinLeft resultTable on (_.eventId === _.eventId)
 
     query.result.map { res =>
       res.map { row =>
-        toAnalysis(row._1)
-          .flatMap(_.withResultAsOpt[Analysis](fromResultRow(row._2)))
+        toAnalysis(row._1._1, row._1._13)
+          .flatMap(_.withResultAsOpt[Analysis](fromResultRowOpt(row._2)))
           .get
-      }
-    }
-  }
-
-  private def listForObjectAction(
-      mid: MuseumId,
-      oid: ObjectUUID
-  ): DBIO[Seq[AnalysisModuleEvent]] = {
-    val query = analysisTable.filter { a =>
-      a.objectUuid === oid && a.museumId === mid
-    } joinLeft resultTable on (_.id === _.eventId)
-
-    query.result.map { res =>
-      res.flatMap { row =>
-        toAnalysisModuleEvent(row._1).map {
-          case ae: AnalysisEvent =>
-            ae.withResultAsOpt(fromResultRow(row._2)).getOrElse(ae)
-          case so: SampleCreated => so
-        }
       }
     }
   }
@@ -133,7 +108,7 @@ class AnalysisDao @Inject()(
   private def sampleIdsForObjectAction(
       mid: MuseumId,
       oid: ObjectUUID
-  ): DBIO[Seq[ObjectUUID]] = {
+  )(implicit currUsr: AuthenticatedUser): DBIO[Seq[ObjectUUID]] = {
     sampleObjTable
       .filter(s => s.originatedFrom === oid && s.museumId === mid)
       .map(_.id)
@@ -144,27 +119,30 @@ class AnalysisDao @Inject()(
       mid: MuseumId,
       oid: ObjectUUID,
       sampleIds: Seq[ObjectUUID]
-  ): DBIO[Seq[AnalysisModuleEvent]] = {
+  )(implicit currUsr: AuthenticatedUser): DBIO[Seq[AnalysisModuleEvent]] = {
     val setid = SampleCreated.sampleEventTypeId
 
-    def checkObjectUuid(id: Rep[Option[ObjectUUID]]) = {
-      if (sampleIds.nonEmpty) id === oid || (id inSet sampleIds)
-      else id === oid
+    def checkObjectUuid(id: Rep[Option[String]]) = {
+      if (sampleIds.nonEmpty) id === oid.asString || (id inSet sampleIds.map(_.asString))
+      else id === oid.asString
     }
 
     val qry = for {
-      a <- analysisTable.filter(a => a.museumId === mid && checkObjectUuid(a.objectUuid))
-      b <- analysisTable if a.partOf === b.id || (b.id === a.id && a.typeId === setid)
+      a <- eventTable.filter(a => a.museumId === mid && checkObjectUuid(a.affectedUuid))
+      b <- eventTable
+      if a.partOf === b.eventId || (b.eventId === a.eventId && a.eventTypeId === setid)
     } yield b
 
-    val query = qry joinLeft resultTable on (_.id === _.eventId)
+    val query = qry joinLeft resultTable on (_.eventId === _.eventId)
 
     query.result.map { res =>
       res.flatMap { row =>
-        toAnalysisModuleEvent(row._1).map {
+        fromRow(row._1._1, row._1._13).map {
           case ae: AnalysisEvent =>
-            ae.withResultAsOpt(fromResultRow(row._2)).getOrElse(ae)
-          case so: SampleCreated => so
+            ae.withResultAsOpt(fromResultRowOpt(row._2)).getOrElse(ae)
+
+          case so: SampleCreated =>
+            so
         }
       }
     }
@@ -177,12 +155,13 @@ class AnalysisDao @Inject()(
    * @param a   The Analysis to persist.
    * @return eventually returns a MusitResult containing the EventId.
    */
-  def insert(mid: MuseumId, a: Analysis): Future[MusitResult[EventId]] = {
-    val action = insertAnalysisWithResultAction(mid, a, a.result)
-
-    db.run(action.transactionally)
-      .map(MusitSuccess.apply)
-      .recover(nonFatal(s"An unexpected error occurred inserting an analysis event"))
+  def insert(
+      mid: MuseumId,
+      a: Analysis
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[EventId]] = {
+    insertEventWithAdditional(mid, a)(asRow) { (event, eid) =>
+      event.result.map(res => upsertResultAction(mid, eid, res)).getOrElse(noaction)
+    }
   }
 
   /**
@@ -194,7 +173,10 @@ class AnalysisDao @Inject()(
    * @param ac  The AnalysisCollection to persist.
    * @return eventually returns a MusitResult containing the EventId.
    */
-  def insertCol(mid: MuseumId, ac: AnalysisCollection): Future[MusitResult[EventId]] = {
+  def insertCol(
+      mid: MuseumId,
+      ac: AnalysisCollection
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[EventId]] = {
     val action = for {
       id   <- insertAnalysisWithResultAction(mid, ac.withoutChildren, ac.result)
       eids <- insertChildEventsAction(mid, id, ac.events)
@@ -220,7 +202,7 @@ class AnalysisDao @Inject()(
       mid: MuseumId,
       id: EventId,
       ae: AnalysisEvent
-  ): Future[MusitResult[Option[AnalysisEvent]]] = {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[AnalysisEvent]]] = {
     val action = updateAction(mid, id, ae).transactionally
 
     db.run(action)
@@ -252,6 +234,8 @@ class AnalysisDao @Inject()(
       mid: MuseumId,
       id: EventId,
       includeSample: Boolean = true
+  )(
+      implicit currUsr: AuthenticatedUser
   ): Future[MusitResult[Option[AnalysisModuleEvent]]] = {
     val query = for {
       maybeEvent <- findByIdAction(mid, id, includeSample)
@@ -285,7 +269,7 @@ class AnalysisDao @Inject()(
   def findAnalysisById(
       mid: MuseumId,
       id: EventId
-  ): Future[MusitResult[Option[AnalysisEvent]]] = {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[AnalysisEvent]]] = {
     findById(mid, id, includeSample = false).map(_.map(_.flatMap {
       case ae: AnalysisEvent => Some(ae)
       case _                 => None
@@ -301,7 +285,10 @@ class AnalysisDao @Inject()(
    * @param id  The analysis container to find children for.
    * @return eventually a result with a list of analysis events and their results
    */
-  def listChildren(mid: MuseumId, id: EventId): Future[MusitResult[Seq[Analysis]]] = {
+  def listChildren(
+      mid: MuseumId,
+      id: EventId
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[Analysis]]] = {
     db.run(listChildrenAction(mid, id))
       .map(MusitSuccess.apply)
       .recover(nonFatal(s"An unexpected error occurred fetching events partOf $id"))
@@ -317,7 +304,7 @@ class AnalysisDao @Inject()(
   def findByCollectionObjectUUID(
       mid: MuseumId,
       oid: ObjectUUID
-  ): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
     val eventsRes = for {
       derivedSampleIds <- db.run(sampleIdsForObjectAction(mid, oid))
       events           <- db.run(listAllForObjectAction(mid, oid, derivedSampleIds))
@@ -338,12 +325,12 @@ class AnalysisDao @Inject()(
   def findResultFor(
       mid: MuseumId,
       id: EventId
-  ): Future[MusitResult[Option[AnalysisResult]]] = {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[AnalysisResult]]] = {
     val q = resultTable
       .filter(r => r.eventId === id && r.museumId === mid)
       .result
       .headOption
-      .map(fromResultRow)
+      .map(fromResultRowOpt)
 
     db.run(q)
       .map(MusitSuccess.apply)
@@ -364,7 +351,7 @@ class AnalysisDao @Inject()(
       mid: MuseumId,
       id: EventId,
       res: AnalysisResult
-  ): Future[MusitResult[EventId]] = {
+  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[EventId]] = {
     val action = upsertResultAction(mid, id, res)
 
     db.run(action.transactionally)
@@ -421,11 +408,11 @@ class AnalysisDao @Inject()(
       museumCollections: Seq[MuseumCollection]
   )(
       implicit currUser: AuthenticatedUser
-  ): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
+  ): Future[MusitResult[Seq[AnalysisCollection]]] = {
 
-    type AEQuery = Query[AnalysisTable, AnalysisTable#TableElementType, Seq]
+    type AEQuery = Query[AnalysisEventTable, AnalysisEventTable#TableElementType, Seq]
 
-    def buildQuery(ids: Seq[EventId]): AEQuery = analysisTable.filter(_.id inSet ids)
+    def buildQuery(ids: Seq[EventId]): AEQuery = eventTable.filter(_.eventId inSet ids)
 
     val musColFilter = {
       val cids = museumCollections.map(_.collection.id)
@@ -442,9 +429,9 @@ class AnalysisDao @Inject()(
             SELECT ee.PART_OF, so.ORIGINATED_OBJECT_UUID, mt.NEW_COLLECTION_ID
             FROM MUSARK_ANALYSIS.EVENT ee
               LEFT OUTER JOIN MUSARK_ANALYSIS.SAMPLE_OBJECT so
-                ON ee.OBJECT_UUID = so.SAMPLE_UUID
+                ON ee.AFFECTED_UUID = so.SAMPLE_UUID
               LEFT OUTER JOIN MUSIT_MAPPING.MUSITTHING mt
-                ON ee.OBJECT_UUID = mt.MUSITTHING_UUID
+                ON ee.AFFECTED_UUID = mt.MUSITTHING_UUID
                 OR so.ORIGINATED_OBJECT_UUID = mt.MUSITTHING_UUID
             WHERE ee.MUSEUM_ID = ${mid.underlying}
               AND ee.TYPE_ID != 0
@@ -461,7 +448,7 @@ class AnalysisDao @Inject()(
       .flatMap { eventIds =>
         if (eventIds.nonEmpty) {
           val eids = eventIds.map(EventId.fromLong).grouped(500)
-          val query = eids.foldLeft[(Int, AEQuery)]((0, analysisTable)) {
+          val query = eids.foldLeft[(Int, AEQuery)]((0, eventTable)) {
             case (qry, ids) =>
               if (qry._1 == 0) (1, buildQuery(ids))
               else (qry._1 + 1, qry._2 unionAll buildQuery(ids))
@@ -471,7 +458,7 @@ class AnalysisDao @Inject()(
           Future.successful(Vector.empty)
         }
       }
-      .map(_.flatMap(toAnalysisModuleEvent))
+      .map(_.flatMap(row => toAnalysisCollection(row._1, row._13)))
       .map(MusitSuccess.apply)
       .recover(nonFatal(s"An unexpected error occurred while fetching analysis events"))
   }
