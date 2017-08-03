@@ -748,8 +748,8 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         getIdStringFor(31)
       )
 
-      val paths = verifyIds.map { id =>
-        val r = wsUrl(StorageNodeUrl(mid, id))
+      val paths = verifyIds.map { nodeId =>
+        val r = wsUrl(StorageNodeUrl(mid, nodeId))
           .withHeaders(readToken.asHeader)
           .get()
           .futureValue
@@ -900,8 +900,6 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         .withHeaders(readToken.asHeader)
         .get()
         .futureValue
-
-      println(Json.prettyPrint(currentLocation.json))
 
       currentLocation.status mustBe OK
 
