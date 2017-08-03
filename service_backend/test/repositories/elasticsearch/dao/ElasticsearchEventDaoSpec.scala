@@ -1,7 +1,11 @@
 package repositories.elasticsearch.dao
 
+import java.util.UUID
+
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
+import no.uio.musit.models.GroupId
+import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
 import repositories.analysis.dao.AnalysisDao
@@ -12,6 +16,33 @@ class ElasticsearchEventDaoSpec
     with AnalysisGenerators
     with MusitResultValues {
   "ElasticsearchEventDao" should {
+
+    implicit val dummyUser = AuthenticatedUser(
+      session = UserSession(
+        uuid = SessionUUID.generate(),
+        oauthToken = Option(BearerToken(UUID.randomUUID().toString)),
+        userId = Option(dummyActorId),
+        isLoggedIn = true
+      ),
+      userInfo = UserInfo(
+        id = dummyActorId,
+        secondaryIds = Some(Seq("vader@starwars.com")),
+        name = Some("Darth Vader"),
+        email = None,
+        picture = None
+      ),
+      groups = Seq(
+        GroupInfo(
+          id = GroupId.generate(),
+          name = "FooBarGroup",
+          module = CollectionManagement,
+          permission = Permissions.Admin,
+          museumId = defaultMid,
+          description = None,
+          collections = Seq()
+        )
+      )
+    )
 
     val esEventDao   = fromInstanceCache[ElasticsearchEventDao]
     val analysisDao  = fromInstanceCache[AnalysisDao]

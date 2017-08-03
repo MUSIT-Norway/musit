@@ -63,8 +63,8 @@ object AnalysisSearch {
       administrator = a.administrator.map(id => ActorSearch(id, actorNames.nameFor(id))),
       updatedBy = ActorSearchStamp(a.updatedBy, a.updatedDate, actorNames),
       completedBy = ActorSearchStamp(a.completedBy, a.completedDate, actorNames),
-      objectId = a.objectId,
-      objectType = a.objectType,
+      objectId = a.affectedThing,
+      objectType = a.affectedType,
       partOf = a.partOf,
       note = a.note,
       extraAttributes = a.extraAttributes,
@@ -138,7 +138,7 @@ object SampleCreatedSearch {
       id = s.id.get,
       doneBy = ActorSearchStamp(s.doneBy, s.doneDate, actorNames),
       registeredBy = ActorSearchStamp(s.registeredBy, s.registeredDate, actorNames),
-      objectId = s.objectId,
+      objectId = s.affectedThing,
       sampleObjectId = s.sampleObjectId,
       externalLinks = s.externalLinks
     )
