@@ -68,7 +68,7 @@ trait AnalysisTables
 
   type SampleObjectRow = (
       ObjectUUID,
-      (Option[ObjectUUID], ObjectType),
+      (Option[ObjectUUID], Option[ObjectType]),
       Boolean,
       MuseumId,
       SampleStatus,
@@ -203,7 +203,7 @@ trait AnalysisTables
 
     val id               = column[ObjectUUID]("SAMPLE_UUID", O.PrimaryKey)
     val parentId         = column[Option[ObjectUUID]]("PARENT_OBJECT_UUID")
-    val parentObjectType = column[ObjectType]("PARENT_OBJECT_TYPE")
+    val parentObjectType = column[Option[ObjectType]]("PARENT_OBJECT_TYPE")
     val isExtracted      = column[Boolean]("IS_EXTRACTED")
     val museumId         = column[MuseumId]("MUSEUM_ID")
     val status           = column[SampleStatus]("STATUS")
@@ -450,7 +450,7 @@ trait AnalysisTables
   protected[dao] def asSampleObjectTuple(so: SampleObject): SampleObjectRow = {
     (
       so.objectId.getOrElse(ObjectUUID.generate()),
-      (so.parentObject.objectId, so.parentObject.objectType),
+      (so.parentObject.objectId, Some(so.parentObject.objectType)),
       so.isExtracted,
       so.museumId,
       so.status,
@@ -493,7 +493,7 @@ trait AnalysisTables
 
     SampleObject(
       objectId = Option(tuple._1),
-      parentObject = (ParentObject.apply _).tupled(tuple._2),
+      parentObject = (ParentObject.toParentObject _).tupled(tuple._2),
       isExtracted = tuple._3,
       museumId = tuple._4,
       status = tuple._5,

@@ -802,6 +802,9 @@ INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, mu
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('addcbabc-7499-4368-807a-b44c1af5c949', 'E235', '', 'drakt', 99, 235, 'USD_ETNO_GJENSTAND_O', 154, 2);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id) VALUES ('85ed8525-e1b6-4929-8ecb-11384bc57ae9', 'E236', '', 'maske', 99, 236, 'USD_ETNO_GJENSTAND_B', 155, 2);
 
+-- Inserting a test sample
+INSERT INTO MUSARK_ANALYSIS.SAMPLE_OBJECT(sample_uuid,museum_id,sample_type_id,originated_object_uuid,registered_by, registered_date) VALUES ('28cf7c75-66b2-4991-b871-d92baeec0049',99,1,'85ed8525-e1b6-4929-8ecb-11384bc57ae9','bf53f481-1db3-4474-98ee-c94df31ec251', TO_DATE('2016-01-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+
 INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('37715843-36ab-4f1a-bcfb-dd68a05d0f2c', 23, '3562e09e-6cf4-4b27-acad-e655e771c016', 99);
 INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('8ae52969-63b8-42be-bfd0-d8ebef2169eb', 23, '3562e09e-6cf4-4b27-acad-e655e771c016', 99);
 INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('d43e3c5a-8244-4497-bd15-29c844ff8745', 23, '3562e09e-6cf4-4b27-acad-e655e771c016', 99);
@@ -856,6 +859,7 @@ INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, curren
 INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('3fd8d3f9-ebb1-4447-8959-8e91ca2693fb', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);
 INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('564fade0-4a41-47cc-8c26-3b8f048aa191', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);
 INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('a738e36d-8683-44ac-9dda-67ff5a5851d5', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99);
+INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id, object_type) VALUES ('28cf7c75-66b2-4991-b871-d92baeec0049', 23, '01134afe-b262-434b-a71f-8f697bc75e56', 99, 'sample');
 
 INSERT INTO MUSIT_MAPPING.THING_MATERIAL (collectionid, objectid, etn_materialtype, etn_material, etn_material_element, etn_matrid_local, ark_material, ark_spes_material, ark_sortering, ark_hid_local, num_material, num_numistypeid) VALUES (1, 3, '', '', '', '', 'tre', 'spes bjørk', 1, '', '', '');
 INSERT INTO MUSIT_MAPPING.THING_MATERIAL (collectionid, objectid, etn_materialtype, etn_material, etn_material_element, etn_matrid_local, ark_material, ark_spes_material, ark_sortering, ark_hid_local, num_material, num_numistypeid) VALUES (1, 3, '', '', '', '', 'jern', 'spes rustet jern', 2, '', '', '');

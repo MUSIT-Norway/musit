@@ -891,6 +891,24 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       (js \ "nodeId").as[String] mustBe destNode
     }
 
+    "successfully get currentLocation of a sample object" in {
+      val id2 = "28cf7c75-66b2-4991-b871-d92baeec0049"
+      val nid = "01134afe-b262-434b-a71f-8f697bc75e56"
+
+      val currentLocation = wsUrl(ObjCurrentLocationUrl(mid, id2))
+        .withQueryString(("objectType", "sample"))
+        .withHeaders(readToken.asHeader)
+        .get()
+        .futureValue
+
+      println(Json.prettyPrint(currentLocation.json))
+
+      currentLocation.status mustBe OK
+
+      val js = currentLocation.json
+      (js \ "nodeId").as[String] mustBe nid
+    }
+
     "respond with 403 when trying to get a node using wrong museum" in {
       val mid    = MuseumId(5)
       val nodeId = "244f09a3-eb1a-49e7-80ee-7a07baa016dd" // node 6

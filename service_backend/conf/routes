@@ -92,8 +92,8 @@ GET           /museum/:mid/storagenodes/:nodeId/observations/:eventId        con
 
 # Object related endpoints
 # TODO: These endpoints can now have a more intuitive URI that doesn't involve the "storagenodes" part of the URI.
-GET           /museum/:mid/storagenodes/objects/:oid/locations               controllers.storage.StorageController.objectLocationHistory(mid: Int, oid: String, objectType: String = "collection", limit: Int ?= 50)
-GET           /museum/:mid/storagenodes/objects/:oid/currentlocation         controllers.storage.StorageController.currentObjectLocation(mid: Int, oid: String, objectType: String = "collection")
+GET           /museum/:mid/storagenodes/objects/:oid/locations               controllers.storage.StorageController.objectLocationHistory(mid: Int, oid: String, objectType: String ?= "collection", limit: Int ?= 50)
+GET           /museum/:mid/storagenodes/objects/:oid/currentlocation         controllers.storage.StorageController.currentObjectLocation(mid: Int, oid: String, objectType: String ?= "collection")
 POST          /museum/:mid/storagenodes/objects/currentlocations             controllers.storage.StorageController.currentObjectLocations(mid: Int)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

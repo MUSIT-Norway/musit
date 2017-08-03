@@ -198,9 +198,12 @@ class SampleObjectControllerIntegrationSpec
     "list all objects for a museum" in {
       val res     = getAllForTestMuseum
       val objects = res.json.as[JsArray].value
-      objects.size mustBe 10
+      objects.size mustBe 11
 
-      forAll(objects.zipWithIndex) {
+      // Check all samples _except_ the sample that was inserted in the
+      // test/resources/.../1.sql file. A bit naive in that it will fail if
+      // current ordering changes.
+      forAll(objects.tail.zipWithIndex) {
         case (obj, index) =>
           validateSampleObject(
             expectedParent = Some(parentObject),

@@ -21,7 +21,14 @@ trait MusitUUIDOps[T <: MusitUUID] {
   @throws(classOf[NoSuchElementException])
   def unsafeFromString(str: String): T = fromString(str).get
 
-  def validate(str: String): Try[UUID] = Try(UUID.fromString(str))
+  def validate(str: String): Try[UUID] = Try {
+    if (str.length != 36)
+      throw new IllegalArgumentException(
+        s"The value $str is not valid. Contains ${str.length} characters."
+      )
+
+    UUID.fromString(str)
+  }
 
   def generate(): T
 
