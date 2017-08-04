@@ -16,9 +16,11 @@ import FunctionSymbolExtensionMethods._
 import no.uio.musit.security.Permissions.Permission
 import no.uio.musit.security.{BearerToken, ModuleConstraint, SessionUUID}
 
-trait BaseColumnTypeMappers { self: HasDatabaseConfig[JdbcProfile] =>
+trait BaseColumnTypeMappers extends ColumnTypesImplicits {
+  self: HasDatabaseConfig[JdbcProfile] =>
 
-  import profile.api._
+  import columnTypes._
+  import profile.api.{MappedColumnType, BaseColumnType}
 
   // Implicit that extends Email typed columns with a toLowerCase method
   implicit class EmailColumnExtensionMethods[P1](val c: Rep[Email]) {

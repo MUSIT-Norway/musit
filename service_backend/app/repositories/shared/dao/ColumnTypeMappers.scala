@@ -7,14 +7,15 @@ import models.analysis.SampleTypeId
 import models.analysis.events.{Category, EventCategories}
 import models.loan.{LoanEventTypes, LoanType}
 import models.storage.nodes.StorageType
-import no.uio.musit.repositories.BaseColumnTypeMappers
+import no.uio.musit.repositories.{BaseColumnTypeMappers, ColumnTypesImplicits}
 import play.api.db.slick.HasDatabaseConfig
 import slick.jdbc.JdbcProfile
 
-trait ColumnTypeMappers extends BaseColumnTypeMappers {
+trait ColumnTypeMappers extends BaseColumnTypeMappers with ColumnTypesImplicits {
   self: HasDatabaseConfig[JdbcProfile] =>
 
-  import profile.api._
+  import columnTypes._
+  import profile.api.{MappedColumnType, BaseColumnType}
 
   implicit val storageTypeMapper =
     MappedColumnType.base[StorageType, String](
