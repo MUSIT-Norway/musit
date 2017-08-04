@@ -6,18 +6,16 @@ import models.analysis.events._
 import no.uio.musit.models._
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.json.Json
-import repositories.actor.dao.ActorTables
-import repositories.analysis.dao.{AnalysisEventTableProvider, AnalysisTables}
+import repositories.analysis.dao.AnalysisEventTableProvider
 import slick.basic.DatabasePublisher
 
 @Singleton
 class ElasticsearchEventDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
-    extends AnalysisEventTableProvider
-    with ActorTables {
+    extends AnalysisEventTableProvider {
 
   import profile.api._
 
-  def analysisEvents[E >: ExportEventRow](): DatabasePublisher[E] = {
+  def analysisEventsStream[E >: ExportEventRow](): DatabasePublisher[E] = {
     val query = eventTable.joinLeft(resultTable).on(_.eventId === _.eventId)
     db.stream(query.result).mapResult(res => toAnalysisEvent(res))
   }

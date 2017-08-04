@@ -55,7 +55,7 @@ class ElasticsearchEventDaoSpec
       val ac = dummyAnalysisCollection(gr, e1, e2)
       analysisDao.insertCol(defaultMid, ac).futureValue.successValue
 
-      val pub = esEventDao.analysisEvents()
+      val pub = esEventDao.analysisEventsStream()
 
       val res = Source.fromPublisher(pub).runWith(Sink.seq).futureValue
 
