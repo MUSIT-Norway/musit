@@ -1,4 +1,4 @@
-package services.elasticsearch
+package services.elasticsearch.events
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Flow, Source}
@@ -7,7 +7,9 @@ import com.google.inject.Inject
 import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.HttpClient
+import com.sksamuel.elastic4s.playjson._
 import models.analysis.events.{Analysis, AnalysisCollection, SampleCreated}
+import models.elasticsearch._
 import no.uio.musit.models.ActorId
 import play.api.Logger
 import repositories.elasticsearch.dao.{
@@ -16,10 +18,10 @@ import repositories.elasticsearch.dao.{
   ExportEventRow
 }
 import services.actor.ActorService
+import services.elasticsearch._
 
 import scala.concurrent.duration.DurationDouble
 import scala.concurrent.{Await, ExecutionContext, Future}
-import com.sksamuel.elastic4s.playjson._
 
 class IndexAnalysisEvents @Inject()(
     analysisEventsExportDao: ElasticsearchEventDao,

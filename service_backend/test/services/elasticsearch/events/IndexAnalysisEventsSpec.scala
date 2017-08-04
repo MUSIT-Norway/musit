@@ -1,4 +1,4 @@
-package services.elasticsearch
+package services.elasticsearch.events
 
 import akka.Done
 import akka.stream.Materializer

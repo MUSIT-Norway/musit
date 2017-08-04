@@ -1,4 +1,4 @@
-package services.elasticsearch
+package services.elasticsearch.events
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.indexes.CreateIndexDefinition

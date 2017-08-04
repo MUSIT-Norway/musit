@@ -1,14 +1,14 @@
-package services.elasticsearch
+package models.elasticsearch
 
 import models.analysis.AnalysisStatuses.AnalysisStatus
 import models.analysis.events.AnalysisExtras.ExtraAttributes
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events._
+import no.uio.musit.formatters.DateTimeFormatters._
 import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
 import org.joda.time.DateTime
 import play.api.libs.json.{JsObject, Json, Writes}
-import no.uio.musit.formatters.DateTimeFormatters._
 
 case class ActorNames(m: Map[ActorId, String]) {
   def nameFor(id: ActorId): Option[String] = m.get(id)
