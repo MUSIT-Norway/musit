@@ -112,7 +112,9 @@ object SaveCommands {
       expirationDate: DateTime,
       reason: String,
       caseNumbers: Option[CaseNumbers] = None,
-      cancelledReason: Option[String]
+      cancelledReason: Option[String],
+      cancelledBy: Option[ActorId],
+      cancelledDate: Option[DateTime]
   )
 
   object SaveRestriction extends WithDateTimeFormatters {
@@ -232,7 +234,7 @@ object SaveCommands {
                 reason = r.reason,
                 caseNumbers = r.caseNumbers,
                 cancelledReason = r.cancelledReason,
-                cancelledStamp = r.cancelledReason.map(_ => ActorStamp(cu.id, now))
+                cancelledStamp = getCancelledStamp(now, r)
               )
             )
             .getOrElse(
@@ -243,12 +245,25 @@ object SaveCommands {
                 caseNumbers = r.caseNumbers,
                 registeredStamp = Some(ActorStamp(cu.id, dateTimeNow)),
                 cancelledReason = r.cancelledReason,
-                cancelledStamp = r.cancelledReason.map(_ => ActorStamp(cu.id, now))
+                cancelledStamp = getCancelledStamp(now, r)
               )
             )
         }
       )
     }
+  }
+
+  private def getCancelledStamp(
+      now: DateTime,
+      restriction: SaveRestriction
+  )(implicit cu: AuthenticatedUser) = {
+    restriction.cancelledReason.map(
+      _ =>
+        ActorStamp(
+          restriction.cancelledBy.getOrElse(cu.id),
+          restriction.cancelledDate.getOrElse(now)
+      )
+    )
   }
 
   object SaveAnalysisCollection extends WithDateTimeFormatters {

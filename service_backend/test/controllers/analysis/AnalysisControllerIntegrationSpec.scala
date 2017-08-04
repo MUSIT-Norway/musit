@@ -17,6 +17,7 @@ import no.uio.musit.models._
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.matchers.DateTimeMatchers
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
+import no.uio.musit.time
 import org.joda.time.DateTime
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
@@ -190,7 +191,14 @@ class AnalysisControllerIntegrationSpec
           "reason"         -> "There's a reason now",
           "status"         -> 2,
           "analysisTypeId" -> 12, // Should not be modified by the server.
-          "orgId"          -> 317
+          "orgId"          -> 317,
+          "restriction" -> Json.obj(
+            "requester"       -> adminId,
+            "reason"          -> "secret",
+            "expirationDate"  -> time.dateTimeNow.plusDays(20),
+            "cancelledReason" -> "Illegal restriction",
+            "cancelledBy"     -> adminId
+          )
         )
 
         val updJson =
@@ -208,6 +216,10 @@ class AnalysisControllerIntegrationSpec
         (updRes.json \ "analysisTypeId").as[Int] mustBe tomographyTypeId
         (updRes.json \ "orgId").as[Int] mustBe 317
         (updRes.json \ "extraAttributes" \ "method").as[Int] mustBe NeutronTomography.id
+        (updRes.json \ "restriction" \ "cancelledReason")
+          .as[String] mustBe "Illegal restriction"
+        (updRes.json \ "restriction" \ "cancelledStamp" \ "user")
+          .as[String] mustBe adminId.asString
       }
 
       "return HTTP 400 when using wrong extra attributes for analysis collection" in {
