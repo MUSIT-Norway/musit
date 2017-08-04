@@ -3,6 +3,7 @@ package models.musitobject
 import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.models.ObjectTypes.CollectionObjectType
 import no.uio.musit.models._
+import org.joda.time.DateTime
 import play.api.libs.json.{Json, Writes}
 
 case class MusitObject(
@@ -66,7 +67,8 @@ object MusitObject {
           Option[String],
           Option[String],
           Option[String],
-          (Option[String], Option[String], Option[String], Option[String])
+          (Option[String], Option[String], Option[String], Option[String]),
+          DateTime
       )
   ) // scalastyle:ignore
 
