@@ -84,7 +84,7 @@ class IndexAnalysisEvents @Inject()(
     val source    = Source.fromPublisher(analysisEventsExportDao.analysisEventsStream())
     for {
       _    <- client.execute(EventIndexConfig.config(indexName.name))
-      done <- reindex(source.via(populateActors), Some(indexName))
+      done <- reindex(Seq(source.via(populateActors)), Some(indexName))
     } yield done
   }
 

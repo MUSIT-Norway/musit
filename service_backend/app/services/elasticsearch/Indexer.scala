@@ -42,10 +42,10 @@ trait Indexer[S] {
    * size of the source.
    */
   def reindex[B](
-      source: Source[S, B],
+      sources: Seq[Source[S, B]],
       indexName: Option[IndexName] = None
   )(implicit mat: Materializer, ec: ExecutionContext): Future[Done] = {
-    index(source, { (newIndex, alias) =>
+    index(sources, { (newIndex, alias) =>
       indexMaintainer.activateIndex(newIndex.name, alias)
     }, indexName)
   }
@@ -54,15 +54,16 @@ trait Indexer[S] {
    * Index the source and run `onComplete` when executed successfully.
    */
   def index[B](
-      source: Source[S, B],
+      sources: Seq[Source[S, B]],
       onComplete: (IndexName, String) => Future[Unit] = (_, _) => Future.successful(()),
       indexName: Option[IndexName] = None
   )(implicit mat: Materializer, ec: ExecutionContext): Future[Done] = {
     val newIndex = indexName.getOrElse(createIndexName())
-    source
-      .via(toAction(newIndex))
-      .via(elasticsearchFlow.flow())
-      .runWith(Sink.ignore)
+    Future
+      .sequence(sources.map { source =>
+        source.via(toAction(newIndex)).via(elasticsearchFlow.flow()).runWith(Sink.ignore)
+      })
+      .map(_.head)
       .flatMap(done => onComplete(newIndex, indexAliasName).map(_ => done))
   }
 
