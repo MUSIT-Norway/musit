@@ -12,7 +12,7 @@ test:
   tags:
     - docker
     - shared
-  image: musitproject/docker-scala-sbt
+  image: registry.gitlab.com/musit-norway/docker-scala-sbt
   variables:
     MUSIT_FUTURE_TIMEOUT: "15000"
     MUSIT_FUTURE_INTERVAL: "50"
