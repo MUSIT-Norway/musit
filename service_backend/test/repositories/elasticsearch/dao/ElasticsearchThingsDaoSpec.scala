@@ -3,6 +3,9 @@ package repositories.elasticsearch.dao
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
+import scala.concurrent.Future
 
 class ElasticsearchThingsDaoSpec extends MusitSpecWithAppPerSuite {
 
@@ -10,13 +13,27 @@ class ElasticsearchThingsDaoSpec extends MusitSpecWithAppPerSuite {
   implicit val mat: Materializer  = fromInstanceCache[Materializer]
 
   "ElasticsearchThingsDao" should {
-    "publish events" in {
-      val pub = dao.objectStream
+    "publish events on multiple streams" in {
+      val pubs = dao.objectStreams(2)
 
-      val res = Source.fromPublisher(pub).runWith(Sink.seq).futureValue
+      val streams = pubs.flatMap { s =>
+        Future.sequence(
+          s.map { pub =>
+            Source
+              .fromPublisher(pub)
+              .fold(0) { case (c, obj) => c + 1 }
+              .runWith(Sink.head)
+          }
+        )
+      }
 
-      res.size must be >= 50
+      val res = streams.futureValue
+
+      res.sum must be >= 50
     }
+
   }
 
 }
+
+//start: 2017-08-07T08:27:48.339+02:00
