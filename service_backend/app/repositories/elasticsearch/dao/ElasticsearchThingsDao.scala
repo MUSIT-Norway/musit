@@ -7,6 +7,7 @@ import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.musitobject.dao.ObjectTables
 import slick.basic.DatabasePublisher
+import slick.jdbc.{ResultSetConcurrency, ResultSetType}
 
 import scala.concurrent.Future
 
@@ -30,7 +31,16 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
           val query = objTable.filter { row =>
             (row.isDeleted === false) && (row.id >= from) && (row.id <= to)
           }
-          db.stream(query.result).mapResult(row => MusitObject.fromSearchTuple(row))
+          db.stream(
+              query.result
+                .withStatementParameters(
+                  rsType = ResultSetType.ForwardOnly,
+                  rsConcurrency = ResultSetConcurrency.ReadOnly,
+                  fetchSize = 1000
+                )
+                .transactionally
+            )
+            .mapResult(row => MusitObject.fromSearchTuple(row))
       }
     }
   }

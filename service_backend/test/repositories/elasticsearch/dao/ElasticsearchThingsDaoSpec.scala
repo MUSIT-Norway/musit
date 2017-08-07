@@ -35,5 +35,3 @@ class ElasticsearchThingsDaoSpec extends MusitSpecWithAppPerSuite {
   }
 
 }
-
-//start: 2017-08-07T08:27:48.339+02:00
