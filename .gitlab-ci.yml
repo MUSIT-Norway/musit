@@ -1,11 +1,20 @@
 ######################################################################
 # GitLab CI build script for the MUSIT backend project               #
 ######################################################################
+variables:
+  DOCKER_DRIVER: overlay
+  # Setting specific folder for sbt-coursier to cache artifacts
+  COURSIER_CACHE: "/root/cache/coursier"
 
 stages:
   - test
   - build
   - cleanup
+
+cache:
+  untracked: true
+  paths:
+    - cache
 
 test:
   stage: test
