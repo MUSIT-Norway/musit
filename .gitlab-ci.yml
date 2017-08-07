@@ -1,17 +1,26 @@
 ######################################################################
 # GitLab CI build script for the MUSIT backend project               #
 ######################################################################
+variables:
+  DOCKER_DRIVER: overlay
+  # Setting specific folder for sbt-coursier to cache artifacts
+  COURSIER_CACHE: "/root/cache/coursier"
 
 stages:
   - test
   - build
+
+cache:
+  untracked: true
+  paths:
+    - cache
 
 test:
   stage: test
   tags:
     - docker
     - shared
-  image: musitproject/docker-scala-sbt
+  image: registry.gitlab.com/musit-norway/docker-scala-sbt
   variables:
     MUSIT_FUTURE_TIMEOUT: "15000"
     MUSIT_FUTURE_INTERVAL: "50"
