@@ -11,7 +11,7 @@ import com.sksamuel.elastic4s.playjson._
 import models.analysis.events.{Analysis, AnalysisCollection, SampleCreated}
 import models.elasticsearch._
 import no.uio.musit.models.ActorId
-import play.api.Logger
+import play.api.{Configuration, Logger}
 import repositories.elasticsearch.dao.{
   AnalysisEventRow,
   ElasticsearchEventDao,
@@ -27,6 +27,7 @@ class IndexAnalysisEvents @Inject()(
     analysisEventsExportDao: ElasticsearchEventDao,
     actorDao: ActorService,
     client: HttpClient,
+    cfg: Configuration,
     override val indexMaintainer: IndexMaintainer
 )(implicit ec: ExecutionContext, mat: Materializer)
     extends Indexer[EventSearch] {
@@ -35,7 +36,10 @@ class IndexAnalysisEvents @Inject()(
 
   override val indexAliasName = "events"
 
-  override val elasticsearchFlow = new ElasticsearchFlow(client, 1000)
+  override val elasticsearchFlow = new ElasticsearchFlow(
+    client,
+    cfg.getInt("musit.elasticsearch.streams.events.esBatchSize").getOrElse(1000)
+  )
 
   val populateActors =
     new GroupAndEnrichStage[ExportEventRow, EventSearch, ActorId, (ActorId, String)](

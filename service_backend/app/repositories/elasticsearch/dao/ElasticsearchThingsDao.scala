@@ -20,8 +20,10 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
   implicit def longToObjectId(n: Long): Rep[ObjectId] =
     LiteralColumn(ObjectId.fromLong(n))
 
-  def objectStreams(streams: Int): Future[Seq[DatabasePublisher[MusitObject]]] = {
-
+  def objectStreams(
+      streams: Int,
+      fetchSize: Int
+  ): Future[Seq[DatabasePublisher[MusitObject]]] = {
     val maxIdValue =
       objTable.filter(row => row.isDeleted === false && row.uuid.isDefined).map(_.id).max
 
@@ -36,7 +38,7 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
                 .withStatementParameters(
                   rsType = ResultSetType.ForwardOnly,
                   rsConcurrency = ResultSetConcurrency.ReadOnly,
-                  fetchSize = 1000
+                  fetchSize = fetchSize
                 )
                 .transactionally
             )

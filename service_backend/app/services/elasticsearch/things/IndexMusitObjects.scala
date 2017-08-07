@@ -7,8 +7,9 @@ import com.google.inject.Inject
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.HttpClient
 import com.sksamuel.elastic4s.playjson._
-import models.elasticsearch.{MustObjectSearch, MusitObjectSearch}
+import models.elasticsearch.{MusitObjectSearch, MustObjectSearch}
 import models.musitobject.MusitObject
+import play.api.Configuration
 import repositories.elasticsearch.dao.ElasticsearchThingsDao
 import services.elasticsearch.events.EventIndexConfig
 import services.elasticsearch.{ElasticsearchFlow, IndexMaintainer, IndexName, Indexer}
@@ -18,12 +19,23 @@ import scala.concurrent.{ExecutionContext, Future}
 class IndexMusitObjects @Inject()(
     elasticsearchThingsDao: ElasticsearchThingsDao,
     client: HttpClient,
+    cfg: Configuration,
     override val indexMaintainer: IndexMaintainer
 )(implicit ec: ExecutionContext, mat: Materializer)
     extends Indexer[MusitObjectSearch] {
 
-  override val indexAliasName    = "musit_objects"
-  override val elasticsearchFlow = new ElasticsearchFlow(client, 1000)
+  private[this] val esBathSize: Int =
+    cfg.getInt("musit.elasticsearch.streams.musitObjects.esBatchSize").getOrElse(1000)
+  private[this] val concurrentSources =
+    cfg.getInt("musit.elasticsearch.streams.musitObjects.concurrentSources").getOrElse(20)
+  private[this] val fetchSize =
+    cfg
+      .getInt("musit.elasticsearch.streams.musitObjects.dbStreamFetchSize")
+      .getOrElse(1000)
+
+  override val indexAliasName = "musit_objects"
+
+  override val elasticsearchFlow = new ElasticsearchFlow(client, esBathSize)
 
   val populate =
     Flow[MusitObject].filter(_.uuid.isDefined).map(mObj => MustObjectSearch(mObj))
@@ -42,8 +54,9 @@ class IndexMusitObjects @Inject()(
   }
 
   private def indexMusitObjects(indexName: IndexName) = {
+
     elasticsearchThingsDao
-      .objectStreams(20) // todo: make sources configurable
+      .objectStreams(concurrentSources, fetchSize)
       .map(s => s.map(Source.fromPublisher))
       .flatMap { sources =>
         reindex(sources.map(_.via(populate)), Some(indexName))

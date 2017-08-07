@@ -14,9 +14,9 @@ class ElasticsearchThingsDaoSpec extends MusitSpecWithAppPerSuite {
 
   "ElasticsearchThingsDao" should {
     "publish events on multiple streams" in {
-      val pubs = dao.objectStreams(2)
+      val pubs = dao.objectStreams(streams = 2, fetchSize = 20)
 
-      val streams = pubs.flatMap { s =>
+      val res = pubs.flatMap { s =>
         Future.sequence(
           s.map { pub =>
             Source
@@ -25,9 +25,7 @@ class ElasticsearchThingsDaoSpec extends MusitSpecWithAppPerSuite {
               .runWith(Sink.head)
           }
         )
-      }
-
-      val res = streams.futureValue
+      }.futureValue
 
       res.sum must be >= 50
     }
