@@ -56,6 +56,7 @@ trait BaseEventTableProvider
     val registeredDate = column[DateTime]("REGISTERED_DATE")
     val doneBy         = column[Option[ActorId]]("DONE_BY")
     val doneDate       = column[Option[DateTime]]("DONE_DATE")
+    val updatedDate    = column[Option[DateTime]]("UPDATED_DATE")
     val partOf         = column[Option[EventId]]("PART_OF")
     val affectedUuid   = column[Option[String]]("AFFECTED_UUID")
     val note           = column[Option[String]]("NOTE")

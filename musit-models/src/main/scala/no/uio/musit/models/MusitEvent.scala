@@ -12,6 +12,7 @@ trait MusitEvent {
   val affectedThing: Option[MusitUUID]
   val registeredBy: Option[ActorId]
   val registeredDate: Option[DateTime]
+  val updatedDate: Option[DateTime]
 
   def withId(id: Option[EventId]): T
 

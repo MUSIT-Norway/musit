@@ -30,6 +30,8 @@ case class Observation(
     waterDamageAssessment: Option[ObservationWaterDamageAssessment] = None
 ) extends StorageFacilityEvent {
 
+  val updatedDate = None
+
   override type T = Observation
 
   override def withId(id: Option[EventId]) = copy(id = id)

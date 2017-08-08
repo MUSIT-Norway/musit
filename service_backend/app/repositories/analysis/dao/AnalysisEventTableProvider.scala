@@ -29,6 +29,7 @@ private[dao] trait AnalysisEventTableProvider
       DateTime,
       Option[ActorId],
       Option[DateTime],
+      Option[DateTime],
       Option[EventId],
       Option[String], // MusitUUID
       Option[String],
@@ -60,6 +61,7 @@ private[dao] trait AnalysisEventTableProvider
         registeredDate,
         doneBy,
         doneDate,
+        updatedDate,
         partOf,
         affectedUuid,
         note,

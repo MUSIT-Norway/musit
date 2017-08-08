@@ -72,7 +72,7 @@ class AnalysisDao @Inject()(
       else q1.filter(_.eventTypeId =!= SampleCreated.sampleEventTypeId)
     }
 
-    q2.result.headOption.map(_.flatMap(row => fromRow(row._1, row._13)))
+    q2.result.headOption.map(_.flatMap(row => fromRow(row._1, row._14)))
   }
 
   private def resultForEventIdAction(
@@ -98,7 +98,7 @@ class AnalysisDao @Inject()(
 
     query.result.map { res =>
       res.map { row =>
-        toAnalysis(row._1._1, row._1._13)
+        toAnalysis(row._1._1, row._1._14)
           .flatMap(_.withResultAsOpt[Analysis](fromResultRowOpt(row._2)))
           .get
       }
@@ -137,7 +137,7 @@ class AnalysisDao @Inject()(
 
     query.result.map { res =>
       res.flatMap { row =>
-        fromRow(row._1._1, row._1._13).map {
+        fromRow(row._1._1, row._1._14).map {
           case ae: AnalysisEvent =>
             ae.withResultAsOpt(fromResultRowOpt(row._2)).getOrElse(ae)
 
@@ -458,7 +458,7 @@ class AnalysisDao @Inject()(
           Future.successful(Vector.empty)
         }
       }
-      .map(_.flatMap(row => toAnalysisCollection(row._1, row._13)))
+      .map(_.flatMap(row => toAnalysisCollection(row._1, row._14)))
       .map(MusitSuccess.apply)
       .recover(nonFatal(s"An unexpected error occurred while fetching analysis events"))
   }

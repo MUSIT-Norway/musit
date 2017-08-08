@@ -23,6 +23,7 @@ trait AnalysisEventRowMappers extends EventRowMappers[AnalysisModuleEvent] {
       e.registeredDate.getOrElse(dateTimeNow),
       e.doneBy,
       e.doneDate,
+      e.updatedDate,
       e.partOf,
       e.affectedThing.map(_.asString),
       e.note,

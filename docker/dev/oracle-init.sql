@@ -176,12 +176,13 @@ NOCACHE;
 
 CREATE TABLE MUSARK_STORAGE.NEW_EVENT (
   event_id        NUMBER(20) DEFAULT MUSARK_STORAGE.nevent_sequence.nextval,
-  type_id         VARCHAR2(36) NOT NULL,
-  museum_id       INTEGER      NOT NULL,
+  type_id         VARCHAR2(36)             NOT NULL,
+  museum_id       INTEGER                  NOT NULL,
   done_by         VARCHAR2(512),
-  done_date       TIMESTAMP,
-  registered_by   VARCHAR2(36) NOT NULL,
-  registered_date TIMESTAMP    NOT NULL,
+  done_date       TIMESTAMP WITH TIME ZONE,
+  updated_date    TIMESTAMP WITH TIME ZONE,
+  registered_by   VARCHAR2(36)             NOT NULL,
+  registered_date TIMESTAMP WITH TIME ZONE NOT NULL,
   part_of         NUMBER(20),
   affected_uuid   VARCHAR2(36),
   affected_type   VARCHAR2(50), -- collection | sample | node | ...
@@ -375,6 +376,7 @@ CREATE TABLE MUSARK_ANALYSIS.EVENT (
   museum_id       INTEGER                  NOT NULL,
   done_by         VARCHAR2(512),
   done_date       TIMESTAMP WITH TIME ZONE,
+  updated_date    TIMESTAMP WITH TIME ZONE,
   registered_by   VARCHAR2(36)             NOT NULL,
   registered_date TIMESTAMP WITH TIME ZONE NOT NULL,
   part_of         NUMBER(20),

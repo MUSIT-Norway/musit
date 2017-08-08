@@ -29,6 +29,7 @@ private[dao] trait StorageEventTableProvider
         ActorId,
         DateTime,
         Option[DateTime],
+        Option[DateTime],
         Option[EventId],
         Option[String], // MusitUUID
         Option[ObjectType],
@@ -51,6 +52,7 @@ private[dao] trait StorageEventTableProvider
         registeredBy,
         registeredDate,
         doneDate,
+        updatedDate,
         partOf,
         affectedUuid,
         affectedType,

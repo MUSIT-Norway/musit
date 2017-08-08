@@ -7,14 +7,13 @@ import models.storage.event.EventTypeRegistry.TopLevelEvents.{
   MoveObjectType
 }
 import models.storage.event.move._
-import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.{Json, Writes}
 import repositories.storage.dao.LocalObjectDao
 
 import scala.concurrent.Future
@@ -90,8 +89,8 @@ class MoveDao @Inject()(
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[MoveEvent]]] =
     findEventById[MoveEvent](mid, id) { row =>
       TopLevelEvents.unsafeFromId(row._2) match {
-        case MoveNodeType   => fromRow(row._1, row._11)
-        case MoveObjectType => fromRow(row._1, row._11)
+        case MoveNodeType   => fromRow(row._1, row._12)
+        case MoveObjectType => fromRow(row._1, row._12)
         case _              => None
       }
     }
@@ -116,7 +115,7 @@ class MoveDao @Inject()(
       limit
     )(
       row =>
-        fromRow(row._1, row._11).flatMap[MoveNode] {
+        fromRow(row._1, row._12).flatMap[MoveNode] {
           case mn: MoveNode   => Some(mn)
           case mo: MoveObject => None
       }
@@ -142,7 +141,7 @@ class MoveDao @Inject()(
       limit
     )(
       row =>
-        fromRow(row._1, row._11).flatMap[MoveObject] {
+        fromRow(row._1, row._12).flatMap[MoveObject] {
           case mn: MoveNode   => None
           case mo: MoveObject => Some(mo)
       }

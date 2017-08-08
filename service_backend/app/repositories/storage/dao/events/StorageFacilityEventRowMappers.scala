@@ -22,6 +22,7 @@ trait StorageFacilityEventRowMappers[A <: StorageFacilityEvent]
       e.registeredDate.getOrElse(dateTimeNow),
       e.doneDate,
       None,
+      None,
       e.affectedThing.map(_.asString),
       Some(ObjectTypes.Node),
       None,

@@ -26,6 +26,8 @@ case class Control(
     temperature: Option[ControlTemperature] = None
 ) extends StorageFacilityEvent {
 
+  val updatedDate = None
+
   override type T = Control
 
   override def withId(id: Option[EventId]) = copy(id = id)

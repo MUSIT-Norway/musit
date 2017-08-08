@@ -61,6 +61,8 @@ case class MoveObject(
     to: StorageNodeId
 ) extends MoveEvent {
 
+  val updatedDate = None
+
   override def withId(id: Option[EventId]) = copy(id = id)
 
 }
@@ -102,6 +104,8 @@ case class MoveNode(
     from: Option[StorageNodeId],
     to: StorageNodeId
 ) extends MoveEvent {
+
+  val updatedDate = None
 
   override val objectType: ObjectType = Node
 

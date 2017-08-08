@@ -47,7 +47,7 @@ class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       mid: MuseumId,
       id: EventId
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[EnvRequirement]]] =
-    findEventById[EnvRequirement](mid, id)(row => fromRow(row._1, row._11))
+    findEventById[EnvRequirement](mid, id)(row => fromRow(row._1, row._12))
 
   /**
    * List all EnvRequirement events for the given nodeId.
@@ -67,7 +67,7 @@ class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       nodeId,
       EnvRequirementEventType.id,
       limit
-    )(row => fromRow(row._1, row._11))
+    )(row => fromRow(row._1, row._12))
 
   /**
    * Tries to find the latest EnvRequirement event for the given nodeId.
@@ -86,7 +86,7 @@ class EnvReqDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       me <- maybeEid
              .map(eid => eventTable.filter(_.eventId === eid).result.headOption)
              .getOrElse(DBIO.successful[Option[EventRow]](None))
-    } yield me.flatMap(row => fromRow(row._1, row._11))
+    } yield me.flatMap(row => fromRow(row._1, row._12))
 
     db.run(query)
       .map(MusitSuccess.apply)

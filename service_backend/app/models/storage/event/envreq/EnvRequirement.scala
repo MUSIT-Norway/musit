@@ -25,6 +25,8 @@ case class EnvRequirement(
     light: Option[String]
 ) extends StorageFacilityEvent {
 
+  val updatedDate = None
+
   override type T = EnvRequirement
 
   override def withId(id: Option[EventId]) = copy(id = id)

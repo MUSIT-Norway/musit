@@ -346,6 +346,7 @@ case class SampleCreated(
   val note           = None
   val status         = None
   val caseNumbers    = None
+  val updatedDate    = None
 
   override def withId(id: Option[EventId]) = copy(id = id)
 }

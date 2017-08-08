@@ -45,7 +45,7 @@ class ControlDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       mid: MuseumId,
       id: EventId
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[Control]]] =
-    findEventById[Control](mid, id)(row => fromRow(row._1, row._11))
+    findEventById[Control](mid, id)(row => fromRow(row._1, row._12))
 
   /**
    * List all Control events for the given nodeId.
@@ -65,6 +65,6 @@ class ControlDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
       nodeId,
       ControlEventType.id,
       limit
-    )(row => fromRow(row._1, row._11))
+    )(row => fromRow(row._1, row._12))
 
 }
