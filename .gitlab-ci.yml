@@ -28,7 +28,7 @@ test:
     paths:
       - $HOME/.sbt
       - $HOME/.coursier
-  coverage: '\[info]\sAll\sdone\.\sCoverage\swas\s\[(.*)%\]'
+  coverage: \[info]\sAll\sdone\.\sCoverage\swas\s\[(.*)%\]
   script:
     - echo "Building and running tests..."
     # Check if the scalafmt modified any files during the build. If yes, fail the build.
