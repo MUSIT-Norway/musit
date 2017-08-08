@@ -24,10 +24,7 @@ test:
   variables:
     MUSIT_FUTURE_TIMEOUT: "15000"
     MUSIT_FUTURE_INTERVAL: "50"
-  cache:
-    paths:
-      - $HOME/.sbt
-      - $HOME/.coursier
+
   coverage: '/\[info]\sAll\sdone\.\sCoverage\swas\s\[(.*)%\]/'
   script:
     - echo "Building and running tests..."
