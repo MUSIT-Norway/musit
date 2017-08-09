@@ -1,6 +1,5 @@
 package services.elasticsearch.things
 
-import akka.Done
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Flow, Source}
 import com.google.inject.Inject
@@ -11,7 +10,6 @@ import models.elasticsearch.{MusitObjectSearch, MustObjectSearch}
 import models.musitobject.MusitObject
 import play.api.Configuration
 import repositories.elasticsearch.dao.ElasticsearchThingsDao
-import services.elasticsearch.events.EventIndexConfig
 import services.elasticsearch.{ElasticsearchFlow, IndexMaintainer, IndexName, Indexer}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -27,9 +25,7 @@ class IndexMusitObjects @Inject()(
   private[this] val esBathSize: Int =
     cfg.getInt("musit.elasticsearch.streams.musitObjects.esBatchSize").getOrElse(1000)
   private[this] val concurrentSources =
-    cfg
-      .getInt("musit.elasticsearch.streams.musitObjects.concurrentSources")
-      .getOrElse(20)
+    cfg.getInt("musit.elasticsearch.streams.musitObjects.concurrentSources").getOrElse(20)
   private[this] val fetchSize =
     cfg
       .getInt("musit.elasticsearch.streams.musitObjects.dbStreamFetchSize")
@@ -47,16 +43,19 @@ class IndexMusitObjects @Inject()(
       indexInto(indexName.name, thing.documentType) id thing.documentId doc thing
     }
 
-  def reindexAll(): Future[Done] = {
+  override def reindexToNewIndex(): Future[IndexName] = {
     val indexName = createIndexName()
     for {
-      _    <- client.execute(EventIndexConfig.config(indexName.name))
-      done <- indexMusitObjects(indexName)
-    } yield done
+      _ <- client.execute(MusitObjectsIndexConfig.config(indexName.name))
+      _ <- indexMusitObjects(indexName)
+    } yield indexName
+  }
+
+  override def updateExistingIndex(index: IndexName): Future[Unit] = {
+    Future.successful(()) //todo impl
   }
 
   private def indexMusitObjects(indexName: IndexName) = {
-
     elasticsearchThingsDao
       .objectStreams(concurrentSources, fetchSize)
       .map(s => s.map(Source.fromPublisher))
@@ -64,4 +63,5 @@ class IndexMusitObjects @Inject()(
         reindex(sources.map(_.via(populate)), Some(indexName))
       }
   }
+
 }

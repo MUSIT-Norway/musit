@@ -22,7 +22,7 @@ class ElasticsearchEventDao @Inject()(val dbConfigProvider: DatabaseConfigProvid
 
   def toAnalysisEvent(res: (EventRow, Option[ResultRow])) = {
     val event = Json
-      .fromJson[AnalysisModuleEvent](res._1._13)
+      .fromJson[AnalysisModuleEvent](res._1._14)
       .map {
         case a: Analysis =>
           a.copy(id = res._1._1)

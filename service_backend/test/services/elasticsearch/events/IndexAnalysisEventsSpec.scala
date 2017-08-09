@@ -1,11 +1,11 @@
 package services.elasticsearch.events
 
-import akka.Done
 import akka.stream.Materializer
 import no.uio.musit.models.MuseumId
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
 import services.analysis.AnalysisService
+import services.elasticsearch.IndexName
 import utils.testdata.{AnalysisGenerators, BaseDummyData}
 
 import scala.concurrent.ExecutionContext
@@ -26,9 +26,9 @@ class IndexAnalysisEventsSpec
       val collection = dummySaveAnalysisCollectionCmd()
       analysisService.add(MuseumId(99), collection)(au).futureValue
 
-      val f = esIndexer.reindexAll()
+      val f = esIndexer.reindexToNewIndex()
 
-      f.futureValue mustBe Done
+      f.futureValue mustBe a[IndexName]
     }
   }
 

@@ -8,12 +8,16 @@ import org.apache.http.HttpHost
 import org.apache.http.client.config.RequestConfig
 import org.elasticsearch.client.RestClientBuilder.RequestConfigCallback
 import play.api.{Configuration, Environment}
+import services.elasticsearch.ElasticsearchService
 
-class Elastic4sModule(environment: Environment, cfg: Configuration) extends ScalaModule {
+class ElasticsearchModule(environment: Environment, cfg: Configuration)
+    extends ScalaModule {
 
   override def configure() = {
     val host = cfg.underlying.getString("musit.elasticsearch.host")
     val port = cfg.underlying.getInt("musit.elasticsearch.port")
+
+    bind[ElasticsearchService].asEagerSingleton()
 
     bind[HttpClient].toInstance(
       HttpClient(

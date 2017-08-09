@@ -21,18 +21,20 @@ class ElasticsearchFlow(
 
   val logger = Logger(classOf[ElasticsearchFlow])
 
-  def flow(): Flow[BulkCompatibleDefinition, BulkResponse, NotUsed] =
+  def flow(name: String): Flow[BulkCompatibleDefinition, BulkResponse, NotUsed] =
     Flow[BulkCompatibleDefinition]
       .grouped(maxBulkSize)
       .via(startStopWatch)
       .mapAsync(1)(ba => client.execute(bulk(ba._1)).map((_, ba._2)))
-      .via(logStopWatch)
+      .via(logStopWatch(name))
 
   private def startStopWatch[A] = Flow[Seq[A]].map((_, StopWatch()))
 
-  private val logStopWatch: Flow[(BulkResponse, StopWatch), BulkResponse, NotUsed] =
+  private def logStopWatch(
+      name: String
+  ): Flow[(BulkResponse, StopWatch), BulkResponse, NotUsed] =
     Flow[(BulkResponse, StopWatch)]
-      .log("stream.elasticsearch", r => toLog(r._2, r._1))
+      .log(s"stream.elasticsearch.$name", r => toLog(r._2, r._1))
       .withAttributes(Attributes.logLevels(onElement = Logging.InfoLevel))
       .map(_._1)
 

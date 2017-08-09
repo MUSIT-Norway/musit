@@ -12,11 +12,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class IndexMaintainer @Inject()(
     client: HttpClient
-)(implicit ec: ExecutionContext) {
+) {
 
   val logger = Logger(classOf[IndexMaintainer])
 
-  def activateIndex(index: String, aliasName: String): Future[Unit] = {
+  def activateIndex(index: String, aliasName: String)(
+      implicit ec: ExecutionContext
+  ): Future[Unit] = {
     val res = for {
       allAliases <- client.execute(catAliases())
 
@@ -41,7 +43,7 @@ class IndexMaintainer @Inject()(
       case (aliasResponse, indexResponse, movedAliases, deletedIndices) =>
         if (aliasResponse.acknowledged && indexResponse.acknowledged) {
           logger.info(
-            s"Updated indices and aliases. Moved aliases $movedAliases, deleted indices: $deletedIndices"
+            s"Updated alias '$aliasName' and related indices. Moved aliases $movedAliases, deleted indices: $deletedIndices"
           )
         } else {
           logger.warn(
@@ -53,6 +55,13 @@ class IndexMaintainer @Inject()(
         }
     }
   }
+
+  def indexNameForAlias(
+      alias: String
+  )(implicit ec: ExecutionContext): Future[Option[String]] =
+    client.execute(catAliases()).map {
+      _.find(ca => ca.alias == alias && ca.index.startsWith(alias)).map(_.index)
+    }
 
 }
 

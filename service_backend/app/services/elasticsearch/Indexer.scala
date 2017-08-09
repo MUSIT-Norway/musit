@@ -37,11 +37,21 @@ trait Indexer[S] {
     IndexName(s"${indexAliasName}_${System.currentTimeMillis()}")
 
   /**
+   * Reindex all documents to index
+   */
+  def reindexToNewIndex(): Future[IndexName]
+
+  /**
+   * Update the existing index with updated and new documents
+   */
+  def updateExistingIndex(index: IndexName): Future[Unit]
+
+  /**
    * When we're creating a new index or reindex an old one we want to keep the old index
    * active until the new one is up and running. This can take some time depending on the
    * size of the source.
    */
-  def reindex[B](
+  protected def reindex[B](
       sources: Seq[Source[S, B]],
       indexName: Option[IndexName] = None
   )(implicit mat: Materializer, ec: ExecutionContext): Future[Done] = {
@@ -53,7 +63,7 @@ trait Indexer[S] {
   /**
    * Index the source and run `onComplete` when executed successfully.
    */
-  def index[B](
+  protected def index[B](
       sources: Seq[Source[S, B]],
       onComplete: (IndexName, String) => Future[Unit] = (_, _) => Future.successful(()),
       indexName: Option[IndexName] = None
@@ -61,7 +71,10 @@ trait Indexer[S] {
     val newIndex = indexName.getOrElse(createIndexName())
     Future
       .sequence(sources.map { source =>
-        source.via(toAction(newIndex)).via(elasticsearchFlow.flow()).runWith(Sink.ignore)
+        source
+          .via(toAction(newIndex))
+          .via(elasticsearchFlow.flow(indexAliasName))
+          .runWith(Sink.ignore)
       })
       .map(_.head)
       .flatMap(done => onComplete(newIndex, indexAliasName).map(_ => done))

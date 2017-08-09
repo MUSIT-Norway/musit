@@ -2,7 +2,7 @@ package services.elasticsearch.events
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Flow, Source}
-import akka.{Done, NotUsed}
+import akka.NotUsed
 import com.google.inject.Inject
 import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
 import com.sksamuel.elastic4s.http.ElasticDsl._
@@ -83,14 +83,17 @@ class IndexAnalysisEvents @Inject()(
         indexInto(indexName.name, event.documentType) id event.documentId doc event
     }
 
-  def reindexAll(): Future[Done] = {
+  override def reindexToNewIndex(): Future[IndexName] = {
     val indexName = createIndexName()
     val source    = Source.fromPublisher(analysisEventsExportDao.analysisEventsStream())
     for {
-      _    <- client.execute(EventIndexConfig.config(indexName.name))
-      done <- reindex(Seq(source.via(populateActors)), Some(indexName))
-    } yield done
+      _ <- client.execute(EventIndexConfig.config(indexName.name))
+      _ <- reindex(Seq(source.via(populateActors)), Some(indexName))
+    } yield indexName
   }
+
+  override def updateExistingIndex(index: IndexName): Future[Unit] =
+    Future.successful(()) //todo impl
 
   def findActorIds(event: ExportEventRow): Set[ActorId] = event match {
     case evt: AnalysisEventRow =>
