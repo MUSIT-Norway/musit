@@ -62,7 +62,7 @@ object EventIndexConfig {
   private def actorSearchStamp(name: String) =
     objectField(name) fields (
       textField("id"),
-      textField("date"),
+      dateField("date"),
       textField("name")
     )
 
