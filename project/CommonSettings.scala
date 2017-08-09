@@ -77,6 +77,7 @@ object CommonSettings {
         javaOptions in Test += "-Duser.timezone=UTC"
       )
       .settings(dependencyOverrides += ScalaTest.scalatest)
+      .settings(Dependencies.Akka.akkaDependencyOverrides.map(dependencyOverrides += _))
       .configs(IntegrationTest)
 
   // Check if the build is being run on internal GitLab CI runner.

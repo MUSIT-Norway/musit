@@ -23,6 +23,49 @@ object Dependencies {
     val logback       = "com.typesafe.play" %% "play-logback"          % version
   }
 
+  object Akka {
+    // this need to be synced with play
+    val akkaVersion     = "2.4.18"
+    val akkaHttpVersion = "10.0.6"
+    val akkaOrg         = "com.typesafe.akka"
+
+    val akkaModules =
+      Seq(
+        "akka-actor",
+        "akka-agent",
+        "akka-camel",
+        "akka-cluster",
+        "akka-cluster-metrics",
+        "akka-cluster-sharding",
+        "akka-cluster-tools",
+        "akka-contrib",
+        "akka-http-core",
+        "akka-http-testkit",
+        "akka-multi-node-testkit",
+        "akka-osgi",
+        "akka-persistence",
+        "akka-persistence-tck",
+        "akka-remote",
+        "akka-slf4j",
+        "akka-stream",
+        "akka-stream-testkit",
+        "akka-testkit"
+      )
+
+    val akkaHttpModuels = Seq(
+      "akka-http-core",
+      "akka-http",
+      "akka-http-testkit",
+      "akka-http-jackson",
+      "akka-http-xml"
+    )
+
+    val akkaDependencyOverrides = akkaModules.map(akkaOrg %% _ % akkaVersion) ++
+      akkaHttpModuels.map(akkaOrg %% _ % akkaVersion)
+
+    val akkaTestKit = akkaOrg %% "akka-testkit" % akkaVersion % Test
+  }
+
   object Netty {
     val reactiveStreamsHttp = "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.8"
   }
@@ -87,7 +130,8 @@ object Dependencies {
     ScalaTest.scalatest,
     ScalaTest.scalatestplus,
     ScalaTest.scalactic,
-    scalaMock
+    scalaMock,
+    Akka.akkaTestKit
   )
 
   val playWithPersistenceDependencies: Seq[ModuleID] = playDependencies ++ Seq(
@@ -102,6 +146,7 @@ object Dependencies {
       ScalaTest.scalatest,
       ScalaTest.scalatestplus,
       ScalaTest.scalactic,
-      scalaMock
+      scalaMock,
+      Akka.akkaTestKit
     )
 }
