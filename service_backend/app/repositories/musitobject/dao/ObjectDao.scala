@@ -5,12 +5,7 @@ import models.musitobject._
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
-import no.uio.musit.models.MuseumCollections.{
-  Archeology,
-  Collection,
-  Ethnography,
-  Nature
-}
+import no.uio.musit.models.MuseumCollections._
 import no.uio.musit.models._
 import no.uio.musit.repositories.DbErrorHandlers
 import no.uio.musit.security.AuthenticatedUser
@@ -363,7 +358,8 @@ class ObjectDao @Inject()(
           mt."ARK_FUNN_NR",
           mt."NAT_STAGE",
           mt."NAT_GENDER",
-          mt."NAT_LEGDATO"
+          mt."NAT_LEGDATO",
+          mt."NUM_DENOTATION",mt."NUM_VALOR",mt."NUM_DATE",mt."NUM_WEIGHT"
         FROM "MUSARK_STORAGE"."NEW_LOCAL_OBJECT" lo, "MUSIT_MAPPING"."MUSITTHING" mt
         WHERE lo."MUSEUM_ID" = ${mid.underlying}
         AND mt."MUSEUMID" = ${mid.underlying}
@@ -377,13 +373,13 @@ class ObjectDao @Inject()(
           LOWER(mt."SUBNO") ASC
         #${pagingClause(page, limit)}
       """.as[(Option[Long], Option[String], Int, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int],
-        Option[String], Option[String], Option[String], Option[String], Option[String])]
+        Option[String], Option[String], Option[String], Option[String], Option[String],(Option[String], Option[String], Option[String], Option[String]))]
 
     db.run(query).map { r =>
       val res = r.map { t =>
         (t._1.map(ObjectId.apply), t._2.map(ObjectUUID.unsafeFromString),
           MuseumId.fromInt(t._3), t._4, t._5, t._6, t._7, t._8, t._9, t._10,
-          t._11, t._12, t._13.map(Collection.fromInt), t._14, t._15, t._16, t._17, t._18)
+          t._11, t._12, t._13.map(Collection.fromInt), t._14, t._15, t._16, t._17, t._18, t._19)
       }
       MusitSuccess(res)
     }
@@ -519,6 +515,9 @@ class ObjectDao @Inject()(
           (e.etnMaterial, e.etnMaterialtype, e.etnMaterialElement)
         }.result.map(ts => ts.map(t => EtnoMaterial(t._1, t._2, t._3)))
 
+      case Numismatics =>
+        thingMaterialTable.filter(_.objectid === oid.underlying).map { n =>n.numMaterial
+        }.result.map(ts => ts.map( t => NumMaterial(t)))
 
       case noMaterials =>
         logger.warn(s"There are no materials for the $noMaterials collection")

@@ -1,6 +1,11 @@
 package models.musitobject
 
-import no.uio.musit.models.MuseumCollections.{Archeology, Collection, Ethnography}
+import no.uio.musit.models.MuseumCollections.{
+  Archeology,
+  Collection,
+  Ethnography,
+  Numismatics
+}
 import play.api.libs.json.{JsObject, Json, Writes}
 
 sealed trait MusitObjectMaterial {
@@ -18,6 +23,10 @@ object MusitObjectMaterial {
     case am: ArkMaterial =>
       ArkMaterial.writes.writes(am).as[JsObject] ++ Json.obj(
         "collection" -> am.collection
+      )
+    case nm: NumMaterial =>
+      NumMaterial.writes.writes(nm).as[JsObject] ++ Json.obj(
+        "collection" -> nm.collection
       )
   }
 }
@@ -44,4 +53,14 @@ case class ArkMaterial(
 
 object ArkMaterial {
   implicit val writes = Json.writes[ArkMaterial]
+}
+
+case class NumMaterial(
+    material: Option[String]
+) extends MusitObjectMaterial {
+  val collection = Numismatics
+}
+
+object NumMaterial {
+  implicit val writes = Json.writes[NumMaterial]
 }

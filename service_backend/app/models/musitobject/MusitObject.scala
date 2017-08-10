@@ -22,10 +22,22 @@ case class MusitObject(
     natStage: Option[String],
     natGender: Option[String],
     natLegDate: Option[String],
+    numismaticAttribute: Option[NumismaticsAttribute],
     materials: Option[Seq[MusitObjectMaterial]],
     locations: Option[Seq[MusitObjectLocation]],
     coordinates: Option[Seq[MusitObjectCoordinate]]
 )
+
+case class NumismaticsAttribute(
+    denotation: Option[String],
+    valor: Option[String],
+    date: Option[String],
+    weight: Option[String]
+)
+
+object NumismaticsAttribute {
+  implicit val writes = Json.writes[NumismaticsAttribute]
+}
 
 object MusitObject {
   private val baseWrites = Json.writes[MusitObject]
@@ -53,7 +65,8 @@ object MusitObject {
           Option[String],
           Option[String],
           Option[String],
-          Option[String]
+          Option[String],
+          (Option[String], Option[String], Option[String], Option[String])
       )
   ) // scalastyle:ignore
 
@@ -72,6 +85,20 @@ object MusitObject {
       natStage = t._16,
       natGender = t._17,
       natLegDate = t._18,
+      numismaticAttribute =
+        if (t._19._1.isDefined ||
+            t._19._2.isDefined ||
+            t._19._3.isDefined ||
+            t._19._4.isDefined)
+          Some(
+            NumismaticsAttribute(
+              denotation = t._19._1,
+              valor = t._19._2,
+              date = t._19._3,
+              weight = t._19._4
+            )
+          )
+        else None,
       materials = None,
       locations = None,
       coordinates = None

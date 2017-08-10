@@ -234,6 +234,10 @@ CREATE TABLE MUSIT_MAPPING.MUSITTHING (
   nat_stage         VARCHAR2(256),
   nat_gender        VARCHAR2(256),
   nat_legdato       VARCHAR2(64),
+  num_denotation    VARCHAR2(255),
+  num_valor         VARCHAR2(100),
+  num_date          VARCHAR2(50),
+  num_weight        VARCHAR2(100)
   PRIMARY KEY (object_id)
 );
 

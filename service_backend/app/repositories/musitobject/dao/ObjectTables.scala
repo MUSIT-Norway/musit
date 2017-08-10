@@ -15,7 +15,7 @@ trait ObjectTables
   // Type aliases representing rows for the different tables
   // format: off
   // scalastyle:off line.size.limit
-  type ObjectRow = ((Option[ObjectId], Option[ObjectUUID], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Collection], Option[String], Option[String], Option[String], Option[String], Option[String]))
+  type ObjectRow = ((Option[ObjectId], Option[ObjectUUID], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Collection], Option[String], Option[String], Option[String], Option[String], Option[String], (Option[String], Option[String], Option[String], Option[String])))
   type MaterialRow = ((Option[Int], Option[Long], Option[String], Option[String], Option[String], Option[Int], Option[String], Option[String], Option[Int], Option[Long], Option[String], Option[Int]))
   type LocationRow = ((Option[Int], Option[Long], Option[String], Option[Int], Option[String], Option[Int], Option[String], Option[String],Option[String], Option[String],Option[String], Option[String],Option[String],Option[String], Option[String],Option[String], Option[String],Option[String],Option[Int], Option[Int]))
   type CoordinateRow = ((Option[Int], Option[Long], Option[String], Option[String], Option[String], Option[String]))
@@ -53,7 +53,8 @@ trait ObjectTables
       arkFindingNo,
       natStage,
       natGender,
-      natLegDate
+      natLegDate,
+      (numDenotation, numValor, numDate, numWeight)
     )
 
     // scalastyle:on method.name
@@ -77,6 +78,10 @@ trait ObjectTables
     val natStage         = column[Option[String]]("NAT_STAGE")
     val natGender        = column[Option[String]]("NAT_GENDER")
     val natLegDate       = column[Option[String]]("NAT_LEGDATO")
+    val numDenotation    = column[Option[String]]("NUM_DENOTATION")
+    val numValor         = column[Option[String]]("NUM_VALOR")
+    val numDate          = column[Option[String]]("NUM_DATE")
+    val numWeight        = column[Option[String]]("NUM_WEIGHT")
   }
 
   /**

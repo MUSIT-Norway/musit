@@ -39,6 +39,14 @@ class ObjectDaoSpec
     )
   )
 
+  val numismaticCollections = Seq(
+    MuseumCollection(
+      uuid = CollectionUUID(UUID.fromString("8bbdf9b3-56d1-479a-9509-2ea82842e8f8")),
+      name = Some("Numismatics"),
+      oldSchemaNames = Seq(MuseumCollections.Numismatics)
+    )
+  )
+
   val dummyUid = ActorId.generate()
 
   implicit val dummyUser = AuthenticatedUser(
@@ -622,6 +630,27 @@ class ObjectDaoSpec
         coord.north.value mustBe ",6934625,"
         coord.east.value mustBe ",434096,"
       }
+    }
+    "successfully return the numismatic object matching the UUID" in {
+      val uuid = ObjectUUID.unsafeFromString("85ed8525-e1b6-4929-8ecb-11384bc57a71")
+      val mid  = MuseumId(99)
+      val res =
+        dao.findByUUID(mid, uuid, numismaticCollections).futureValue.successValue.value
+      res.id mustBe ObjectId(57)
+      res.term mustBe "mynt"
+      res.numismaticAttribute.get.denotation mustBe Some("ny testbetegnelse")
+      res.numismaticAttribute.get.date mustBe Some("ny_testnumisdate")
+      res.numismaticAttribute.get.valor mustBe Some("ny_testvalor")
+      res.numismaticAttribute.get.weight mustBe Some("nyNumisvekt")
+    }
+    "successfully return the numismatic object with no numisattribute " in {
+      val uuid = ObjectUUID.unsafeFromString("6d094cea-462d-4d29-92ea-31f4cd0d2ff4")
+      val mid  = MuseumId(99)
+      val res =
+        dao.findByUUID(mid, uuid, numismaticCollections).futureValue.successValue.value
+      res.id mustBe ObjectId(59)
+      res.term mustBe "mynt"
+      res.numismaticAttribute mustBe None
     }
   }
 

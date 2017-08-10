@@ -40,6 +40,10 @@ CREATE TABLE MUSIT_MAPPING.MUSITTHING (
   nat_stage         VARCHAR2(256),
   nat_gender        VARCHAR2(256),
   nat_legdato       VARCHAR2(64),
+  num_denotation    VARCHAR2(255),
+  num_valor         VARCHAR2(100),
+  num_date          VARCHAR2(50),
+  num_weight        VARCHAR2(100),
   PRIMARY KEY (object_id)
 );
 
@@ -805,9 +809,14 @@ INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, mu
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, updated_date) VALUES ('a738e36d-8683-44ac-9dda-67ff5a5851d5', 'L234', '', 'Islandslav', 99, 234, 'MUSIT_BOTANIKK_LAV', 153, 4, current_timestamp);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, updated_date) VALUES ('addcbabc-7499-4368-807a-b44c1af5c949', 'E235', '', 'drakt', 99, 235, 'USD_ETNO_GJENSTAND_O', 154, 2, current_timestamp);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, updated_date) VALUES ('85ed8525-e1b6-4929-8ecb-11384bc57ae9', 'E236', '', 'maske', 99, 236, 'USD_ETNO_GJENSTAND_B', 155, 2, current_timestamp);
+--testdata of new column of numismatics in musitthing
+INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, num_denotation, num_valor, num_date, num_weight, updated_date) VALUES ('85ed8525-e1b6-4929-8ecb-11384bc57a71', 'E1000', '1', 'mynt', 99, 1000, 'USD_NUMISMATIKK', 156, 3,'ny testbetegnelse','ny_testvalor','ny_testnumisdate','nyNumisvekt', current_timestamp);
+INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, num_denotation, num_valor, num_date, num_weight, updated_date) VALUES ('85ed8525-e1b6-4929-8ecb-11384bc57a66', 'E1000', '2', 'medalje', 99, 1000, 'USD_NUMISMATIKK', 157, 3,'ny testNumisbetegnelse','ny_numistestvalor','ny_numistestdate','nytestNumisvekt', current_timestamp);
+INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, updated_date) VALUES ('6d094cea-462d-4d29-92ea-31f4cd0d2ff4', 'E1000', '3', 'mynt', 99, 1000, 'USD_NUMISMATIKK', 158, 3, current_timestamp);
 
 -- Inserting a test sample
 INSERT INTO MUSARK_ANALYSIS.SAMPLE_OBJECT(sample_uuid,museum_id,sample_type_id,originated_object_uuid,registered_by, registered_date) VALUES ('28cf7c75-66b2-4991-b871-d92baeec0049',99,1,'85ed8525-e1b6-4929-8ecb-11384bc57ae9','bf53f481-1db3-4474-98ee-c94df31ec251', TO_DATE('2016-01-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+
 
 INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('37715843-36ab-4f1a-bcfb-dd68a05d0f2c', 23, '3562e09e-6cf4-4b27-acad-e655e771c016', 99);
 INSERT INTO MUSARK_STORAGE.NEW_LOCAL_OBJECT (object_uuid, latest_move_id, current_location_id, museum_id) VALUES ('8ae52969-63b8-42be-bfd0-d8ebef2169eb', 23, '3562e09e-6cf4-4b27-acad-e655e771c016', 99);

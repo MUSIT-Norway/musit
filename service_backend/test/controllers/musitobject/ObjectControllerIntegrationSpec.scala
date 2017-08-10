@@ -6,7 +6,7 @@ import no.uio.musit.models.{MuseumNo, ObjectId, StorageNodeId, SubNo}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import org.scalatest.Inspectors.forAll
-import play.api.libs.json.JsArray
+import play.api.libs.json.{JsArray, JsObject}
 import play.api.test.Helpers._
 import utils.testdata.NodeTestData
 
@@ -374,6 +374,37 @@ class ObjectControllerIntegrationSpec
         (firstLocation.last \ "precision").as[String] must include("Stedsnavn")
         (firstLocation.last \ "north").as[String] mustBe ",6934625,"
         (firstLocation.last \ "east").as[String] mustBe ",434096,"
+      }
+
+      "successfully return the object with its numismatic information" in {
+        val uuid  = "85ed8525-e1b6-4929-8ecb-11384bc57a66"
+        val mid   = 99
+        val token = BearerToken(FakeUsers.testAdminToken)
+        val res = wsUrl(s"/museum/$mid/objects/$uuid")
+          .withHeaders(token.asHeader)
+          .withQueryString("collectionIds" -> numismaticsCollection)
+          .get()
+          .futureValue
+        res.status mustBe OK
+        val numisAttr = (res.json \ "numismaticAttribute").as[JsObject]
+        (numisAttr \ "denotation").as[String] must include("ny testNumisbetegnelse")
+        (numisAttr \ "valor").as[String] mustBe "ny_numistestvalor"
+        (numisAttr \ "date").as[String] mustBe "ny_numistestdate"
+        (numisAttr \ "weight").as[String] mustBe "nytestNumisvekt"
+      }
+      "successfully return the object with no numismaticAttribute when all numis data is null" in {
+        val uuid  = "6d094cea-462d-4d29-92ea-31f4cd0d2ff4"
+        val mid   = 99
+        val token = BearerToken(FakeUsers.testAdminToken)
+        val res = wsUrl(s"/museum/$mid/objects/$uuid")
+          .withHeaders(token.asHeader)
+          .withQueryString("collectionIds" -> numismaticsCollection)
+          .get()
+          .futureValue
+        res.status mustBe OK
+        val numisAttr = (res.json \ "numismaticAttribute").asOpt[JsObject]
+        numisAttr mustBe None
+
       }
 
       "return not found if the object doesn't exist" in {
