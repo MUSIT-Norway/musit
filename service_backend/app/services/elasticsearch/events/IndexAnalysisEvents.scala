@@ -1,8 +1,8 @@
 package services.elasticsearch.events
 
+import akka.NotUsed
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Flow, Source}
-import akka.NotUsed
 import com.google.inject.Inject
 import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
 import com.sksamuel.elastic4s.http.ElasticDsl._
@@ -10,12 +10,16 @@ import com.sksamuel.elastic4s.http.HttpClient
 import com.sksamuel.elastic4s.playjson._
 import models.analysis.events.{Analysis, AnalysisCollection, SampleCreated}
 import models.elasticsearch._
+import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.models.ActorId
+import no.uio.musit.time
+import org.joda.time.DateTime
 import play.api.{Configuration, Logger}
 import repositories.elasticsearch.dao.{
   AnalysisEventRow,
   ElasticsearchEventDao,
-  ExportEventRow
+  ExportEventRow,
+  IndexStatusDao
 }
 import services.actor.ActorService
 import services.elasticsearch._
@@ -25,6 +29,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 
 class IndexAnalysisEvents @Inject()(
     analysisEventsExportDao: ElasticsearchEventDao,
+    indexStatusDao: IndexStatusDao,
     actorDao: ActorService,
     client: HttpClient,
     cfg: Configuration,
@@ -84,16 +89,46 @@ class IndexAnalysisEvents @Inject()(
     }
 
   override def reindexToNewIndex(): Future[IndexName] = {
+    val startTime = time.dateTimeNow
     val indexName = createIndexName()
     val source    = Source.fromPublisher(analysisEventsExportDao.analysisEventsStream())
     for {
-      _ <- client.execute(EventIndexConfig.config(indexName.name))
-      _ <- reindex(Seq(source.via(populateActors)), Some(indexName))
+      res <- client.execute(EventIndexConfig.config(indexName.name))
+      if res.acknowledged
+      _ <- reindex(
+            Seq(source.via(populateActors)),
+            Some(indexName),
+            (_, alias) => indexStatusDao.indexed(alias, startTime).map(_ => ())
+          )
     } yield indexName
   }
 
-  override def updateExistingIndex(index: IndexName): Future[Unit] =
-    Future.successful(()) //todo impl
+  override def updateExistingIndex(indexName: IndexName): Future[Unit] =
+    for {
+      optIndexAfter <- findLastIndexDateTime()
+      sources <- optIndexAfter.map { indexAfter =>
+                  val p = analysisEventsExportDao.analysisEventsStream(Some(indexAfter))
+                  Future(Seq(Source.fromPublisher(p)))
+                }.getOrElse(Future.successful(Seq.empty))
+      res <- optIndexAfter.map { startTime =>
+              index(
+                sources.map(_.via(populateActors)),
+                (_, alias) =>
+                  indexStatusDao.update(alias, startTime).map {
+                    case MusitSuccess(_) => ()
+                    case err: MusitError =>
+                      logger.error(s"Unable to update index status table. ${err.message}")
+                }
+              ).map(_ => ())
+            }.getOrElse(Future.successful(()))
+    } yield res
+
+  private def findLastIndexDateTime(): Future[Option[DateTime]] = {
+    indexStatusDao.findLastIndexed(indexAliasName).map {
+      case MusitSuccess(v) => v.map(s => s.updated.getOrElse(s.indexed))
+      case _: MusitError   => None
+    }
+  }
 
   def findActorIds(event: ExportEventRow): Set[ActorId] = event match {
     case evt: AnalysisEventRow =>

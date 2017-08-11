@@ -39,7 +39,7 @@ class ElasticsearchFlow(
       .map(_._1)
 
   private def toLog(sw: StopWatch, res: BulkResponse) = {
-    res.failures.foreach(item => logger.warn(item.error.toString))
+    res.failures.foreach(item => logger.warn(item.toString))
     s"Elasticsearch responded in ${sw.elapsed()} ms," +
       s" successes: ${res.successes.size}," +
       s" failures: ${res.failures.size}, took: ${res.took}"

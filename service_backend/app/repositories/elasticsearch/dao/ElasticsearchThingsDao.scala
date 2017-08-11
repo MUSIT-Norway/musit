@@ -3,6 +3,7 @@ package repositories.elasticsearch.dao
 import com.google.inject.{Inject, Singleton}
 import models.musitobject.MusitObject
 import no.uio.musit.models.ObjectId
+import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.musitobject.dao.ObjectTables
@@ -22,7 +23,8 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
 
   def objectStreams(
       streams: Int,
-      fetchSize: Int
+      fetchSize: Int,
+      afterDate: Option[DateTime] = None
   ): Future[Seq[DatabasePublisher[MusitObject]]] = {
     val maxIdValue =
       objTable.filter(row => row.isDeleted === false && row.uuid.isDefined).map(_.id).max
@@ -45,6 +47,26 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
             .mapResult(row => MusitObject.fromSearchTuple(row))
       }
     }
+  }
+
+  def objectsChangedAfterTimstampStream(
+      fetchSize: Int,
+      afterDate: DateTime
+  ): DatabasePublisher[MusitObject] = {
+    val query = objTable.filter { row =>
+      (row.isDeleted === false) && row.updatedDate > afterDate
+    }
+
+    db.stream(
+        query.result
+          .withStatementParameters(
+            rsType = ResultSetType.ForwardOnly,
+            rsConcurrency = ResultSetConcurrency.ReadOnly,
+            fetchSize = fetchSize
+          )
+          .transactionally
+      )
+      .mapResult(row => MusitObject.fromSearchTuple(row))
   }
 
   def indexRanges(count: Int, max: Long): Seq[(Long, Long)] = {

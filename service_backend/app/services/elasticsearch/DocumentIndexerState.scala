@@ -40,7 +40,7 @@ class DocumentIndexerState[S](
   }
 
   override def updateIndex()(implicit ec: ExecutionContext, mat: Materializer): Unit = {
-    logger.info("updateIndex, not implemented")
+    logger.info("updateIndex")
     updateIndexStatus = Executing
     indexName
       .map(indexer.updateExistingIndex)

@@ -4,10 +4,12 @@ import java.util.UUID
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
-import no.uio.musit.models.GroupId
+import models.analysis.events.{Analysis, AnalysisCollection}
+import no.uio.musit.models.{EventId, GroupId}
 import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
+import no.uio.musit.time
 import repositories.analysis.dao.AnalysisDao
 import utils.testdata.AnalysisGenerators
 
@@ -61,5 +63,25 @@ class ElasticsearchEventDaoSpec
 
       res must have size 3
     }
+
+    "publish after a give timestamp" in {
+      val id = EventId(1)
+      val evt =
+        analysisDao.findAnalysisById(defaultMid, id).futureValue.successValue.value
+
+      val now = time.dateTimeNow
+      val updEvt = evt match {
+        case a: AnalysisCollection => a.copy(updatedDate = Some(now.plusMinutes(5)))
+        case a: Analysis           => a.copy(updatedDate = Some(now.plusMinutes(5)))
+      }
+
+      analysisDao.update(defaultMid, id, updEvt).futureValue.successValue
+
+      val pub = esEventDao.analysisEventsStream(Some(now))
+      val res = Source.fromPublisher(pub).runWith(Sink.seq).futureValue
+
+      res must have size 1
+    }
   }
+
 }

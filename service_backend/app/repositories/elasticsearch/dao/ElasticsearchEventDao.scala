@@ -4,6 +4,7 @@ import com.google.inject.{Inject, Singleton}
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events._
 import no.uio.musit.models._
+import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.json.Json
 import repositories.analysis.dao.AnalysisEventTableProvider
@@ -15,12 +16,21 @@ class ElasticsearchEventDao @Inject()(val dbConfigProvider: DatabaseConfigProvid
 
   import profile.api._
 
-  def analysisEventsStream[E >: ExportEventRow](): DatabasePublisher[E] = {
-    val query = eventTable.joinLeft(resultTable).on(_.eventId === _.eventId)
+  def analysisEventsStream[E >: ExportEventRow](
+      eventsAfter: Option[DateTime] = None
+  ): DatabasePublisher[E] = {
+    val baseQuery = eventTable.joinLeft(resultTable).on(_.eventId === _.eventId)
+
+    val query = eventsAfter.map { date =>
+      baseQuery.filter {
+        case (evt, _) => evt.updatedDate > date || evt.registeredDate > date
+      }
+    }.getOrElse(baseQuery)
+
     db.stream(query.result).mapResult(res => toAnalysisEvent(res))
   }
 
-  def toAnalysisEvent(res: (EventRow, Option[ResultRow])) = {
+  private def toAnalysisEvent(res: (EventRow, Option[ResultRow])) = {
     val event = Json
       .fromJson[AnalysisModuleEvent](res._1._14)
       .map {

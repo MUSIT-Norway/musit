@@ -53,10 +53,14 @@ trait Indexer[S] {
    */
   protected def reindex[B](
       sources: Seq[Source[S, B]],
-      indexName: Option[IndexName] = None
+      indexName: Option[IndexName] = None,
+      onComplete: (IndexName, String) => Future[Unit] = (_, _) => Future.successful(())
   )(implicit mat: Materializer, ec: ExecutionContext): Future[Done] = {
     index(sources, { (newIndex, alias) =>
-      indexMaintainer.activateIndex(newIndex.name, alias)
+      for {
+        _ <- indexMaintainer.activateIndex(newIndex.name, alias)
+        _ <- onComplete(newIndex, alias)
+      } yield ()
     }, indexName)
   }
 
