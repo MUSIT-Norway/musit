@@ -56,18 +56,6 @@ class ActorDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
           .futureValue
           .isDefined mustBe false
       }
-
-      "get names for actorId" in {
-        val notExisting = ActorId.generate()
-        val res = actorDao
-          .getNamesForActorIds(Set(andersAndAppId, kalleKaninAppId, notExisting))
-          .futureValue
-          .successValue
-
-        res must contain(kalleKaninAppId -> "Kanin, Kalle1")
-        res must contain(andersAndAppId  -> "And, Arne1")
-        res must not contain key(notExisting)
-      }
     }
   }
 }

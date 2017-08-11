@@ -2,10 +2,8 @@ package repositories.actor.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.actor.Person
-import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models.{ActorId, DatabaseId, MuseumId}
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Future
 
 @Singleton
@@ -24,21 +22,6 @@ class ActorDao @Inject()(
       a.applicationId === uuid || a.dpId === uuid
     }
     db.run(query.result.headOption)
-  }
-
-  def getNamesForActorIds(
-      actorIds: Set[ActorId]
-  ): Future[MusitResult[Map[ActorId, String]]] = {
-    val query = actorTable.filter { a =>
-      (a.applicationId inSet actorIds) || (a.dpId inSet actorIds)
-    }.map(a => (a.applicationId, a.dpId, a.fn))
-
-    db.run(query.result).map { nameIds =>
-      MusitSuccess(nameIds.flatMap {
-        case (appId, ipId, name) =>
-          List(appId, ipId).flatten.map(id => id -> name)
-      }.toMap)
-    }
   }
 
   def getByName(mid: MuseumId, searchString: String): Future[Seq[Person]] = {
