@@ -24,7 +24,8 @@ test:
   variables:
     MUSIT_FUTURE_TIMEOUT: "15000"
     MUSIT_FUTURE_INTERVAL: "50"
-    ELASTICSEARCH_URL: "http://elasticsearch:9200"
+    ELASTICSEARCH_HOST: "elasticsearch"
+    ELASTICSEARCH_PORT: 9200
 
   coverage: '/\[info]\sAll\sdone\.\sCoverage\swas\s\[(.*)%\]/'
 
