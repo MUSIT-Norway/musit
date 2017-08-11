@@ -101,7 +101,7 @@ class IndexActorSpec
       val ref = system.actorOf(IndexActor(indexer))
 
       eventuallyStatus(ref, Ready)
-      ref ! RequestLiveIndex
+      ref ! RequestUpdateIndex
       eventuallyStatus(ref, Accepted)
     }
 
@@ -115,7 +115,7 @@ class IndexActorSpec
 
       eventuallyStatus(ref, Ready)
       indexer.reindexStatus = Executing
-      ref ! RequestLiveIndex
+      ref ! RequestUpdateIndex
       eventuallyStatus(ref, NotAccepted)
     }
   }

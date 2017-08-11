@@ -49,20 +49,20 @@ class ElasticsearchService @Inject(
   def reIndexEvents(): Future[MusitResult[Unit]] =
     sendToActor(eventActor, RequestReindex)
 
-  def liveIndexEvents(): Future[MusitResult[Unit]] =
-    sendToActor(eventActor, RequestLiveIndex)
+  def updateIndexEvents(): Future[MusitResult[Unit]] =
+    sendToActor(eventActor, RequestUpdateIndex)
 
-  def reIndexThings(): Future[MusitResult[Unit]] =
+  def reindexThings(): Future[MusitResult[Unit]] =
     sendToActor(thingsActor, RequestReindex)
 
-  def liveIndexThings(): Future[MusitResult[Unit]] =
-    sendToActor(thingsActor, RequestLiveIndex)
+  def updateIndexThings(): Future[MusitResult[Unit]] =
+    sendToActor(thingsActor, RequestUpdateIndex)
 
   def reindexAll(): Future[Seq[MusitResult[Unit]]] =
-    Future.sequence(List(reIndexEvents(), reIndexThings()))
+    Future.sequence(List(reIndexEvents(), reindexThings()))
 
-  def liveIndexAll(): Future[Seq[MusitResult[Unit]]] =
-    Future.sequence(List(liveIndexEvents(), liveIndexThings()))
+  def updateAllIndices(): Future[Seq[MusitResult[Unit]]] =
+    Future.sequence(List(updateIndexEvents(), updateIndexThings()))
 
   private def sendToActor(actor: ActorRef, cmd: IndexActorCommand) =
     (actor ? cmd).map {
