@@ -117,7 +117,9 @@ class IndexAnalysisEvents @Inject()(
                   indexStatusDao.update(alias, startTime).map {
                     case MusitSuccess(_) => ()
                     case err: MusitError =>
-                      logger.error(s"Unable to update index status table. ${err.message}")
+                      logger.error(
+                        s"Unable to update index status table. ${err.message}"
+                      )
                 }
               ).map(_ => ())
             }.getOrElse(Future.successful(()))
