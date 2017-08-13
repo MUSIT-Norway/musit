@@ -15,11 +15,11 @@ import no.uio.musit.models.ActorId
 import no.uio.musit.time
 import org.joda.time.DateTime
 import play.api.{Configuration, Logger}
+import repositories.core.dao.IndexStatusDao
 import repositories.elasticsearch.dao.{
   AnalysisEventRow,
   ElasticsearchEventDao,
-  ExportEventRow,
-  IndexStatusDao
+  ExportEventRow
 }
 import services.actor.ActorService
 import services.elasticsearch._

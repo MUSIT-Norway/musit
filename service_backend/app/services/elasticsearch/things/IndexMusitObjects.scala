@@ -13,7 +13,8 @@ import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.time
 import org.joda.time.DateTime
 import play.api.Configuration
-import repositories.elasticsearch.dao.{ElasticsearchThingsDao, IndexStatusDao}
+import repositories.core.dao.IndexStatusDao
+import repositories.elasticsearch.dao.ElasticsearchThingsDao
 import services.elasticsearch.{ElasticsearchFlow, IndexMaintainer, IndexName, Indexer}
 
 import scala.concurrent.{ExecutionContext, Future}

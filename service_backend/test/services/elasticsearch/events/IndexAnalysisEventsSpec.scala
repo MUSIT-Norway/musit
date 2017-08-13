@@ -6,7 +6,7 @@ import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.test.matchers.MusitResultValues
 import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
 import org.scalatest.Inside
-import repositories.elasticsearch.dao.IndexStatusDao
+import repositories.core.dao.IndexStatusDao
 import services.analysis.AnalysisService
 import services.elasticsearch.IndexName
 import utils.testdata.{AnalysisGenerators, BaseDummyData}

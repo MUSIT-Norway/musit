@@ -1,4 +1,4 @@
-package repositories.elasticsearch.dao
+package repositories.core.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.elasticsearch.IndexStatus

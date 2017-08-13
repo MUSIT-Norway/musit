@@ -1,4 +1,4 @@
-package repositories.elasticsearch.dao
+package repositories.core.dao
 
 import no.uio.musit.repositories.BaseColumnTypeMappers
 import org.joda.time.DateTime
@@ -10,9 +10,6 @@ trait IndexStatusTable
     with BaseColumnTypeMappers {
 
   import profile.api._
-
-  val SchemaName             = "MUSARK_CORE"
-  val EsIndexStatusTableName = "ES_INDEX_STATUS"
 
   val esIndexStatusTable = TableQuery[EsIndexStatusTable]
 

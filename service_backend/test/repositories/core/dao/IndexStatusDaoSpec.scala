@@ -1,4 +1,4 @@
-package repositories.elasticsearch.dao
+package repositories.core.dao
 
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
