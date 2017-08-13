@@ -12,7 +12,7 @@ class DocumentIndexerState[S](
     indexMaintainer: IndexMaintainer
 ) extends DocumentIndexer {
 
-  val logger = Logger(indexer.getClass)
+  val logger = Logger(classOf[DocumentIndexerState[_]])
 
   var reindexStatus: DocumentIndexerStatus     = NotExecuted
   var updateIndexStatus: DocumentIndexerStatus = NotExecuted
@@ -26,21 +26,21 @@ class DocumentIndexerState[S](
   }
 
   override def reindex()(implicit ec: ExecutionContext, mat: Materializer): Unit = {
-    logger.info("reindex starting")
+    logger.info(s"reindex starting for alias ${indexer.indexAliasName}")
     reindexStatus = Executing
     indexer.reindexToNewIndex().onComplete {
       case Success(nextIndexName) =>
         indexName = Some(nextIndexName)
         reindexStatus = IndexSuccess
-        logger.info("reindex done")
+        logger.info(s"reindex of alias ${indexer.indexAliasName} is done")
       case Failure(t) =>
         reindexStatus = IndexFailed
-        logger.warn("reindex failed", t)
+        logger.warn(s"reindex of alias ${indexer.indexAliasName} has failed", t)
     }
   }
 
   override def updateIndex()(implicit ec: ExecutionContext, mat: Materializer): Unit = {
-    logger.info("updateIndex")
+    logger.info(s"starting updating index for alias ${indexer.indexAliasName} ")
     updateIndexStatus = Executing
     indexName
       .map(indexer.updateExistingIndex)
@@ -48,10 +48,10 @@ class DocumentIndexerState[S](
       .onComplete {
         case Success(_) =>
           reindexStatus = IndexSuccess
-          logger.info("updating index done")
+          logger.info(s"updating alias ${indexer.indexAliasName} is done")
         case Failure(t) =>
           reindexStatus = IndexFailed
-          logger.warn("update index failed", t)
+          logger.warn(s"updating alias ${indexer.indexAliasName} has failed", t)
       }
   }
 }
