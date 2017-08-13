@@ -16,6 +16,8 @@ trait IndexStatusTable
 
   val esIndexStatusTable = TableQuery[EsIndexStatusTable]
 
+  type EsIndexStatusRow = (String, DateTime, Option[DateTime])
+
   class EsIndexStatusTable(
       val tag: Tag
   ) extends Table[EsIndexStatusRow](tag, Some(SchemaName), EsIndexStatusTableName) {
@@ -26,7 +28,5 @@ trait IndexStatusTable
 
     override def * = (indexAlias, indexCreated, indexUpdated)
   }
-
-  type EsIndexStatusRow = (String, DateTime, Option[DateTime])
 
 }

@@ -62,6 +62,7 @@ object CommonSettings {
 
   lazy val AllTests       = config("allTests") extend Test
   lazy val ContainerTests = config("containerTests") extend Test
+
   def testArg(key: String, value: String) =
     Tests.Argument(TestFrameworks.ScalaTest, key, value)
 

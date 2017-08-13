@@ -52,7 +52,7 @@ object Dependencies {
         "akka-testkit"
       )
 
-    val akkaHttpModuels = Seq(
+    val akkaHttpModules = Seq(
       "akka-http-core",
       "akka-http",
       "akka-http-testkit",
@@ -61,7 +61,7 @@ object Dependencies {
     )
 
     val akkaDependencyOverrides = akkaModules.map(akkaOrg %% _ % akkaVersion) ++
-      akkaHttpModuels.map(akkaOrg %% _ % akkaVersion)
+      akkaHttpModules.map(akkaOrg %% _ % akkaVersion)
 
     val akkaTestKit = akkaOrg %% "akka-testkit" % akkaVersion % Test
   }

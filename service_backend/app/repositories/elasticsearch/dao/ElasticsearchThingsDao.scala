@@ -4,10 +4,10 @@ import com.google.inject.{Inject, Singleton}
 import models.musitobject.MusitObject
 import no.uio.musit.models.ObjectId
 import org.joda.time.DateTime
+import org.reactivestreams.Publisher
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.musitobject.dao.ObjectTables
-import slick.basic.DatabasePublisher
 import slick.jdbc.{ResultSetConcurrency, ResultSetType}
 
 import scala.concurrent.Future
@@ -18,6 +18,9 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
 
   import profile.api._
 
+  /**
+   * Implicit to enable slick to use number operations like >= and <= on ObjectId.
+   */
   implicit def longToObjectId(n: Long): Rep[ObjectId] =
     LiteralColumn(ObjectId.fromLong(n))
 
@@ -25,7 +28,7 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
       streams: Int,
       fetchSize: Int,
       afterDate: Option[DateTime] = None
-  ): Future[Seq[DatabasePublisher[MusitObject]]] = {
+  ): Future[Seq[Publisher[MusitObject]]] = {
     val maxIdValue =
       objTable.filter(row => row.isDeleted === false && row.uuid.isDefined).map(_.id).max
 
@@ -44,7 +47,7 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
                 )
                 .transactionally
             )
-            .mapResult(row => MusitObject.fromSearchTuple(row))
+            .mapResult(MusitObject.fromSearchTuple)
       }
     }
   }
@@ -52,7 +55,7 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
   def objectsChangedAfterTimstampStream(
       fetchSize: Int,
       afterDate: DateTime
-  ): DatabasePublisher[MusitObject] = {
+  ): Publisher[MusitObject] = {
     val query = objTable.filter { row =>
       (row.isDeleted === false) && row.updatedDate > afterDate
     }
@@ -66,7 +69,7 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
           )
           .transactionally
       )
-      .mapResult(row => MusitObject.fromSearchTuple(row))
+      .mapResult(MusitObject.fromSearchTuple)
   }
 
 }

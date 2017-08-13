@@ -36,6 +36,7 @@ case class MustObjectSearch(
 }
 
 case class CollectionSearch(id: Int, uuid: UUID)
+
 object CollectionSearch {
   implicit val writes: Writes[CollectionSearch] = Json.writes[CollectionSearch]
 }

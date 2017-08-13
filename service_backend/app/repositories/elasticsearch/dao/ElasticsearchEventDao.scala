@@ -5,10 +5,10 @@ import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events._
 import no.uio.musit.models._
 import org.joda.time.DateTime
+import org.reactivestreams.Publisher
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.json.Json
 import repositories.analysis.dao.AnalysisEventTableProvider
-import slick.basic.DatabasePublisher
 
 @Singleton
 class ElasticsearchEventDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
@@ -18,7 +18,7 @@ class ElasticsearchEventDao @Inject()(val dbConfigProvider: DatabaseConfigProvid
 
   def analysisEventsStream[E >: ExportEventRow](
       eventsAfter: Option[DateTime] = None
-  ): DatabasePublisher[E] = {
+  ): Publisher[E] = {
     val baseQuery = eventTable.joinLeft(resultTable).on(_.eventId === _.eventId)
 
     val query = eventsAfter.map { date =>
