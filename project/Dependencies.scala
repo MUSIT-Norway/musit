@@ -33,7 +33,6 @@ object Dependencies {
       Seq(
         "akka-actor",
         "akka-agent",
-        "akka-camel",
         "akka-cluster",
         "akka-cluster-metrics",
         "akka-cluster-sharding",
@@ -42,7 +41,6 @@ object Dependencies {
         "akka-http-core",
         "akka-http-testkit",
         "akka-multi-node-testkit",
-        "akka-osgi",
         "akka-persistence",
         "akka-persistence-tck",
         "akka-remote",
