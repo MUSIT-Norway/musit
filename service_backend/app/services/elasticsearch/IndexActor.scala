@@ -1,6 +1,6 @@
 package services.elasticsearch
 
-import akka.actor.{Actor, Cancellable, Props}
+import akka.actor.{Actor, ActorSystem, Cancellable, Props}
 import akka.stream.ActorMaterializer
 import services.elasticsearch.DocumentIndexer._
 import services.elasticsearch.IndexActor._
@@ -13,6 +13,7 @@ class IndexActor(indexer: DocumentIndexer, updateInterval: FiniteDuration)(
 ) extends Actor {
 
   private implicit val ec: ExecutionContext = context.dispatcher
+  private implicit val as: ActorSystem      = context.system
 
   private var updateIndexScheduler: Option[Cancellable] = None
 

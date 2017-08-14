@@ -138,11 +138,19 @@ class IndexActorSpec
     override def initIndex()(implicit ec: ExecutionContext): Future[Boolean] =
       Future.successful(hasIndex)
 
-    override def reindex()(implicit ec: ExecutionContext, mat: Materializer): Unit = {
+    override def reindex()(
+        implicit ec: ExecutionContext,
+        as: ActorSystem,
+        mat: Materializer
+    ): Unit = {
       reindexCalled = true
     }
 
-    override def updateIndex()(implicit ec: ExecutionContext, mat: Materializer): Unit = {
+    override def updateIndex()(
+        implicit ec: ExecutionContext,
+        as: ActorSystem,
+        mat: Materializer
+    ): Unit = {
       updadeIndexCalled = true
     }
 

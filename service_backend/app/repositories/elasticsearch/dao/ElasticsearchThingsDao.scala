@@ -1,10 +1,11 @@
 package repositories.elasticsearch.dao
 
+import akka.NotUsed
+import akka.stream.scaladsl.Source
 import com.google.inject.{Inject, Singleton}
 import models.musitobject.MusitObject
 import no.uio.musit.models.ObjectId
 import org.joda.time.DateTime
-import org.reactivestreams.Publisher
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.musitobject.dao.ObjectTables
@@ -28,7 +29,7 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
       streams: Int,
       fetchSize: Int,
       afterDate: Option[DateTime] = None
-  ): Future[Seq[Publisher[MusitObject]]] = {
+  ): Future[Seq[Source[MusitObject, NotUsed]]] = {
     val maxIdValue =
       objTable.filter(row => row.isDeleted === false && row.uuid.isDefined).map(_.id).max
 
@@ -38,16 +39,18 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
           val query = objTable.filter { row =>
             (row.isDeleted === false) && (row.id >= from) && (row.id <= to)
           }
-          db.stream(
-              query.result
-                .withStatementParameters(
-                  rsType = ResultSetType.ForwardOnly,
-                  rsConcurrency = ResultSetConcurrency.ReadOnly,
-                  fetchSize = fetchSize
-                )
-                .transactionally
-            )
-            .mapResult(MusitObject.fromSearchTuple)
+          Source.fromPublisher(
+            db.stream(
+                query.result
+                  .withStatementParameters(
+                    rsType = ResultSetType.ForwardOnly,
+                    rsConcurrency = ResultSetConcurrency.ReadOnly,
+                    fetchSize = fetchSize
+                  )
+                  .transactionally
+              )
+              .mapResult(MusitObject.fromSearchTuple)
+          )
       }
     }
   }
@@ -55,21 +58,23 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
   def objectsChangedAfterTimstampStream(
       fetchSize: Int,
       afterDate: DateTime
-  ): Publisher[MusitObject] = {
+  ): Source[MusitObject, NotUsed] = {
     val query = objTable.filter { row =>
       (row.isDeleted === false) && row.updatedDate > afterDate
     }
 
-    db.stream(
-        query.result
-          .withStatementParameters(
-            rsType = ResultSetType.ForwardOnly,
-            rsConcurrency = ResultSetConcurrency.ReadOnly,
-            fetchSize = fetchSize
-          )
-          .transactionally
-      )
-      .mapResult(MusitObject.fromSearchTuple)
+    Source.fromPublisher(
+      db.stream(
+          query.result
+            .withStatementParameters(
+              rsType = ResultSetType.ForwardOnly,
+              rsConcurrency = ResultSetConcurrency.ReadOnly,
+              fetchSize = fetchSize
+            )
+            .transactionally
+        )
+        .mapResult(MusitObject.fromSearchTuple)
+    )
   }
 
 }

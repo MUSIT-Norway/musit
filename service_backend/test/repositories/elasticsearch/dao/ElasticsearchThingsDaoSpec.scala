@@ -18,12 +18,7 @@ class ElasticsearchThingsDaoSpec extends MusitSpecWithAppPerSuite {
 
       val res = pubs.flatMap { s =>
         Future.sequence(
-          s.map { pub =>
-            Source
-              .fromPublisher(pub)
-              .fold(0) { case (c, obj) => c + 1 }
-              .runWith(Sink.head)
-          }
+          s.map { _.fold(0) { case (c, obj) => c + 1 }.runWith(Sink.head) }
         )
       }.futureValue
 

@@ -1,5 +1,6 @@
 package services.elasticsearch
 
+import akka.actor.ActorSystem
 import akka.stream.Materializer
 import play.api.Logger
 import services.elasticsearch.DocumentIndexer._
@@ -25,7 +26,11 @@ class DocumentIndexerState[S](
     aliasExists.map(_.isDefined)
   }
 
-  override def reindex()(implicit ec: ExecutionContext, mat: Materializer): Unit = {
+  override def reindex()(
+      implicit ec: ExecutionContext,
+      as: ActorSystem,
+      mat: Materializer
+  ): Unit = {
     logger.info(s"reindex starting for alias ${indexer.indexAliasName}")
     reindexStatus = Executing
     indexer.reindexToNewIndex().onComplete {
@@ -39,7 +44,11 @@ class DocumentIndexerState[S](
     }
   }
 
-  override def updateIndex()(implicit ec: ExecutionContext, mat: Materializer): Unit = {
+  override def updateIndex()(
+      implicit ec: ExecutionContext,
+      as: ActorSystem,
+      mat: Materializer
+  ): Unit = {
     logger.info(s"starting updating index for alias ${indexer.indexAliasName} ")
     updateIndexStatus = Executing
     indexName

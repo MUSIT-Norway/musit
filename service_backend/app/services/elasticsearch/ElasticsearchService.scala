@@ -8,8 +8,8 @@ import com.google.inject.{Inject, Singleton}
 import no.uio.musit.MusitResults.{MusitGeneralError, MusitResult, MusitSuccess}
 import play.api.inject.ApplicationLifecycle
 import services.elasticsearch.IndexActor._
-import services.elasticsearch.events.IndexAnalysisEvents
-import services.elasticsearch.things.IndexMusitObjects
+import services.elasticsearch.events.IndexEvents
+import services.elasticsearch.things.IndexObjects
 
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationDouble
@@ -23,8 +23,8 @@ import scala.concurrent.duration.DurationDouble
 @Singleton
 class ElasticsearchService @Inject(
   )(
-    indexAnalysisEvents: IndexAnalysisEvents,
-    indexMusitObjects: IndexMusitObjects,
+    indexAnalysisEvents: IndexEvents,
+    indexMusitObjects: IndexObjects,
     indexMaintainer: IndexMaintainer,
     lifecycle: ApplicationLifecycle
 ) {

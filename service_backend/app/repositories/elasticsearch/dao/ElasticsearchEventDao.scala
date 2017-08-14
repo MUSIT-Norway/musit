@@ -5,7 +5,7 @@ import akka.stream.scaladsl.Source
 import com.google.inject.{Inject, Singleton}
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events._
-import no.uio.musit.models._
+import models.elasticsearch.AnalysisModuleEventSearch
 import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.json.Json
@@ -17,7 +17,7 @@ class ElasticsearchEventDao @Inject()(val dbConfigProvider: DatabaseConfigProvid
 
   import profile.api._
 
-  def analysisEventsStream[E >: ExportEventRow](
+  def analysisEventsStream[E >: AnalysisModuleEventSearch](
       eventsAfter: Option[DateTime] = None
   ): Source[E, NotUsed] = {
     val baseQuery = eventTable.joinLeft(resultTable).on(_.eventId === _.eventId)
@@ -44,14 +44,7 @@ class ElasticsearchEventDao @Inject()(val dbConfigProvider: DatabaseConfigProvid
         case sc: SampleCreated => sc.copy(id = res._1._1)
       }
       .get
-    AnalysisEventRow(res._1._3, event)
+    AnalysisModuleEventSearch(res._1._3, event)
   }
 
 }
-
-sealed trait ExportEventRow
-
-case class AnalysisEventRow(
-    museumId: MuseumId,
-    event: AnalysisModuleEvent
-) extends ExportEventRow

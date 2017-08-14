@@ -1,5 +1,6 @@
 package services.elasticsearch.events
 
+import akka.actor.ActorSystem
 import akka.stream.Materializer
 import no.uio.musit.models.MuseumId
 import no.uio.musit.security.AuthenticatedUser
@@ -13,16 +14,17 @@ import utils.testdata.{AnalysisGenerators, BaseDummyData}
 
 import scala.concurrent.ExecutionContext
 
-class IndexAnalysisEventsSpec
+class IndexEventsSpec
     extends MusitSpecWithAppPerSuite
     with MusitResultValues
     with Inside
     with AnalysisGenerators
     with BaseDummyData {
 
-  val esIndexer       = fromInstanceCache[IndexAnalysisEvents]
+  val esIndexer       = fromInstanceCache[IndexEvents]
   val indexStatusDao  = fromInstanceCache[IndexStatusDao]
   val analysisService = fromInstanceCache[AnalysisService]
+  implicit val as     = fromInstanceCache[ActorSystem]
   implicit val mat    = fromInstanceCache[Materializer]
   implicit val ec     = fromInstanceCache[ExecutionContext]
 

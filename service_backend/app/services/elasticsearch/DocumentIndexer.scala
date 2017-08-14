@@ -1,5 +1,6 @@
 package services.elasticsearch
 
+import akka.actor.ActorSystem
 import akka.stream.Materializer
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -27,6 +28,7 @@ trait DocumentIndexer {
    */
   def reindex()(
       implicit ec: ExecutionContext,
+      as: ActorSystem,
       mat: Materializer
   ): Unit
 
@@ -35,6 +37,7 @@ trait DocumentIndexer {
    */
   def updateIndex()(
       implicit ec: ExecutionContext,
+      as: ActorSystem,
       mat: Materializer
   ): Unit
 

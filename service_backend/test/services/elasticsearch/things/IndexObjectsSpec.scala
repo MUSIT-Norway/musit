@@ -1,14 +1,16 @@
 package services.elasticsearch.things
 
+import akka.actor.ActorSystem
 import akka.stream.Materializer
 import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
 import services.elasticsearch.IndexName
 
 import scala.concurrent.ExecutionContext
 
-class IndexMusitObjectsSpec extends MusitSpecWithAppPerSuite {
+class IndexObjectsSpec extends MusitSpecWithAppPerSuite {
 
-  val esIndexer    = fromInstanceCache[IndexMusitObjects]
+  val esIndexer    = fromInstanceCache[IndexObjects]
+  implicit val as  = fromInstanceCache[ActorSystem]
   implicit val mat = fromInstanceCache[Materializer]
   implicit val ec  = fromInstanceCache[ExecutionContext]
 

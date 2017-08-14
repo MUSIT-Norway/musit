@@ -1,9 +1,7 @@
 package services.elasticsearch
 
+import akka.actor.ActorSystem
 import akka.stream.Materializer
-import akka.stream.scaladsl.{Flow, Sink, Source}
-import akka.{Done, NotUsed}
-import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -20,16 +18,6 @@ trait Indexer[S] {
   val indexMaintainer: IndexMaintainer
 
   /**
-   * The elasticsearch flow that is configured for the source.
-   */
-  val elasticsearchFlow: ElasticsearchFlow
-
-  /**
-   * Convert an element to an action that will be executed by elestic search
-   */
-  def toAction(index: IndexName): Flow[S, BulkCompatibleDefinition, NotUsed]
-
-  /**
    * Tha actual index that we will use. We will hide this behind an alias. That's why
    * we prefix it with the alias name.
    */
@@ -39,54 +27,25 @@ trait Indexer[S] {
   /**
    * Reindex all documents to index
    */
-  def reindexToNewIndex(): Future[IndexName]
+  def reindexToNewIndex()(
+      implicit ec: ExecutionContext,
+      mat: Materializer,
+      as: ActorSystem
+  ): Future[IndexName]
 
   /**
    * Update the existing index with updated and new documents
    */
-  def updateExistingIndex(index: IndexName): Future[Unit]
-
-  /**
-   * When we're creating a new index or reindex an old one we want to keep the old index
-   * active until the new one is up and running. This can take some time depending on the
-   * size of the source.
-   */
-  protected def reindex[B](
-      sources: Seq[Source[S, B]],
-      indexName: Option[IndexName] = None,
-      onComplete: (IndexName, String) => Future[Unit] = (_, _) => Future.successful(())
-  )(implicit mat: Materializer, ec: ExecutionContext): Future[Done] = {
-    index(sources, { (newIndex, alias) =>
-      for {
-        _ <- indexMaintainer.activateIndex(newIndex.name, alias)
-        _ <- onComplete(newIndex, alias)
-      } yield ()
-    }, indexName)
-  }
-
-  /**
-   * Index the source and run `onComplete` when executed successfully.
-   */
-  protected def index[B](
-      sources: Seq[Source[S, B]],
-      onComplete: (IndexName, String) => Future[Unit] = (_, _) => Future.successful(()),
-      indexName: Option[IndexName] = None
-  )(implicit mat: Materializer, ec: ExecutionContext): Future[Done] = {
-    val newIndex = indexName.getOrElse(createIndexName())
-    Future
-      .sequence(sources.map { source =>
-        source
-          .via(toAction(newIndex))
-          .via(elasticsearchFlow.flow(indexAliasName))
-          .runWith(Sink.ignore)
-      })
-      .map(_.head)
-      .flatMap(done => onComplete(newIndex, indexAliasName).map(_ => done))
-  }
+  def updateExistingIndex(index: IndexName)(
+      implicit ec: ExecutionContext,
+      mat: Materializer,
+      as: ActorSystem
+  ): Future[Unit]
 
 }
 
 case class IndexName(underlying: String) {
   override def toString = underlying
-  def name              = underlying
+
+  def name = underlying
 }
