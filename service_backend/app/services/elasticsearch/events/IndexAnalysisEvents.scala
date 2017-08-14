@@ -2,7 +2,7 @@ package services.elasticsearch.events
 
 import akka.NotUsed
 import akka.stream.Materializer
-import akka.stream.scaladsl.{Flow, Source}
+import akka.stream.scaladsl.Flow
 import com.google.inject.Inject
 import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
 import com.sksamuel.elastic4s.http.ElasticDsl._
@@ -23,8 +23,8 @@ import repositories.elasticsearch.dao.{
 }
 import services.actor.ActorService
 import services.elasticsearch._
+import services.elasticsearch.shared.ActorEnrichFlow
 
-import scala.concurrent.duration.DurationDouble
 import scala.concurrent.{Await, ExecutionContext, Future}
 
 class IndexAnalysisEvents @Inject()(
@@ -46,36 +46,23 @@ class IndexAnalysisEvents @Inject()(
     cfg.getInt("musit.elasticsearch.streams.events.esBatchSize").getOrElse(1000)
   )
 
-  val populateActors =
-    new GroupAndEnrichStage[ExportEventRow, EventSearch, ActorId, (ActorId, String)](
-      group = findActorIds,
-      transform = actors =>
-        Await
-          .result(
-            actorDao.findDetails(actors).map { ps =>
-              ps.foldLeft(Map.empty[ActorId, String]) {
-                case (state, per) =>
-                  val tmp = Map.newBuilder[ActorId, String]
-                  per.applicationId.foreach(id => tmp += id -> per.fn)
-                  per.dataportenId.foreach(id => tmp += id  -> per.fn)
+  val populateActors = new ActorEnrichFlow[ExportEventRow, EventSearch] {
+    override def extractActorsId(msg: ExportEventRow): Set[ActorId] =
+      findActorIds(msg)
 
-                  state ++ tmp.result()
-              }
-            },
-            1 minute
-          )
-          .toSet,
-      reducer = (a, s) =>
-        a match {
-          case aer: AnalysisEventRow =>
-            aer.event match {
-              case a: Analysis           => AnalysisSearch(a, ActorNames(s))
-              case c: AnalysisCollection => AnalysisCollectionSearch(c, ActorNames(s))
-              case sa: SampleCreated     => SampleCreatedSearch(sa, ActorNames(s))
-            }
-      },
-      limit = 10
-    )
+    override def mergeWithActors(
+        a: ExportEventRow,
+        actors: Set[(ActorId, String)]
+    ): EventSearch =
+      a match {
+        case aer: AnalysisEventRow =>
+          aer.event match {
+            case a: Analysis           => AnalysisSearch(a, ActorNames(actors))
+            case c: AnalysisCollection => AnalysisCollectionSearch(c, ActorNames(actors))
+            case sa: SampleCreated     => SampleCreatedSearch(sa, ActorNames(actors))
+          }
+      }
+  }.flow(actorDao, ec)
 
   override def toAction(
       indexName: IndexName
