@@ -91,7 +91,7 @@ class IndexAnalysisEvents @Inject()(
   override def reindexToNewIndex(): Future[IndexName] = {
     val startTime = time.dateTimeNow
     val indexName = createIndexName()
-    val source    = Source.fromPublisher(analysisEventsExportDao.analysisEventsStream())
+    val source    = analysisEventsExportDao.analysisEventsStream()
     for {
       res <- client.execute(EventIndexConfig.config(indexName.name))
       if res.acknowledged
@@ -107,8 +107,8 @@ class IndexAnalysisEvents @Inject()(
     for {
       optIndexAfter <- findLastIndexDateTime()
       sources <- optIndexAfter.map { indexAfter =>
-                  val p = analysisEventsExportDao.analysisEventsStream(Some(indexAfter))
-                  Future(Seq(Source.fromPublisher(p)))
+                  val s = analysisEventsExportDao.analysisEventsStream(Some(indexAfter))
+                  Future(Seq(s))
                 }.getOrElse(Future.successful(Seq.empty))
       res <- optIndexAfter.map { startTime =>
               index(

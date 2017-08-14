@@ -57,9 +57,8 @@ class ElasticsearchEventDaoSpec
       val ac = dummyAnalysisCollection(gr, e1, e2)
       analysisDao.insertCol(defaultMid, ac).futureValue.successValue
 
-      val pub = esEventDao.analysisEventsStream()
-
-      val res = Source.fromPublisher(pub).runWith(Sink.seq).futureValue
+      val source = esEventDao.analysisEventsStream()
+      val res    = source.runWith(Sink.seq).futureValue
 
       res must have size 3
     }
@@ -77,8 +76,8 @@ class ElasticsearchEventDaoSpec
 
       analysisDao.update(defaultMid, id, updEvt).futureValue.successValue
 
-      val pub = esEventDao.analysisEventsStream(Some(now))
-      val res = Source.fromPublisher(pub).runWith(Sink.seq).futureValue
+      val source = esEventDao.analysisEventsStream(Some(now))
+      val res    = source.runWith(Sink.seq).futureValue
 
       res must have size 1
     }

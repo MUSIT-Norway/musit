@@ -1,11 +1,12 @@
 package repositories.elasticsearch.dao
 
+import akka.NotUsed
+import akka.stream.scaladsl.Source
 import com.google.inject.{Inject, Singleton}
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events._
 import no.uio.musit.models._
 import org.joda.time.DateTime
-import org.reactivestreams.Publisher
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.json.Json
 import repositories.analysis.dao.AnalysisEventTableProvider
@@ -18,7 +19,7 @@ class ElasticsearchEventDao @Inject()(val dbConfigProvider: DatabaseConfigProvid
 
   def analysisEventsStream[E >: ExportEventRow](
       eventsAfter: Option[DateTime] = None
-  ): Publisher[E] = {
+  ): Source[E, NotUsed] = {
     val baseQuery = eventTable.joinLeft(resultTable).on(_.eventId === _.eventId)
 
     val query = eventsAfter.map { date =>
@@ -27,7 +28,7 @@ class ElasticsearchEventDao @Inject()(val dbConfigProvider: DatabaseConfigProvid
       }
     }.getOrElse(baseQuery)
 
-    db.stream(query.result).mapResult(res => toAnalysisEvent(res))
+    Source.fromPublisher(db.stream(query.result).mapResult(toAnalysisEvent))
   }
 
   private def toAnalysisEvent(res: (EventRow, Option[ResultRow])) = {
