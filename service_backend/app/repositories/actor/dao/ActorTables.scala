@@ -6,7 +6,9 @@ import play.api.db.slick.HasDatabaseConfigProvider
 import repositories.shared.dao.ColumnTypeMappers
 import slick.jdbc.JdbcProfile
 
-trait ActorTables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
+private[repositories] trait ActorTables
+    extends HasDatabaseConfigProvider[JdbcProfile]
+    with ColumnTypeMappers {
 
   import profile.api._
 

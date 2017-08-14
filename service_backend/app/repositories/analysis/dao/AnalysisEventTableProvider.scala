@@ -10,7 +10,9 @@ import play.api.libs.json.JsValue
 import repositories.shared.dao.ColumnTypeMappers
 import slick.lifted.ProvenShape
 
-trait AnalysisEventTableProvider extends BaseEventTableProvider with ColumnTypeMappers {
+private[repositories] trait AnalysisEventTableProvider
+    extends BaseEventTableProvider
+    with ColumnTypeMappers {
 
   private val logger = Logger(classOf[AnalysisEventTableProvider])
 
