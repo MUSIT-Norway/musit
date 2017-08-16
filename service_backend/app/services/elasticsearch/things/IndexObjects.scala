@@ -6,7 +6,7 @@ import akka.stream.{Materializer, SourceShape}
 import com.google.inject.Inject
 import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
 import com.sksamuel.elastic4s.http.HttpClient
-import models.elasticsearch.MusitObjectSearch
+import models.elasticsearch.{IndexConfig, MusitObjectSearch}
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import org.joda.time.DateTime
 import play.api.Configuration
@@ -40,11 +40,11 @@ class IndexObjects @Inject()(
 
   override val indexAliasName = "musit_objects"
 
-  override def reindexToNewIndex()(
+  override def reindexToNewIndex(indexCallback: IndexCallback)(
       implicit ec: ExecutionContext,
       mat: Materializer,
       as: ActorSystem
-  ): Future[IndexName] = {
+  ): Unit = {
 
     val indexName = createIndexName()
     val config =
@@ -54,36 +54,34 @@ class IndexObjects @Inject()(
         MusitObjectsIndexConfig.config(indexName.name)
       )
 
-    elasticsearchThingsDao.objectStreams(concurrentSources, fetchSize).flatMap {
-      sources =>
-        val es = new DatabaseMaintainedElasticSearchIndexSink(
-          client,
-          indexMaintainer,
-          indexStatusDao,
-          config.alias
-        ).toElasticsearchSink
+    elasticsearchThingsDao.objectStreams(concurrentSources, fetchSize).map { sources =>
+      val es = new DatabaseMaintainedElasticSearchIndexSink(
+        client,
+        indexMaintainer,
+        indexStatusDao,
+        config,
+        indexCallback
+      ).toElasticsearchSink
 
-        val musitObjectFlow = new MusitObjectTypeFlow().flow(config)
+      val musitObjectFlow = new MusitObjectTypeFlow().flow(config)
 
-        val esBulkSource = Source.fromGraph(GraphDSL.create() { implicit builder =>
-          import GraphDSL.Implicits._
+      val esBulkSource = Source.fromGraph(GraphDSL.create() { implicit builder =>
+        import GraphDSL.Implicits._
 
-          val mergeToEs = builder.add(Merge[BulkCompatibleDefinition](sources.size))
-          sources.map(_.via(musitObjectFlow)).foreach(_ ~> mergeToEs)
-          SourceShape.of(mergeToEs.out)
-        })
+        val mergeToEs = builder.add(Merge[BulkCompatibleDefinition](sources.size))
+        sources.map(_.via(musitObjectFlow)).foreach(_ ~> mergeToEs)
+        SourceShape.of(mergeToEs.out)
+      })
 
-        esBulkSource.runWith(es)
-        //todo callback or something when done
-        Future.successful(indexName)
+      esBulkSource.runWith(es)
     }
   }
 
-  override def updateExistingIndex(indexName: IndexName)(
+  override def updateExistingIndex(indexName: IndexName, indexCallback: IndexCallback)(
       implicit ec: ExecutionContext,
       mat: Materializer,
       as: ActorSystem
-  ): Future[Unit] = {
+  ): Unit = {
     val config =
       IndexConfig(
         indexName.name,
@@ -94,17 +92,16 @@ class IndexObjects @Inject()(
       mdt.map { dt =>
         elasticsearchThingsDao.objectsChangedAfterTimstampStream(fetchSize, dt)
       }.getOrElse(Source.empty)
-    }.flatMap(source => {
+    }.map(source => {
       val es = new DatabaseMaintainedElasticSearchUpdateIndexSink(
         client,
         indexMaintainer,
         indexStatusDao,
-        config.alias
+        config,
+        indexCallback
       ).toElasticsearchSink
       val musitObjectFlow = new MusitObjectTypeFlow().flow(config)
       source.via(musitObjectFlow).runWith(es)
-      //todo callback or something when done
-      Future.successful(())
     })
   }
 

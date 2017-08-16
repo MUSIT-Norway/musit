@@ -7,12 +7,14 @@ import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.test.matchers.MusitResultValues
 import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
 import org.scalatest.Inside
+import org.scalatest.concurrent.PatienceConfiguration.Timeout
+import org.scalatest.time.{Seconds, Span}
 import repositories.core.dao.IndexStatusDao
 import services.analysis.AnalysisService
-import services.elasticsearch.IndexName
+import services.elasticsearch.{IndexCallback, IndexName}
 import utils.testdata.{AnalysisGenerators, BaseDummyData}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Promise}
 
 class IndexEventsSpec
     extends MusitSpecWithAppPerSuite
@@ -29,15 +31,23 @@ class IndexEventsSpec
   implicit val ec     = fromInstanceCache[ExecutionContext]
 
   "IndexAnalysisEvents" must {
+    val timeout               = Timeout(Span(60, Seconds))
     val au: AuthenticatedUser = dummyUser
     "index all events to elasticsearch" taggedAs ElasticsearchContainer in {
       val collection = dummySaveAnalysisCollectionCmd()
       analysisService.add(MuseumId(99), collection)(au).futureValue
 
-      val futureIndex = esIndexer.reindexToNewIndex().futureValue
-      val mbyStatus   = indexStatusDao.findLastIndexed("events").futureValue.successValue
+      val p = Promise[Option[IndexName]]()
+      esIndexer.reindexToNewIndex(
+        IndexCallback(
+          in => p.success(Some(in)),
+          () => p.success(None)
+        )
+      )
+      val futureIndex = p.future.futureValue(timeout)
+      futureIndex.value mustBe a[IndexName]
 
-      futureIndex mustBe a[IndexName]
+      val mbyStatus = indexStatusDao.findLastIndexed("events").futureValue.successValue
       inside(mbyStatus) {
         case Some(status) =>
           status.updated mustBe None
@@ -45,15 +55,28 @@ class IndexEventsSpec
     }
 
     "index new analysis events to elasticsearch" taggedAs ElasticsearchContainer in {
-      val index = esIndexer.reindexToNewIndex().futureValue
+      val promiseIndex = Promise[Option[IndexName]]()
+      val futureIndex  = promiseIndex.future
+      esIndexer.reindexToNewIndex(
+        IndexCallback(
+          in => promiseIndex.success(Some(in)),
+          () => promiseIndex.success(None)
+        )
+      )
+      val index = futureIndex.futureValue(timeout).value
 
       val collection = dummySaveAnalysisCollectionCmd()
-      val blee =
-        analysisService.add(MuseumId(99), collection)(au).futureValue.successValue
+      analysisService.add(MuseumId(99), collection)(au).futureValue.successValue
 
-      println(blee.get.partOf)
-
-      esIndexer.updateExistingIndex(index).futureValue
+      val promiseUpdate = Promise[Option[IndexName]]()
+      esIndexer.updateExistingIndex(
+        index,
+        IndexCallback(
+          in => promiseUpdate.success(Some(in)),
+          () => promiseUpdate.success(None)
+        )
+      )
+      promiseUpdate.future.futureValue(timeout)
       val mbyStatus = indexStatusDao.findLastIndexed("events").futureValue.successValue
 
       inside(mbyStatus) {

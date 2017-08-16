@@ -2,11 +2,10 @@ package services.elasticsearch
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.stream.{ActorMaterializer, Materializer}
-import akka.testkit.{ImplicitSender, TestKit}
+import akka.testkit.{ImplicitSender, TestKit, TestProbe}
 import org.scalatest.{BeforeAndAfterAll, MustMatchers, WordSpecLike}
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
-import services.elasticsearch.DocumentIndexer._
 import services.elasticsearch.IndexActor._
 
 import scala.concurrent.duration.DurationInt
@@ -31,128 +30,130 @@ class IndexActorSpec
   "IndexActor" should {
 
     "give `Indexing` status when reindexing is running" in {
-      val indexer = DummyDocumentIndexer(
-        hasIndex = false,
-        reindexStatus = NotExecuted,
-        updateIndexStatus = NotExecuted
-      )
-      val ref = system.actorOf(IndexActor(indexer))
+      val maintainer = new DummyIndexMaintainer(false)
+      val indexer    = new DummyIndexer(maintainer)
+      val ref        = system.actorOf(IndexActor(indexer, maintainer))
 
-      indexer.reindexStatus = Executing
       eventuallyStatus(ref, Indexing)
     }
 
     "give `Ready` status when indexing is done" in {
-      val indexer = DummyDocumentIndexer(
-        hasIndex = false,
-        reindexStatus = NotExecuted,
-        updateIndexStatus = NotExecuted
-      )
-      val ref = system.actorOf(IndexActor(indexer))
+      val maintainer = new DummyIndexMaintainer(false)
+      val indexer    = new DummyIndexer(maintainer)
+      val ref        = system.actorOf(IndexActor(indexer, maintainer))
 
-      indexer.reindexStatus = IndexSuccess
+      eventuallyStatus(ref, Indexing)
+      indexer.triggerReindexSuccess()
       eventuallyStatus(ref, Ready)
     }
 
     "give `Ready` status when index exists" in {
-      val indexer = DummyDocumentIndexer(
-        hasIndex = true,
-        reindexStatus = NotExecuted,
-        updateIndexStatus = NotExecuted
-      )
-      val ref = system.actorOf(IndexActor(indexer))
+      val maintainer = new DummyIndexMaintainer(true)
+      val indexer    = new DummyIndexer(maintainer)
+      val ref        = system.actorOf(IndexActor(indexer, maintainer))
 
+      eventuallyStatus(ref, Indexing)
+      indexer.triggerUpdateIndexSuccess()
       eventuallyStatus(ref, Ready)
     }
 
     "give `Accepted` status when not indexing on `RequestReindex` command" in {
-      val indexer = DummyDocumentIndexer(
-        hasIndex = true,
-        reindexStatus = NotExecuted,
-        updateIndexStatus = NotExecuted
-      )
-      val ref = system.actorOf(IndexActor(indexer))
+      val maintainer = new DummyIndexMaintainer(false)
+      val indexer    = new DummyIndexer(maintainer)
+      val ref        = system.actorOf(IndexActor(indexer, maintainer))
 
+      eventuallyStatus(ref, Indexing)
+      indexer.triggerReindexSuccess()
       eventuallyStatus(ref, Ready)
+
       ref ! RequestReindex
-      eventuallyStatus(ref, Accepted)
+      expectMsg(Accepted)
     }
 
     "give `NotAccepted` status when indexing on `RequestReindex` command" in {
-      val indexer = DummyDocumentIndexer(
-        hasIndex = true,
-        reindexStatus = NotExecuted,
-        updateIndexStatus = NotExecuted
-      )
-      val ref = system.actorOf(IndexActor(indexer))
+      val maintainer = new DummyIndexMaintainer(false)
+      val indexer    = new DummyIndexer(maintainer)
+      val ref        = system.actorOf(IndexActor(indexer, maintainer))
 
-      eventuallyStatus(ref, Ready)
-      indexer.reindexStatus = Executing
+      eventuallyStatus(ref, Indexing)
+
       ref ! RequestReindex
-      eventuallyStatus(ref, NotAccepted)
+      expectMsg(NotAccepted)
     }
 
-    "give `Accepted` status when not indexing on `RequestLiveIndex` command" in {
-      val indexer = DummyDocumentIndexer(
-        hasIndex = true,
-        reindexStatus = NotExecuted,
-        updateIndexStatus = NotExecuted
-      )
-      val ref = system.actorOf(IndexActor(indexer))
+    "give `Accepted` status when not indexing on `RequestUpdateIndex` command" in {
+      val maintainer = new DummyIndexMaintainer(true)
+      val indexer    = new DummyIndexer(maintainer)
+      val ref        = system.actorOf(IndexActor(indexer, maintainer))
 
+      eventuallyStatus(ref, Indexing)
+      indexer.triggerUpdateIndexSuccess()
       eventuallyStatus(ref, Ready)
+
       ref ! RequestUpdateIndex
-      eventuallyStatus(ref, Accepted)
+      expectMsg(Accepted)
     }
 
-    "give `NotAccepted` status when indexing on `RequestLiveIndex` command" in {
-      val indexer = DummyDocumentIndexer(
-        hasIndex = true,
-        reindexStatus = NotExecuted,
-        updateIndexStatus = NotExecuted
-      )
-      val ref = system.actorOf(IndexActor(indexer))
+    "give `NotAccepted` status when indexing on `RequestUpdateIndex` command" in {
+      val maintainer = new DummyIndexMaintainer(true)
+      val indexer    = new DummyIndexer(maintainer)
+      val ref        = system.actorOf(IndexActor(indexer, maintainer))
 
-      eventuallyStatus(ref, Ready)
-      indexer.reindexStatus = Executing
+      eventuallyStatus(ref, Indexing)
+
       ref ! RequestUpdateIndex
-      eventuallyStatus(ref, NotAccepted)
+      expectMsg(NotAccepted)
     }
   }
 
   private def eventuallyStatus(ref: ActorRef, status: IndexActorStatus) = {
+    val tp = TestProbe()
     eventually(Timeout(3 seconds)) {
-      ref ! Status
-      expectMsg(status)
+      ref.tell(Status, tp.ref)
+      tp.expectMsg(status)
     }
   }
 
-  case class DummyDocumentIndexer(
-      hasIndex: Boolean,
-      var reindexStatus: DocumentIndexerStatus,
-      var updateIndexStatus: DocumentIndexerStatus
-  ) extends DocumentIndexer {
+  class DummyIndexer(val indexMaintainer: IndexMaintainer) extends Indexer[String] {
+    override val indexAliasName: String = "dummy"
 
-    var reindexCalled     = false
-    var updadeIndexCalled = false
-    override def initIndex()(implicit ec: ExecutionContext): Future[Boolean] =
-      Future.successful(hasIndex)
+    private[this] var indexCallbackOpt: Option[IndexCallback]  = None
+    private[this] var updateCallbackOpt: Option[IndexCallback] = None
 
-    override def reindex()(
-        implicit ec: ExecutionContext,
-        as: ActorSystem,
-        mat: Materializer
-    ): Unit = {
-      reindexCalled = true
+    override def reindexToNewIndex(
+        indexCallback: IndexCallback
+    )(implicit ec: ExecutionContext, mat: Materializer, as: ActorSystem): Unit = {
+      indexCallbackOpt = Some(indexCallback)
     }
 
-    override def updateIndex()(
-        implicit ec: ExecutionContext,
-        as: ActorSystem,
-        mat: Materializer
-    ): Unit = {
-      updadeIndexCalled = true
+    override def updateExistingIndex(
+        index: IndexName,
+        indexCallback: IndexCallback
+    )(implicit ec: ExecutionContext, mat: Materializer, as: ActorSystem): Unit = {
+      updateCallbackOpt = Some(indexCallback)
     }
 
+    def triggerReindexSuccess(): Unit = {
+      indexCallbackOpt.foreach(_.success(IndexName("dummy_index")))
+      indexCallbackOpt = None
+    }
+
+    def triggerUpdateIndexSuccess(): Unit = {
+      updateCallbackOpt.foreach(_.success(IndexName("dummy_index")))
+      updateCallbackOpt = None
+    }
   }
+
+  class DummyIndexMaintainer(hasIndex: Boolean) extends IndexMaintainer(null) {
+    override def activateIndex(index: String, aliasName: String)(
+        implicit ec: ExecutionContext
+    ): Future[Unit] =
+      Future.successful(())
+
+    override def indexNameForAlias(
+        alias: String
+    )(implicit ec: ExecutionContext): Future[Option[String]] =
+      Future.successful(if (hasIndex) Some("dummy_old_index") else None)
+  }
+
 }

@@ -8,7 +8,7 @@ import models.elasticsearch._
 import no.uio.musit.models.ActorId
 import services.actor.ActorService
 import services.elasticsearch.shared.ActorEnrichFlow
-import services.elasticsearch.{IndexConfig, TypeFlow}
+import services.elasticsearch.TypeFlow
 
 import scala.concurrent.ExecutionContext
 

@@ -35,10 +35,10 @@ class ElasticsearchService @Inject(
   private implicit val to  = Timeout(10 seconds)
 
   private val eventActor = as.actorOf(
-    IndexActor(DocumentIndexerState(indexAnalysisEvents, indexMaintainer))
+    IndexActor(indexAnalysisEvents, indexMaintainer)
   )
   private val thingsActor = as.actorOf(
-    IndexActor(DocumentIndexerState(indexMusitObjects, indexMaintainer))
+    IndexActor(indexMusitObjects, indexMaintainer)
   )
 
   lifecycle.addStopHook { () =>

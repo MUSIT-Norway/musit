@@ -3,7 +3,7 @@ package services.elasticsearch
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 trait Indexer[S] {
 
@@ -27,20 +27,20 @@ trait Indexer[S] {
   /**
    * Reindex all documents to index
    */
-  def reindexToNewIndex()(
+  def reindexToNewIndex(indexCallback: IndexCallback)(
       implicit ec: ExecutionContext,
       mat: Materializer,
       as: ActorSystem
-  ): Future[IndexName]
+  ): Unit
 
   /**
    * Update the existing index with updated and new documents
    */
-  def updateExistingIndex(index: IndexName)(
+  def updateExistingIndex(index: IndexName, indexCallback: IndexCallback)(
       implicit ec: ExecutionContext,
       mat: Materializer,
       as: ActorSystem
-  ): Future[Unit]
+  ): Unit
 
 }
 
@@ -49,3 +49,5 @@ case class IndexName(underlying: String) {
 
   def name = underlying
 }
+
+case class IndexCallback(success: IndexName => Unit, failure: () => Unit)

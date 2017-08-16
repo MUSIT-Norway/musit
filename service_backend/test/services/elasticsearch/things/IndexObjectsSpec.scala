@@ -3,9 +3,9 @@ package services.elasticsearch.things
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
-import services.elasticsearch.IndexName
+import services.elasticsearch.{IndexCallback, IndexName}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Promise}
 
 class IndexObjectsSpec extends MusitSpecWithAppPerSuite {
 
@@ -16,9 +16,16 @@ class IndexObjectsSpec extends MusitSpecWithAppPerSuite {
 
   "IndexThings" should {
     "index all object to elasticsearch" taggedAs ElasticsearchContainer in {
-      val f = esIndexer.reindexToNewIndex()
+      val p = Promise[Option[IndexName]]()
+      val f = p.future
+      esIndexer.reindexToNewIndex(
+        IndexCallback(
+          in => p.success(Some(in)),
+          () => p.success(None)
+        )
+      )
 
-      f.futureValue mustBe a[IndexName]
+      f.futureValue mustBe defined
     }
   }
 }

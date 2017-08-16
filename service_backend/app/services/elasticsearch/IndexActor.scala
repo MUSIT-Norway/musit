@@ -1,38 +1,38 @@
 package services.elasticsearch
 
-import akka.actor.{Actor, ActorSystem, Cancellable, Props}
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.stream.ActorMaterializer
-import services.elasticsearch.DocumentIndexer._
+import models.elasticsearch.DocumentIndexerStatuses._
 import services.elasticsearch.IndexActor._
 
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.{DurationLong, FiniteDuration}
 
-class IndexActor(indexer: DocumentIndexer, updateInterval: FiniteDuration)(
+class IndexActor[S](
+    indexer: Indexer[S],
+    indexMaintainer: IndexMaintainer
+)(
     implicit mat: ActorMaterializer
 ) extends Actor {
 
   private implicit val ec: ExecutionContext = context.dispatcher
   private implicit val as: ActorSystem      = context.system
 
-  private var updateIndexScheduler: Option[Cancellable] = None
+  var indexStatus: IndexStatus     = IndexStatus()
+  var indexName: Option[IndexName] = None
 
   override def preStart(): Unit = {
-    indexer.initIndex().foreach { hasIndex =>
-      context.become(ready)
-      if (hasIndex)
-        self ! RequestUpdateIndex
-      else
-        self ! RequestReindex
-    }
-    updateIndexScheduler = Some(
-      context.system.scheduler
-        .schedule(updateInterval, updateInterval, self, RequestUpdateIndex)
+    val aliasExists = indexMaintainer.indexNameForAlias(indexer.indexAliasName)
+    aliasExists.foreach(
+      optName => {
+        indexName = optName.map(IndexName.apply)
+        context.become(ready)
+        self.tell(
+          indexName.map(_ => RequestUpdateIndex).getOrElse(RequestReindex),
+          ActorRef.noSender
+        )
+      }
     )
   }
-
-  override def postStop(): Unit =
-    updateIndexScheduler.foreach(_.cancel())
 
   def init: Receive = {
     case _: IndexActorCommand =>
@@ -42,30 +42,51 @@ class IndexActor(indexer: DocumentIndexer, updateInterval: FiniteDuration)(
 
   def ready: Receive = {
     case RequestUpdateIndex =>
-      if (indexer.updateIndexStatus().ready && indexer.reindexStatus().ready) {
-        indexer.updateIndex()
-        sender() ! Accepted
-      } else {
-        sender() ! NotAccepted
+      indexName match {
+        case Some(name) if indexStatus.canUpdate =>
+          indexer.updateExistingIndex(
+            name,
+            IndexCallback(
+              _ => self ! UpdateIndexSuccess,
+              () => self ! UpdateIndexFailed
+            )
+          )
+          indexStatus = indexStatus.copy(updateIndexStatus = Executing)
+          sender() ! Accepted
+
+        case _ =>
+          sender() ! NotAccepted
       }
 
     case RequestReindex =>
-      if (indexer.reindexStatus().ready) {
-        indexer.reindex()
+      if (indexStatus.canReindex) {
+        indexer.reindexToNewIndex(
+          IndexCallback(
+            name => self ! ReindexSuccess(name),
+            () => self ! ReindexFailed
+          )
+        )
+        indexStatus = indexStatus.copy(reindexStatus = Executing)
         sender() ! Accepted
       } else {
         sender() ! NotAccepted
       }
 
     case Status =>
-      if (indexer.reindexStatus() == Executing || indexer
-            .updateIndexStatus() == Executing) {
-        sender() ! Indexing
-      } else if (indexer.updateIndexStatus().ready && indexer.reindexStatus().ready) {
-        sender() ! Ready
-      } else {
-        sender() ! Failed
-      }
+      sender() ! indexStatus.status
+
+    case UpdateIndexSuccess =>
+      indexStatus = indexStatus.copy(updateIndexStatus = IndexSuccess)
+
+    case UpdateIndexFailed =>
+      indexStatus = indexStatus.copy(updateIndexStatus = IndexFailed)
+
+    case ReindexSuccess(newIndexName) =>
+      indexStatus = indexStatus.copy(reindexStatus = IndexSuccess)
+      indexName = Some(newIndexName)
+
+    case ReindexFailed =>
+      indexStatus = indexStatus.copy(reindexStatus = IndexFailed)
 
     case msg =>
       unhandled(msg)
@@ -76,8 +97,19 @@ class IndexActor(indexer: DocumentIndexer, updateInterval: FiniteDuration)(
 }
 
 object IndexActor {
-  def apply(documentIndexer: DocumentIndexer)(implicit mat: ActorMaterializer) =
-    Props.apply(classOf[IndexActor], documentIndexer, 1 minute, mat)
+  def apply[S](indexer: Indexer[S], indexMaintainer: IndexMaintainer)(
+      implicit mat: ActorMaterializer
+  ) =
+    Props.apply(classOf[IndexActor[S]], indexer, indexMaintainer, mat)
+
+  /**
+   * Internal messages
+   */
+  sealed trait InternalActorCommand
+  case object UpdateIndexSuccess                     extends IndexActorCommand
+  case object UpdateIndexFailed                      extends IndexActorCommand
+  case class ReindexSuccess(newIndexName: IndexName) extends IndexActorCommand
+  case object ReindexFailed                          extends IndexActorCommand
 
   /**
    * Commands that can be sent to the actor
@@ -98,4 +130,20 @@ object IndexActor {
   case object Accepted     extends IndexActorStatus
   case object NotAccepted  extends IndexActorStatus
 
+}
+
+case class IndexStatus(
+    reindexStatus: DocumentIndexerStatus = NotExecuted,
+    updateIndexStatus: DocumentIndexerStatus = NotExecuted
+) {
+  def canReindex: Boolean = reindexStatus.ready && updateIndexStatus.ready
+  def canUpdate: Boolean  = updateIndexStatus.ready
+  def status: IndexActorStatus = {
+    if (reindexStatus == Executing || updateIndexStatus == Executing)
+      Indexing
+    else if (updateIndexStatus.ready && reindexStatus.ready)
+      Ready
+    else
+      Failed
+  }
 }

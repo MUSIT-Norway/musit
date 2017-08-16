@@ -35,11 +35,11 @@ class IndexEvents @Inject()(
 
   override val indexAliasName = "events"
 
-  override def reindexToNewIndex()(
+  override def reindexToNewIndex(indexCallback: IndexCallback)(
       implicit ec: ExecutionContext,
       mat: Materializer,
       as: ActorSystem
-  ): Future[IndexName] = {
+  ): Unit = {
     val indexName = createIndexName()
     val config =
       IndexConfig(indexName.name, indexAliasName, EventIndexConfig.config(indexName.name))
@@ -51,23 +51,22 @@ class IndexEvents @Inject()(
       client,
       indexMaintainer,
       indexStatusDao,
-      config.alias
+      config,
+      indexCallback
     ).toElasticsearchSink
 
     esBulkSource.runWith(es)
-    //todo callback or something when done
-    Future.successful(indexName)
   }
 
-  override def updateExistingIndex(indexName: IndexName)(
+  override def updateExistingIndex(indexName: IndexName, indexCallback: IndexCallback)(
       implicit ec: ExecutionContext,
       mat: Materializer,
       as: ActorSystem
-  ): Future[Unit] = {
+  ): Unit = {
     findLastIndexDateTime().map {
       _.map(dt => analysisEventsExportDao.analysisEventsStream(Some(dt)))
         .getOrElse(Source.empty)
-    }.flatMap { dbSource =>
+    }.map { dbSource =>
       val config =
         IndexConfig(
           indexName.name,
@@ -80,12 +79,11 @@ class IndexEvents @Inject()(
         client,
         indexMaintainer,
         indexStatusDao,
-        config.alias
+        config,
+        indexCallback
       ).toElasticsearchSink
 
       esBulkSource.runWith(es)
-      //todo callback or something when done
-      Future.successful(())
     }
 
   }
