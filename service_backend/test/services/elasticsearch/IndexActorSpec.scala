@@ -114,7 +114,7 @@ class IndexActorSpec
     }
   }
 
-  class DummyIndexer(val indexMaintainer: IndexMaintainer) extends Indexer[String] {
+  class DummyIndexer(val indexMaintainer: IndexMaintainer) extends Indexer {
     override val indexAliasName: String = "dummy"
 
     private[this] var indexCallbackOpt: Option[IndexCallback]  = None

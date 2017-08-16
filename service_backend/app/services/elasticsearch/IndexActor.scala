@@ -7,8 +7,8 @@ import services.elasticsearch.IndexActor._
 
 import scala.concurrent.ExecutionContext
 
-class IndexActor[S](
-    indexer: Indexer[S],
+class IndexActor(
+    indexer: Indexer,
     indexMaintainer: IndexMaintainer
 )(
     implicit mat: ActorMaterializer
@@ -97,10 +97,10 @@ class IndexActor[S](
 }
 
 object IndexActor {
-  def apply[S](indexer: Indexer[S], indexMaintainer: IndexMaintainer)(
+  def apply[S](indexer: Indexer, indexMaintainer: IndexMaintainer)(
       implicit mat: ActorMaterializer
   ) =
-    Props.apply(classOf[IndexActor[S]], indexer, indexMaintainer, mat)
+    Props.apply(classOf[IndexActor], indexer, indexMaintainer, mat)
 
   /**
    * Internal messages

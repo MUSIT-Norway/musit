@@ -29,7 +29,7 @@ class IndexEvents @Inject()(
     client: HttpClient,
     cfg: Configuration,
     override val indexMaintainer: IndexMaintainer
-) extends Indexer[EventSearch] {
+) extends Indexer {
 
   val logger = Logger(classOf[IndexEvents])
 

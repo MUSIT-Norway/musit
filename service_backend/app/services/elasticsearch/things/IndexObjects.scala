@@ -27,7 +27,7 @@ class IndexObjects @Inject()(
     cfg: Configuration,
     override val indexMaintainer: IndexMaintainer
 )(implicit ec: ExecutionContext, mat: Materializer)
-    extends Indexer[MusitObjectSearch] {
+    extends Indexer {
 
   private[this] val esBathSize: Int =
     cfg.getInt("musit.elasticsearch.streams.musitObjects.esBatchSize").getOrElse(1000)

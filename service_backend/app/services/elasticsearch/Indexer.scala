@@ -5,7 +5,7 @@ import akka.stream.Materializer
 
 import scala.concurrent.ExecutionContext
 
-trait Indexer[S] {
+trait Indexer {
 
   /**
    * The index alias name.
