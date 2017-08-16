@@ -42,7 +42,11 @@ class IndexEvents @Inject()(
   ): Unit = {
     val indexName = createIndexName()
     val config =
-      IndexConfig(indexName.name, indexAliasName, EventIndexConfig.config(indexName.name))
+      IndexConfig(
+        indexName.name,
+        indexAliasName,
+        EventIndexConfig.config(indexName.name)
+      )
 
     val dbSource     = analysisEventsExportDao.analysisEventsStream()
     val esBulkSource = createFlow(dbSource, config)

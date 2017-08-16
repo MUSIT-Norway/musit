@@ -43,7 +43,8 @@ class IndexMaintainer @Inject()(
       case (aliasResponse, indexResponse, movedAliases, deletedIndices) =>
         if (aliasResponse.acknowledged && indexResponse.acknowledged) {
           logger.info(
-            s"Updated alias '$aliasName' and related indices. Moved aliases $movedAliases, deleted indices: $deletedIndices"
+            s"Updated alias '$aliasName' and related indices. Moved" +
+              s" aliases $movedAliases, deleted indices: $deletedIndices"
           )
         } else {
           logger.warn(
