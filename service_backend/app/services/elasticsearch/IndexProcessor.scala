@@ -3,17 +3,17 @@ package services.elasticsearch
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.stream.ActorMaterializer
 import models.elasticsearch.DocumentIndexerStatuses._
-import services.elasticsearch.IndexActor.InternalProtocol.{
-  ReindexFailed,
-  ReindexSuccess,
-  UpdateIndexFailed,
-  UpdateIndexSuccess
-}
-import services.elasticsearch.IndexActor.Protocol._
+import services.elasticsearch.IndexProcessor.InternalProtocol._
+import services.elasticsearch.IndexProcessor.Protocol._
 
 import scala.concurrent.ExecutionContext
 
-class IndexActor(
+/**
+ * Actor that keep the current status on the indexing process. It takes commands
+ * to start reindexing and updating an existing index. When a indexing process is
+ * started it will bock new operation until the ongoing operation is done executing.
+ */
+class IndexProcessor(
     indexer: Indexer,
     indexMaintainer: IndexMaintainer
 )(
@@ -102,11 +102,11 @@ class IndexActor(
 
 }
 
-object IndexActor {
+object IndexProcessor {
   def apply[S](indexer: Indexer, indexMaintainer: IndexMaintainer)(
       implicit mat: ActorMaterializer
   ) =
-    Props.apply(classOf[IndexActor], indexer, indexMaintainer, mat)
+    Props.apply(classOf[IndexProcessor], indexer, indexMaintainer, mat)
 
   /**
    * Internal messages protocol
@@ -153,14 +153,18 @@ case class IndexStatus(
     reindexStatus: DocumentIndexerStatus = NotExecuted,
     updateIndexStatus: DocumentIndexerStatus = NotExecuted
 ) {
-  def canReindex: Boolean = reindexStatus.ready && updateIndexStatus.ready
-  def canUpdate: Boolean  = updateIndexStatus.ready
-  def status: IndexActorStatus = {
+
+  def canReindex: Boolean =
+    reindexStatus.ready && updateIndexStatus.ready
+
+  def canUpdate: Boolean =
+    updateIndexStatus.ready
+
+  def status: IndexActorStatus =
     if (reindexStatus == Executing || updateIndexStatus == Executing)
       Indexing
     else if (updateIndexStatus.ready && reindexStatus.ready)
       Ready
     else
       Failed
-  }
 }

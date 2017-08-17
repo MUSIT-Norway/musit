@@ -6,12 +6,12 @@ import akka.testkit.{ImplicitSender, TestKit, TestProbe}
 import org.scalatest.{BeforeAndAfterAll, MustMatchers, WordSpecLike}
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
-import services.elasticsearch.IndexActor.Protocol._
+import services.elasticsearch.IndexProcessor.Protocol._
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 
-class IndexActorSpec
+class IndexProcessorSpec
     extends TestKit(ActorSystem("IndexActorSpec"))
     with ImplicitSender
     with WordSpecLike
@@ -32,7 +32,7 @@ class IndexActorSpec
     "give `Indexing` status when reindexing is running" in {
       val maintainer = new DummyIndexMaintainer(false)
       val indexer    = new DummyIndexer(maintainer)
-      val ref        = system.actorOf(IndexActor(indexer, maintainer))
+      val ref        = system.actorOf(IndexProcessor(indexer, maintainer))
 
       eventuallyStatus(ref, Indexing)
     }
@@ -40,7 +40,7 @@ class IndexActorSpec
     "give `Ready` status when indexing is done" in {
       val maintainer = new DummyIndexMaintainer(false)
       val indexer    = new DummyIndexer(maintainer)
-      val ref        = system.actorOf(IndexActor(indexer, maintainer))
+      val ref        = system.actorOf(IndexProcessor(indexer, maintainer))
 
       eventuallyStatus(ref, Indexing)
       indexer.triggerReindexSuccess()
@@ -50,7 +50,7 @@ class IndexActorSpec
     "give `Ready` status when index exists" in {
       val maintainer = new DummyIndexMaintainer(true)
       val indexer    = new DummyIndexer(maintainer)
-      val ref        = system.actorOf(IndexActor(indexer, maintainer))
+      val ref        = system.actorOf(IndexProcessor(indexer, maintainer))
 
       eventuallyStatus(ref, Indexing)
       indexer.triggerUpdateIndexSuccess()
@@ -60,7 +60,7 @@ class IndexActorSpec
     "give `Accepted` status when not indexing on `RequestReindex` command" in {
       val maintainer = new DummyIndexMaintainer(false)
       val indexer    = new DummyIndexer(maintainer)
-      val ref        = system.actorOf(IndexActor(indexer, maintainer))
+      val ref        = system.actorOf(IndexProcessor(indexer, maintainer))
 
       eventuallyStatus(ref, Indexing)
       indexer.triggerReindexSuccess()
@@ -73,7 +73,7 @@ class IndexActorSpec
     "give `NotAccepted` status when indexing on `RequestReindex` command" in {
       val maintainer = new DummyIndexMaintainer(false)
       val indexer    = new DummyIndexer(maintainer)
-      val ref        = system.actorOf(IndexActor(indexer, maintainer))
+      val ref        = system.actorOf(IndexProcessor(indexer, maintainer))
 
       eventuallyStatus(ref, Indexing)
 
@@ -84,7 +84,7 @@ class IndexActorSpec
     "give `Accepted` status when not indexing on `RequestUpdateIndex` command" in {
       val maintainer = new DummyIndexMaintainer(true)
       val indexer    = new DummyIndexer(maintainer)
-      val ref        = system.actorOf(IndexActor(indexer, maintainer))
+      val ref        = system.actorOf(IndexProcessor(indexer, maintainer))
 
       eventuallyStatus(ref, Indexing)
       indexer.triggerUpdateIndexSuccess()
@@ -97,7 +97,7 @@ class IndexActorSpec
     "give `NotAccepted` status when indexing on `RequestUpdateIndex` command" in {
       val maintainer = new DummyIndexMaintainer(true)
       val indexer    = new DummyIndexer(maintainer)
-      val ref        = system.actorOf(IndexActor(indexer, maintainer))
+      val ref        = system.actorOf(IndexProcessor(indexer, maintainer))
 
       eventuallyStatus(ref, Indexing)
 

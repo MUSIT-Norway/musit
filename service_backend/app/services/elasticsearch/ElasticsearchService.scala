@@ -7,7 +7,7 @@ import akka.util.Timeout
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.MusitResults.{MusitGeneralError, MusitResult, MusitSuccess}
 import play.api.inject.ApplicationLifecycle
-import services.elasticsearch.IndexActor.Protocol._
+import services.elasticsearch.IndexProcessor.Protocol._
 import services.elasticsearch.events.IndexEvents
 import services.elasticsearch.things.IndexObjects
 
@@ -35,10 +35,10 @@ class ElasticsearchService @Inject(
   private implicit val to  = Timeout(10 seconds)
 
   private val eventActor = as.actorOf(
-    IndexActor(indexAnalysisEvents, indexMaintainer)
+    IndexProcessor(indexAnalysisEvents, indexMaintainer)
   )
   private val thingsActor = as.actorOf(
-    IndexActor(indexMusitObjects, indexMaintainer)
+    IndexProcessor(indexMusitObjects, indexMaintainer)
   )
 
   lifecycle.addStopHook { () =>
