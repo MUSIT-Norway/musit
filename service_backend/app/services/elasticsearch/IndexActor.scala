@@ -3,7 +3,13 @@ package services.elasticsearch
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.stream.ActorMaterializer
 import models.elasticsearch.DocumentIndexerStatuses._
-import services.elasticsearch.IndexActor._
+import services.elasticsearch.IndexActor.InternalProtocol.{
+  ReindexFailed,
+  ReindexSuccess,
+  UpdateIndexFailed,
+  UpdateIndexSuccess
+}
+import services.elasticsearch.IndexActor.Protocol._
 
 import scala.concurrent.ExecutionContext
 
@@ -103,32 +109,43 @@ object IndexActor {
     Props.apply(classOf[IndexActor], indexer, indexMaintainer, mat)
 
   /**
-   * Internal messages
+   * Internal messages protocol
    */
-  sealed trait InternalActorCommand
-  case object UpdateIndexSuccess                     extends IndexActorCommand
-  case object UpdateIndexFailed                      extends IndexActorCommand
-  case class ReindexSuccess(newIndexName: IndexName) extends IndexActorCommand
-  case object ReindexFailed                          extends IndexActorCommand
+  private[elasticsearch] object InternalProtocol {
+
+    sealed trait InternalActorCommand
+    case object UpdateIndexSuccess                     extends InternalActorCommand
+    case object UpdateIndexFailed                      extends InternalActorCommand
+    case class ReindexSuccess(newIndexName: IndexName) extends InternalActorCommand
+    case object ReindexFailed                          extends InternalActorCommand
+  }
 
   /**
-   * Commands that can be sent to the actor
+   * Protocol with commands and responses that can be used to interact with the
+   * actor.
    */
-  sealed trait IndexActorCommand
-  case object RequestUpdateIndex extends IndexActorCommand
-  case object RequestReindex     extends IndexActorCommand
-  case object Status             extends IndexActorCommand
+  object Protocol {
 
-  /**
-   * Responses on commands sent to the actor
-   */
-  sealed trait IndexActorStatus
-  case object Initialising extends IndexActorStatus
-  case object Indexing     extends IndexActorStatus
-  case object Ready        extends IndexActorStatus
-  case object Failed       extends IndexActorStatus
-  case object Accepted     extends IndexActorStatus
-  case object NotAccepted  extends IndexActorStatus
+    /**
+     * Commands that can be sent to the actor
+     */
+    sealed trait IndexActorCommand
+    case object RequestUpdateIndex extends IndexActorCommand
+    case object RequestReindex     extends IndexActorCommand
+    case object Status             extends IndexActorCommand
+
+    /**
+     * Responses on commands sent to the actor
+     */
+    sealed trait IndexActorStatus
+    case object Initialising extends IndexActorStatus
+    case object Indexing     extends IndexActorStatus
+    case object Ready        extends IndexActorStatus
+    case object Failed       extends IndexActorStatus
+    case object Accepted     extends IndexActorStatus
+    case object NotAccepted  extends IndexActorStatus
+
+  }
 
 }
 

@@ -7,7 +7,7 @@ import akka.util.Timeout
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.MusitResults.{MusitGeneralError, MusitResult, MusitSuccess}
 import play.api.inject.ApplicationLifecycle
-import services.elasticsearch.IndexActor._
+import services.elasticsearch.IndexActor.Protocol._
 import services.elasticsearch.events.IndexEvents
 import services.elasticsearch.things.IndexObjects
 
