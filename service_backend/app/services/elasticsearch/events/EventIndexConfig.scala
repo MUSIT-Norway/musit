@@ -48,8 +48,8 @@ object EventIndexConfig {
         actorSearchStamp("doneBy"),
         actorSearchStamp("registeredBy"),
         textField("objectId"),
-        textField("sampleObjectId")
-        //externalLinks
+        textField("sampleObjectId"),
+        textField("externalLinks")
       )
     )
 
