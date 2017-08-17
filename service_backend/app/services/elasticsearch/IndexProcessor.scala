@@ -3,6 +3,7 @@ package services.elasticsearch
 import akka.actor.{Actor, ActorRef, ActorSystem, Cancellable, Props}
 import akka.stream.ActorMaterializer
 import models.elasticsearch.DocumentIndexerStatuses._
+import models.elasticsearch.{IndexCallback, IndexName}
 import services.elasticsearch.IndexProcessor.InternalProtocol._
 import services.elasticsearch.IndexProcessor.Protocol._
 

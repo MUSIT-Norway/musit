@@ -2,6 +2,7 @@ package services.elasticsearch
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
+import models.elasticsearch.{IndexCallback, IndexName}
 
 import scala.concurrent.ExecutionContext
 
@@ -43,11 +44,3 @@ trait Indexer {
   ): Unit
 
 }
-
-case class IndexName(underlying: String) {
-  override def toString = underlying
-
-  def name = underlying
-}
-
-case class IndexCallback(success: IndexName => Unit, failure: () => Unit)

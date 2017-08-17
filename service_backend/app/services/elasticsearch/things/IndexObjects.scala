@@ -6,7 +6,7 @@ import akka.stream.{Materializer, SourceShape}
 import com.google.inject.Inject
 import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
 import com.sksamuel.elastic4s.http.HttpClient
-import models.elasticsearch.{IndexConfig, MusitObjectSearch}
+import models.elasticsearch.{IndexCallback, IndexConfig, IndexName}
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import org.joda.time.DateTime
 import play.api.Configuration

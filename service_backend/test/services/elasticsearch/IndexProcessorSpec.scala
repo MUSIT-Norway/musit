@@ -3,9 +3,10 @@ package services.elasticsearch
 import akka.actor.{ActorRef, ActorSystem}
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.{ImplicitSender, TestKit, TestProbe}
-import org.scalatest.{BeforeAndAfterAll, MustMatchers, WordSpecLike}
+import models.elasticsearch.{IndexCallback, IndexName}
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
+import org.scalatest.{BeforeAndAfterAll, MustMatchers, WordSpecLike}
 import services.elasticsearch.IndexProcessor.Protocol._
 
 import scala.concurrent.duration.DurationInt

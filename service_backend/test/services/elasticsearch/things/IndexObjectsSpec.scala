@@ -2,8 +2,8 @@ package services.elasticsearch.things
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
+import models.elasticsearch.{IndexCallback, IndexName}
 import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
-import services.elasticsearch.{IndexCallback, IndexName}
 
 import scala.concurrent.{ExecutionContext, Promise}
 

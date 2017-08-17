@@ -8,11 +8,11 @@ import com.sksamuel.elastic4s.http.HttpClient
 import com.sksamuel.elastic4s.streams.BulkIndexingSubscriber
 import com.sksamuel.elastic4s.streams.ReactiveElastic._
 import com.sksamuel.elastic4s.streams.RequestBuilder
-import models.elasticsearch.IndexConfig
+import models.elasticsearch.{IndexCallback, IndexConfig, IndexName}
 import no.uio.musit.time
 import org.joda.time.DateTime
 import repositories.core.dao.IndexStatusDao
-import services.elasticsearch.{IndexCallback, IndexMaintainer, IndexName}
+import services.elasticsearch.IndexMaintainer
 
 import scala.concurrent.ExecutionContext
 

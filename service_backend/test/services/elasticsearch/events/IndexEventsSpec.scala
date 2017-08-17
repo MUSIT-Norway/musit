@@ -2,6 +2,7 @@ package services.elasticsearch.events
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
+import models.elasticsearch.{IndexCallback, IndexName}
 import no.uio.musit.models.MuseumId
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.test.matchers.MusitResultValues
@@ -11,7 +12,6 @@ import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.time.{Seconds, Span}
 import repositories.core.dao.IndexStatusDao
 import services.analysis.AnalysisService
-import services.elasticsearch.{IndexCallback, IndexName}
 import utils.testdata.{AnalysisGenerators, BaseDummyData}
 
 import scala.concurrent.{ExecutionContext, Promise}
