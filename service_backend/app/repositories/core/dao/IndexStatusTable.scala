@@ -1,13 +1,14 @@
 package repositories.core.dao
 
-import no.uio.musit.repositories.BaseColumnTypeMappers
+import no.uio.musit.repositories.{BaseColumnTypeMappers, DbErrorHandlers}
 import org.joda.time.DateTime
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
 trait IndexStatusTable
     extends HasDatabaseConfigProvider[JdbcProfile]
-    with BaseColumnTypeMappers {
+    with BaseColumnTypeMappers
+    with DbErrorHandlers {
 
   import profile.api._
 

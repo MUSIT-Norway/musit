@@ -20,17 +20,21 @@ class IndexStatusDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
   ): Future[MusitResult[Option[IndexStatus]]] = {
     val query =
       esIndexStatusTable.filter(_.indexAlias === alias)
-    db.run(query.result.headOption).map(optRow => MusitSuccess(optRow.map(fromRow)))
+    db.run(query.result.headOption)
+      .map(optRow => MusitSuccess(optRow.map(fromRow)))
+      .recover(nonFatal(s"Unable to find index status for alias $alias"))
   }
 
   def indexed(
       alias: String,
       indexTime: DateTime
   ): Future[MusitResult[Unit]] =
-    db.run(esIndexStatusTable.insertOrUpdate((alias, indexTime, None))).map {
-      case 1     => MusitSuccess(())
-      case other => MusitDbError(s"Expected to upsert one row got $other")
-    }
+    db.run(esIndexStatusTable.insertOrUpdate((alias, indexTime, None)))
+      .map {
+        case 1     => MusitSuccess(())
+        case other => MusitDbError(s"Expected to upsert one row got $other")
+      }
+      .recover(nonFatal(s"Unable to upsert index status for alias $alias"))
 
   def update(
       alias: String,
@@ -42,10 +46,12 @@ class IndexStatusDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
         .map(_.indexUpdated)
         .update(Some(updateTime))
 
-    db.run(action).map {
-      case 1 => MusitSuccess(())
-      case 0 => MusitDbError(s"No matching alias/index $alias")
-    }
+    db.run(action)
+      .map {
+        case 1 => MusitSuccess(())
+        case 0 => MusitDbError(s"No matching alias/index $alias")
+      }
+      .recover(nonFatal(s"Unable to update index status for alias $alias"))
 
   }
 
