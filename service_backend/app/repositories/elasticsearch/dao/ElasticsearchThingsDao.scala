@@ -3,11 +3,13 @@ package repositories.elasticsearch.dao
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.google.inject.{Inject, Singleton}
+import models.analysis.SampleObject
 import models.musitobject.MusitObject
 import no.uio.musit.models.ObjectId
 import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import repositories.analysis.dao.AnalysisTables
 import repositories.musitobject.dao.ObjectTables
 import slick.jdbc.{ResultSetConcurrency, ResultSetType}
 
@@ -15,7 +17,8 @@ import scala.concurrent.Future
 
 @Singleton
 class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
-    extends ObjectTables {
+    extends ObjectTables
+    with AnalysisTables {
 
   import profile.api._
 
@@ -27,8 +30,7 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
 
   def objectStreams(
       streams: Int,
-      fetchSize: Int,
-      afterDate: Option[DateTime] = None
+      fetchSize: Int
   ): Future[Seq[Source[MusitObject, NotUsed]]] = {
     val maxIdValue =
       objTable.filter(row => row.isDeleted === false && row.uuid.isDefined).map(_.id).max
@@ -55,7 +57,7 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
     }
   }
 
-  def objectsChangedAfterTimstampStream(
+  def objectsChangedAfterTimestampStream(
       fetchSize: Int,
       afterDate: DateTime
   ): Source[MusitObject, NotUsed] = {
@@ -74,6 +76,31 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
             .transactionally
         )
         .mapResult(MusitObject.fromSearchTuple)
+    )
+  }
+
+  def sampleStream(
+      fetchSize: Int,
+      afterTimestamp: Option[DateTime]
+  ): Source[SampleObject, NotUsed] = {
+    val query =
+      afterTimestamp.map { after =>
+        sampleObjTable.filter(
+          r => (r.registeredDate > after || r.updatedDate > after) && !r.isDeleted
+        )
+      }.getOrElse(sampleObjTable.filter(!_.isDeleted))
+
+    Source.fromPublisher(
+      db.stream(
+          query.result
+            .withStatementParameters(
+              rsType = ResultSetType.ForwardOnly,
+              rsConcurrency = ResultSetConcurrency.ReadOnly,
+              fetchSize = fetchSize
+            )
+            .transactionally
+        )
+        .mapResult(fromSampleObjectRow)
     )
   }
 
