@@ -24,10 +24,7 @@ object EventIndexConfig {
         textField("objectType"),
         textField("partOf"),
         textField("note"),
-        objectField("extraAttributes") fields (
-          textField("method"),
-          textField("types")
-        ),
+        extraAttributes,
         objectField("result") fields size
       ) parent analysisCollectionType,
       mapping(analysisCollectionType) as (
@@ -40,10 +37,7 @@ object EventIndexConfig {
         actorSearchStamp("updatedBy"),
         actorSearchStamp("completedBy"),
         textField("note"),
-        objectField("extraAttributes") fields (
-          textField("method"),
-          textField("types")
-        ),
+        extraAttributes,
         objectField("result") fields size,
         textField("reason"),
         intField("status"),
@@ -58,6 +52,14 @@ object EventIndexConfig {
         //externalLinks
       )
     )
+
+  private def extraAttributes = {
+    objectField("extraAttributes") fields (
+      textField("method"), // this is an integer for all except ExtractionAttributes
+      textField("types"),
+      textField("extractionType")
+    )
+  }
 
   private def actorSearchStamp(name: String) =
     objectField(name) fields (
