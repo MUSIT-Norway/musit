@@ -44,9 +44,7 @@ class AnalysisCollectionTypeFlow(
       indexInto(indexConfig.indexName, event.documentType) id event.documentId doc event
     }
 
-  override def flow(indexConfig: IndexConfig) =
-    Flow[AnalysisCollectionSearchType]
-      .via(withActorNames)
-      .via(toBulkDefinitions(indexConfig))
+  override def populateWithData(indexConfig: IndexConfig) =
+    Flow[AnalysisCollectionSearchType].via(withActorNames)
 
 }

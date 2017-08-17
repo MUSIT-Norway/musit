@@ -43,7 +43,7 @@ class AnalysisTypeFlow(
       event.partOf.map(action parent _.underlying.toString).getOrElse(action)
     }
 
-  override def flow(indexConfig: IndexConfig) =
-    Flow[AnalysisSearchType].via(withActorNames).via(toBulkDefinitions(indexConfig))
+  override def populateWithData(indexConfig: IndexConfig) =
+    Flow[AnalysisSearchType].via(withActorNames)
 
 }

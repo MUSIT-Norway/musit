@@ -8,11 +8,8 @@ import models.musitobject.MusitObject
 import services.elasticsearch.TypeFlow
 
 class MusitObjectTypeFlow extends TypeFlow[MusitObject, MusitObjectSearch] {
-  override def flow(indexConfig: IndexConfig) =
-    Flow[MusitObject]
-      .filter(_.uuid.isDefined)
-      .map(mObj => MustObjectSearch(mObj))
-      .via(toBulkDefinitions(indexConfig))
+  override def populateWithData(indexConfig: IndexConfig) =
+    Flow[MusitObject].filter(_.uuid.isDefined).map(mObj => MustObjectSearch(mObj))
 
   override def toBulkDefinitions(indexConfig: IndexConfig) =
     Flow[MusitObjectSearch].map { thing =>
