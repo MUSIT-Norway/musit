@@ -17,8 +17,8 @@ import scala.concurrent.duration.DurationDouble
 /**
  * Service wrapper around managing indexing so we're not exposing the actor ref.
  * This is to encapsulate the indexing from the rest of the application. It will
- * also run on it's own actor system to prevent performance issues with the rest
- * of the application.
+ * also run on it's own actor system to prevent performance issues and isolate it from
+ * the rest of the application.
  */
 @Singleton
 class ElasticsearchService @Inject(
@@ -29,6 +29,9 @@ class ElasticsearchService @Inject(
     lifecycle: ApplicationLifecycle
 ) {
 
+  /**
+   * Implicits needed by the IndexProcessor and Indexer trait.
+   */
   private implicit val as  = ActorSystem("musit-elasticsearch")
   private implicit val mat = ActorMaterializer()
   private implicit val ec  = as.dispatcher

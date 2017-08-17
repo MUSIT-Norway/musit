@@ -20,6 +20,9 @@ import services.elasticsearch.shared.{
 
 import scala.concurrent.{ExecutionContext, Future}
 
+/**
+ * Index documents into the musit_object index.
+ */
 class IndexObjects @Inject()(
     elasticsearchThingsDao: ElasticsearchThingsDao,
     indexStatusDao: IndexStatusDao,

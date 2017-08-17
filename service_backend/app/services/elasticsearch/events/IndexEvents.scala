@@ -22,6 +22,9 @@ import services.elasticsearch.shared.{
 
 import scala.concurrent.{ExecutionContext, Future}
 
+/**
+ * Index documents into the events index
+ */
 class IndexEvents @Inject()(
     analysisEventsExportDao: ElasticsearchEventDao,
     indexStatusDao: IndexStatusDao,

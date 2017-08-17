@@ -6,6 +6,29 @@ import models.elasticsearch.{IndexCallback, IndexName}
 
 import scala.concurrent.ExecutionContext
 
+/**
+ * Indexer is where the actual indexing work is done. It has the ability to create a new
+ * index and reindex an existing index.
+ *
+ * Typical steps for reindexing is the following:
+ *  - Create a new index with elastic search mappings settings
+ *  - Stream the documents that should be indexed to elasticsearch
+ *  - Maintain the index by swapping the alias to the new index
+ *  - Report back the status trough the callback when done
+ *
+ * Typical steps for updating the index:
+ *  - Stream new and updated documents to elasticsearch
+ *  - Report back the status trough the callback when done
+ *
+ * Each index has often more then one type in elasticsearch. Each type is implemented as
+ * a akka-stream flow step of {{{TypeFlow}}}. This is because the sources will be setup
+ * differently based on if it's a reindex or update of the index. The flow step must be
+ * the same regardless of how the {{{Source}}} is created.
+ *
+ * The Indexer instance will be managed by the {{{IndexProcessor}}} trough the
+ * {{{ElasticsearchService}}}. This is because it need to be executed on it's own
+ * actor system to isolate it from the rest of the application.
+ */
 trait Indexer {
 
   /**
