@@ -32,7 +32,7 @@ class IndexProcessorSpec
     "give `Indexing` status when reindexing is running" in {
       val maintainer = new DummyIndexMaintainer(false)
       val indexer    = new DummyIndexer(maintainer)
-      val ref        = system.actorOf(IndexProcessor(indexer, maintainer))
+      val ref        = system.actorOf(IndexProcessor(indexer, maintainer, None))
 
       eventuallyStatus(ref, Indexing)
     }
@@ -40,7 +40,7 @@ class IndexProcessorSpec
     "give `Ready` status when indexing is done" in {
       val maintainer = new DummyIndexMaintainer(false)
       val indexer    = new DummyIndexer(maintainer)
-      val ref        = system.actorOf(IndexProcessor(indexer, maintainer))
+      val ref        = system.actorOf(IndexProcessor(indexer, maintainer, None))
 
       eventuallyStatus(ref, Indexing)
       indexer.triggerReindexSuccess()
@@ -50,7 +50,7 @@ class IndexProcessorSpec
     "give `Ready` status when index exists" in {
       val maintainer = new DummyIndexMaintainer(true)
       val indexer    = new DummyIndexer(maintainer)
-      val ref        = system.actorOf(IndexProcessor(indexer, maintainer))
+      val ref        = system.actorOf(IndexProcessor(indexer, maintainer, None))
 
       eventuallyStatus(ref, Indexing)
       indexer.triggerUpdateIndexSuccess()
@@ -60,7 +60,7 @@ class IndexProcessorSpec
     "give `Accepted` status when not indexing on `RequestReindex` command" in {
       val maintainer = new DummyIndexMaintainer(false)
       val indexer    = new DummyIndexer(maintainer)
-      val ref        = system.actorOf(IndexProcessor(indexer, maintainer))
+      val ref        = system.actorOf(IndexProcessor(indexer, maintainer, None))
 
       eventuallyStatus(ref, Indexing)
       indexer.triggerReindexSuccess()
@@ -73,7 +73,7 @@ class IndexProcessorSpec
     "give `NotAccepted` status when indexing on `RequestReindex` command" in {
       val maintainer = new DummyIndexMaintainer(false)
       val indexer    = new DummyIndexer(maintainer)
-      val ref        = system.actorOf(IndexProcessor(indexer, maintainer))
+      val ref        = system.actorOf(IndexProcessor(indexer, maintainer, None))
 
       eventuallyStatus(ref, Indexing)
 
@@ -84,7 +84,7 @@ class IndexProcessorSpec
     "give `Accepted` status when not indexing on `RequestUpdateIndex` command" in {
       val maintainer = new DummyIndexMaintainer(true)
       val indexer    = new DummyIndexer(maintainer)
-      val ref        = system.actorOf(IndexProcessor(indexer, maintainer))
+      val ref        = system.actorOf(IndexProcessor(indexer, maintainer, None))
 
       eventuallyStatus(ref, Indexing)
       indexer.triggerUpdateIndexSuccess()
@@ -97,12 +97,23 @@ class IndexProcessorSpec
     "give `NotAccepted` status when indexing on `RequestUpdateIndex` command" in {
       val maintainer = new DummyIndexMaintainer(true)
       val indexer    = new DummyIndexer(maintainer)
-      val ref        = system.actorOf(IndexProcessor(indexer, maintainer))
+      val ref        = system.actorOf(IndexProcessor(indexer, maintainer, None))
 
       eventuallyStatus(ref, Indexing)
 
       ref ! RequestUpdateIndex
       expectMsg(NotAccepted)
+    }
+
+    "give `ScheduleUpdate` status when scheduled" in {
+      val maintainer = new DummyIndexMaintainer(true)
+      val indexer    = new DummyIndexer(maintainer)
+      val ref        = system.actorOf(IndexProcessor(indexer, maintainer, Some(1 minute)))
+
+      eventuallyStatus(ref, Indexing)
+      indexer.triggerUpdateIndexSuccess()
+
+      eventuallyStatus(ref, ScheduledUpdate)
     }
   }
 
