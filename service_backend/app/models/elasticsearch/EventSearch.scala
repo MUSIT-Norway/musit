@@ -4,6 +4,7 @@ import models.analysis.AnalysisStatuses.AnalysisStatus
 import models.analysis.events.AnalysisExtras.ExtraAttributes
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events._
+import models.elasticsearch.Actors.{ActorSearch, ActorSearchStamp}
 import no.uio.musit.formatters.DateTimeFormatters._
 import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
@@ -142,35 +143,6 @@ object SampleCreatedSearch {
       sampleObjectId = s.sampleObjectId,
       externalLinks = s.externalLinks
     )
-}
-
-case class ActorSearchStamp(
-    id: ActorId,
-    date: DateTime,
-    name: Option[String]
-)
-
-object ActorSearchStamp {
-  implicit val writes: Writes[ActorSearchStamp] = Json.writes[ActorSearchStamp]
-
-  def apply(
-      idOpt: Option[ActorId],
-      dateOpt: Option[DateTime],
-      actorNames: ActorNames
-  ): Option[ActorSearchStamp] =
-    for {
-      id   <- idOpt
-      date <- dateOpt
-    } yield ActorSearchStamp(id, date, actorNames.nameFor(id))
-}
-
-case class ActorSearch(
-    id: ActorId,
-    name: Option[String]
-)
-
-object ActorSearch {
-  implicit val writes: Writes[ActorSearch] = Json.writes[ActorSearch]
 }
 
 case class AnalysisResultSearch(origin: AnalysisResult, registeredByName: Option[String])

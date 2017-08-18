@@ -6,18 +6,7 @@ import models.musitobject.MusitObject
 import no.uio.musit.models.{MuseumId, MuseumNo, ObjectUUID, SubNo}
 import play.api.libs.json.{Json, Writes}
 
-sealed trait MusitObjectSearch {
-  val documentId: String
-  val documentType: String
-}
-
-object MusitObjectSearch {
-  implicit val writes: Writes[MusitObjectSearch] = Writes[MusitObjectSearch] {
-    case obj: MustObjectSearch => MustObjectSearch.writes.writes(obj)
-  }
-}
-
-case class MustObjectSearch(
+case class MusitObjectSearch(
     id: ObjectUUID,
     museumId: MuseumId,
     museumNo: MuseumNo,
@@ -30,9 +19,9 @@ case class MustObjectSearch(
     natStage: Option[String],
     natGender: Option[String],
     natLegDate: Option[String]
-) extends MusitObjectSearch {
-  override val documentId   = id.underlying.toString
-  override val documentType = "collection"
+) {
+  val documentId: String   = id.underlying.toString
+  val documentType: String = "collection"
 }
 
 case class CollectionSearch(id: Int, uuid: UUID)
@@ -41,10 +30,10 @@ object CollectionSearch {
   implicit val writes: Writes[CollectionSearch] = Json.writes[CollectionSearch]
 }
 
-object MustObjectSearch {
-  val writes: Writes[MustObjectSearch] = Json.writes[MustObjectSearch]
+object MusitObjectSearch {
+  implicit val writes: Writes[MusitObjectSearch] = Json.writes[MusitObjectSearch]
 
-  def apply(mo: MusitObject): MustObjectSearch = MustObjectSearch(
+  def apply(mo: MusitObject): MusitObjectSearch = MusitObjectSearch(
     mo.uuid.get,
     mo.museumId,
     mo.museumNo,

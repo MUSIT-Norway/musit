@@ -6,6 +6,7 @@ import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, Merge, Source}
 import akka.stream.{Materializer, SourceShape}
 import com.google.inject.Inject
 import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
+import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.HttpClient
 import models.elasticsearch._
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
@@ -54,15 +55,17 @@ class IndexEvents @Inject()(
     val dbSource     = analysisEventsExportDao.analysisEventsStream()
     val esBulkSource = createFlow(dbSource, config)
 
-    val es = new DatabaseMaintainedElasticSearchIndexSink(
-      client,
-      indexMaintainer,
-      indexStatusDao,
-      config,
-      indexCallback
-    ).toElasticsearchSink
+    client.execute(config.mapping).map { _ =>
+      val es = new DatabaseMaintainedElasticSearchIndexSink(
+        client,
+        indexMaintainer,
+        indexStatusDao,
+        config,
+        indexCallback
+      ).toElasticsearchSink
 
-    esBulkSource.runWith(es)
+      esBulkSource.runWith(es)
+    }
   }
 
   override def updateExistingIndex(indexName: IndexName, indexCallback: IndexCallback)(

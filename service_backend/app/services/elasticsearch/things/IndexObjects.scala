@@ -5,6 +5,7 @@ import akka.stream.scaladsl.{GraphDSL, Merge, Source}
 import akka.stream.{Materializer, SourceShape}
 import com.google.inject.Inject
 import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
+import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.HttpClient
 import models.elasticsearch.{IndexCallback, IndexConfig, IndexName}
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
@@ -12,6 +13,7 @@ import org.joda.time.DateTime
 import play.api.Configuration
 import repositories.core.dao.IndexStatusDao
 import repositories.elasticsearch.dao.ElasticsearchThingsDao
+import services.actor.ActorService
 import services.elasticsearch._
 import services.elasticsearch.shared.{
   DatabaseMaintainedElasticSearchIndexSink,
@@ -26,6 +28,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class IndexObjects @Inject()(
     elasticsearchThingsDao: ElasticsearchThingsDao,
     indexStatusDao: IndexStatusDao,
+    actorService: ActorService,
     client: HttpClient,
     cfg: Configuration,
     override val indexMaintainer: IndexMaintainer
@@ -56,27 +59,41 @@ class IndexObjects @Inject()(
         indexAliasName,
         MusitObjectsIndexConfig.config(indexName.name)
       )
+    val sampleSourceFuture = Future.successful(
+      elasticsearchThingsDao.sampleStream(fetchSize, None)
+    )
+    val sources = for {
+      objSources   <- elasticsearchThingsDao.objectStreams(concurrentSources, fetchSize)
+      sampleSource <- sampleSourceFuture
+      _            <- client.execute(config.mapping)
+    } yield (objSources, sampleSource)
 
-    elasticsearchThingsDao.objectStreams(concurrentSources, fetchSize).map { sources =>
-      val es = new DatabaseMaintainedElasticSearchIndexSink(
-        client,
-        indexMaintainer,
-        indexStatusDao,
-        config,
-        indexCallback
-      ).toElasticsearchSink
+    sources.map {
+      case (objSources, sampleSource) =>
+        val es = new DatabaseMaintainedElasticSearchIndexSink(
+          client,
+          indexMaintainer,
+          indexStatusDao,
+          config,
+          indexCallback
+        ).toElasticsearchSink
 
-      val musitObjectFlow = new MusitObjectTypeFlow().flow(config)
+        val musitObjectFlow  = new MusitObjectTypeFlow().flow(config)
+        val sampleObjectFlow = new SampleTypeFlow(actorService).flow(config)
 
-      val esBulkSource = Source.fromGraph(GraphDSL.create() { implicit builder =>
-        import GraphDSL.Implicits._
+        val esBulkSource = Source.fromGraph(GraphDSL.create() { implicit builder =>
+          import GraphDSL.Implicits._
 
-        val mergeToEs = builder.add(Merge[BulkCompatibleDefinition](sources.size))
-        sources.map(_.via(musitObjectFlow)).foreach(_ ~> mergeToEs)
-        SourceShape.of(mergeToEs.out)
-      })
+          val mergeToEs =
+            builder.add(Merge[BulkCompatibleDefinition](objSources.size + 1))
 
-      esBulkSource.runWith(es)
+          objSources.map(_.via(musitObjectFlow)).foreach(_ ~> mergeToEs)
+          sampleSource.via(sampleObjectFlow) ~> mergeToEs
+
+          SourceShape.of(mergeToEs.out)
+        })
+
+        esBulkSource.runWith(es)
     }
   }
 
