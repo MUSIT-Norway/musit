@@ -2,9 +2,9 @@ package services.elasticsearch
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
-import models.elasticsearch.{IndexCallback, IndexName}
+import models.elasticsearch.{IndexCallback, IndexConfig}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * Indexer is where the actual indexing work is done. It has the ability to create a new
@@ -42,16 +42,11 @@ trait Indexer {
   val indexMaintainer: IndexMaintainer
 
   /**
-   * Tha actual index that we will use. We will hide this behind an alias. That's why
-   * we prefix it with the alias name.
+   * Create a new index with the correct mapping
    */
-  def createIndexName(): IndexName =
-    IndexName(s"${indexAliasName}_${System.currentTimeMillis()}")
+  def createIndex()(implicit ec: ExecutionContext): Future[IndexConfig]
 
-  /**
-   * Reindex all documents to index
-   */
-  def reindexToNewIndex(indexCallback: IndexCallback)(
+  def reindexDocuments(indexCallback: IndexCallback, config: IndexConfig)(
       implicit ec: ExecutionContext,
       mat: Materializer,
       as: ActorSystem
@@ -60,10 +55,28 @@ trait Indexer {
   /**
    * Update the existing index with updated and new documents
    */
-  def updateExistingIndex(index: IndexName, indexCallback: IndexCallback)(
+  def updateExistingIndex(index: IndexConfig, indexCallback: IndexCallback)(
       implicit ec: ExecutionContext,
       mat: Materializer,
       as: ActorSystem
   ): Unit
+
+  /**
+   * Reindex all documents to index with a new fresh index.
+   */
+  final def reindexToNewIndex(indexCallback: IndexCallback)(
+      implicit ec: ExecutionContext,
+      mat: Materializer,
+      as: ActorSystem
+  ): Unit = {
+    createIndex().foreach(reindexDocuments(indexCallback, _))
+  }
+
+  /**
+   * Tha actual index that we will use. We will hide this behind an alias. That's why
+   * we prefix it with the alias name.
+   */
+  protected def createIndexConfig(): IndexConfig =
+    IndexConfig(s"${indexAliasName}_${System.currentTimeMillis()}", indexAliasName)
 
 }

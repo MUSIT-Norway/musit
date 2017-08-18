@@ -3,7 +3,7 @@ package services.elasticsearch
 import akka.actor.{ActorRef, ActorSystem}
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.{ImplicitSender, TestKit, TestProbe}
-import models.elasticsearch.{IndexCallback, IndexName}
+import models.elasticsearch.{IndexCallback, IndexConfig}
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import org.scalatest.{BeforeAndAfterAll, MustMatchers, WordSpecLike}
@@ -132,26 +132,31 @@ class IndexProcessorSpec
     private[this] var indexCallbackOpt: Option[IndexCallback]  = None
     private[this] var updateCallbackOpt: Option[IndexCallback] = None
 
-    override def reindexToNewIndex(
-        indexCallback: IndexCallback
+    override def createIndex()(implicit ec: ExecutionContext): Future[IndexConfig] = {
+      Future.successful(createIndexConfig())
+    }
+
+    override def reindexDocuments(
+        indexCallback: IndexCallback,
+        indexConfig: IndexConfig
     )(implicit ec: ExecutionContext, mat: Materializer, as: ActorSystem): Unit = {
       indexCallbackOpt = Some(indexCallback)
     }
 
     override def updateExistingIndex(
-        index: IndexName,
+        indexConfig: IndexConfig,
         indexCallback: IndexCallback
     )(implicit ec: ExecutionContext, mat: Materializer, as: ActorSystem): Unit = {
       updateCallbackOpt = Some(indexCallback)
     }
 
     def triggerReindexSuccess(): Unit = {
-      indexCallbackOpt.foreach(_.success(IndexName("dummy_index")))
+      indexCallbackOpt.foreach(_.success(IndexConfig("dummy_index", indexAliasName)))
       indexCallbackOpt = None
     }
 
     def triggerUpdateIndexSuccess(): Unit = {
-      updateCallbackOpt.foreach(_.success(IndexName("dummy_index")))
+      updateCallbackOpt.foreach(_.success(IndexConfig("dummy_index", indexAliasName)))
       updateCallbackOpt = None
     }
   }

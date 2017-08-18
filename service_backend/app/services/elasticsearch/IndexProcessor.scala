@@ -3,7 +3,7 @@ package services.elasticsearch
 import akka.actor.{Actor, ActorRef, ActorSystem, Cancellable, Props}
 import akka.stream.ActorMaterializer
 import models.elasticsearch.DocumentIndexerStatuses._
-import models.elasticsearch.{IndexCallback, IndexName}
+import models.elasticsearch.{IndexCallback, IndexConfig}
 import services.elasticsearch.IndexProcessor.InternalProtocol._
 import services.elasticsearch.IndexProcessor.Protocol._
 
@@ -29,18 +29,18 @@ class IndexProcessor(
   private implicit val ec: ExecutionContext = context.dispatcher
   private implicit val as: ActorSystem      = context.system
 
-  var indexStatus: IndexStatus        = IndexStatus()
-  var indexName: Option[IndexName]    = None
-  var nextUpdate: Option[Cancellable] = None
+  var indexStatus: IndexStatus         = IndexStatus()
+  var indexConfig: Option[IndexConfig] = None
+  var nextUpdate: Option[Cancellable]  = None
 
   override def preStart(): Unit = {
     val aliasExists = indexMaintainer.indexNameForAlias(indexer.indexAliasName)
     aliasExists.foreach(
       optName => {
-        indexName = optName.map(IndexName.apply)
+        indexConfig = optName.map(in => IndexConfig(in, indexer.indexAliasName))
         context.become(ready)
         self.tell(
-          indexName.map(_ => RequestUpdateIndex).getOrElse(RequestReindex),
+          indexConfig.map(_ => RequestUpdateIndex).getOrElse(RequestReindex),
           ActorRef.noSender
         )
       }
@@ -58,7 +58,7 @@ class IndexProcessor(
 
   def ready: Receive = {
     case RequestUpdateIndex =>
-      indexName match {
+      indexConfig match {
         case Some(name) if indexStatus.canUpdate =>
           indexer.updateExistingIndex(
             name,
@@ -100,7 +100,7 @@ class IndexProcessor(
 
     case ReindexSuccess(newIndexName) =>
       indexStatus = indexStatus.copy(reindexStatus = IndexSuccess)
-      indexName = Some(newIndexName)
+      indexConfig = Some(newIndexName)
       scheduleNextUpdate()
 
     case ReindexFailed =>
@@ -142,10 +142,10 @@ object IndexProcessor {
   private[elasticsearch] object InternalProtocol {
 
     sealed trait InternalActorCommand
-    case object UpdateIndexSuccess                     extends InternalActorCommand
-    case object UpdateIndexFailed                      extends InternalActorCommand
-    case class ReindexSuccess(newIndexName: IndexName) extends InternalActorCommand
-    case object ReindexFailed                          extends InternalActorCommand
+    case object UpdateIndexSuccess                    extends InternalActorCommand
+    case object UpdateIndexFailed                     extends InternalActorCommand
+    case class ReindexSuccess(newConfig: IndexConfig) extends InternalActorCommand
+    case object ReindexFailed                         extends InternalActorCommand
   }
 
   /**

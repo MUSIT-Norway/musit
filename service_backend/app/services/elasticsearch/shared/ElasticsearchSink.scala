@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.streams.{
   ResponseListener
 }
 import com.sksamuel.elastic4s.streams.ReactiveElastic._
-import models.elasticsearch.{IndexCallback, IndexConfig, IndexName}
+import models.elasticsearch.{IndexCallback, IndexConfig}
 import no.uio.musit.time
 import org.joda.time.DateTime
 import play.api.Logger
@@ -67,9 +67,9 @@ class DatabaseMaintainedElasticSearchIndexSink(
   val startTime: DateTime = time.dateTimeNow
 
   override def onComplete: () => Unit = () => {
-    indexMaintainer.activateIndex(indexConfig.indexName, indexConfig.alias)
+    indexMaintainer.activateIndex(indexConfig.name, indexConfig.alias)
     indexStatusDao.indexed(indexConfig.alias, startTime)
-    indexCallback.success(IndexName(indexConfig.indexName))
+    indexCallback.success(indexConfig)
     logger.info(s"Indexing done for alias ${indexConfig.alias}")
   }
 
@@ -102,7 +102,7 @@ class DatabaseMaintainedElasticSearchUpdateIndexSink(
     () => {
       indexMaintainer.indexNameForAlias(indexConfig.alias)
       indexStatusDao.update(indexConfig.alias, startTime)
-      indexCallback.success(IndexName(indexConfig.indexName))
+      indexCallback.success(indexConfig)
     }
 
   override def onError: (Throwable) => Unit =

@@ -32,7 +32,7 @@ class SampleCreatedTypeFlow(
 
   override def toBulkDefinitions(indexConfig: IndexConfig) =
     Flow[SampleCreatedSearch].map { event =>
-      indexInto(indexConfig.indexName, event.documentType) id event.documentId doc event
+      indexInto(indexConfig.name, event.documentType) id event.documentId doc event
     }
 
   override def populateWithData(indexConfig: IndexConfig) =

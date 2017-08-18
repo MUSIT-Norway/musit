@@ -3,7 +3,7 @@ package services.elasticsearch.things
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import com.sksamuel.elastic4s.http.HttpClient
-import models.elasticsearch.{IndexCallback, IndexName}
+import models.elasticsearch.{IndexCallback, IndexConfig}
 import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.time.{Seconds, Span}
@@ -22,7 +22,7 @@ class IndexObjectsSpec extends MusitSpecWithAppPerSuite {
     val timeout = Timeout(Span(60, Seconds))
 
     "index all object to elasticsearch" taggedAs ElasticsearchContainer in {
-      val p = Promise[Option[IndexName]]()
+      val p = Promise[Option[IndexConfig]]()
       val f = p.future
       esIndexer.reindexToNewIndex(
         IndexCallback(

@@ -2,7 +2,7 @@ package services.elasticsearch.events
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
-import models.elasticsearch.{IndexCallback, IndexName}
+import models.elasticsearch.{IndexCallback, IndexConfig}
 import no.uio.musit.models.MuseumId
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.test.matchers.MusitResultValues
@@ -37,7 +37,7 @@ class IndexEventsSpec
       val collection = dummySaveAnalysisCollectionCmd()
       analysisService.add(MuseumId(99), collection)(au).futureValue
 
-      val p = Promise[Option[IndexName]]()
+      val p = Promise[Option[IndexConfig]]()
       esIndexer.reindexToNewIndex(
         IndexCallback(
           in => p.success(Some(in)),
@@ -45,7 +45,7 @@ class IndexEventsSpec
         )
       )
       val futureIndex = p.future.futureValue(timeout)
-      futureIndex.value mustBe a[IndexName]
+      futureIndex.value mustBe a[IndexConfig]
 
       val mbyStatus = indexStatusDao.findLastIndexed("events").futureValue.successValue
       inside(mbyStatus) {
@@ -55,7 +55,7 @@ class IndexEventsSpec
     }
 
     "index new analysis events to elasticsearch" taggedAs ElasticsearchContainer in {
-      val promiseIndex = Promise[Option[IndexName]]()
+      val promiseIndex = Promise[Option[IndexConfig]]()
       val futureIndex  = promiseIndex.future
       esIndexer.reindexToNewIndex(
         IndexCallback(
@@ -68,7 +68,7 @@ class IndexEventsSpec
       val collection = dummySaveAnalysisCollectionCmd()
       analysisService.add(MuseumId(99), collection)(au).futureValue.successValue
 
-      val promiseUpdate = Promise[Option[IndexName]]()
+      val promiseUpdate = Promise[Option[IndexConfig]]()
       esIndexer.updateExistingIndex(
         index,
         IndexCallback(

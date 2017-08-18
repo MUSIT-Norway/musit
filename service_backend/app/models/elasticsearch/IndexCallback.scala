@@ -1,3 +1,3 @@
 package models.elasticsearch
 
-case class IndexCallback(success: IndexName => Unit, failure: () => Unit)
+case class IndexCallback(success: IndexConfig => Unit, failure: () => Unit)

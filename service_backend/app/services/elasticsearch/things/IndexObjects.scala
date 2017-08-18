@@ -7,7 +7,7 @@ import com.google.inject.Inject
 import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.HttpClient
-import models.elasticsearch.{IndexCallback, IndexConfig, IndexName}
+import models.elasticsearch.{IndexCallback, IndexConfig}
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import org.joda.time.DateTime
 import play.api.Configuration
@@ -38,7 +38,9 @@ class IndexObjects @Inject()(
   private[this] val esBathSize: Int =
     cfg.getInt("musit.elasticsearch.streams.musitObjects.esBatchSize").getOrElse(1000)
   private[this] val concurrentSources =
-    cfg.getInt("musit.elasticsearch.streams.musitObjects.concurrentSources").getOrElse(20)
+    cfg
+      .getInt("musit.elasticsearch.streams.musitObjects.concurrentSources")
+      .getOrElse(20)
   private[this] val fetchSize =
     cfg
       .getInt("musit.elasticsearch.streams.musitObjects.dbStreamFetchSize")
@@ -46,26 +48,23 @@ class IndexObjects @Inject()(
 
   override val indexAliasName = "musit_objects"
 
-  override def reindexToNewIndex(indexCallback: IndexCallback)(
+  override def createIndex()(implicit ec: ExecutionContext) = {
+    val config = createIndexConfig()
+    client.execute(MusitObjectsIndexConfig.config(config.name)).map(_ => config)
+  }
+
+  override def reindexDocuments(indexCallback: IndexCallback, config: IndexConfig)(
       implicit ec: ExecutionContext,
       mat: Materializer,
       as: ActorSystem
   ): Unit = {
 
-    val indexName = createIndexName()
-    val config =
-      IndexConfig(
-        indexName.name,
-        indexAliasName,
-        MusitObjectsIndexConfig.config(indexName.name)
-      )
     val sampleSourceFuture = Future.successful(
       elasticsearchThingsDao.sampleStream(fetchSize, None)
     )
     val sources = for {
       objSources   <- elasticsearchThingsDao.objectStreams(concurrentSources, fetchSize)
       sampleSource <- sampleSourceFuture
-      _            <- client.execute(config.mapping)
     } yield (objSources, sampleSource)
 
     sources.map {
@@ -97,17 +96,14 @@ class IndexObjects @Inject()(
     }
   }
 
-  override def updateExistingIndex(indexName: IndexName, indexCallback: IndexCallback)(
+  override def updateExistingIndex(
+      indexConfig: IndexConfig,
+      indexCallback: IndexCallback
+  )(
       implicit ec: ExecutionContext,
       mat: Materializer,
       as: ActorSystem
   ): Unit = {
-    val config =
-      IndexConfig(
-        indexName.name,
-        indexAliasName,
-        MusitObjectsIndexConfig.config(indexName.name)
-      )
     findLastIndexDateTime().map { mdt =>
       mdt.map { dt =>
         elasticsearchThingsDao.objectsChangedAfterTimestampStream(fetchSize, dt)
@@ -117,10 +113,10 @@ class IndexObjects @Inject()(
         client,
         indexMaintainer,
         indexStatusDao,
-        config,
+        indexConfig,
         indexCallback
       ).toElasticsearchSink
-      val musitObjectFlow = new MusitObjectTypeFlow().flow(config)
+      val musitObjectFlow = new MusitObjectTypeFlow().flow(indexConfig)
       source.via(musitObjectFlow).runWith(es)
     })
   }

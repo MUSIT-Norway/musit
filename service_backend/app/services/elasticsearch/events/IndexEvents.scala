@@ -39,36 +39,35 @@ class IndexEvents @Inject()(
 
   override val indexAliasName = "events"
 
-  override def reindexToNewIndex(indexCallback: IndexCallback)(
+  override def createIndex()(implicit ec: ExecutionContext): Future[IndexConfig] = {
+    val config = createIndexConfig()
+    client.execute(EventIndexConfig.config(config.name)).map(_ => config)
+  }
+
+  override def reindexDocuments(indexCallback: IndexCallback, config: IndexConfig)(
       implicit ec: ExecutionContext,
       mat: Materializer,
       as: ActorSystem
   ): Unit = {
-    val indexName = createIndexName()
-    val config =
-      IndexConfig(
-        indexName.name,
-        indexAliasName,
-        EventIndexConfig.config(indexName.name)
-      )
 
     val dbSource     = analysisEventsExportDao.analysisEventsStream()
     val esBulkSource = createFlow(dbSource, config)
 
-    client.execute(config.mapping).map { _ =>
-      val es = new DatabaseMaintainedElasticSearchIndexSink(
-        client,
-        indexMaintainer,
-        indexStatusDao,
-        config,
-        indexCallback
-      ).toElasticsearchSink
+    val es = new DatabaseMaintainedElasticSearchIndexSink(
+      client,
+      indexMaintainer,
+      indexStatusDao,
+      config,
+      indexCallback
+    ).toElasticsearchSink
 
-      esBulkSource.runWith(es)
-    }
+    esBulkSource.runWith(es)
   }
 
-  override def updateExistingIndex(indexName: IndexName, indexCallback: IndexCallback)(
+  override def updateExistingIndex(
+      indexConfig: IndexConfig,
+      indexCallback: IndexCallback
+  )(
       implicit ec: ExecutionContext,
       mat: Materializer,
       as: ActorSystem
@@ -77,19 +76,13 @@ class IndexEvents @Inject()(
       _.map(dt => analysisEventsExportDao.analysisEventsStream(Some(dt)))
         .getOrElse(Source.empty)
     }.map { dbSource =>
-      val config =
-        IndexConfig(
-          indexName.name,
-          indexAliasName,
-          EventIndexConfig.config(indexName.name)
-        )
-      val esBulkSource = createFlow(dbSource, config)
+      val esBulkSource = createFlow(dbSource, indexConfig)
 
       val es = new DatabaseMaintainedElasticSearchUpdateIndexSink(
         client,
         indexMaintainer,
         indexStatusDao,
-        config,
+        indexConfig,
         indexCallback
       ).toElasticsearchSink
 
