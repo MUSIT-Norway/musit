@@ -2,6 +2,7 @@ package services.elasticsearch.events
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.indexes.CreateIndexDefinition
+import services.elasticsearch.shared.FieldConfig._
 
 object EventIndexConfig {
 
@@ -58,24 +59,6 @@ object EventIndexConfig {
       textField("method"), // this is an integer for all except ExtractionAttributes
       textField("types"),
       textField("extractionType")
-    )
-  }
-
-  private def actorSearchStamp(name: String) =
-    objectField(name) fields (
-      textField("id"),
-      dateField("date"),
-      textField("name")
-    )
-
-  private def actorStamp(name: String) =
-    objectField(name) fields (textField("id"),
-    textField("name"))
-
-  private def size = {
-    objectField("size") fields (
-      textField("unit"),
-      doubleField("value")
     )
   }
 
