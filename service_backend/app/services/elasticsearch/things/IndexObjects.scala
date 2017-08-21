@@ -38,7 +38,9 @@ class IndexObjects @Inject()(
   private[this] val esBathSize: Int =
     cfg.getInt("musit.elasticsearch.streams.musitObjects.esBatchSize").getOrElse(1000)
   private[this] val concurrentSources =
-    cfg.getInt("musit.elasticsearch.streams.musitObjects.concurrentSources").getOrElse(20)
+    cfg
+      .getInt("musit.elasticsearch.streams.musitObjects.concurrentSources")
+      .getOrElse(20)
   private[this] val fetchSize =
     cfg
       .getInt("musit.elasticsearch.streams.musitObjects.dbStreamFetchSize")

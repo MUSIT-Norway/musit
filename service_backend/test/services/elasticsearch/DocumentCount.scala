@@ -30,7 +30,9 @@ object DocumentCount {
 
       val endpoint = s"/$index$types/_count"
 
-      client.async("GET", endpoint, Map.empty, ResponseHandler.failure404).map(res => res)
+      client
+        .async("GET", endpoint, Map.empty, ResponseHandler.failure404)
+        .map(res => res)
     }
   }
 

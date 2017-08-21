@@ -15,7 +15,7 @@ import org.scalatest.time.{Seconds, Span}
 import repositories.core.dao.IndexStatusDao
 import services.analysis.AnalysisService
 import services.elasticsearch.DocumentCount.count
-import services.elasticsearch.{events, things}
+import services.elasticsearch.events
 import utils.testdata.{AnalysisGenerators, BaseDummyData}
 
 import scala.concurrent.{ExecutionContext, Promise}
@@ -61,9 +61,10 @@ class IndexEventsSpec
       }
 
       eventually {
-        val a  = esClient.execute(count(events.indexAlias, events.analysisType))
-        val ac = esClient.execute(count(events.indexAlias, events.analysisCollectionType))
-        val s  = esClient.execute(count(events.indexAlias, events.sampleType))
+        val a = esClient.execute(count(events.indexAlias, events.analysisType))
+        val ac =
+          esClient.execute(count(events.indexAlias, events.analysisCollectionType))
+        val s = esClient.execute(count(events.indexAlias, events.sampleType))
 
         a.futureValue.count mustBe 1
         ac.futureValue.count mustBe 1
@@ -95,7 +96,8 @@ class IndexEventsSpec
         )
       )
       promiseUpdate.future.futureValue(timeout)
-      val mbyStatus = indexStatusDao.findLastIndexed("events").futureValue.successValue
+      val mbyStatus =
+        indexStatusDao.findLastIndexed(events.indexAlias).futureValue.successValue
 
       inside(mbyStatus) {
         case Some(status) =>
