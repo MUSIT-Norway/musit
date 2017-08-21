@@ -18,7 +18,6 @@ services:
 
   elasticsearch:
     image: registry.gitlab.com/musit-norway/docker-elasticsearch:latest
-    container_name: dev_elasticsearch
     ports:
       - 9200:9200
 
