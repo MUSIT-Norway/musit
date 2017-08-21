@@ -6,6 +6,7 @@ import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.MusitResults.{MusitGeneralError, MusitResult, MusitSuccess}
+import play.api.Configuration
 import play.api.inject.ApplicationLifecycle
 import services.elasticsearch.IndexProcessor.Protocol._
 import services.elasticsearch.events.IndexEvents
@@ -26,13 +27,17 @@ class ElasticsearchService @Inject(
     indexAnalysisEvents: IndexEvents,
     indexMusitObjects: IndexObjects,
     indexMaintainer: IndexMaintainer,
-    lifecycle: ApplicationLifecycle
+    lifecycle: ApplicationLifecycle,
+    configuration: Configuration
 ) {
 
   /**
    * Implicits needed by the IndexProcessor and Indexer trait.
    */
-  private implicit val as  = ActorSystem("musit-elasticsearch")
+  private implicit val as = ActorSystem(
+    "musit-elasticsearch",
+    configuration.getConfig("musit.elasticsearch.akka").map(_.underlying)
+  )
   private implicit val mat = ActorMaterializer()
   private implicit val ec  = as.dispatcher
   private implicit val to  = Timeout(10 seconds)
