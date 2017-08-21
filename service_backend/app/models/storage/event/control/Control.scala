@@ -1,9 +1,9 @@
 package models.storage.event.control
 
 import models.storage.event.control.ControlAttributes._
-import models.storage.event.{StorageFacilityEventType, StorageFacilityEvent}
+import models.storage.event.{StorageFacilityEvent, StorageFacilityEventType}
 import no.uio.musit.formatters.WithDateTimeFormatters
-import no.uio.musit.models.{ActorId, EventId, StorageNodeId}
+import no.uio.musit.models._
 import org.joda.time.DateTime
 import play.api.libs.json._
 
@@ -26,11 +26,16 @@ case class Control(
     temperature: Option[ControlTemperature] = None
 ) extends StorageFacilityEvent {
 
-  val updatedDate = None
-
-  override type T = Control
+  override val updatedDate = None
 
   override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withAffectedThing(at: Option[MusitUUID]) = at.fold(this) {
+    case nid: StorageNodeId => copy(affectedThing = Some(nid))
+    case _                  => this
+  }
+
+  override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
 
 }
 

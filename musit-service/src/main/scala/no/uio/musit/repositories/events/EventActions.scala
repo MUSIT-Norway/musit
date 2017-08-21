@@ -4,6 +4,7 @@ import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models._
 import no.uio.musit.repositories.{BaseColumnTypeMappers, DbErrorHandlers}
 import no.uio.musit.security.AuthenticatedUser
+import org.joda.time.DateTime
 import play.api.Logger
 import play.api.db.slick.HasDatabaseConfigProvider
 import play.api.libs.json.{JsValue, Json, Reads, Writes}
@@ -26,9 +27,17 @@ trait EventRowMappers[A <: MusitEvent] { self: BaseEventTableProvider =>
    */
   protected def fromRow(
       maybeEventId: Option[EventId],
+      maybeDoneDate: Option[DateTime],
+      maybeAffectedThing: Option[MusitUUID],
       jsonColumn: JsValue
-  )(implicit jsr: Reads[A]): Option[A#T] =
-    Json.fromJson[A](jsonColumn).asOpt.map(_.withId(maybeEventId))
+  )(implicit jsr: Reads[A]): Option[A] =
+    Json.fromJson[A](jsonColumn).asOpt.map { row =>
+      row
+        .withId(maybeEventId)
+        .withDoneDate(maybeDoneDate)
+        .withAffectedThing(maybeAffectedThing)
+        .asInstanceOf[A]
+    }
 }
 
 /**

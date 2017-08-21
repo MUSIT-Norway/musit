@@ -2,10 +2,10 @@ package models.storage.event.envreq
 
 import models.storage.Interval
 import models.storage.event.EventTypeRegistry.TopLevelEvents.EnvRequirementEventType
-import models.storage.event.{StorageFacilityEventType, StorageFacilityEvent}
+import models.storage.event.{StorageFacilityEvent, StorageFacilityEventType}
 import models.storage.nodes.EnvironmentRequirement
 import no.uio.musit.formatters.WithDateTimeFormatters
-import no.uio.musit.models.{ActorId, EventId, StorageNodeId}
+import no.uio.musit.models._
 import org.joda.time.DateTime
 import play.api.libs.json.{Format, Json}
 
@@ -25,11 +25,16 @@ case class EnvRequirement(
     light: Option[String]
 ) extends StorageFacilityEvent {
 
-  val updatedDate = None
-
-  override type T = EnvRequirement
+  override val updatedDate = None
 
   override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withAffectedThing(at: Option[MusitUUID]) = at.fold(this) {
+    case nid: StorageNodeId => copy(affectedThing = Some(nid))
+    case _                  => this
+  }
+
+  override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
 
   def similar(er: EnvRequirement): Boolean = {
     // Compare the basic similarities of the environment requirements

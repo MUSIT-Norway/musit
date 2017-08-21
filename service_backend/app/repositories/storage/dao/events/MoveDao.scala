@@ -89,9 +89,14 @@ class MoveDao @Inject()(
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[MoveEvent]]] =
     findEventById[MoveEvent](mid, id) { row =>
       TopLevelEvents.unsafeFromId(row._2) match {
-        case MoveNodeType   => fromRow(row._1, row._12)
-        case MoveObjectType => fromRow(row._1, row._12)
-        case _              => None
+        case MoveNodeType =>
+          fromRow(row._1, row._6, row._9.flatMap(StorageNodeId.fromString), row._12)
+
+        case MoveObjectType =>
+          fromRow(row._1, row._6, row._9.flatMap(ObjectUUID.fromString), row._12)
+
+        case _ =>
+          None
       }
     }
 
@@ -115,10 +120,11 @@ class MoveDao @Inject()(
       limit
     )(
       row =>
-        fromRow(row._1, row._12).flatMap[MoveNode] {
-          case mn: MoveNode   => Some(mn)
-          case mo: MoveObject => None
-      }
+        fromRow(row._1, row._6, row._9.flatMap(StorageNodeId.fromString), row._12)
+          .flatMap[MoveNode] {
+            case mn: MoveNode   => Some(mn)
+            case mo: MoveObject => None
+        }
     )
 
   /**
@@ -141,10 +147,11 @@ class MoveDao @Inject()(
       limit
     )(
       row =>
-        fromRow(row._1, row._12).flatMap[MoveObject] {
-          case mn: MoveNode   => None
-          case mo: MoveObject => Some(mo)
-      }
+        fromRow(row._1, row._6, row._9.flatMap(ObjectUUID.fromString), row._12)
+          .flatMap[MoveObject] {
+            case mn: MoveNode   => None
+            case mo: MoveObject => Some(mo)
+        }
     )
 
 }

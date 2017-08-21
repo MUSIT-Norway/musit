@@ -3,9 +3,10 @@ package repositories.analysis.dao
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events.{Analysis, AnalysisCollection, AnalysisModuleEvent}
 import no.uio.musit.repositories.events.EventRowMappers
-import no.uio.musit.models.{EventId, MuseumId}
+import no.uio.musit.models.{EventId, MuseumId, MusitUUID}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
+import org.joda.time.DateTime
 import play.api.libs.json.{JsValue, Json, Reads, Writes}
 
 trait AnalysisEventRowMappers extends EventRowMappers[AnalysisModuleEvent] {
@@ -34,24 +35,36 @@ trait AnalysisEventRowMappers extends EventRowMappers[AnalysisModuleEvent] {
 
   override protected def fromRow(
       maybeEventId: Option[EventId],
+      maybeDoneDate: Option[DateTime],
+      maybeAffectedThing: Option[MusitUUID],
       rowAsJson: JsValue
   )(implicit jsr: Reads[AnalysisModuleEvent]) =
-    Json.fromJson[AnalysisModuleEvent](rowAsJson).asOpt.map(_.withId(maybeEventId))
+    Json.fromJson[AnalysisModuleEvent](rowAsJson).asOpt.map { row =>
+      row
+        .withId(maybeEventId)
+        .withDoneDate(maybeDoneDate)
+        .withAffectedThing(maybeAffectedThing)
+        .asInstanceOf[AnalysisModuleEvent]
+    }
 
   protected def toAnalysis(
       maybeEventId: Option[EventId],
+      maybeDoneDate: Option[DateTime],
+      maybeAffectedThing: Option[MusitUUID],
       rowAsJson: JsValue
   ): Option[Analysis] =
-    fromRow(maybeEventId, rowAsJson).flatMap {
+    fromRow(maybeEventId, maybeDoneDate, maybeAffectedThing, rowAsJson).flatMap {
       case a: Analysis => Some(a)
       case _           => None
     }
 
   protected def toAnalysisCollection(
       maybeEventId: Option[EventId],
+      maybeDoneDate: Option[DateTime],
+      maybeAffectedThing: Option[MusitUUID],
       rowAsJson: JsValue
   ): Option[AnalysisCollection] =
-    fromRow(maybeEventId, rowAsJson).flatMap {
+    fromRow(maybeEventId, maybeDoneDate, maybeAffectedThing, rowAsJson).flatMap {
       case ac: AnalysisCollection => Some(ac)
       case _                      => None
     }

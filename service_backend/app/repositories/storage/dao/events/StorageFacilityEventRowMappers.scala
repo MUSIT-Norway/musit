@@ -1,11 +1,11 @@
 package repositories.storage.dao.events
 
 import models.storage.event.StorageFacilityEvent
-import no.uio.musit.models.{EventId, MuseumId, ObjectTypes}
+import no.uio.musit.models.{MuseumId, ObjectTypes}
 import no.uio.musit.repositories.events.EventRowMappers
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
-import play.api.libs.json.{JsValue, Json, Reads, Writes}
+import play.api.libs.json.{Json, Writes}
 
 trait StorageFacilityEventRowMappers[A <: StorageFacilityEvent]
     extends EventRowMappers[A] { self: StorageEventTableProvider =>
@@ -28,11 +28,5 @@ trait StorageFacilityEventRowMappers[A <: StorageFacilityEvent]
       None,
       Json.toJson[A](e)
     )
-
-  override protected def fromRow(
-      maybeEventId: Option[EventId],
-      rowAsJson: JsValue
-  )(implicit jsr: Reads[A]) =
-    Json.fromJson[A](rowAsJson).asOpt.map(_.withId(maybeEventId))
 
 }

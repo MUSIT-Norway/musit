@@ -17,8 +17,6 @@ sealed trait MoveEvent extends StorageFacilityEvent {
   val objectType: ObjectType
   val from: Option[StorageNodeId]
   val to: StorageNodeId
-
-  override type T = MoveEvent
 }
 
 object MoveEvent {
@@ -61,9 +59,16 @@ case class MoveObject(
     to: StorageNodeId
 ) extends MoveEvent {
 
-  val updatedDate = None
+  override val updatedDate = None
 
   override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withAffectedThing(at: Option[MusitUUID]) = at.fold(this) {
+    case oid: ObjectUUID => copy(affectedThing = Some(oid))
+    case _               => this
+  }
+
+  override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
 
 }
 
@@ -105,11 +110,18 @@ case class MoveNode(
     to: StorageNodeId
 ) extends MoveEvent {
 
-  val updatedDate = None
+  override val updatedDate = None
 
   override val objectType: ObjectType = Node
 
   override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withAffectedThing(at: Option[MusitUUID]) = at.fold(this) {
+    case nid: StorageNodeId => copy(affectedThing = Some(nid))
+    case _                  => this
+  }
+
+  override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
 
 }
 

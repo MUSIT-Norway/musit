@@ -14,13 +14,13 @@ import scala.concurrent.Future
 import scala.reflect.ClassTag
 
 sealed trait AnalysisModuleEvent extends MusitEvent {
+
   val analysisTypeId: AnalysisTypeId
   val partOf: Option[EventId]
   val note: Option[String]
   val status: Option[AnalysisStatus]
   val caseNumbers: Option[CaseNumbers]
 
-  override type T = AnalysisModuleEvent
 }
 
 trait TypedAnalysisEvent {
@@ -263,11 +263,18 @@ case class Analysis(
     result: Option[AnalysisResult]
 ) extends AnalysisEvent {
   // These fields are not relevant for the Analysis type
-  val reason: Option[String]           = None
-  val status: Option[AnalysisStatus]   = None
-  val caseNumbers: Option[CaseNumbers] = None
+  override val reason: Option[String]           = None
+  override val status: Option[AnalysisStatus]   = None
+  override val caseNumbers: Option[CaseNumbers] = None
 
   override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withAffectedThing(at: Option[MusitUUID]) = at.fold(this) {
+    case oid: ObjectUUID => copy(affectedThing = Some(oid))
+    case _               => this
+  }
+
+  override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
 }
 
 object Analysis extends WithDateTimeFormatters {
@@ -309,10 +316,14 @@ case class AnalysisCollection(
 ) extends AnalysisEvent {
 
   // These fields are not relevant for the AnalysisCollection type.
-  val partOf: Option[EventId]           = None
-  val affectedThing: Option[ObjectUUID] = None
+  override val partOf: Option[EventId]           = None
+  override val affectedThing: Option[ObjectUUID] = None
 
   override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withAffectedThing(at: Option[MusitUUID]) = this
+
+  override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
 
   def withoutChildren = copy(events = Seq.empty)
 
@@ -341,14 +352,21 @@ case class SampleCreated(
     externalLinks: Option[Seq[String]]
 ) extends AnalysisModuleEvent {
   // These fields are not relevant for SampleCreated type.
-  val partOf         = None
-  val analysisTypeId = SampleCreated.sampleEventTypeId
-  val note           = None
-  val status         = None
-  val caseNumbers    = None
-  val updatedDate    = None
+  override val partOf         = None
+  override val analysisTypeId = SampleCreated.sampleEventTypeId
+  override val note           = None
+  override val status         = None
+  override val caseNumbers    = None
+  override val updatedDate    = None
 
   override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withAffectedThing(at: Option[MusitUUID]) = at.fold(this) {
+    case oid: ObjectUUID => copy(affectedThing = Some(oid))
+    case _               => this
+  }
+
+  override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
 }
 
 object SampleCreated extends WithDateTimeFormatters {
