@@ -11,14 +11,6 @@ import no.uio.musit.models._
 import org.joda.time.DateTime
 import play.api.libs.json.{JsObject, Json, Writes}
 
-case class ActorNames(m: Map[ActorId, String]) {
-  def nameFor(id: ActorId): Option[String] = m.get(id)
-}
-
-object ActorNames {
-  def apply(s: Set[(ActorId, String)]): ActorNames = ActorNames(s.toMap)
-}
-
 case class AnalysisSearch(
     id: EventId,
     analysisTypeId: AnalysisTypeId, //todo inline values to make them searchable
