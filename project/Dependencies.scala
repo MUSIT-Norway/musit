@@ -76,6 +76,20 @@ object Dependencies {
     )
   }
 
+  // Symbiotic dependencies
+  val symbiotic: Seq[ModuleID] = {
+    val symbioticVersion = "0.1.1"
+    val libs = Seq(
+      "symbiotic-play",
+      "symbiotic-json",
+      "symbiotic-core",
+      "symbiotic-postgres",
+      "symbiotic-elasticsearch"
+    )
+
+    libs.map("net.scalytica" %% _ % symbioticVersion)
+  }
+
   val playDependencies: Seq[ModuleID] = Seq(
     PlayFrameWork.cache,
     PlayFrameWork.ws,
