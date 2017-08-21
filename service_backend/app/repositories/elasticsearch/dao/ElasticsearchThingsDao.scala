@@ -33,14 +33,12 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
       fetchSize: Int
   ): Future[Seq[Source[MusitObject, NotUsed]]] = {
     val maxIdValue =
-      objTable.filter(row => row.isDeleted === false && row.uuid.isDefined).map(_.id).max
+      objTable.filter(_.uuid.isDefined).map(_.id).max
 
     db.run(maxIdValue.result).map { maxId =>
       ElasticsearchThingsDao.indexRanges(streams, maxId.get.underlying).map {
         case (from, to) =>
-          val query = objTable.filter { row =>
-            (row.isDeleted === false) && (row.id >= from) && (row.id <= to)
-          }
+          val query = objTable.filter(row => (row.id >= from) && (row.id <= to))
           Source.fromPublisher(
             db.stream(
                 query.result
@@ -61,9 +59,7 @@ class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvi
       fetchSize: Int,
       afterDate: DateTime
   ): Source[MusitObject, NotUsed] = {
-    val query = objTable.filter { row =>
-      (row.isDeleted === false) && row.updatedDate > afterDate
-    }
+    val query = objTable.filter(_.updatedDate > afterDate)
 
     Source.fromPublisher(
       db.stream(
