@@ -13,7 +13,7 @@ class MusitObjectTypeFlow extends TypeFlow[MusitObject, MusitObjectSearch] {
 
   override def toBulkDefinitions(indexConfig: IndexConfig) =
     Flow[MusitObjectSearch].map { thing =>
-      indexInto(indexConfig.name, thing.documentType) id thing.documentId doc thing
+      indexInto(indexConfig.name, thing.documentType) id thing.docId doc thing
     }
 
 }

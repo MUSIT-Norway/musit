@@ -19,18 +19,6 @@ object ActorNames {
   def apply(s: Set[(ActorId, String)]): ActorNames = ActorNames(s.toMap)
 }
 
-sealed trait EventSearch {
-  val documentId: String
-  val documentType: String
-}
-
-object EventSearch {
-  implicit val writes: Writes[EventSearch] = Writes[EventSearch] {
-    case a: AnalysisSearch            => AnalysisSearch.writes.writes(a)
-    case ac: AnalysisCollectionSearch => AnalysisCollectionSearch.writes.writes(ac)
-    case sc: SampleCreatedSearch      => SampleCreatedSearch.writes.writes(sc)
-  }
-}
 case class AnalysisSearch(
     id: EventId,
     analysisTypeId: AnalysisTypeId, //todo inline values to make them searchable
@@ -46,13 +34,13 @@ case class AnalysisSearch(
     note: Option[String],
     extraAttributes: Option[ExtraAttributes],
     result: Option[AnalysisResultSearch]
-) extends EventSearch {
-  override val documentId   = id.underlying.toString
-  override val documentType = "analysis"
+) extends Searchable {
+  override val docId       = id.underlying.toString
+  override val docParentId = partOf.map(_.underlying.toString)
 }
 
 object AnalysisSearch {
-  val writes: Writes[AnalysisSearch] = Json.writes[AnalysisSearch]
+  implicit val writes: Writes[AnalysisSearch] = Json.writes[AnalysisSearch]
 
   def apply(a: Analysis, actorNames: ActorNames): AnalysisSearch =
     AnalysisSearch(
@@ -90,13 +78,13 @@ case class AnalysisCollectionSearch(
     status: Option[AnalysisStatus], //todo inline values to make them searchable
     caseNumbers: Option[CaseNumbers],
     orgId: Option[OrgId]
-) extends EventSearch {
-  override val documentId   = id.underlying.toString
-  override val documentType = "analysisCollection"
+) extends Searchable {
+  override val docId                       = id.underlying.toString
+  override val docParentId: Option[String] = None
 }
 
 object AnalysisCollectionSearch {
-  val writes: Writes[AnalysisCollectionSearch] =
+  implicit val writes: Writes[AnalysisCollectionSearch] =
     Json.writes[AnalysisCollectionSearch]
 
   def apply(a: AnalysisCollection, actorNames: ActorNames): AnalysisCollectionSearch =
@@ -127,13 +115,14 @@ case class SampleCreatedSearch(
     objectId: Option[ObjectUUID],
     sampleObjectId: Option[ObjectUUID],
     externalLinks: Option[Seq[String]]
-) extends EventSearch {
-  override val documentId   = id.underlying.toString
-  override val documentType = "sample"
+) extends Searchable {
+  override val docId       = id.underlying.toString
+  override val docParentId = None
 }
 
 object SampleCreatedSearch {
-  val writes: Writes[SampleCreatedSearch] = Json.writes[SampleCreatedSearch]
+  implicit val writes: Writes[SampleCreatedSearch] = Json.writes[SampleCreatedSearch]
+
   def apply(s: SampleCreated, actorNames: ActorNames): SampleCreatedSearch =
     SampleCreatedSearch(
       id = s.id.get,

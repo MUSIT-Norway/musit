@@ -3,7 +3,7 @@ package services.elasticsearch
 import akka.NotUsed
 import akka.stream.scaladsl.Flow
 import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
-import models.elasticsearch.IndexConfig
+import models.elasticsearch.{IndexConfig, Searchable}
 
 /**
  * The flow step for a type in an index.
@@ -11,7 +11,7 @@ import models.elasticsearch.IndexConfig
  * elasticsearch. When this is done it will be converted to a bulk operation before it's
  * sent to elasticsearch.
  */
-trait TypeFlow[SourceDoc, ElasticsearchDocument] {
+trait TypeFlow[SourceDoc, Doc <: Searchable] {
 
   /**
    * This Flow step take the raw documents from the source and populate them with the
@@ -19,14 +19,14 @@ trait TypeFlow[SourceDoc, ElasticsearchDocument] {
    */
   def populateWithData(
       indexConfig: IndexConfig
-  ): Flow[SourceDoc, ElasticsearchDocument, NotUsed]
+  ): Flow[SourceDoc, Doc, NotUsed]
 
   /**
    * Flow to convert the document that should be indexed to a bulk operation.
    */
   def toBulkDefinitions(
       indexConfig: IndexConfig
-  ): Flow[ElasticsearchDocument, BulkCompatibleDefinition, NotUsed]
+  ): Flow[Doc, BulkCompatibleDefinition, NotUsed]
 
   /**
    * This is the flow that will be used in the Indexer.

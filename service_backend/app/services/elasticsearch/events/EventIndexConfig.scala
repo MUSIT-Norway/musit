@@ -6,10 +6,6 @@ import services.elasticsearch.shared.FieldConfig._
 
 object EventIndexConfig {
 
-  val analysisType           = "analysis"
-  val analysisCollectionType = "analysisCollection"
-  val sampleType             = "sample"
-
   def config(indexName: String): CreateIndexDefinition =
     createIndex(indexName) mappings (
       mapping(analysisType) as (

@@ -29,10 +29,10 @@ case class SampleObjectSearch(
     note: Option[String],
     registeredStamp: Option[ActorSearchStamp],
     updatedStamp: Option[ActorSearchStamp]
-) {
+) extends Searchable {
   // it's safe to use get, all document does have an id.
-  val documentId: String = objectId.map(_.underlying.toString).get
-  val parentId: String   = originatedObjectUuid.underlying.toString
+  override val docId       = objectId.map(_.underlying.toString).get
+  override val docParentId = Some(originatedObjectUuid.underlying.toString)
 }
 
 object SampleObjectSearch {

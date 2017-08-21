@@ -33,8 +33,8 @@ class SampleTypeFlow(actorService: ActorService)(implicit ec: ExecutionContext)
 
   override def toBulkDefinitions(indexConfig: IndexConfig) =
     Flow[SampleObjectSearch].map { sample =>
-      indexInto(indexConfig.name, "sample") id sample.documentId doc sample parent
-        sample.parentId
+      indexInto(indexConfig.name, "sample") id sample.docId doc sample parent
+        sample.docParentId.get //does always have a value
     }
 
 }

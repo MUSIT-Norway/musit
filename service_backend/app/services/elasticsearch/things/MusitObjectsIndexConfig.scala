@@ -7,9 +7,6 @@ import services.elasticsearch.shared.FieldConfig._
 
 object MusitObjectsIndexConfig {
 
-  val collectionType = "collection"
-  val sampleType     = "sample"
-
   def config(indexName: String): CreateIndexDefinition =
     createIndex(indexName) mappings (
       mapping(collectionType) as (

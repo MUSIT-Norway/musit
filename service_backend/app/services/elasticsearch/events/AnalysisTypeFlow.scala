@@ -39,7 +39,7 @@ class AnalysisTypeFlow(
 
   override def toBulkDefinitions(indexConfig: IndexConfig) =
     Flow[AnalysisSearch].map { event =>
-      val action = indexInto(indexConfig.name, event.documentType) id event.documentId doc event
+      val action = indexInto(indexConfig.name, analysisType) id event.docId doc event
       event.partOf.map(action parent _.underlying.toString).getOrElse(action)
     }
 

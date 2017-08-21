@@ -127,7 +127,10 @@ class IndexEvents @Inject()(
     })
   }
 
-  private def createFlowType[I, D](config: IndexConfig, typeFlow: TypeFlow[I, D])(
+  private def createFlowType[I, D <: Searchable](
+      config: IndexConfig,
+      typeFlow: TypeFlow[I, D]
+  )(
       pf: PartialFunction[AnalysisModuleEventSearch, I]
   ) = {
     Flow[AnalysisModuleEventSearch].collect[I](pf).via(typeFlow.flow(config))

@@ -19,8 +19,9 @@ case class MusitObjectSearch(
     natStage: Option[String],
     natGender: Option[String],
     natLegDate: Option[String]
-) {
-  val documentId: String   = id.underlying.toString
+) extends Searchable {
+  override val docId       = id.underlying.toString
+  override val docParentId = None
   val documentType: String = "collection"
 }
 
