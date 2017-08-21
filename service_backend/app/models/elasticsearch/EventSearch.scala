@@ -13,7 +13,7 @@ import play.api.libs.json.{JsObject, Json, Writes}
 
 case class AnalysisSearch(
     id: EventId,
-    analysisTypeId: AnalysisTypeId, //todo inline values to make them searchable
+    analysisTypeId: AnalysisTypeId,
     doneBy: Option[ActorSearchStamp],
     registeredBy: Option[ActorSearchStamp],
     responsible: Option[ActorSearch],
@@ -55,7 +55,7 @@ object AnalysisSearch {
 
 case class AnalysisCollectionSearch(
     id: EventId,
-    analysisTypeId: AnalysisTypeId, //todo inline values to make them searchable
+    analysisTypeId: AnalysisTypeId,
     doneBy: Option[ActorSearchStamp],
     registeredBy: Option[ActorSearchStamp],
     responsible: Option[ActorSearch],
@@ -67,7 +67,7 @@ case class AnalysisCollectionSearch(
     result: Option[AnalysisResultSearch],
     restriction: Option[Restriction],
     reason: Option[String],
-    status: Option[AnalysisStatus], //todo inline values to make them searchable
+    status: Option[AnalysisStatus],
     caseNumbers: Option[CaseNumbers],
     orgId: Option[OrgId]
 ) extends Searchable {

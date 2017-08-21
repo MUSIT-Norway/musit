@@ -22,7 +22,6 @@ case class MusitObjectSearch(
 ) extends Searchable {
   override val docId       = id.underlying.toString
   override val docParentId = None
-  val documentType: String = "collection"
 }
 
 case class CollectionSearch(id: Int, uuid: UUID)
