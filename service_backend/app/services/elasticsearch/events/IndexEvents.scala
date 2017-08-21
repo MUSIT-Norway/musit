@@ -37,7 +37,7 @@ class IndexEvents @Inject()(
 
   val logger = Logger(classOf[IndexEvents])
 
-  override val indexAliasName = "events"
+  override val indexAliasName: String = indexAlias
 
   override def createIndex()(implicit ec: ExecutionContext): Future[IndexConfig] = {
     val config = createIndexConfig()
