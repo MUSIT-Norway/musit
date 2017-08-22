@@ -1,5 +1,6 @@
 package services.elasticsearch.shared
 
+import com.sksamuel.elastic4s.analyzers.KeywordAnalyzer
 import com.sksamuel.elastic4s.http.ElasticDsl.{
   dateField,
   doubleField,
@@ -11,14 +12,16 @@ object FieldConfig {
 
   def actorSearchStamp(name: String) =
     objectField(name) fields (
-      textField("id"),
+      uuid("id"),
       dateField("date"),
       textField("name")
     )
 
   def actorStamp(name: String) =
-    objectField(name) fields (textField("id"),
-    textField("name"))
+    objectField(name) fields (
+      uuid("id"),
+      textField("name")
+    )
 
   def size = {
     objectField("size") fields (
@@ -26,4 +29,7 @@ object FieldConfig {
       doubleField("value")
     )
   }
+
+  def uuid(name: String) =
+    textField("uuid") analyzer KeywordAnalyzer
 }

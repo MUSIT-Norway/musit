@@ -10,7 +10,7 @@ object MusitObjectsIndexConfig {
   def config(indexName: String): CreateIndexDefinition =
     createIndex(indexName) mappings (
       mapping(collectionType) as (
-        textField("id"),
+        uuid("id"),
         textField("museumId"),
         textField("museumNo"),
         textField("subNo"),
@@ -18,7 +18,7 @@ object MusitObjectsIndexConfig {
         longField("mainObjectId"),
         objectField("collection") fields (
           intField("id"),
-          textField("uuid")
+          uuid("uuid")
         ),
         textField("arkForm"),
         textField("arkFindingNo"),
@@ -27,15 +27,15 @@ object MusitObjectsIndexConfig {
         textField("natLegDate")
       ),
       mapping(sampleType) as (
-        textField("objectId"),
-        textField("originatedObjectUuid"),
+        uuid("objectId"),
+        uuid("originatedObjectUuid"),
         objectField("parentObject") fields (
           textField("objectId"),
           textField("objectType")
         ),
         booleanField("isExtracted"),
         textField("museumId"),
-        intField("status"), // todo make it more searchable
+        intField("status"),
         actorStamp("responsible"),
         actorSearchStamp("doneByStamp"),
         intField("sampleNum"),
@@ -44,12 +44,12 @@ object MusitObjectsIndexConfig {
           textField("value"),
           textField("source")
         ),
-        intField("sampleTypeId"), // todo make it more searchable
+        intField("sampleTypeId"),
         size,
         textField("container"),
         textField("storageMedium"),
         textField("treatment"),
-        intField("leftoverSample"), // todo make it more searchable
+        intField("leftoverSample"),
         textField("description"),
         textField("note"),
         actorSearchStamp("registeredStamp"),

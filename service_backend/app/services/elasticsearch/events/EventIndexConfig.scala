@@ -9,7 +9,7 @@ object EventIndexConfig {
   def config(indexName: String): CreateIndexDefinition =
     createIndex(indexName) mappings (
       mapping(analysisType) as (
-        textField("id"),
+        intField("id"),
         intField("analysisTypeId"),
         actorSearchStamp("doneBy"),
         actorSearchStamp("registeredBy"),
@@ -17,7 +17,7 @@ object EventIndexConfig {
         actorStamp("administrator"),
         actorSearchStamp("updatedBy"),
         actorSearchStamp("completedBy"),
-        textField("objectId"),
+        uuid("objectId"),
         textField("objectType"),
         textField("partOf"),
         textField("note"),
@@ -25,7 +25,7 @@ object EventIndexConfig {
         objectField("result") fields size
       ) parent analysisCollectionType,
       mapping(analysisCollectionType) as (
-        textField("id"),
+        intField("id"),
         intField("analysisTypeId"),
         actorSearchStamp("doneBy"),
         actorSearchStamp("registeredBy"),
@@ -41,11 +41,11 @@ object EventIndexConfig {
         textField("orgId")
       ),
       mapping(sampleType) as (
-        textField("id"),
+        intField("id"),
         actorSearchStamp("doneBy"),
         actorSearchStamp("registeredBy"),
-        textField("objectId"),
-        textField("sampleObjectId"),
+        uuid("objectId"),
+        uuid("sampleObjectId"),
         textField("externalLinks")
       )
     )
