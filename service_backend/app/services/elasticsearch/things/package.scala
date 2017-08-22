@@ -2,7 +2,7 @@ package services.elasticsearch
 
 package object things {
 
-  val indexAlias = "musit_object"
+  val indexAlias = "objects"
 
   val collectionType = "collection"
   val sampleType     = "sample"
