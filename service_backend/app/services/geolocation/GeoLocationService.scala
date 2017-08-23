@@ -39,7 +39,7 @@ class GeoLocationService @Inject()(
       .map { response =>
         response.status match {
           case OK =>
-            logger.debug(s"Got response from geonorge:\n${response.body}")
+            logger.debug(s"Got response from geonorge:\n${Json.stringify(response.body)}")
             val res =
               (response.json \ "totaltAntallTreff").asOpt[String].map(_.toInt) match {
                 case Some(numRes) if numRes > 0 =>
