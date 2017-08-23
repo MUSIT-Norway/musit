@@ -6,6 +6,7 @@ import no.uio.musit.security.crypto.MusitCrypto
 import no.uio.musit.security.fake.FakeAuthenticator
 import no.uio.musit.security.{BearerToken, EncryptedToken}
 import no.uio.musit.test.{FakeUsers, MusitSpecWithAppPerSuite}
+import play.api.mvc.BaseController
 import play.api.mvc.Results._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -13,10 +14,12 @@ import play.api.test.Helpers._
 class MusitAdminActionSpec extends MusitSpecWithAppPerSuite {
 
   implicit lazy val materializer = app.materializer
+  implicit lazy val ec           = app.actorSystem.dispatcher
 
   implicit val musitCrypto = fromInstanceCache[MusitCrypto]
 
-  class Dummy extends MusitAdminActions {
+  class Dummy extends BaseController with MusitAdminActions {
+    val controllerComponents = stubControllerComponents()
     override val authService = new FakeAuthenticator
     override val crypto      = musitCrypto
   }

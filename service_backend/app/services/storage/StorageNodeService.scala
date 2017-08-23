@@ -13,7 +13,6 @@ import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.musitobject.dao.ObjectDao
 import repositories.storage.dao.LocalObjectDao
 import repositories.storage.dao.events.MoveDao
@@ -24,9 +23,11 @@ import repositories.storage.dao.nodes.{
   StorageUnitDao
 }
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class StorageNodeService @Inject()(
+    implicit
+    val ec: ExecutionContext,
     val unitDao: StorageUnitDao,
     val roomDao: RoomDao,
     val buildingDao: BuildingDao,
@@ -58,7 +59,9 @@ class StorageNodeService @Inject()(
       searchStr: String,
       page: Int,
       limit: Int
-  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Seq[GenericStorageNode]]] = {
+  )(
+      implicit currUser: AuthenticatedUser
+  ): Future[MusitResult[Seq[GenericStorageNode]]] = {
     if (searchStr.length > 2) {
       unitDao.getStorageNodeByName(mid, searchStr, page, limit)
     } else {

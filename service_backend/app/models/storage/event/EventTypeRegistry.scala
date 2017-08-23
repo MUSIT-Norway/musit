@@ -85,8 +85,7 @@ object EventTypeRegistry {
 
     def unsafeFromId(id: EventTypeId): CtrlSubEventType = fromId(id).get
 
-    case object CtrlAlcoholType
-        extends CtrlSubEventType(EventTypeId(6), "ControlAlcohol")
+    case object CtrlAlcoholType extends CtrlSubEventType(EventTypeId(6), "ControlAlcohol")
 
     case object CtrlCleaningType
         extends CtrlSubEventType(EventTypeId(7), "ControlCleaning")

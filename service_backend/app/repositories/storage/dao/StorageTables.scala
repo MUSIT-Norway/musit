@@ -8,9 +8,10 @@ import no.uio.musit.models._
 import no.uio.musit.repositories.DbErrorHandlers
 import play.api.Logger
 import play.api.db.slick.HasDatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.shared.dao.ColumnTypeMappers
 import slick.jdbc.JdbcProfile
+
+import scala.concurrent.ExecutionContext
 
 private[repositories] trait StorageTables
     extends HasDatabaseConfigProvider[JdbcProfile]
@@ -43,7 +44,7 @@ private[repositories] trait StorageTables
   protected[dao] def getNonRootByDatabaseIdAction(
       mid: MuseumId,
       id: StorageNodeDatabaseId
-  ): DBIO[Option[StorageUnitDto]] = {
+  )(implicit ec: ExecutionContext): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { sn =>
       sn.museumId === mid &&
       sn.id === id &&
@@ -55,7 +56,7 @@ private[repositories] trait StorageTables
   protected[dao] def getNonRootByIdAction(
       mid: MuseumId,
       id: StorageNodeId
-  ): DBIO[Option[StorageUnitDto]] = {
+  )(implicit ec: ExecutionContext): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { sn =>
       sn.museumId === mid &&
       sn.uuid === id &&
@@ -67,7 +68,7 @@ private[repositories] trait StorageTables
   protected[dao] def getNodeByDatabaseIdAction(
       mid: MuseumId,
       id: StorageNodeDatabaseId
-  ): DBIO[Option[StorageUnitDto]] = {
+  )(implicit ec: ExecutionContext): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { sn =>
       sn.museumId === mid && sn.id === id && sn.isDeleted === false
     }.result.headOption
@@ -76,7 +77,7 @@ private[repositories] trait StorageTables
   protected[dao] def getNodeByIdAction(
       mid: MuseumId,
       id: StorageNodeId
-  ): DBIO[Option[StorageUnitDto]] = {
+  )(implicit ec: ExecutionContext): DBIO[Option[StorageUnitDto]] = {
     storageNodeTable.filter { sn =>
       sn.museumId === mid && sn.uuid === id && sn.isDeleted === false
     }.result.headOption
@@ -85,7 +86,7 @@ private[repositories] trait StorageTables
   protected[dao] def getPathByDatabaseIdAction(
       mid: MuseumId,
       id: StorageNodeDatabaseId
-  ): DBIO[Option[NodePath]] =
+  )(implicit ec: ExecutionContext): DBIO[Option[NodePath]] =
     storageNodeTable
       .filter(sn => sn.museumId === mid && sn.id === id)
       .map(_.path)
@@ -95,7 +96,7 @@ private[repositories] trait StorageTables
   protected[dao] def getPathByIdAction(
       mid: MuseumId,
       id: StorageNodeId
-  ): DBIO[Option[NodePath]] =
+  )(implicit ec: ExecutionContext): DBIO[Option[NodePath]] =
     storageNodeTable
       .filter(sn => sn.museumId === mid && sn.uuid === id)
       .map(_.path)
@@ -105,7 +106,7 @@ private[repositories] trait StorageTables
   protected[dao] def updatePathAction(
       id: StorageNodeDatabaseId,
       path: NodePath
-  ): DBIO[Int] = {
+  )(implicit ec: ExecutionContext): DBIO[Int] = {
     storageNodeTable.filter { sn =>
       sn.id === id && sn.isDeleted === false
     }.map(_.path).update(path)
@@ -114,7 +115,7 @@ private[repositories] trait StorageTables
   protected[dao] def updatePartOfAction(
       id: StorageNodeDatabaseId,
       partOf: Option[StorageNodeDatabaseId]
-  ): DBIO[Int] = {
+  )(implicit ec: ExecutionContext): DBIO[Int] = {
     val filter = storageNodeTable.filter(n => n.id === id && n.isDeleted === false)
     val q      = for { n <- filter } yield n.isPartOf
     q.update(partOf)
@@ -123,7 +124,7 @@ private[repositories] trait StorageTables
   protected[dao] def updatePathsAction(
       oldParent: NodePath,
       newParent: NodePath
-  ): DBIO[Int] = {
+  )(implicit ec: ExecutionContext): DBIO[Int] = {
     val pathFilter = s"${oldParent.path}%"
     val op         = oldParent.path
     val np         = newParent.path
@@ -149,7 +150,7 @@ private[repositories] trait StorageTables
    */
   protected[dao] def namesForPathAction(
       nodePath: NodePath
-  ): DBIO[Seq[NamedPathElement]] = {
+  )(implicit ec: ExecutionContext): DBIO[Seq[NamedPathElement]] = {
     storageNodeTable
       .filter(sn => sn.id inSetBind nodePath.asIdSeq)
       .map(s => (s.id, s.uuid, s.name))
@@ -162,7 +163,7 @@ private[repositories] trait StorageTables
    */
   protected[dao] def insertNodeAction(
       dto: StorageUnitDto
-  ): DBIO[StorageNodeDatabaseId] = {
+  )(implicit ec: ExecutionContext): DBIO[StorageNodeDatabaseId] = {
     val withNodeId = dto.copy(nodeId = dto.nodeId)
     storageNodeTable returning storageNodeTable.map(_.id) += withNodeId
   }
@@ -170,7 +171,9 @@ private[repositories] trait StorageTables
   /**
    * TODO: Document me!!!
    */
-  protected[dao] def countChildren(id: StorageNodeDatabaseId): DBIO[Int] = {
+  protected[dao] def countChildren(
+      id: StorageNodeDatabaseId
+  )(implicit ec: ExecutionContext): DBIO[Int] = {
     storageNodeTable.filter { sn =>
       sn.isPartOf === id && sn.isDeleted === false
     }.length.result
@@ -183,7 +186,7 @@ private[repositories] trait StorageTables
       mid: MuseumId,
       id: StorageNodeId,
       storageUnit: StorageUnitDto
-  ): DBIO[Int] = {
+  )(implicit ec: ExecutionContext): DBIO[Int] = {
     storageNodeTable.filter { sn =>
       sn.museumId === mid &&
       sn.uuid === id &&
@@ -197,7 +200,7 @@ private[repositories] trait StorageTables
       searchString: String,
       page: Int,
       limit: Int
-  ): DBIO[Seq[StorageUnitDto]] = {
+  )(implicit ec: ExecutionContext): DBIO[Seq[StorageUnitDto]] = {
     val query = storageNodeTable.filter { sn =>
       sn.museumId === mid &&
       sn.isDeleted === false &&

@@ -8,7 +8,6 @@ import com.google.inject.{Inject, Singleton}
 import org.apache.commons.codec.binary.Base64
 import play.api.Logger
 import play.api.libs.Codecs
-import play.api.libs.crypto.CryptoException
 
 /**
  * This class contains a copy of the deprecated implementation of

@@ -15,8 +15,10 @@ case class CryptoConfig(
 
 // scalastyle:off
 @Singleton
-class CryptoConfigParser @Inject()(environment: Environment, config: Configuration)
-    extends Provider[CryptoConfig] {
+class CryptoConfigParser @Inject()(
+    environment: Environment,
+    config: Configuration
+) extends Provider[CryptoConfig] {
 
   lazy val get = {
 
@@ -28,48 +30,58 @@ class CryptoConfigParser @Inject()(environment: Environment, config: Configurati
      * 1) Encourage the practice of *not* using the same secret in dev and prod.
      * 2) Make it obvious that the secret should be changed.
      * 3) Ensure that in dev mode, the secret stays stable across restarts.
-     * 4) Ensure that in dev mode, sessions do not interfere with other applications that may be or have been running
-     *   on localhost.  Eg, if I start Play app 1, and it stores a PLAY_SESSION cookie for localhost:9000, then I stop
-     *   it, and start Play app 2, when it reads the PLAY_SESSION cookie for localhost:9000, it should not see the
-     *   session set by Play app 1.  This can be achieved by using different secrets for the two, since if they are
-     *   different, they will simply ignore the session cookie set by the other.
+     * 4) Ensure that in dev mode, sessions do not interfere with other applications
+     *   that may be or have been running on localhost.  Eg, if I start Play app 1,
+     *   and it stores a PLAY_SESSION cookie for localhost:9000, then I stop it, and
+     *   start Play app 2, when it reads the PLAY_SESSION cookie for localhost:9000,
+     *   it should not see the session set by Play app 1.  This can be achieved by
+     *   using different secrets for the two, since if they are different, they will
+     *   simply ignore the session cookie set by the other.
      *
-     * To achieve 1 and 2, we will, in Activator templates, set the default secret to be "changeme".  This should make
-     * it obvious that the secret needs to be changed and discourage using the same secret in dev and prod.
+     * To achieve 1 and 2, we will, in Activator templates, set the default secret
+     * to be "changeme".  This should make it obvious that the secret needs to be
+     * changed and discourage using the same secret in dev and prod.
      *
-     * For safety, if the secret is not set, or if it's changeme, and we are in prod mode, then we will fail fatally.
-     * This will further enforce both 1 and 2.
+     * For safety, if the secret is not set, or if it's changeme, and we are in
+     * prod mode, then we will fail fatally. This will further enforce both 1 and 2.
      *
-     * To achieve 3, if in dev or test mode, if the secret is either changeme or not set, we will generate a secret
-     * based on the location of application.conf.  This should be stable across restarts for a given application.
+     * To achieve 3, if in dev or test mode, if the secret is either changeme or
+     * not set, we will generate a secret based on the location of application.conf.
+     * This should be stable across restarts for a given application.
      *
-     * To achieve 4, using the location of application.conf to generate the secret should ensure this.
+     * To achieve 4, using the location of application.conf to generate the secret
+     * should ensure this.
      */
-    val secret = config.getString("play.crypto.secret") match {
+    val secret = config.getOptional[String]("musit.crypto.secret") match {
       case (Some("changeme") | Some(Blank()) | None) if environment.mode == Mode.Prod =>
         logger.error(
-          "The application secret has not been set, and we are in prod mode. Your application is not secure."
+          "The application secret has not been set, and we are in prod mode. " +
+            "Your application is not secure."
         )
         logger.error(
-          "To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret"
+          "To set the application secret, please read " +
+            "http://playframework.com/documentation/latest/ApplicationSecret"
         )
         throw new PlayException("Configuration error", "Application secret not set")
       case Some("changeme") | Some(Blank()) | None =>
         val appConfLocation = environment.resource("application.conf")
-        // Try to generate a stable secret. Security is not the issue here, since this is just for tests and dev mode.
+        // Try to generate a stable secret. Security is not the issue here,
+        // since this is just for tests and dev mode.
         val secret = appConfLocation.fold(
           // No application.conf?  Oh well, just use something hard coded.
           "she sells sea shells on the sea shore"
         )(_.toString)
         val md5Secret = DigestUtils.md5Hex(secret)
         logger.debug(
-          s"Generated dev mode secret $md5Secret for app at ${appConfLocation.getOrElse("unknown location")}"
+          s"Generated dev mode secret $md5Secret for app at " +
+            s"${appConfLocation.getOrElse("unknown location")}"
         )
         md5Secret
       case Some(s) => s
     }
 
-    val transformation = config.getString("play.crypto.aes.transformation").orNull
+    val transformation =
+      config.getOptional[String]("musit.crypto.aes.transformation").orNull
 
     CryptoConfig(secret, transformation)
   }

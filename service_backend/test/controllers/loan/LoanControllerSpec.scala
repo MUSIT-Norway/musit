@@ -42,7 +42,7 @@ class LoanControllerSpec extends MusitSpecWithServerPerSuite with Inspectors {
       "create a new loan" in {
 
         val res =
-          wsUrl(createLoanUrl(mid)).withHeaders(token.asHeader).post(loan).futureValue
+          wsUrl(createLoanUrl(mid)).withHttpHeaders(token.asHeader).post(loan).futureValue
 
         res.status mustBe CREATED
       }
@@ -55,14 +55,15 @@ class LoanControllerSpec extends MusitSpecWithServerPerSuite with Inspectors {
           "objects"     -> Json.arr()
         )
         val res =
-          wsUrl(createLoanUrl(mid)).withHeaders(token.asHeader).post(js).futureValue
+          wsUrl(createLoanUrl(mid)).withHttpHeaders(token.asHeader).post(js).futureValue
 
         res.status mustBe Status.BAD_REQUEST
       }
 
       "find active loans" in {
-        wsUrl(createLoanUrl(mid)).withHeaders(token.asHeader).post(loan).futureValue
-        val res = wsUrl(activeLoanUrl(mid)).withHeaders(token.asHeader).get().futureValue
+        wsUrl(createLoanUrl(mid)).withHttpHeaders(token.asHeader).post(loan).futureValue
+        val res =
+          wsUrl(activeLoanUrl(mid)).withHttpHeaders(token.asHeader).get().futureValue
 
         res.status mustBe Status.OK
         val array = res.json.as[JsArray].value

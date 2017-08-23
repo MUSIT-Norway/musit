@@ -7,15 +7,16 @@ import no.uio.musit.models.OrgId
 import no.uio.musit.repositories.DbErrorHandlers
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.shared.dao.ColumnTypeMappers
 import slick.jdbc.JdbcProfile
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class OrganisationDao @Inject()(
-    val dbConfigProvider: DatabaseConfigProvider
+    implicit
+    val dbConfigProvider: DatabaseConfigProvider,
+    val ec: ExecutionContext
 ) extends HasDatabaseConfigProvider[JdbcProfile]
     with DbErrorHandlers
     with ColumnTypeMappers {

@@ -5,14 +5,15 @@ import models.actor.Organisation
 import no.uio.musit.security.Authenticator
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.service.{MusitController, MusitSearch}
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import services.actor.OrganisationService
 import controllers.{internalErr, listAsPlayResult}
+import play.api.mvc.ControllerComponents
 
 import scala.concurrent.Future
 
 class OrganisationController @Inject()(
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val orgService: OrganisationService
 ) extends MusitController {

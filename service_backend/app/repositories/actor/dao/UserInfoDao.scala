@@ -5,14 +5,15 @@ import no.uio.musit.models.ActorId
 import no.uio.musit.security.{AuthTables, UserInfo}
 import play.api.Logger
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import slick.jdbc.JdbcProfile
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 class UserInfoDao @Inject()(
-    val dbConfigProvider: DatabaseConfigProvider
+    implicit
+    val dbConfigProvider: DatabaseConfigProvider,
+    val ec: ExecutionContext
 ) extends HasDatabaseConfigProvider[JdbcProfile]
     with AuthTables {
 

@@ -33,17 +33,17 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
     Try {
       // Initialise some storage units...
       val root = wsUrl(RootNodeUrl(mid))
-        .withHeaders(godToken.asHeader)
+        .withHttpHeaders(godToken.asHeader)
         .post(rootJson(s"event-root-node"))
         .futureValue
       val rootId = (root.json \ "id").asOpt[StorageNodeDatabaseId]
       val org = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(godToken.asHeader)
+        .withHttpHeaders(godToken.asHeader)
         .post(organisationJson("Foo", rootId))
         .futureValue
       val orgId = (org.json \ "id").as[StorageNodeDatabaseId]
       wsUrl(StorageNodesUrl(mid))
-        .withHeaders(godToken.asHeader)
+        .withHttpHeaders(godToken.asHeader)
         .post(buildingJson("Bar", orgId))
         .futureValue
       println("Done populating") // scalastyle:ignore
@@ -60,7 +60,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
       val json = Json.parse(EventJsonGenerator.controlJson(userId, 20))
       val res =
         wsUrl(ControlsUrl(mid, nodeId2))
-          .withHeaders(fakeToken.asHeader)
+          .withHttpHeaders(fakeToken.asHeader)
           .post(json)
           .futureValue
 
@@ -75,7 +75,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
       val badUserId = ActorId(UUID.fromString("8efd41bb-bc58-4bbf-ac95-eea21ba9db81"))
       val json      = Json.parse(EventJsonGenerator.controlJson(badUserId, 20))
       wsUrl(ControlsUrl(mid, nodeId2))
-        .withHeaders(token.asHeader)
+        .withHttpHeaders(token.asHeader)
         .post(json)
         .futureValue
         .status mustBe FORBIDDEN
@@ -84,7 +84,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
     "get a specific control for a node" in {
       val ctrlId = 2L
       val res = wsUrl(ControlUrl(mid, nodeId2, ctrlId))
-        .withHeaders(fakeToken.asHeader)
+        .withHttpHeaders(fakeToken.asHeader)
         .get()
         .futureValue
 
@@ -101,7 +101,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
       val token  = BearerToken(FakeUsers.nhmReadToken)
       val ctrlId = 2L
       wsUrl(ControlUrl(mid, nodeId2, ctrlId))
-        .withHeaders(token.asHeader)
+        .withHttpHeaders(token.asHeader)
         .get()
         .futureValue
         .status mustBe FORBIDDEN
@@ -111,7 +111,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
       val json = Json.parse(EventJsonGenerator.controlJson(userId, 22))
       val res =
         wsUrl(ControlsUrl(mid, nodeId2))
-          .withHeaders(fakeToken.asHeader)
+          .withHttpHeaders(fakeToken.asHeader)
           .post(json)
           .futureValue
 
@@ -130,7 +130,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
 
       val res =
         wsUrl(ControlsUrl(mid, nodeId2))
-          .withHeaders(fakeToken.asHeader)
+          .withHttpHeaders(fakeToken.asHeader)
           .post(json)
           .futureValue
       res.status mustBe BAD_REQUEST
@@ -143,7 +143,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
 
       val res =
         wsUrl(ControlsUrl(mid, nodeId2))
-          .withHeaders(fakeToken.asHeader)
+          .withHttpHeaders(fakeToken.asHeader)
           .post(json)
           .futureValue
       res.status mustBe BAD_REQUEST
@@ -153,7 +153,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
     "successfully register a new observation" in {
       val json = Json.parse(EventJsonGenerator.observationJson(userId, 22))
       val res = wsUrl(ObservationsUrl(mid, nodeId2))
-        .withHeaders(fakeToken.asHeader)
+        .withHttpHeaders(fakeToken.asHeader)
         .post(json)
         .futureValue
 
@@ -168,7 +168,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
 
       val json = Json.parse(EventJsonGenerator.observationJson(badUserId, 20))
       wsUrl(ObservationsUrl(mid, nodeId2))
-        .withHeaders(token.asHeader)
+        .withHttpHeaders(token.asHeader)
         .post(json)
         .futureValue
         .status mustBe FORBIDDEN
@@ -177,7 +177,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
     "get a specific observation for a node" in {
       val obsId = 4L
       val res = wsUrl(ObservationUrl(mid, nodeId2, obsId))
-        .withHeaders(fakeToken.asHeader)
+        .withHttpHeaders(fakeToken.asHeader)
         .get()
         .futureValue
 
@@ -195,7 +195,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
       val token = BearerToken(FakeUsers.nhmReadToken)
       val obsId = 4L
       wsUrl(ObservationUrl(mid, nodeId2, obsId))
-        .withHeaders(token.asHeader)
+        .withHttpHeaders(token.asHeader)
         .get()
         .futureValue
         .status mustBe FORBIDDEN
@@ -204,7 +204,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
     "successfully register another observation" in {
       val json = Json.parse(EventJsonGenerator.observationJson(userId, 22))
       val res = wsUrl(ObservationsUrl(mid, nodeId2))
-        .withHeaders(fakeToken.asHeader)
+        .withHttpHeaders(fakeToken.asHeader)
         .post(json)
         .futureValue
 
@@ -215,7 +215,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
 
     "list all controls and observations for a node, ordered by doneDate" in {
       val res = wsUrl(CtrlObsForNodeUrl(mid, nodeId2))
-        .withHeaders(fakeToken.asHeader)
+        .withHttpHeaders(fakeToken.asHeader)
         .get()
         .futureValue
 
@@ -229,7 +229,7 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
       val token  = BearerToken(FakeUsers.nhmReadToken)
       val ctrlId = 2L
       wsUrl(CtrlObsForNodeUrl(mid, nodeId2))
-        .withHeaders(token.asHeader)
+        .withHttpHeaders(token.asHeader)
         .get()
         .futureValue
         .status mustBe FORBIDDEN

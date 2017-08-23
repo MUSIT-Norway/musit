@@ -13,12 +13,11 @@ import no.uio.musit.time.Implicits._
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.shared.dao.SharedTables
 import repositories.storage.dao.StorageTables
 import slick.jdbc.GetResult
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 // scalastyle:off number.of.methods
 /**
@@ -26,8 +25,11 @@ import scala.concurrent.Future
  */
 // TODO: Change public API methods to use MusitResult[A]
 @Singleton
-class StorageUnitDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
-    extends StorageTables
+class StorageUnitDao @Inject()(
+    implicit
+    val dbConfigProvider: DatabaseConfigProvider,
+    val ec: ExecutionContext
+) extends StorageTables
     with SharedTables {
 
   import profile.api._

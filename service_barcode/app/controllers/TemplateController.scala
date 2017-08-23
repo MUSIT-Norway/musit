@@ -4,22 +4,25 @@ import java.util.UUID
 
 import com.google.inject.{Inject, Singleton}
 import models.BarcodeFormats.BarcodeFormat
-import models.{FieldData, LabelData, TemplateConfigs}
 import models.TemplateConfigs._
+import models.{FieldData, LabelData, TemplateConfigs}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.json._
+import play.api.mvc.ControllerComponents
 
 import scala.util.Try
 
 @Singleton
 class TemplateController @Inject()(
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator
 ) extends MusitController {
 
   val logger = Logger(classOf[TemplateController])
 
+  // scalastyle:off method.length
   def preview(
       templateId: Int,
       codeFormat: Int,
@@ -57,8 +60,7 @@ class TemplateController @Inject()(
                   .label_printer(labelData, bf, BradyLabelPrinter, isPreview = true)
 
               case TSCLabelPrinter =>
-                views.html
-                  .label_printer(labelData, bf, TSCLabelPrinter, isPreview = true)
+                views.html.label_printer(labelData, bf, TSCLabelPrinter, isPreview = true)
 
             }
             .map { view =>
@@ -127,6 +129,8 @@ class TemplateController @Inject()(
         BadRequest(JsError.toJson(err))
     }
   }
+
+  // scalastyle:on method.length
 
   def listTemplates = MusitSecureAction() { implicit request =>
     val tjs = TemplateConfigs.AvailableConfigs.map { c =>

@@ -51,21 +51,21 @@ class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite with
   override def beforeTests(): Unit = {
     Try {
       val root = wsUrl(RootNodeUrl(mid))
-        .withHeaders(godToken.asHeader)
+        .withHttpHeaders(godToken.asHeader)
         .post(rootJson("daRoot"))
         .futureValue
 
       val rootId = (root.json \ "id").asOpt[StorageNodeDatabaseId]
 
       val org = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(godToken.asHeader)
+        .withHttpHeaders(godToken.asHeader)
         .post(organisationJson("Hanky", rootId))
         .futureValue
 
       val orgId = (org.json \ "id").as[StorageNodeDatabaseId]
 
       val building = wsUrl(StorageNodesUrl(mid))
-        .withHeaders(godToken.asHeader)
+        .withHttpHeaders(godToken.asHeader)
         .post(buildingJson("Panky", orgId))
         .futureValue
 
@@ -84,20 +84,20 @@ class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite with
       "successfully get kDReport for rooms in a museum" in {
         val js1 = roomJson("r00m", Some(StorageNodeDatabaseId(buildingId)))
         val res1 = wsUrl(StorageNodesUrl(mid))
-          .withHeaders(adminToken.asHeader)
+          .withHttpHeaders(adminToken.asHeader)
           .post(js1)
           .futureValue
         res1.status mustBe CREATED
 
         val js2 = roomJson("rUUm", Some(StorageNodeDatabaseId(buildingId)))
         val res2 = wsUrl(StorageNodesUrl(mid))
-          .withHeaders(adminToken.asHeader)
+          .withHttpHeaders(adminToken.asHeader)
           .post(js2)
           .futureValue
         res2.status mustBe CREATED
 
         val report =
-          wsUrl(KdReportUrl(mid)).withHeaders(readToken.asHeader).get().futureValue
+          wsUrl(KdReportUrl(mid)).withHttpHeaders(readToken.asHeader).get().futureValue
 
         (report.json \ "totalArea").as[Double] mustBe 41
         (report.json \ "perimeterSecurity").as[Double] mustBe 41
@@ -111,20 +111,20 @@ class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite with
       "fail when try to get KdReport from a deleted room" in {
         val js1 = roomJson("RooM", Some(StorageNodeDatabaseId(buildingId)))
         val res1 = wsUrl(StorageNodesUrl(mid))
-          .withHeaders(adminToken.asHeader)
+          .withHttpHeaders(adminToken.asHeader)
           .post(js1)
           .futureValue
         res1.status mustBe CREATED
 
         val js2 = roomJson("RuuM", Some(StorageNodeDatabaseId(buildingId)))
         val res2 = wsUrl(StorageNodesUrl(mid))
-          .withHeaders(adminToken.asHeader)
+          .withHttpHeaders(adminToken.asHeader)
           .post(js2)
           .futureValue
         res2.status mustBe CREATED
 
         val repAfterIns2 =
-          wsUrl(KdReportUrl(mid)).withHeaders(readToken.asHeader).get().futureValue
+          wsUrl(KdReportUrl(mid)).withHttpHeaders(readToken.asHeader).get().futureValue
 
         (repAfterIns2.json \ "totalArea").as[Double] mustBe 82
         (repAfterIns2.json \ "perimeterSecurity").as[Double] mustBe 82
@@ -135,11 +135,11 @@ class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite with
 
         val roomId = (res1.json \ "nodeId").as[String]
         val deletedRoom = wsUrl(StorageNodeUrl(mid, roomId))
-          .withHeaders(adminToken.asHeader)
+          .withHttpHeaders(adminToken.asHeader)
           .delete()
           .futureValue
         val repAfterDel1 =
-          wsUrl(KdReportUrl(mid)).withHeaders(readToken.asHeader).get().futureValue
+          wsUrl(KdReportUrl(mid)).withHttpHeaders(readToken.asHeader).get().futureValue
 
         (repAfterDel1.json \ "totalArea").as[Double] mustBe 61.5
         (repAfterDel1.json \ "perimeterSecurity").as[Double] mustBe 61.5
@@ -151,7 +151,7 @@ class KdReportControllerIntegrationSpec extends MusitSpecWithServerPerSuite with
 
       "not allow getting the report without READ permission to the museum" in {
         wsUrl(KdReportUrl(6))
-          .withHeaders(readToken.asHeader)
+          .withHttpHeaders(readToken.asHeader)
           .get()
           .futureValue
           .status mustBe FORBIDDEN

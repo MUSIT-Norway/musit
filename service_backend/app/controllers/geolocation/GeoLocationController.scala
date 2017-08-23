@@ -7,12 +7,12 @@ import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.json._
 import services.geolocation.GeoLocationService
-
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.mvc.ControllerComponents
 
 import scala.util.control.NonFatal
 
 class GeoLocationController @Inject()(
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val geoLocService: GeoLocationService
 ) extends MusitController {

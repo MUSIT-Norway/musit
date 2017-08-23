@@ -1,12 +1,15 @@
 package no.uio.musit.healthcheck
 
 import com.google.inject.{Inject, Singleton}
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class HealthCheckService @Inject()(val healthChecks: Set[HealthCheck]) {
+class HealthCheckService @Inject()(
+    implicit
+    val healthChecks: Set[HealthCheck],
+    val ec: ExecutionContext
+) {
 
   def executeHealthChecks(): Future[Set[HealthCheckStatus]] =
     Future.sequence(healthChecks.map(_.healthCheck()))

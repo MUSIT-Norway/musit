@@ -27,7 +27,7 @@ class PersonControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "get by id" in {
       val res = wsUrl(s"/person/${andersAppId.asString}")
-        .withHeaders(fakeToken.asHeader)
+        .withHttpHeaders(fakeToken.asHeader)
         .get()
         .futureValue
       res.status mustBe Status.OK
@@ -36,7 +36,7 @@ class PersonControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "not find a user if the ID doesn't exist" in {
       val res = wsUrl(s"/person/${UUID.randomUUID().toString}")
-        .withHeaders(fakeToken.asHeader)
+        .withHttpHeaders(fakeToken.asHeader)
         .get()
         .futureValue
       res.status mustBe Status.NOT_FOUND
@@ -44,7 +44,7 @@ class PersonControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "search on person" in {
       val res = wsUrl("/person?museumId=99&search=[And]")
-        .withHeaders(fakeToken.asHeader)
+        .withHttpHeaders(fakeToken.asHeader)
         .get()
         .futureValue
       res.status mustBe Status.OK
@@ -55,7 +55,7 @@ class PersonControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "search on person case insensitive" in {
       val res = wsUrl("/person?museumId=99&search=[and]")
-        .withHeaders(fakeToken.asHeader)
+        .withHttpHeaders(fakeToken.asHeader)
         .get()
         .futureValue
       res.status mustBe Status.OK
@@ -66,17 +66,18 @@ class PersonControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "return bad request when no search criteria is specified" in {
       val res =
-        wsUrl("/person?museumId=0").withHeaders(fakeToken.asHeader).get().futureValue
+        wsUrl("/person?museumId=0").withHttpHeaders(fakeToken.asHeader).get().futureValue
       res.status mustBe Status.BAD_REQUEST
     }
 
     "get person details from Actor and UserInfo" in {
       val jsStr   = s"""["${andersAuthId.asString}", "${kalleAppId.asString}"]"""
       val reqBody = Json.parse(jsStr)
-      val res = wsUrl("/person/details")
-        .withHeaders(fakeToken.asHeader)
-        .post(reqBody)
-        .futureValue
+      val res =
+        wsUrl("/person/details")
+          .withHttpHeaders(fakeToken.asHeader)
+          .post(reqBody)
+          .futureValue
       res.status mustBe Status.OK
       val js = res.json.as[JsArray].value
       js.length mustBe 2
@@ -88,10 +89,11 @@ class PersonControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       val (id1, id2)       = (ActorId.generate(), ActorId.generate())
       val jsStr            = s"""["${id1.asString}", "${kalleAppId.asString}", "${id2.asString}"]"""
       val reqBody: JsValue = Json.parse(jsStr)
-      val res = wsUrl("/person/details")
-        .withHeaders(fakeToken.asHeader)
-        .post(reqBody)
-        .futureValue
+      val res =
+        wsUrl("/person/details")
+          .withHttpHeaders(fakeToken.asHeader)
+          .post(reqBody)
+          .futureValue
       res.status mustBe Status.OK
       val js = res.json.as[JsArray].value
       js.length mustBe 1
@@ -100,10 +102,11 @@ class PersonControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
     "not get person details with illegal json" in {
       val reqBody = Json.parse("[12,99999999999999999999999999999999999]")
-      val res = wsUrl("/person/details")
-        .withHeaders(fakeToken.asHeader)
-        .post(reqBody)
-        .futureValue
+      val res =
+        wsUrl("/person/details")
+          .withHttpHeaders(fakeToken.asHeader)
+          .post(reqBody)
+          .futureValue
       res.status mustBe Status.BAD_REQUEST
     }
   }

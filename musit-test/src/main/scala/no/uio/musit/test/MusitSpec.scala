@@ -4,7 +4,11 @@ import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Span}
 import org.scalatestplus.play._
-import org.scalatestplus.play.guice.{GuiceOneAppPerSuite, GuiceOneAppPerTest}
+import org.scalatestplus.play.guice.{
+  GuiceOneAppPerSuite,
+  GuiceOneAppPerTest,
+  GuiceOneServerPerTest
+}
 import play.api.Application
 import play.api.libs.ws.WSClient
 import play.api.test.TestServer
@@ -69,7 +73,7 @@ trait MusitSpecWithAppPerSuite extends MusitSpecWithApp with GuiceOneAppPerSuite
 trait MusitSpecWithServerPerTest
     extends MusitSpecWithApp
     with Network
-    with OneServerPerTest {
+    with GuiceOneServerPerTest {
 
   override lazy val port: Int = generatePort
 
@@ -88,7 +92,8 @@ trait MusitSpecWithServerPerSuite
     extends MusitSpecWithApp
     with Network
     with SuiteMixin
-    with ServerProvider { this: Suite =>
+    with ServerProvider {
+  this: Suite =>
 
   override lazy val port: Int = generatePort
 

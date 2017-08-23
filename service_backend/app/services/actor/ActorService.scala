@@ -6,12 +6,13 @@ import no.uio.musit.models.{ActorId, MuseumId}
 import no.uio.musit.security.UserInfo
 import no.uio.musit.service.MusitSearch
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.actor.dao.{ActorDao, UserInfoDao}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class ActorService @Inject()(
+    implicit
+    val ec: ExecutionContext,
     val actorDao: ActorDao,
     val usrInfDao: UserInfoDao
 ) {

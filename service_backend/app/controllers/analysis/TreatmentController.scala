@@ -5,13 +5,12 @@ import controllers.{internalErr, listAsPlayResult}
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
-
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
+import play.api.mvc.ControllerComponents
 import services.analysis.TreatmentService
 
 @Singleton
 class TreatmentController @Inject()(
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val treatService: TreatmentService
 ) extends MusitController {

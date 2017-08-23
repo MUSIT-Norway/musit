@@ -4,18 +4,19 @@ import com.google.inject.{Inject, Singleton}
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events._
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
-import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.models.{EventId, MuseumCollection, MuseumId, ObjectUUID}
+import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AnalysisDao @Inject()(
-    val dbConfigProvider: DatabaseConfigProvider
+    implicit
+    val dbConfigProvider: DatabaseConfigProvider,
+    val ec: ExecutionContext
 ) extends AnalysisEventTableProvider
     with AnalysisTables
     with EventActions
@@ -390,7 +391,7 @@ class AnalysisDao @Inject()(
    * Adds or updates a list of tupled EventId and AnalysisResult. The result
    * is added to the EventId in the same tuple instance.
    *
-   * @param mid the MuseumId
+   * @param mid     the MuseumId
    * @param results the list of tupled EventId and AnalysisResults to add
    * @return eventually returns a MusitResult[Unit]
    */

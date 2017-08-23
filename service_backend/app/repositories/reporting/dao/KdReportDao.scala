@@ -6,13 +6,15 @@ import models.storage.nodes.StorageType.RoomType
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models.MuseumId
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.StorageTables
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class KdReportDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
-    extends StorageTables {
+class KdReportDao @Inject()(
+    implicit
+    val dbConfigProvider: DatabaseConfigProvider,
+    val ec: ExecutionContext
+) extends StorageTables {
 
   import profile.api._
 

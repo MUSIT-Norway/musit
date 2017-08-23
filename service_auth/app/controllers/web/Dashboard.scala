@@ -5,9 +5,12 @@ import no.uio.musit.security.{Authenticator, EncryptedToken}
 import no.uio.musit.security.crypto.MusitCrypto
 import no.uio.musit.service.MusitAdminController
 import play.api.Logger
+import play.api.mvc.ControllerComponents
 
 class Dashboard @Inject()(
-    implicit val authService: Authenticator,
+    implicit
+    val controllerComponents: ControllerComponents,
+    val authService: Authenticator,
     val crypto: MusitCrypto
 ) extends MusitAdminController {
 

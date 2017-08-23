@@ -5,11 +5,12 @@ import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
+import play.api.mvc.ControllerComponents
 import services.reporting.KdReportService
 
 class KdReportController @Inject()(
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val kdReportService: KdReportService
 ) extends MusitController {

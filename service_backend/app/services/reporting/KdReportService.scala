@@ -6,15 +6,18 @@ import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.MuseumId
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.reporting.dao.KdReportDao
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * TODO: Document me!!!
  */
-class KdReportService @Inject()(dao: KdReportDao) {
+class KdReportService @Inject()(
+    implicit
+    val dao: KdReportDao,
+    val ec: ExecutionContext
+) {
 
   def getReport(mid: MuseumId): Future[MusitResult[KdReport]] = {
     val totArea         = MusitResultT(dao.getReportTotalArea(mid))

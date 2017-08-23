@@ -1,7 +1,17 @@
 package no.uio.musit.service
 
-import play.api.mvc.Controller
+import play.api.mvc.BaseController
 
-trait MusitController extends Controller with MusitActions
+import scala.concurrent.ExecutionContext
 
-trait MusitAdminController extends Controller with MusitAdminActions
+trait MusitController extends BaseController with MusitActions {
+
+  implicit def ec: ExecutionContext = defaultExecutionContext
+
+}
+
+trait MusitAdminController extends BaseController with MusitAdminActions {
+
+  implicit def ec: ExecutionContext = defaultExecutionContext
+
+}

@@ -7,13 +7,14 @@ import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
+import play.api.mvc.ControllerComponents
 import services.reporting.StatsService
 
 import scala.concurrent.Future
 
 class StatsController @Inject()(
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val service: StatsService
 ) extends MusitController {

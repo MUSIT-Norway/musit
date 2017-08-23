@@ -15,7 +15,7 @@ case class Email(value: String) extends AnyVal {
 object Email {
 
   def validate(str: String): Option[Email] = {
-    Constraints.emailAddress(str) match {
+    Constraints.emailAddress.apply(str) match {
       case Valid         => Option(Email.fromString(str))
       case Invalid(errs) => None
     }

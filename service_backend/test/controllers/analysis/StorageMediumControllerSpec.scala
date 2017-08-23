@@ -19,7 +19,7 @@ class StorageMediumControllerSpec
   "Invoking the storageMedium controller API" should {
 
     "list all storage mediums" in {
-      val res = wsUrl(smUrl).withHeaders(token.asHeader).get().futureValue
+      val res = wsUrl(smUrl).withHttpHeaders(token.asHeader).get().futureValue
       res.status mustBe OK
       val treatments = res.json.as[JsArray].value
       treatments.size mustBe 28

@@ -13,15 +13,16 @@ import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.LocalObjectDao
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class MoveDao @Inject()(
+    implicit
     val dbConfigProvider: DatabaseConfigProvider,
-    val localObjectsDao: LocalObjectDao
+    val localObjectsDao: LocalObjectDao,
+    val ec: ExecutionContext
 ) extends StorageEventTableProvider
     with EventActions
     with StorageFacilityEventRowMappers[MoveEvent] {

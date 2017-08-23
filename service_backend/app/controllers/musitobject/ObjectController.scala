@@ -8,8 +8,8 @@ import no.uio.musit.models._
 import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
+import play.api.mvc.ControllerComponents
 import play.api.{Configuration, Logger}
 import services.musitobject.ObjectService
 import services.storage.StorageNodeService
@@ -17,6 +17,7 @@ import services.storage.StorageNodeService
 import scala.concurrent.Future
 
 class ObjectController @Inject()(
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val conf: Configuration,
     val objService: ObjectService,
@@ -28,8 +29,8 @@ class ObjectController @Inject()(
 
   val logger = Logger(classOf[ObjectController])
 
-  private val maxLimit     = conf.getInt(maxLimitConfKey).getOrElse(100)
-  private val defaultLimit = conf.getInt(defaultLimitConfKey).getOrElse(25)
+  private val maxLimit     = conf.getOptional[Int](maxLimitConfKey).getOrElse(100)
+  private val defaultLimit = conf.getOptional[Int](defaultLimitConfKey).getOrElse(25)
 
   private def calcLimit(l: Int): Int = l match {
     case lim: Int if lim > maxLimit => maxLimit

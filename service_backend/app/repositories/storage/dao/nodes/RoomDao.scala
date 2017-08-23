@@ -7,14 +7,16 @@ import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{MuseumId, NodePath, StorageNodeDatabaseId, StorageNodeId}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.StorageTables
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class RoomDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
-    extends StorageTables {
+class RoomDao @Inject()(
+    implicit
+    val dbConfigProvider: DatabaseConfigProvider,
+    val ec: ExecutionContext
+) extends StorageTables {
 
   import profile.api._
 

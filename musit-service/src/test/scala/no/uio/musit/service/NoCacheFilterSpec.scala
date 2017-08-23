@@ -6,11 +6,12 @@ import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class NoCacheFilterSpec extends MusitSpecWithAppPerSuite {
 
   implicit lazy val materializer: Materializer = app.materializer
+  implicit lazy val ec: ExecutionContext       = app.actorSystem.dispatcher
 
   "The NoCacheFilter" should {
 

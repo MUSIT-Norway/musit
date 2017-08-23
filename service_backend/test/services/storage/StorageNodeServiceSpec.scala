@@ -305,10 +305,7 @@ class StorageNodeServiceSpec
       val cmd    = MoveObjectsCmd(dest, Seq(MovableObject(oid, CollectionObjectType)))
       val events = MoveObject.fromCommand(defaultActorId, cmd)
 
-      service
-        .moveObjects(defaultMuseumId, dest, events)
-        .futureValue
-        .isFailure mustBe true
+      service.moveObjects(defaultMuseumId, dest, events).futureValue.isFailure mustBe true
 
       service
         .currentObjectLocation(defaultMuseumId, oid, CollectionObjectType)
@@ -325,10 +322,7 @@ class StorageNodeServiceSpec
       val cmd    = MoveObjectsCmd(dest, Seq(MovableObject(oid, CollectionObjectType)))
       val events = MoveObject.fromCommand(defaultActorId, cmd)
 
-      service
-        .moveObjects(defaultMuseumId, dest, events)
-        .futureValue
-        .isSuccess mustBe true
+      service.moveObjects(defaultMuseumId, dest, events).futureValue.isSuccess mustBe true
 
       service
         .currentObjectLocation(defaultMuseumId, oid, CollectionObjectType)

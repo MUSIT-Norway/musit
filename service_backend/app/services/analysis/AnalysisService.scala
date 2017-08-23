@@ -15,14 +15,15 @@ import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.analysis.dao.{AnalysisDao, AnalysisTypeDao}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class AnalysisService @Inject()(
+    implicit
     val analysisDao: AnalysisDao,
-    val typeDao: AnalysisTypeDao
+    val typeDao: AnalysisTypeDao,
+    val ec: ExecutionContext
 ) {
 
   val logger = Logger(classOf[AnalysisService])

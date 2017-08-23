@@ -6,13 +6,14 @@ import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
+import play.api.mvc.ControllerComponents
 import services.actor.OrganisationAddressService
 
 import scala.concurrent.Future
 
 class OrganisationAddressController @Inject()(
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val orgAdrService: OrganisationAddressService
 ) extends MusitController {

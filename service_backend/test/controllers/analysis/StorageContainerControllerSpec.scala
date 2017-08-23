@@ -19,7 +19,7 @@ class StorageContainerControllerSpec
   "Invoking the storagecontainer controller API" should {
 
     "list all storage containers" in {
-      val res = wsUrl(scUrl).withHeaders(token.asHeader).get().futureValue
+      val res = wsUrl(scUrl).withHttpHeaders(token.asHeader).get().futureValue
       res.status mustBe OK
       val storageContainer = res.json.as[JsArray].value
       storageContainer.size mustBe 29

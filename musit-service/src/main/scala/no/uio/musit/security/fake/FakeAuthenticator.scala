@@ -1,20 +1,21 @@
 package no.uio.musit.security.fake
 
+import com.google.inject.Inject
 import no.uio.musit.MusitResults._
 import no.uio.musit.models._
 import no.uio.musit.security.Permissions.Permission
 import no.uio.musit.security._
 import no.uio.musit.security.fake.FakeAuthenticator.FakeUserDetails
 import no.uio.musit.time.dateTimeNow
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{Request, Result, Results}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.io.Source
 
 // TODO: Refactor the entire Fake implementation to be usable in _tests only_.
-class FakeAuthenticator extends Authenticator {
+class FakeAuthenticator @Inject()(implicit val ec: ExecutionContext)
+    extends Authenticator {
 
   private val fakeFile = "/fake_security.json"
 

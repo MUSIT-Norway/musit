@@ -7,11 +7,13 @@ import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 import repositories.shared.dao.ColumnTypeMappers
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ActorDao @Inject()(
-    val dbConfigProvider: DatabaseConfigProvider
+    implicit
+    val dbConfigProvider: DatabaseConfigProvider,
+    val ec: ExecutionContext
 ) extends HasDatabaseConfigProvider[JdbcProfile]
     with ColumnTypeMappers {
 

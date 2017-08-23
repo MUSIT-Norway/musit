@@ -171,9 +171,7 @@ trait NodeGenerators extends NodeTypeInitializers with BaseDummyData {
               .setPath(id, NodePath.empty.appendChildren(parents: _*).appendChild(id))
           )
       uuid <- MusitResultT(
-               storageUnitDao
-                 .getByDatabaseId(mid, id)
-                 .map(_.map(_.flatMap(_.nodeId).get))
+               storageUnitDao.getByDatabaseId(mid, id).map(_.map(_.flatMap(_.nodeId).get))
              )
     } yield (id, uuid)
   }

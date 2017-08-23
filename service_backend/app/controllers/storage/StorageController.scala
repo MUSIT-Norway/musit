@@ -7,15 +7,14 @@ import models.storage.Move.{DelphiMoveCmd, MoveNodesCmd, MoveObjectsCmd}
 import models.storage.event.move._
 import models.storage.nodes._
 import no.uio.musit.MusitResults._
-import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
 import no.uio.musit.security.Permissions._
 import no.uio.musit.security.{AuthenticatedUser, Authenticator}
 import no.uio.musit.service.MusitController
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
 import services.musitobject.ObjectService
@@ -28,6 +27,7 @@ import scala.concurrent.Future
  * storage nodes in the storage facility module.
  */
 final class StorageController @Inject()(
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val service: StorageNodeService,
     val objService: ObjectService
@@ -43,7 +43,7 @@ final class StorageController @Inject()(
    * @tparam T The type of the data inside the result
    * @return A play Result.
    */
-  private def addResult[T <: StorageNode](
+  private def addResponse[T <: StorageNode](
       res: MusitResult[Option[T]]
   ): Result = {
     res match {
@@ -79,7 +79,7 @@ final class StorageController @Inject()(
 
     request.body.validate[StorageNode] match {
       case JsSuccess(node, _) =>
-        service.addNode(mid, node).map(addResult)
+        service.addNode(mid, node).map(addResponse)
 
       case err: JsError =>
         val jserr = JsError.toJson(err)
@@ -101,7 +101,7 @@ final class StorageController @Inject()(
     implicit val currUsr = request.user
 
     request.body.validate[RootNode] match {
-      case JsSuccess(root, _) => service.addRoot(mid, root).map(addResult)
+      case JsSuccess(root, _) => service.addRoot(mid, root).map(addResponse)
       case err: JsError       => Future.successful(BadRequest(JsError.toJson(err)))
     }
   }

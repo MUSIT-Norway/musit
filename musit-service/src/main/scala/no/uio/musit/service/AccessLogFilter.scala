@@ -4,12 +4,12 @@ import akka.stream.Materializer
 import com.google.inject.Inject
 import play.api.Logger
 import play.api.http.HeaderNames
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class AccessLogFilter @Inject()(implicit val mat: Materializer) extends Filter {
+class AccessLogFilter @Inject()(implicit val mat: Materializer, ec: ExecutionContext)
+    extends Filter {
 
   val logger = Logger("accesslog")
 

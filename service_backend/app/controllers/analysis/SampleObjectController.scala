@@ -9,9 +9,8 @@ import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsError, JsSuccess, Json}
-import play.api.mvc.Result
+import play.api.mvc.{ControllerComponents, Result}
 import services.analysis.SampleObjectService
 import services.storage.StorageNodeService
 
@@ -19,6 +18,7 @@ import scala.concurrent.Future
 
 @Singleton
 class SampleObjectController @Inject()(
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val soService: SampleObjectService,
     val nodeService: StorageNodeService

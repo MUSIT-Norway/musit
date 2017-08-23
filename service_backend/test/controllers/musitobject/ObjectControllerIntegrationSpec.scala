@@ -29,8 +29,8 @@ class ObjectControllerIntegrationSpec
       "find objects in the archeology collection with a specific museumNo" in {
 
         val res = wsUrl(url(99))
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString(
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters(
             "collectionIds" -> archeologyCollection,
             "museumNo"      -> "C666",
             "subNo"         -> "",
@@ -94,8 +94,8 @@ class ObjectControllerIntegrationSpec
 
       "find objects for archeology and numismatics with a similar museumNo" in {
         val res = wsUrl(url(99))
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString(
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters(
             "collectionIds" -> s"$archeologyCollection,$numismaticsCollection",
             "museumNo"      -> "555",
             "subNo"         -> "",
@@ -122,8 +122,8 @@ class ObjectControllerIntegrationSpec
 
       "not allow searching for objects if user doesn't have read access" in {
         val res = wsUrl(url(6))
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString(
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters(
             "collectionIds" -> "a4d768c8-2bf8-4a8f-8d7e-bc824b52b575",
             "museumNo"      -> "FOO6565",
             "subNo"         -> "",
@@ -138,8 +138,8 @@ class ObjectControllerIntegrationSpec
 
       "not allow searching in a collection without access" in {
         val res = wsUrl(url(99))
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString(
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters(
             "collectionIds" -> s"$numismaticsCollection,${UUID.randomUUID().toString}",
             "museumNo"      -> "L234",
             "subNo"         -> "",
@@ -159,8 +159,8 @@ class ObjectControllerIntegrationSpec
       "return objects for nodeId that exists" in {
         val mid = 99
         val response = wsUrl(s"/museum/$mid/node/${nodeId4.asString}/objects")
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString("collectionIds" -> archeologyCollection)
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters("collectionIds" -> archeologyCollection)
           .get()
           .futureValue
         response.status mustBe OK
@@ -177,8 +177,8 @@ class ObjectControllerIntegrationSpec
       "return objects for nodeId that has mainObjectId" in {
         val mid = 99
         val response = wsUrl(s"/museum/$mid/node/${nodeId7.asString}/objects")
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString("collectionIds" -> archeologyCollection)
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters("collectionIds" -> archeologyCollection)
           .get()
           .futureValue
         response.status mustBe OK
@@ -194,8 +194,8 @@ class ObjectControllerIntegrationSpec
       "return the number of results per page specified in the limit argument" in {
         val mid = 99
         val response = wsUrl(s"/museum/$mid/node/${nodeId6.asString}/objects")
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString(
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters(
             "collectionIds" -> archeologyCollection,
             "page"          -> "1",
             "limit"         -> "5"
@@ -211,8 +211,8 @@ class ObjectControllerIntegrationSpec
       "return the last page of objects with a specified limit and page size" in {
         val mid = 99
         val response = wsUrl(s"/museum/$mid/node/${nodeId6.asString}/objects")
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString(
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters(
             "collectionIds" -> archeologyCollection,
             "page"          -> "4",
             "limit"         -> "10"
@@ -229,8 +229,8 @@ class ObjectControllerIntegrationSpec
         val nodeId = StorageNodeId.generate()
         val mid    = 99
         val response = wsUrl(s"/museum/$mid/node/${nodeId.asString}/objects")
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString("collectionIds" -> archeologyCollection)
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters("collectionIds" -> archeologyCollection)
           .get()
           .futureValue
         response.status mustBe NOT_FOUND
@@ -240,8 +240,8 @@ class ObjectControllerIntegrationSpec
       "respond with 400 if the museumId is invalid" in {
         val mid = 555
         val response = wsUrl(s"/museum/$mid/node/${nodeId6.asString}/objects")
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString("collectionIds" -> archeologyCollection)
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters("collectionIds" -> archeologyCollection)
           .get()
           .futureValue
         response.status mustBe BAD_REQUEST
@@ -251,8 +251,8 @@ class ObjectControllerIntegrationSpec
       "respond with 400 if the museumId isn't a valid number" in {
         val mid = "blæBlæBlæ"
         val response = wsUrl(s"/museum/$mid/node/${nodeId6.asString}/objects")
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString("collectionIds" -> archeologyCollection)
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters("collectionIds" -> archeologyCollection)
           .get()
           .futureValue
         response.status mustBe BAD_REQUEST
@@ -261,8 +261,8 @@ class ObjectControllerIntegrationSpec
       "respond with 403 if the user doesn't have read access to the museum" in {
         val mid = 6
         val response = wsUrl(s"/museum/$mid/node/${nodeId6.asString}/objects")
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString("collectionIds" -> archeologyCollection)
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters("collectionIds" -> archeologyCollection)
           .get()
           .futureValue
         response.status mustBe FORBIDDEN
@@ -272,8 +272,8 @@ class ObjectControllerIntegrationSpec
         val mid        = 99
         val collection = UUID.randomUUID().toString
         val response = wsUrl(s"/museum/$mid/node/${nodeId6.asString}/objects")
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString("collectionIds" -> collection)
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters("collectionIds" -> collection)
           .get()
           .futureValue
         response.status mustBe FORBIDDEN
@@ -285,9 +285,11 @@ class ObjectControllerIntegrationSpec
         val oldBarcode = "1111111111"
         val mid        = 99
         val res = wsUrl(s"/museum/$mid/scan")
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString("oldBarcode" -> oldBarcode)
-          .withQueryString("collectionIds" -> archeologyCollection)
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters(
+            "oldBarcode"    -> oldBarcode,
+            "collectionIds" -> archeologyCollection
+          )
           .get()
           .futureValue
 
@@ -305,8 +307,8 @@ class ObjectControllerIntegrationSpec
         val uuid = "d43e3c5a-8244-4497-bd15-29c844ff8745"
         val mid  = 99
         val res = wsUrl(s"/museum/$mid/objects/$uuid")
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString("collectionIds" -> archeologyCollection)
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters("collectionIds" -> archeologyCollection)
           .get()
           .futureValue
         res.status mustBe OK
@@ -331,8 +333,8 @@ class ObjectControllerIntegrationSpec
         val mid   = 99
         val token = BearerToken(FakeUsers.testAdminToken)
         val res = wsUrl(s"/museum/$mid/objects/$uuid")
-          .withHeaders(token.asHeader)
-          .withQueryString("collectionIds" -> ethnoCollection)
+          .withHttpHeaders(token.asHeader)
+          .withQueryStringParameters("collectionIds" -> ethnoCollection)
           .get()
           .futureValue
         res.status mustBe OK
@@ -356,8 +358,8 @@ class ObjectControllerIntegrationSpec
         val mid   = 99
         val token = BearerToken(FakeUsers.testAdminToken)
         val res = wsUrl(s"/museum/$mid/objects/$uuid")
-          .withHeaders(token.asHeader)
-          .withQueryString("collectionIds" -> archeologyCollection)
+          .withHttpHeaders(token.asHeader)
+          .withQueryStringParameters("collectionIds" -> archeologyCollection)
           .get()
           .futureValue
         res.status mustBe OK
@@ -381,8 +383,8 @@ class ObjectControllerIntegrationSpec
         val mid   = 99
         val token = BearerToken(FakeUsers.testAdminToken)
         val res = wsUrl(s"/museum/$mid/objects/$uuid")
-          .withHeaders(token.asHeader)
-          .withQueryString("collectionIds" -> numismaticsCollection)
+          .withHttpHeaders(token.asHeader)
+          .withQueryStringParameters("collectionIds" -> numismaticsCollection)
           .get()
           .futureValue
         res.status mustBe OK
@@ -392,13 +394,14 @@ class ObjectControllerIntegrationSpec
         (numisAttr \ "date").as[String] mustBe "ny_numistestdate"
         (numisAttr \ "weight").as[String] mustBe "nytestNumisvekt"
       }
-      "successfully return the object with no numismaticAttribute when all numis data is null" in {
+      "successfully return an object with no numismaticAttribute when no data " +
+        "available" in {
         val uuid  = "6d094cea-462d-4d29-92ea-31f4cd0d2ff4"
         val mid   = 99
         val token = BearerToken(FakeUsers.testAdminToken)
         val res = wsUrl(s"/museum/$mid/objects/$uuid")
-          .withHeaders(token.asHeader)
-          .withQueryString("collectionIds" -> numismaticsCollection)
+          .withHttpHeaders(token.asHeader)
+          .withQueryStringParameters("collectionIds" -> numismaticsCollection)
           .get()
           .futureValue
         res.status mustBe OK
@@ -411,8 +414,8 @@ class ObjectControllerIntegrationSpec
         val uuid = "00000000-8244-4497-bd15-29c844ff8745"
         val mid  = 99
         val res = wsUrl(s"/museum/$mid/objects/$uuid")
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString("collectionIds" -> archeologyCollection)
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters("collectionIds" -> archeologyCollection)
           .get()
           .futureValue
         res.status mustBe NOT_FOUND
@@ -422,8 +425,8 @@ class ObjectControllerIntegrationSpec
         val uuid = "d43e3c5a-8244-4497-bd15-29c844ff8745"
         val mid  = 99
         val res = wsUrl(s"/museum/$mid/objects/$uuid")
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString("collectionIds" -> numismaticsCollection)
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters("collectionIds" -> numismaticsCollection)
           .get()
           .futureValue
         res.status mustBe NOT_FOUND
@@ -435,8 +438,8 @@ class ObjectControllerIntegrationSpec
         val uuid = "aa309693-8d2e-41ae-a958-ada7dc4c914b"
         val mid  = 99
         val res = wsUrl(s"/museum/$mid/objects/$uuid/children")
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString("collectionIds" -> archeologyCollection)
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters("collectionIds" -> archeologyCollection)
           .get()
           .futureValue
 

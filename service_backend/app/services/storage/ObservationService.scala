@@ -9,14 +9,15 @@ import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.events.ObservationDao
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class ObservationService @Inject()(
+    implicit
     val observationDao: ObservationDao,
-    val nodeService: StorageNodeService
+    val nodeService: StorageNodeService,
+    val ec: ExecutionContext
 ) {
 
   val logger = Logger(classOf[ObservationService])

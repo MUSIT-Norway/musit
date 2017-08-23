@@ -6,11 +6,12 @@ import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.models.MuseumId
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import services.loan.LoanService
 import controllers._
+import play.api.mvc.ControllerComponents
 
 class LoanController @Inject()(
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val loanService: LoanService
 ) extends MusitController {
