@@ -38,7 +38,7 @@ class IndexObjectsSpec extends MusitSpecWithAppPerSuite with Eventually {
 
       eventually {
         val samples = esClient.execute(count(things.indexAlias, things.sampleType))
-        val objects = esClient.execute(count(things.indexAlias, things.collectionType))
+        val objects = esClient.execute(count(things.indexAlias, things.objectType))
 
         samples.futureValue.count mustBe 1
         objects.futureValue.count mustBe 57

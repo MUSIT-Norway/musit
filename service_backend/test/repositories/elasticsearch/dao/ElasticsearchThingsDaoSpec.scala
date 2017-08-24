@@ -4,14 +4,14 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.joda.time.DateTime
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class ElasticsearchThingsDaoSpec extends MusitSpecWithAppPerSuite {
 
-  val dao: ElasticsearchThingsDao = fromInstanceCache[ElasticsearchThingsDao]
-  implicit val mat: Materializer  = fromInstanceCache[Materializer]
+  val dao: ElasticsearchThingsDao   = fromInstanceCache[ElasticsearchThingsDao]
+  implicit val mat: Materializer    = fromInstanceCache[Materializer]
+  implicit val ec: ExecutionContext = fromInstanceCache[ExecutionContext]
 
   "ElasticsearchThingsDao" when {
 

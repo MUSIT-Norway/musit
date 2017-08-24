@@ -4,7 +4,7 @@ package object things {
 
   val indexAlias = "objects"
 
-  val collectionType = "collection"
-  val sampleType     = "sample"
+  val objectType = "collection"
+  val sampleType = "sample"
 
 }

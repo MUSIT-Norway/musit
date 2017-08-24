@@ -9,7 +9,7 @@ object MusitObjectsIndexConfig {
 
   def config(indexName: String): CreateIndexDefinition =
     createIndex(indexName) mappings (
-      mapping(collectionType) as (
+      mapping(objectType) as (
         uuid("id"),
         textField("museumId"),
         textField("museumNo"),
@@ -54,6 +54,6 @@ object MusitObjectsIndexConfig {
         textField("note"),
         actorSearchStamp("registeredStamp"),
         actorSearchStamp("updatedStamp")
-      ) parent collectionType
+      ) parent objectType
     )
 }
