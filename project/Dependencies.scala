@@ -29,8 +29,8 @@ object Dependencies {
 
   object Akka {
     // this need to be synced with play
-    val akkaVersion     = "2.4.18"
-    val akkaHttpVersion = "10.0.6"
+    val akkaVersion     = "2.5.4"
+    val akkaHttpVersion = "10.0.9"
     val akkaOrg         = "com.typesafe.akka"
 
     val akkaModules =
@@ -42,8 +42,6 @@ object Dependencies {
         "akka-cluster-sharding",
         "akka-cluster-tools",
         "akka-contrib",
-        "akka-http-core",
-        "akka-http-testkit",
         "akka-multi-node-testkit",
         "akka-persistence",
         "akka-persistence-tck",
@@ -63,7 +61,7 @@ object Dependencies {
     )
 
     val akkaDependencyOverrides = akkaModules.map(akkaOrg %% _ % akkaVersion) ++
-      akkaHttpModules.map(akkaOrg %% _ % akkaVersion)
+      akkaHttpModules.map(akkaOrg %% _ % akkaHttpVersion)
 
     val akkaTestKit = akkaOrg %% "akka-testkit" % akkaVersion % Test
   }
