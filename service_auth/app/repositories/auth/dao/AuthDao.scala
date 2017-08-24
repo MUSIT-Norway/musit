@@ -2,20 +2,21 @@ package repositories.auth.dao
 
 import com.google.inject.{Inject, Singleton}
 import models._
-import no.uio.musit.models._
-import no.uio.musit.security._
 import no.uio.musit.MusitResults.{MusitDbError, MusitError, MusitResult, MusitSuccess}
 import no.uio.musit.models.MuseumCollections.Collection
+import no.uio.musit.models._
+import no.uio.musit.security._
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 @Singleton
 class AuthDao @Inject()(
-    val dbConfigProvider: DatabaseConfigProvider
+    implicit
+    val dbConfigProvider: DatabaseConfigProvider,
+    val ec: ExecutionContext
 ) extends AuthTables {
 
   import profile.api._

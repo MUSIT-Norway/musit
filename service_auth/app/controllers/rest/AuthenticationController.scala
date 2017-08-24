@@ -4,10 +4,9 @@ import com.google.inject.Inject
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
-import play.api.{Configuration, Logger}
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
-import play.api.mvc.Action
+import play.api.mvc.ControllerComponents
+import play.api.{Configuration, Logger}
 
 /**
  * This controller will expose login and logout functionality for the MUSIT
@@ -15,13 +14,15 @@ import play.api.mvc.Action
  * authentication flow.
  */
 class AuthenticationController @Inject()(
-    implicit val conf: Configuration,
+    implicit
+    val controllerComponents: ControllerComponents,
+    val conf: Configuration,
     val authService: Authenticator
 ) extends MusitController {
 
-  val logger = Logger(classOf[AuthenticationController])
+  private val logger = Logger(classOf[AuthenticationController])
 
-  val delphiCallback = conf.getString("musit.delphi.callback")
+  private val delphiCallback = conf.getOptional[String]("musit.delphi.callback")
 
   /**
    * Handles OAuth2 authentication flow against the configured Authenticator service.

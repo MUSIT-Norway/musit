@@ -13,13 +13,15 @@ import no.uio.musit.models.{EventId, MuseumId, ObjectUUID, StorageNodeId}
 import no.uio.musit.repositories.DbErrorHandlers
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.shared.dao.SharedTables
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class LocalObjectDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
-    extends SharedTables
+class LocalObjectDao @Inject()(
+    implicit
+    val dbConfigProvider: DatabaseConfigProvider,
+    val ec: ExecutionContext
+) extends SharedTables
     with DbErrorHandlers {
 
   val logger = Logger(classOf[LocalObjectDao])

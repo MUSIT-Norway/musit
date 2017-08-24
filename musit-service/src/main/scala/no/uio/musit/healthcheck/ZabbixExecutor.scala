@@ -4,17 +4,15 @@ import java.io.File
 import java.nio.file.StandardOpenOption.{CREATE, TRUNCATE_EXISTING, WRITE}
 import java.nio.file.Files
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, Cancellable}
 import akka.stream.{IOResult, Materializer}
 import akka.stream.scaladsl.{FileIO, Flow, Keep, Source}
 import akka.util.ByteString
 import org.joda.time.DateTime
-import play.api.Mode.Mode
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import play.api.{Configuration, Logger, Mode}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.DurationLong
 
 class ZabbixExecutor(
@@ -29,10 +27,11 @@ class ZabbixExecutor(
 
   logger.info("Setting up health check in interval")
 
-  implicit val system = actorSystem
-  implicit val mat    = materializer
+  implicit val system: ActorSystem  = actorSystem
+  implicit val mat: Materializer    = materializer
+  implicit val ec: ExecutionContext = actorSystem.dispatcher
 
-  val scheduler = actorSystem.scheduler.schedule(
+  val scheduler: Cancellable = actorSystem.scheduler.schedule(
     initialDelay = 10 seconds,
     interval = 4 minutes
   ) {
@@ -90,7 +89,7 @@ object ZabbixExecutor {
     Files.createDirectories(new File(zabbixFilePath).toPath)
 
     def resolveStringConfiguration(key: String) =
-      configuration.getString(key).toRight(key).right
+      configuration.getOptional[String](key).toRight(key).right
 
     val meta = for {
       env      <- resolveStringConfiguration("musit.env")

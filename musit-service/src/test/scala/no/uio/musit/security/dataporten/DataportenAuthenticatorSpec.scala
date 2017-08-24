@@ -8,13 +8,14 @@ import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{Inside, OptionValues}
 import play.api.Configuration
-import play.api.http.{DefaultWriteables, Writeable}
+import play.api.http.DefaultWriteables
 import play.api.libs.json.Json
-import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
+import play.api.libs.ws.{BodyWritable, WSClient, WSRequest, WSResponse}
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
@@ -25,14 +26,14 @@ class DataportenAuthenticatorSpec
     with OptionValues
     with Inside {
 
-  implicit val conf = fromInstanceCache[Configuration]
-  val resolver      = fromInstanceCache[DatabaseAuthResolver]
+  implicit val conf     = fromInstanceCache[Configuration]
+  implicit val resolver = fromInstanceCache[DatabaseAuthResolver]
+  implicit val mockWS   = mock[WSClient]
 
-  val mockWS         = mock[WSClient]
   val mockWSRequest  = mock[WSRequest]
   val mockWSResponse = mock[WSResponse]
 
-  val authenticator = new DataportenAuthenticator(resolver, mockWS)
+  val authenticator = new DataportenAuthenticator
 
   val userId    = ActorId.generate()
   val userIdSec = Email("vader@deathstar.io")
@@ -80,7 +81,7 @@ class DataportenAuthenticatorSpec
         .returning(mockWSRequest)
 
       (mockWSRequest
-        .post(_: FormDataType)(_: Writeable[FormDataType]))
+        .post(_: FormDataType)(_: BodyWritable[FormDataType]))
         .expects(*, *)
         .returning(Future.successful(mockWSResponse))
 
@@ -97,7 +98,7 @@ class DataportenAuthenticatorSpec
         .expects("https://auth.dataporten.no/userinfo")
         .returning(mockWSRequest)
 
-      (mockWSRequest.withHeaders _).expects(*).returning(mockWSRequest)
+      (mockWSRequest.withHttpHeaders _).expects(*).returning(mockWSRequest)
       // The below mock of "get" is incorrectly highlighted with red in IntelliJ.
       // This is a known bug: https://youtrack.jetbrains.com/issue/SCL-10183
       (mockWSRequest.get _).expects().returning(Future.successful(mockWSResponse))

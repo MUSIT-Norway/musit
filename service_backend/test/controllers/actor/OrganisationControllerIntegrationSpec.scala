@@ -14,23 +14,23 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
   val fakeToken = BearerToken(FakeUsers.testUserToken)
 
   def postOrganization(json: JsValue): Future[WSResponse] = {
-    wsUrl("/organisation").withHeaders(fakeToken.asHeader).post(json)
+    wsUrl("/organisation").withHttpHeaders(fakeToken.asHeader).post(json)
   }
 
   def putOrganization(id: Long, json: JsValue): Future[WSResponse] = {
-    wsUrl(s"/organisation/$id").withHeaders(fakeToken.asHeader).put(json)
+    wsUrl(s"/organisation/$id").withHttpHeaders(fakeToken.asHeader).put(json)
   }
 
   def deleteOrganization(id: Long): Future[WSResponse] = {
-    wsUrl(s"/organisation/$id").withHeaders(fakeToken.asHeader).delete
+    wsUrl(s"/organisation/$id").withHttpHeaders(fakeToken.asHeader).delete
   }
 
   def getOrganization(id: Long): Future[WSResponse] = {
-    wsUrl(s"/organisation/$id").withHeaders(fakeToken.asHeader).get
+    wsUrl(s"/organisation/$id").withHttpHeaders(fakeToken.asHeader).get
   }
 
   def getAnalysisLabs: Future[WSResponse] = {
-    wsUrl(s"/organisation/labs").withHeaders(fakeToken.asHeader).get
+    wsUrl(s"/organisation/labs").withHttpHeaders(fakeToken.asHeader).get
   }
 
   "The OrganizationController" must {
@@ -47,7 +47,7 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
 
     "return bad request when no search criteria is specified" in {
       val res = wsUrl("/organisation?museumId=0")
-        .withHeaders(fakeToken.asHeader)
+        .withHttpHeaders(fakeToken.asHeader)
         .get()
         .futureValue
       res.status mustBe Status.BAD_REQUEST
@@ -55,7 +55,7 @@ class OrganisationControllerIntegrationSpec extends MusitSpecWithServerPerSuite 
 
     "successfully search for organisation" in {
       val res = wsUrl("/organisation?museumId=0&search=[KHM]")
-        .withHeaders(fakeToken.asHeader)
+        .withHttpHeaders(fakeToken.asHeader)
         .get()
         .futureValue
       val orgs = res.json.as[JsArray].value

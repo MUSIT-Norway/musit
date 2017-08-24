@@ -7,9 +7,7 @@ import play.api.db.slick.HasDatabaseConfigProvider
 import repositories.shared.dao.ColumnTypeMappers
 import slick.jdbc.JdbcProfile
 
-trait ObjectTables
-    extends HasDatabaseConfigProvider[JdbcProfile]
-    with ColumnTypeMappers {
+trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTypeMappers {
 
   import profile.api._
 

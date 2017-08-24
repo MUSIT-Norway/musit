@@ -8,15 +8,16 @@ import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.{MuseumId, StorageNodeId}
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.reporting.dao.StorageStatsDao
 import repositories.storage.dao.nodes.StorageUnitDao
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class StatsService @Inject()(
+    implicit
     val nodeDao: StorageUnitDao,
-    val statsDao: StorageStatsDao
+    val statsDao: StorageStatsDao,
+    val ec: ExecutionContext
 ) {
 
   val logger = Logger(classOf[StatsService])

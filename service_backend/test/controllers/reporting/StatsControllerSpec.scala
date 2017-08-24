@@ -14,7 +14,7 @@ class StatsControllerSpec extends MusitSpecWithServerPerSuite with NodeTestData 
     "return stats for a node including objects per collection" in {
 
       val res = wsUrl(s"/museum/99/storagenodes/${nodeId4.asString}/stats")
-        .withHeaders(fakeToken1.asHeader)
+        .withHttpHeaders(fakeToken1.asHeader)
         .get()
         .futureValue
 

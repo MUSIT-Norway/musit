@@ -13,16 +13,17 @@ import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.musitobject.dao.ObjectDao
 import repositories.storage.dao.nodes.StorageUnitDao
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 class ObjectService @Inject()(
-    objDao: ObjectDao,
-    nodeDao: StorageUnitDao
+    implicit
+    val objDao: ObjectDao,
+    val nodeDao: StorageUnitDao,
+    val ec: ExecutionContext
 ) {
 
   private val logger = Logger(classOf[ObjectService])
@@ -179,7 +180,9 @@ class ObjectService @Inject()(
       collectionIds: Seq[MuseumCollection],
       page: Int,
       limit: Int
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[PagedResult[MusitObject]]] = {
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): Future[MusitResult[PagedResult[MusitObject]]] = {
     objDao.pagedObjects(mid, nodeId, collectionIds, page, limit)
   }
 

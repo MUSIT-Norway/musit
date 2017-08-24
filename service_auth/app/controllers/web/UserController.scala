@@ -10,22 +10,18 @@ import no.uio.musit.models.Museums.Museum
 import no.uio.musit.models._
 import no.uio.musit.security.Permissions.Permission
 import no.uio.musit.security.crypto.MusitCrypto
-import no.uio.musit.security.{
-  AuthenticatedUser,
-  Authenticator,
-  EncryptedToken,
-  GroupInfo
-}
-import no.uio.musit.service.MusitAdminController
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import no.uio.musit.security.{AuthenticatedUser, Authenticator, EncryptedToken, GroupInfo}
+import no.uio.musit.service.{MusitAdminController, MusitRequest}
+import play.api.i18n.I18nSupport
+import play.api.mvc.ControllerComponents
 import repositories.auth.dao.AuthDao
 
 class UserController @Inject()(
-    implicit val authService: Authenticator,
+    implicit
+    val controllerComponents: ControllerComponents,
+    val authService: Authenticator,
     val crypto: MusitCrypto,
-    val dao: AuthDao,
-    val messagesApi: MessagesApi
+    val dao: AuthDao
 ) extends MusitAdminController
     with I18nSupport {
 
@@ -88,14 +84,19 @@ class UserController @Inject()(
     }
 
   // scalastyle:off
-  private def processUserViewData(
+  private def processUserViewData[A](
       feideEmail: Email,
       userPermissions: Option[UserPermissions],
       userGroups: Seq[GroupInfo],
       groups: Seq[Group],
       collections: Seq[MuseumCollection],
       mid: Option[MuseumId]
-  )(implicit token: EncryptedToken, currUser: AuthenticatedUser) = {
+  )(
+      implicit
+      request: MusitRequest[A],
+      token: EncryptedToken,
+      currUser: AuthenticatedUser
+  ) = {
     val currAccesses = UserAdd(
       email = feideEmail,
       accesses = userGroups.groupBy(_.module).toList.map { a =>

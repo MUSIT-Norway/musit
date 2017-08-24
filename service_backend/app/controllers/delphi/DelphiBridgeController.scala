@@ -6,14 +6,15 @@ import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
+import play.api.mvc.ControllerComponents
 import services.musitobject.ObjectService
 import services.storage.StorageNodeService
 
 import scala.concurrent.Future
 
 class DelphiBridgeController @Inject()(
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val nodeService: StorageNodeService,
     val objService: ObjectService

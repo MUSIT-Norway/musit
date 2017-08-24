@@ -9,19 +9,20 @@ import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.json.Json
-import play.api.mvc.Action
+import play.api.mvc.ControllerComponents
 import services.Generator
 
 import scala.util.{Failure, Success, Try}
 
 @Singleton
 class BarcodeController @Inject()(
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator
 ) extends MusitController {
 
   val logger = Logger(classOf[BarcodeController])
 
-  def contentDisposition(name: String) = {
+  private def contentDisposition(name: String) = {
     CONTENT_DISPOSITION -> (s"""inline; filename="$name.png"; filename*=UTF-8''""" +
       encode(name, "UTF-8").replace("+", "%20"))
   }

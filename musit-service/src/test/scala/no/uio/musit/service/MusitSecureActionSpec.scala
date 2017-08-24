@@ -3,22 +3,24 @@ package no.uio.musit.service
 import akka.stream.Materializer
 import no.uio.musit.models.MuseumId
 import no.uio.musit.models.Museums._
-import no.uio.musit.security.fake.FakeAuthenticator.fakeAccessTokenPrefix
 import no.uio.musit.security.Permissions._
 import no.uio.musit.security._
 import no.uio.musit.security.fake.FakeAuthenticator
 import no.uio.musit.test.{FakeUsers, MusitSpecWithAppPerSuite}
+import play.api.mvc.BaseController
 import play.api.mvc.Results._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class MusitSecureActionSpec extends MusitSpecWithAppPerSuite {
 
   implicit lazy val materializer: Materializer = app.materializer
 
-  class Dummy extends MusitActions {
+  class Dummy extends BaseController with MusitActions {
+    val controllerComponents                = stubControllerComponents()
     override val authService: Authenticator = new FakeAuthenticator
   }
 

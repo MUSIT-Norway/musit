@@ -13,7 +13,6 @@ import no.uio.musit.repositories.DbErrorHandlers
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.musitobject.dao.SearchFieldValues.{
   EmptyValue,
   FieldValue,
@@ -23,13 +22,15 @@ import repositories.musitobject.dao.SearchFieldValues.{
 import repositories.shared.dao.SharedTables
 import no.uio.musit.time.Implicits.jSqlTimestampToDateTime
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * Dao intended for searching through objects
  */
 class ObjectDao @Inject()(
-    val dbConfigProvider: DatabaseConfigProvider
+    implicit
+    val dbConfigProvider: DatabaseConfigProvider,
+    val ec: ExecutionContext
 ) extends ObjectTables
     with SharedTables
     with DbErrorHandlers {

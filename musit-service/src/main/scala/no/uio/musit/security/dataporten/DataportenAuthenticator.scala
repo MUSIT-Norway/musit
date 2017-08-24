@@ -15,13 +15,12 @@ import no.uio.musit.security.oauth2.{OAuth2Constants, OAuth2Info}
 import no.uio.musit.time.dateTimeNow
 import no.uio.musit.ws.ViaProxy.viaProxy
 import play.api.http.Status
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
 import play.api.libs.ws.{WSClient, WSResponse}
 import play.api.mvc.{Request, RequestHeader, Result, Results}
 import play.api.{Configuration, Logger}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
 case class DataportenAuthenticatorConfig(
@@ -42,10 +41,12 @@ case class DataportenAuthenticatorConfig(
  * @param ws           Play! WebService client
  */
 class DataportenAuthenticator @Inject()(
-    authResolver: AuthResolver,
-    ws: WSClient
-)(implicit conf: Configuration)
-    extends Authenticator
+    implicit
+    val authResolver: AuthResolver,
+    val ws: WSClient,
+    val conf: Configuration,
+    val ec: ExecutionContext
+) extends Authenticator
     with OAuth2Constants {
 
   private val logger = Logger(classOf[DataportenAuthenticator])
@@ -420,7 +421,7 @@ class DataportenAuthenticator @Inject()(
   private def userInfoDataporten(
       token: DataportenToken
   ): Future[MusitResult[UserInfo]] = {
-    ws.url(config.userApiURL).viaProxy.withHeaders(token.asHeader).get().map {
+    ws.url(config.userApiURL).viaProxy.withHttpHeaders(token.asHeader).get().map {
       response =>
         validateWSResponse(response) { res =>
           // The user info part of the message is always under the "user" key.

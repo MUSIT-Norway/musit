@@ -95,7 +95,7 @@ class SampleObjectControllerIntegrationSpec
         maybeExtId = Some(s"ext$index"),
         maybeNote = Some("This is a sample note")
       )
-      wsUrl(addUrl(mid)).withHeaders(token.asHeader).post(js).futureValue
+      wsUrl(addUrl(mid)).withHttpHeaders(token.asHeader).post(js).futureValue
     }
   }
 
@@ -155,7 +155,7 @@ class SampleObjectControllerIntegrationSpec
 
   def getAllForTestMuseum = {
     val res =
-      wsUrl(forMuseumUrl(mid)).withHeaders(token.asHeader).get().futureValue
+      wsUrl(forMuseumUrl(mid)).withHttpHeaders(token.asHeader).get().futureValue
     res.status mustBe OK
     res
   }
@@ -235,7 +235,7 @@ class SampleObjectControllerIntegrationSpec
       val (s3, s4) = (cs2.head, cs2.last)
 
       val res =
-        wsUrl(forOrigUrl(mid)(orig)).withHeaders(token.asHeader).get().futureValue
+        wsUrl(forOrigUrl(mid)(orig)).withHttpHeaders(token.asHeader).get().futureValue
 
       res.status mustBe OK
       val objects = res.json.as[JsArray].value
@@ -265,7 +265,8 @@ class SampleObjectControllerIntegrationSpec
       }
       val (s3, s4) = (cs2.head, cs2.last)
 
-      val res = wsUrl(childrenUrl(mid)(s2)).withHeaders(token.asHeader).get().futureValue
+      val res =
+        wsUrl(childrenUrl(mid)(s2)).withHttpHeaders(token.asHeader).get().futureValue
 
       res.status mustBe OK
       val objects = res.json.as[JsArray].value
@@ -285,7 +286,7 @@ class SampleObjectControllerIntegrationSpec
       val objectId = (expJs \ "objectId").as[String]
 
       val res =
-        wsUrl(getUrl(mid)(objectId)).withHeaders(token.asHeader).get().futureValue
+        wsUrl(getUrl(mid)(objectId)).withHttpHeaders(token.asHeader).get().futureValue
 
       res.status mustBe OK
 
@@ -301,7 +302,10 @@ class SampleObjectControllerIntegrationSpec
       val ujs = updateJson[String](expJs, __ \ "note", "Updated note")
 
       val res =
-        wsUrl(updateUrl(mid)(objectId)).withHeaders(token.asHeader).put(ujs).futureValue
+        wsUrl(updateUrl(mid)(objectId))
+          .withHttpHeaders(token.asHeader)
+          .put(ujs)
+          .futureValue
 
       res.status mustBe OK
       validateSampleObject(ujs, res.json)
@@ -314,7 +318,7 @@ class SampleObjectControllerIntegrationSpec
       val objectId = (expJs \ "objectId").as[String]
 
       val res =
-        wsUrl(deleteUrl(mid)(objectId)).withHeaders(token.asHeader).get().futureValue
+        wsUrl(deleteUrl(mid)(objectId)).withHttpHeaders(token.asHeader).get().futureValue
 
       res.status mustBe OK
     }
@@ -323,7 +327,7 @@ class SampleObjectControllerIntegrationSpec
       val objectId = "123e4567-e89b-12d3-a456-426655440000"
 
       val res =
-        wsUrl(deleteUrl(mid)(objectId)).withHeaders(token.asHeader).get().futureValue
+        wsUrl(deleteUrl(mid)(objectId)).withHttpHeaders(token.asHeader).get().futureValue
 
       res.status mustBe NOT_FOUND
     }
@@ -332,7 +336,7 @@ class SampleObjectControllerIntegrationSpec
       val objectId = "123"
 
       val res =
-        wsUrl(deleteUrl(mid)(objectId)).withHeaders(token.asHeader).get().futureValue
+        wsUrl(deleteUrl(mid)(objectId)).withHttpHeaders(token.asHeader).get().futureValue
 
       res.status mustBe BAD_REQUEST
     }
@@ -366,7 +370,7 @@ class SampleObjectControllerIntegrationSpec
       )
 
       wsUrl(MoveObjectUrl(mid))
-        .withHeaders(token.asHeader)
+        .withHttpHeaders(token.asHeader)
         .put(mvJs)
         .futureValue
         .status mustBe OK
@@ -375,7 +379,7 @@ class SampleObjectControllerIntegrationSpec
 
       val res =
         wsUrl(forNodeUrl(mid)(destNode)(Seq(archCollection)))
-          .withHeaders(token.asHeader)
+          .withHttpHeaders(token.asHeader)
           .get()
           .futureValue
 

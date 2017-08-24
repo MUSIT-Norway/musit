@@ -6,14 +6,15 @@ import no.uio.musit.models._
 import no.uio.musit.repositories.DbErrorHandlers
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.StorageTables
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class StorageStatsDao @Inject()(
-    val dbConfigProvider: DatabaseConfigProvider
+    implicit
+    val dbConfigProvider: DatabaseConfigProvider,
+    val ec: ExecutionContext
 ) extends StorageTables
     with DbErrorHandlers {
 

@@ -4,6 +4,8 @@ object Dependencies {
 
   val scala = "2.11.8"
 
+  val ScalaFmtVersion = "1.2.0"
+
   val resolvers = DefaultOptions.resolvers(snapshot = true) ++ Seq(
     Resolver.bintrayRepo("scalaz", "releases"),
     Resolver.typesafeRepo("releases"),
@@ -12,14 +14,16 @@ object Dependencies {
 
   object PlayFrameWork {
     val version          = play.core.PlayVersion.current // from plugin.sbt
-    val playSlickVersion = "2.1.0"
+    val playSlickVersion = "3.0.1"
 
     val slick_play    = "com.typesafe.play" %% "play-slick"            % playSlickVersion
     val slick_play_ev = "com.typesafe.play" %% "play-slick-evolutions" % playSlickVersion
     val jdbc          = "com.typesafe.play" %% "play-jdbc"             % version
     val cache         = "com.typesafe.play" %% "play-cache"            % version
     val ws            = "com.typesafe.play" %% "play-ws"               % version
+    val guice         = "com.typesafe.play" %% "play-guice"            % version
     val json          = "com.typesafe.play" %% "play-json"             % version
+    val jsonJoda      = "com.typesafe.play" %% "play-json-joda"        % version
     val logback       = "com.typesafe.play" %% "play-logback"          % version
   }
 
@@ -80,8 +84,8 @@ object Dependencies {
   }
 
   object ScalaTest {
-    val scalaTestVersion     = "3.0.1"
-    val scalaTestPlusVersion = "2.0.0"
+    val scalaTestVersion     = "3.0.3"
+    val scalaTestPlusVersion = "3.1.1"
 
     var scalatestSpec = "org.scalatest" %% "scalatest" % scalaTestVersion
     val scalactic     = "org.scalactic" %% "scalactic" % scalaTestVersion
@@ -94,7 +98,9 @@ object Dependencies {
 
   val scalaMock = "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % Test
 
-  val iheartFicus = "com.iheart"       %% "ficus"       % "1.4.0"
+  val JodaTime    = "joda-time"        % "joda-time"    % "2.9.9"
+  val JodaConvert = "org.joda"         % "joda-convert" % "1.8.1"
+  val iheartFicus = "com.iheart"       %% "ficus"       % "1.4.1"
   val scalaGuice  = "net.codingwell"   %% "scala-guice" % "4.1.0"
   val h2database  = "com.h2database"   % "h2"           % "1.4.194"
   val zxing       = "com.google.zxing" % "core"         % "3.3.0"
@@ -105,9 +111,11 @@ object Dependencies {
   val oracle = "com.oracle" % "ojdbc7" % "my" from s"file://$dir/libs/ojdbc7.jar"
 
   val enumeratumDeps: Seq[ModuleID] = {
-    val enumeratumVersion = "1.5.10"
-    val libs              = Seq("enumeratum", "enumeratum-play", "enumeratum-play-json")
-    libs.map("com.beachape" %% _ % enumeratumVersion)
+    Seq(
+      "com.beachape" %% "enumeratum"           % "1.5.12",
+      "com.beachape" %% "enumeratum-play"      % "1.5.12-2.6.0-M5",
+      "com.beachape" %% "enumeratum-play-json" % "1.5.12-2.6.0-M7"
+    )
   }
 
   val elastic4sVersion: String = "5.4.9"
@@ -120,7 +128,11 @@ object Dependencies {
   val playDependencies: Seq[ModuleID] = Seq(
     PlayFrameWork.cache,
     PlayFrameWork.ws,
+    PlayFrameWork.guice,
     PlayFrameWork.json,
+    PlayFrameWork.jsonJoda,
+    JodaTime,
+    JodaConvert,
     iheartFicus
   ) ++ Logging.loggingDeps
 

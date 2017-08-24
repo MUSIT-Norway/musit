@@ -5,7 +5,6 @@ import no.uio.musit.formatters.StrictFormatters._
 import no.uio.musit.models._
 import org.joda.time.DateTime
 import play.api.Logger
-import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json.Writes._
@@ -69,7 +68,7 @@ object StorageNode {
         StorageUnit.formats.reads(jsv)
 
       case err =>
-        JsError(ValidationError("Invalid type for storage node", err))
+        JsError(JsonValidationError("Invalid type for storage node", err))
     }
   }
 
@@ -192,7 +191,7 @@ object RootNode {
         RootLoan.formats.reads(jsv)
 
       case err =>
-        JsError(ValidationError("Invalid type for root node", err))
+        JsError(JsonValidationError("Invalid type for root node", err))
     }
   }
 

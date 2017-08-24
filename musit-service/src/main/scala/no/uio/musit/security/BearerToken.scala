@@ -36,11 +36,10 @@ object BearerToken {
    * @return Option of BearerToken
    */
   def fromRequestHeader[A](request: Request[A]): Option[BearerToken] = {
-    request.headers.get(AUTHORIZATION).find(_.startsWith(prefix)).flatMap {
-      headerValue =>
-        Try(headerValue.substring(prefix.length)).toOption.map { token =>
-          BearerToken(token)
-        }
+    request.headers.get(AUTHORIZATION).find(_.startsWith(prefix)).flatMap { headerValue =>
+      Try(headerValue.substring(prefix.length)).toOption.map { token =>
+        BearerToken(token)
+      }
     }
   }
 

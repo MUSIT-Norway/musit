@@ -10,14 +10,15 @@ import no.uio.musit.models.{CollectionUUID, EventId, MuseumId, ObjectUUID}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
+import play.api.mvc.ControllerComponents
 import services.analysis.AnalysisService
 
 import scala.concurrent.Future
 
 @Singleton
 class AnalysisController @Inject()(
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val analysisService: AnalysisService
 ) extends MusitController {

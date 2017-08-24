@@ -17,7 +17,7 @@ class PurposeControllerIntegrationSpec
   "Invoking the treatment controller API" should {
 
     "list all purposes" in {
-      val res = wsUrl(purposeUrl).withHeaders(token.asHeader).get().futureValue
+      val res = wsUrl(purposeUrl).withHttpHeaders(token.asHeader).get().futureValue
       res.status mustBe OK
       val purposes = res.json.as[JsArray].value
       purposes.size mustBe 4

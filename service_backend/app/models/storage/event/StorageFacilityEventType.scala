@@ -1,7 +1,6 @@
 package models.storage.event
 
 import no.uio.musit.models.EventTypeId
-import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 case class StorageFacilityEventType(name: String) extends AnyVal {
@@ -20,7 +19,7 @@ object StorageFacilityEventType {
 
   implicit val reads: Reads[StorageFacilityEventType] =
     __.read[String]
-      .filter(ValidationError("Unsupported event type")) { et =>
+      .filter(JsonValidationError("Unsupported event type")) { et =>
         EventTypeRegistry.withNameInsensitiveOption(et).isDefined
       }
       .map(StorageFacilityEventType.apply)

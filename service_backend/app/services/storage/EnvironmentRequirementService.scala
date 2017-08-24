@@ -8,14 +8,15 @@ import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.events.EnvReqDao
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 class EnvironmentRequirementService @Inject()(
-    val envReqDao: EnvReqDao
+    implicit
+    val envReqDao: EnvReqDao,
+    val ec: ExecutionContext
 ) {
 
   val logger = Logger(classOf[EnvironmentRequirementService])

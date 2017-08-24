@@ -8,6 +8,7 @@ import scala.concurrent.Future
 
 @Singleton
 class ActorDao @Inject()(
+    implicit
     val dbConfigProvider: DatabaseConfigProvider
 ) extends ActorTables {
 

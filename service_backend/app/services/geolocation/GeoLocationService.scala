@@ -6,17 +6,21 @@ import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import no.uio.musit.MusitResults.{MusitHttpError, MusitResult, MusitSuccess}
 import no.uio.musit.ws.ViaProxy.viaProxy
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.libs.ws.WSClient
 import play.api.{Configuration, Logger}
 import play.api.http.Status._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 case class GeoLocationConfig(url: String, hitsPerResult: Int)
 
-class GeoLocationService @Inject()(ws: WSClient)(implicit config: Configuration) {
+class GeoLocationService @Inject()(
+    implicit
+    val ws: WSClient,
+    val ec: ExecutionContext,
+    val config: Configuration
+) {
 
   val logger = Logger(classOf[GeoLocationService])
 
@@ -27,7 +31,7 @@ class GeoLocationService @Inject()(ws: WSClient)(implicit config: Configuration)
 
     ws.url(geoLocationConfig.url)
       .viaProxy
-      .withQueryString(
+      .withQueryStringParameters(
         "sokestreng" -> expr,
         "antPerSide" -> s"${geoLocationConfig.hitsPerResult}"
       )
@@ -35,7 +39,7 @@ class GeoLocationService @Inject()(ws: WSClient)(implicit config: Configuration)
       .map { response =>
         response.status match {
           case OK =>
-            logger.debug(s"Got response from geonorge:\n${response.body}")
+            logger.debug(s"Got response from geonorge:\n${Json.stringify(response.json)}")
             val res =
               (response.json \ "totaltAntallTreff").asOpt[String].map(_.toInt) match {
                 case Some(numRes) if numRes > 0 =>

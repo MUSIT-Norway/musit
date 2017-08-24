@@ -48,7 +48,7 @@ class AnalysisControllerIntegrationSpec
   val getForObjectUrl = (mid: Int) => (oid: String) => s"${baseUrl(mid)}/objects/$oid"
 
   def saveAnalysis(ajs: JsValue): WSResponse = {
-    wsUrl(addAnalysisUrl(mid)).withHeaders(token.asHeader).post(ajs).futureValue
+    wsUrl(addAnalysisUrl(mid)).withHttpHeaders(token.asHeader).post(ajs).futureValue
   }
 
   "Using the analysis controller" when {
@@ -56,14 +56,15 @@ class AnalysisControllerIntegrationSpec
     "fetching analysis types" should {
 
       "return all event types" in {
-        val res = wsUrl(typesUrl(mid)).withHeaders(token.asHeader).get().futureValue
+        val res = wsUrl(typesUrl(mid)).withHttpHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 46
       }
 
       "return all event categories" in {
-        val res = wsUrl(categoriesUrl(mid)).withHeaders(token.asHeader).get().futureValue
+        val res =
+          wsUrl(categoriesUrl(mid)).withHttpHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 13
@@ -74,7 +75,7 @@ class AnalysisControllerIntegrationSpec
       "return all event types in an analysis category" in {
         val catId = EventCategories.Dating.id
         val res =
-          wsUrl(typeCatUrl(mid)(catId)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(typeCatUrl(mid)(catId)).withHttpHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 3
@@ -83,7 +84,7 @@ class AnalysisControllerIntegrationSpec
       "return all types in a category where some have extra description attributes" in {
         val catId = EventCategories.Image.id
         val res =
-          wsUrl(typeCatUrl(mid)(catId)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(typeCatUrl(mid)(catId)).withHttpHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         val arr = res.json.as[JsArray].value
@@ -109,7 +110,7 @@ class AnalysisControllerIntegrationSpec
 
       "return measurement type with extra result type" in {
         val res =
-          wsUrl(typesUrl(mid)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(typesUrl(mid)).withHttpHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         val arr = res.json.as[JsArray].value
@@ -123,7 +124,7 @@ class AnalysisControllerIntegrationSpec
       "return all event types related to a museum collection" ignore {
         val cid = MuseumCollections.Entomology.uuid
         val res = wsUrl(typeColUrl(mid)(cid.asString))
-          .withHeaders(token.asHeader)
+          .withHttpHeaders(token.asHeader)
           .get()
           .futureValue
 
@@ -183,7 +184,7 @@ class AnalysisControllerIntegrationSpec
 
         saveAnalysis(js).status mustBe CREATED // creates ids 7 to 8
         val ares =
-          wsUrl(getAnalysisUrl(mid)(7L)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(getAnalysisUrl(mid)(7L)).withHttpHeaders(token.asHeader).get().futureValue
 
         ares.status mustBe OK
         (ares.json \ "orgId").as[Int] mustBe 312
@@ -205,7 +206,7 @@ class AnalysisControllerIntegrationSpec
           appendExtraAttributes(updJso, TomographyAttributes(NeutronTomography))
 
         val updRes = wsUrl(getAnalysisUrl(mid)(7L))
-          .withHeaders(token.asHeader)
+          .withHttpHeaders(token.asHeader)
           .put(updJson)
           .futureValue
         updRes.status mustBe OK
@@ -250,7 +251,10 @@ class AnalysisControllerIntegrationSpec
         // We can assume the ID is 8 since we've only created 2 cols
         // with 1 analysis each before this.
         val res =
-          wsUrl(getAnalysisUrl(mid)(10L)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(getAnalysisUrl(mid)(10L))
+            .withHttpHeaders(token.asHeader)
+            .get()
+            .futureValue
 
         res.status mustBe OK
 
@@ -267,7 +271,7 @@ class AnalysisControllerIntegrationSpec
 
       "return 404 NotFound if the ID can't be found" in {
         wsUrl(getAnalysisUrl(mid)(100L))
-          .withHeaders(token.asHeader)
+          .withHttpHeaders(token.asHeader)
           .get()
           .futureValue
           .status mustBe NOT_FOUND
@@ -304,7 +308,10 @@ class AnalysisControllerIntegrationSpec
           .withSecondOfMinute(44)
 
         val res =
-          wsUrl(getAnalysisUrl(mid)(11L)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(getAnalysisUrl(mid)(11L))
+            .withHttpHeaders(token.asHeader)
+            .get()
+            .futureValue
 
         res.status mustBe OK
         validateAnalysisCollection(
@@ -319,7 +326,10 @@ class AnalysisControllerIntegrationSpec
 
       "get all analyses in an analysis collection/batch" in {
         val res =
-          wsUrl(getChildrenUrl(mid)(11L)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(getChildrenUrl(mid)(11L))
+            .withHttpHeaders(token.asHeader)
+            .get()
+            .futureValue
 
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 5
@@ -327,7 +337,7 @@ class AnalysisControllerIntegrationSpec
 
       "get all analyses related to an object" in {
         val res = wsUrl(getForObjectUrl(mid)(testObjectUUID.asString))
-          .withHeaders(token.asHeader)
+          .withHttpHeaders(token.asHeader)
           .get()
           .futureValue
 
@@ -342,14 +352,17 @@ class AnalysisControllerIntegrationSpec
         )
 
         val res =
-          wsUrl(saveResultUrl(mid)(2L)).withHeaders(token.asHeader).post(js).futureValue
+          wsUrl(saveResultUrl(mid)(2L))
+            .withHttpHeaders(token.asHeader)
+            .post(js)
+            .futureValue
 
         res.status mustBe CREATED
       }
 
       "include the saved result when fetching the analysis" in {
         val res =
-          wsUrl(getAnalysisUrl(mid)(2L)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(getAnalysisUrl(mid)(2L)).withHttpHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         (res.json \ "id").as[Long] mustBe 2L
@@ -367,14 +380,17 @@ class AnalysisControllerIntegrationSpec
         )
 
         val res =
-          wsUrl(saveResultUrl(mid)(2L)).withHeaders(token.asHeader).put(js).futureValue
+          wsUrl(saveResultUrl(mid)(2L))
+            .withHttpHeaders(token.asHeader)
+            .put(js)
+            .futureValue
 
         res.status mustBe OK
       }
 
       "include the new result when fetching the analysis" in {
         val res =
-          wsUrl(getAnalysisUrl(mid)(2L)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(getAnalysisUrl(mid)(2L)).withHttpHeaders(token.asHeader).get().futureValue
 
         res.status mustBe OK
         (res.json \ "id").as[Long] mustBe 2L
@@ -388,8 +404,8 @@ class AnalysisControllerIntegrationSpec
       "only return analyses related to a collection in a museum" in {
         val res =
           wsUrl(getAnalysesUrl(mid))
-            .withHeaders(token.asHeader)
-            .withQueryString("collectionIds" -> Archeology.uuid.asString)
+            .withHttpHeaders(token.asHeader)
+            .withQueryStringParameters("collectionIds" -> Archeology.uuid.asString)
             .get()
             .futureValue
 
@@ -399,7 +415,7 @@ class AnalysisControllerIntegrationSpec
 
       "get an analysis with orgId" in {
         val al =
-          wsUrl(getAnalysisUrl(mid)(7L)).withHeaders(token.asHeader).get().futureValue
+          wsUrl(getAnalysisUrl(mid)(7L)).withHttpHeaders(token.asHeader).get().futureValue
         al.status mustBe OK
         (al.json \ "orgId").asOpt[Int] mustBe Some(317)
       }

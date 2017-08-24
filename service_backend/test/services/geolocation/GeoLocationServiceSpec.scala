@@ -6,10 +6,12 @@ import no.uio.musit.test.matchers.MusitResultValues
 import org.scalatest.Inside
 import play.api.Configuration
 import play.api.http.Status
-import play.api.mvc.{Action, Results}
+import play.api.mvc._
 import play.api.routing.sird._
 import play.api.test.WsTestClient
 import play.core.server.Server
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class GeoLocationServiceSpec
     extends MusitSpecWithAppPerSuite
@@ -17,6 +19,9 @@ class GeoLocationServiceSpec
     with Inside {
 
   val service: GeoLocationService = fromInstanceCache[GeoLocationService]
+
+  implicit val sys = app.actorSystem
+  implicit val mat = app.materializer
 
   "GeoLocationService" when {
 
@@ -59,14 +64,17 @@ class GeoLocationServiceSpec
           )
         )
         val expMsg = "error message from GeoNorway"
+
+        val ab = new DefaultActionBuilderImpl(new BodyParsers.Default)
+
         Server.withRouter() {
           case GET(p"/geo") =>
-            Action {
+            ab.apply {
               Results.ServiceUnavailable(expMsg)
             }
         } { implicit port =>
-          WsTestClient.withClient { client =>
-            val address = new GeoLocationService(client).searchGeoNorway("").futureValue
+          WsTestClient.withClient { implicit client =>
+            val address = new GeoLocationService().searchGeoNorway("").futureValue
             address.isFailure mustBe true
             inside(address) {
               case MusitHttpError(status, msg) =>

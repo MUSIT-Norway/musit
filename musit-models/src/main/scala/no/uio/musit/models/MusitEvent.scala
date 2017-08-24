@@ -4,8 +4,6 @@ import org.joda.time.DateTime
 
 trait MusitEvent {
 
-  type T
-
   val id: Option[EventId]
   val doneBy: Option[ActorId]
   val doneDate: Option[DateTime]
@@ -14,6 +12,10 @@ trait MusitEvent {
   val registeredDate: Option[DateTime]
   val updatedDate: Option[DateTime]
 
-  def withId(id: Option[EventId]): T
+  def withId(id: Option[EventId]): MusitEvent
+
+  def withAffectedThing(at: Option[MusitUUID]): MusitEvent
+
+  def withDoneDate(dd: Option[DateTime]): MusitEvent
 
 }

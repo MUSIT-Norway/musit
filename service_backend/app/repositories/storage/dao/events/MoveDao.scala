@@ -13,15 +13,16 @@ import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.LocalObjectDao
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class MoveDao @Inject()(
+    implicit
     val dbConfigProvider: DatabaseConfigProvider,
-    val localObjectsDao: LocalObjectDao
+    val localObjectsDao: LocalObjectDao,
+    val ec: ExecutionContext
 ) extends StorageEventTableProvider
     with EventActions
     with StorageFacilityEventRowMappers[MoveEvent] {
@@ -89,9 +90,14 @@ class MoveDao @Inject()(
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[MoveEvent]]] =
     findEventById[MoveEvent](mid, id) { row =>
       TopLevelEvents.unsafeFromId(row._2) match {
-        case MoveNodeType   => fromRow(row._1, row._12)
-        case MoveObjectType => fromRow(row._1, row._12)
-        case _              => None
+        case MoveNodeType =>
+          fromRow(row._1, row._6, row._9.flatMap(StorageNodeId.fromString), row._12)
+
+        case MoveObjectType =>
+          fromRow(row._1, row._6, row._9.flatMap(ObjectUUID.fromString), row._12)
+
+        case _ =>
+          None
       }
     }
 
@@ -115,10 +121,11 @@ class MoveDao @Inject()(
       limit
     )(
       row =>
-        fromRow(row._1, row._12).flatMap[MoveNode] {
-          case mn: MoveNode   => Some(mn)
-          case mo: MoveObject => None
-      }
+        fromRow(row._1, row._6, row._9.flatMap(StorageNodeId.fromString), row._12)
+          .flatMap[MoveNode] {
+            case mn: MoveNode   => Some(mn)
+            case mo: MoveObject => None
+        }
     )
 
   /**
@@ -141,10 +148,11 @@ class MoveDao @Inject()(
       limit
     )(
       row =>
-        fromRow(row._1, row._12).flatMap[MoveObject] {
-          case mn: MoveNode   => None
-          case mo: MoveObject => Some(mo)
-      }
+        fromRow(row._1, row._6, row._9.flatMap(ObjectUUID.fromString), row._12)
+          .flatMap[MoveObject] {
+            case mn: MoveNode   => None
+            case mo: MoveObject => Some(mo)
+        }
     )
 
 }

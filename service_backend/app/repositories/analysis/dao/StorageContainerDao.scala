@@ -6,13 +6,14 @@ import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.repositories.DbErrorHandlers
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class StorageContainerDao @Inject()(
-    val dbConfigProvider: DatabaseConfigProvider
+    implicit
+    val dbConfigProvider: DatabaseConfigProvider,
+    val ec: ExecutionContext
 ) extends AnalysisTables
     with DbErrorHandlers {
 

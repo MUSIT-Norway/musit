@@ -5,14 +5,15 @@ import no.uio.musit.models.ActorId
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.{MusitController, MusitSearch}
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
+import play.api.mvc.ControllerComponents
 import services.actor.ActorService
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 class PersonController @Inject()(
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val service: ActorService
 ) extends MusitController {

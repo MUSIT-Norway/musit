@@ -9,14 +9,15 @@ import no.uio.musit.models.{EventId, MuseumId, StorageNodeId}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.storage.dao.events.ControlDao
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class ControlService @Inject()(
+    implicit
     val controlDao: ControlDao,
-    val nodeService: StorageNodeService
+    val nodeService: StorageNodeService,
+    val ec: ExecutionContext
 ) {
 
   val logger = Logger(classOf[ControlService])

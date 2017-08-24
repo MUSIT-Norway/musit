@@ -23,10 +23,10 @@ object ProxiedRequest {
 
   def readConfig(config: Configuration) = {
     for {
-      host <- config.getString(ProxyHost)
-      port <- config.getInt(ProxyPort)
-      user     = config.getString(ProxyUser)
-      password = config.getString(ProxyPassword)
+      host <- config.getOptional[String](ProxyHost)
+      port <- config.getOptional[Int](ProxyPort)
+      user     = config.getOptional[String](ProxyUser)
+      password = config.getOptional[String](ProxyPassword)
     } yield
       DefaultWSProxyServer(
         host = host,

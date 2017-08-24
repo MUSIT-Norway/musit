@@ -1,7 +1,7 @@
 package no.uio.musit.formatters
 
 import org.joda.time.DateTime
-import play.api.libs.json.{Format, Reads, Writes}
+import play.api.libs.json._
 
 /**
  * Converters helping to converting DateTime to/from UTC/ISO formatted dates.
@@ -13,10 +13,10 @@ trait WithDateTimeFormatters {
 
   // Joda date formatter
   implicit val dateTimeFormatter = Format[DateTime](
-    Reads
+    JodaReads
       .jodaDateReads(defaultDateTimePattern)
-      .orElse(Reads.jodaDateReads(readDateTimeMillisPattern)),
-    Writes.jodaDateWrites(defaultDateTimePattern)
+      .orElse(JodaReads.jodaDateReads(readDateTimeMillisPattern)),
+    JodaWrites.jodaDateWrites(defaultDateTimePattern)
   )
 }
 

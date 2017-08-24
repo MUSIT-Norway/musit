@@ -4,18 +4,19 @@ import com.google.inject.{Inject, Singleton}
 import models.analysis.events.AnalysisResults.AnalysisResult
 import models.analysis.events._
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
-import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.models.{EventId, MuseumCollection, MuseumId, ObjectUUID}
+import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AnalysisDao @Inject()(
-    val dbConfigProvider: DatabaseConfigProvider
+    implicit
+    val dbConfigProvider: DatabaseConfigProvider,
+    val ec: ExecutionContext
 ) extends AnalysisEventTableProvider
     with AnalysisTables
     with EventActions
@@ -72,7 +73,11 @@ class AnalysisDao @Inject()(
       else q1.filter(_.eventTypeId =!= SampleCreated.sampleEventTypeId)
     }
 
-    q2.result.headOption.map(_.flatMap(row => fromRow(row._1, row._14)))
+    q2.result.headOption.map(
+      _.flatMap { row =>
+        fromRow(row._1, row._7, row._10.flatMap(ObjectUUID.fromString), row._14)
+      }
+    )
   }
 
   private def resultForEventIdAction(
@@ -98,9 +103,12 @@ class AnalysisDao @Inject()(
 
     query.result.map { res =>
       res.map { row =>
-        toAnalysis(row._1._1, row._1._14)
-          .flatMap(_.withResultAsOpt[Analysis](fromResultRowOpt(row._2)))
-          .get
+        toAnalysis(
+          maybeEventId = row._1._1,
+          maybeDoneDate = row._1._7,
+          maybeAffectedThing = row._1._10.flatMap(ObjectUUID.fromString),
+          rowAsJson = row._1._14
+        ).flatMap(_.withResultAsOpt[Analysis](fromResultRowOpt(row._2))).get
       }
     }
   }
@@ -137,7 +145,12 @@ class AnalysisDao @Inject()(
 
     query.result.map { res =>
       res.flatMap { row =>
-        fromRow(row._1._1, row._1._14).map {
+        fromRow(
+          maybeEventId = row._1._1,
+          maybeDoneDate = row._1._7,
+          maybeAffectedThing = row._1._10.flatMap(ObjectUUID.fromString),
+          rowAsJson = row._1._14
+        ).map {
           case ae: AnalysisEvent =>
             ae.withResultAsOpt(fromResultRowOpt(row._2)).getOrElse(ae)
 
@@ -304,7 +317,9 @@ class AnalysisDao @Inject()(
   def findByCollectionObjectUUID(
       mid: MuseumId,
       oid: ObjectUUID
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): Future[MusitResult[Seq[AnalysisModuleEvent]]] = {
     val eventsRes = for {
       derivedSampleIds <- db.run(sampleIdsForObjectAction(mid, oid))
       events           <- db.run(listAllForObjectAction(mid, oid, derivedSampleIds))
@@ -376,7 +391,7 @@ class AnalysisDao @Inject()(
    * Adds or updates a list of tupled EventId and AnalysisResult. The result
    * is added to the EventId in the same tuple instance.
    *
-   * @param mid the MuseumId
+   * @param mid     the MuseumId
    * @param results the list of tupled EventId and AnalysisResults to add
    * @return eventually returns a MusitResult[Unit]
    */
@@ -458,7 +473,16 @@ class AnalysisDao @Inject()(
           Future.successful(Vector.empty)
         }
       }
-      .map(_.flatMap(row => toAnalysisCollection(row._1, row._14)))
+      .map(
+        _.flatMap { row =>
+          toAnalysisCollection(
+            maybeEventId = row._1,
+            maybeDoneDate = row._7,
+            maybeAffectedThing = row._10.flatMap(ObjectUUID.fromString),
+            rowAsJson = row._14
+          )
+        }
+      )
       .map(MusitSuccess.apply)
       .recover(nonFatal(s"An unexpected error occurred while fetching analysis events"))
   }

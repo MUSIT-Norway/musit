@@ -2,9 +2,9 @@ package no.uio.musit.ws
 
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.ws.ProxiedRequest._
+import no.uio.musit.ws.ViaProxy.viaProxy
 import play.api.Configuration
 import play.api.libs.ws.{DefaultWSProxyServer, WSClient}
-import no.uio.musit.ws.ViaProxy.viaProxy
 
 class ViaProxySpec extends MusitSpecWithAppPerSuite {
   val client = fromInstanceCache[WSClient]
@@ -19,7 +19,7 @@ class ViaProxySpec extends MusitSpecWithAppPerSuite {
         )
       )
 
-      val request = client.url("my.service.example.com").viaProxy
+      val request = client.url("http://my.service.example.com").viaProxy
 
       request.proxyServer mustBe Some(
         DefaultWSProxyServer(
@@ -39,7 +39,7 @@ class ViaProxySpec extends MusitSpecWithAppPerSuite {
         )
       )
 
-      val request = client.url("my.service.example.com").viaProxy
+      val request = client.url("https://my.service.example.com").viaProxy
 
       request.proxyServer mustBe Some(
         DefaultWSProxyServer(
@@ -55,7 +55,7 @@ class ViaProxySpec extends MusitSpecWithAppPerSuite {
       implicit val cfg: Configuration =
         Configuration.from(Map(ProxyHost -> "example.com"))
 
-      val request = client.url("my.service.example.com").viaProxy
+      val request = client.url("http://my.service.example.com").viaProxy
 
       request.proxyServer mustBe None
     }
@@ -64,7 +64,7 @@ class ViaProxySpec extends MusitSpecWithAppPerSuite {
       implicit val cfg: Configuration =
         Configuration.from(Map(ProxyPort -> "9898"))
 
-      val request = client.url("my.service.example.com").viaProxy
+      val request = client.url("http://my.service.example.com").viaProxy
 
       request.proxyServer mustBe None
     }
@@ -72,7 +72,7 @@ class ViaProxySpec extends MusitSpecWithAppPerSuite {
     "not add proxy when missing config" in {
       implicit val cfg: Configuration = Configuration.from(Map())
 
-      val request = client.url("my.service.example.com").viaProxy
+      val request = client.url("https://my.service.example.com").viaProxy
 
       request.proxyServer mustBe None
     }
@@ -81,7 +81,10 @@ class ViaProxySpec extends MusitSpecWithAppPerSuite {
       implicit val cfg: Configuration = Configuration.from(Map())
 
       val request =
-        client.url("my.service.example.com").viaProxy.withHeaders("foo" -> "bar")
+        client
+          .url("https://my.service.example.com")
+          .viaProxy
+          .withHttpHeaders("foo" -> "bar")
 
       request.headers mustBe Map("foo" -> List("bar"))
     }

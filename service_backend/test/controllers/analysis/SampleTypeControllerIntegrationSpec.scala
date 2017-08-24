@@ -19,7 +19,7 @@ class SampleTypeControllerIntegrationSpec
   "Invoking the sampleType controller API" should {
 
     "list all sampleTypes" in {
-      val res = wsUrl(sampleTypeUrl).withHeaders(token.asHeader).get().futureValue
+      val res = wsUrl(sampleTypeUrl).withHttpHeaders(token.asHeader).get().futureValue
       res.status mustBe OK
       val sampleTypes = res.json.as[JsArray].value
       sampleTypes.size mustBe 51

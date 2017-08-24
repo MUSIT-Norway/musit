@@ -23,8 +23,8 @@ class DelphiBridgeControllerIntegrationSpec
         val expectedLocation = "Utviklingsmuseet, Utviklingsmuseet Org, " +
           "Forskningens hus, Naturværelset"
         val res = wsUrl(s"/delphi/objects/111")
-          .withHeaders(fakeToken.asHeader)
-          .withQueryString("schemaName" -> "USD_ARK_GJENSTAND_O")
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters("schemaName" -> "USD_ARK_GJENSTAND_O")
           .get()
           .futureValue
 
@@ -47,7 +47,7 @@ class DelphiBridgeControllerIntegrationSpec
         )
 
         val res = wsUrl(s"/delphi/museum/99/nodes/external")
-          .withHeaders(fakeToken.asHeader)
+          .withHttpHeaders(fakeToken.asHeader)
           .get()
           .futureValue
 
@@ -69,7 +69,7 @@ class DelphiBridgeControllerIntegrationSpec
         )
 
         val res = wsUrl(s"/delphi/objects/tranlsate_old_ids")
-          .withHeaders(fakeToken.asHeader)
+          .withHttpHeaders(fakeToken.asHeader)
           .put(in)
           .futureValue
 

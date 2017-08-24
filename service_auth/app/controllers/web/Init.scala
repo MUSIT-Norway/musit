@@ -1,20 +1,21 @@
 package controllers.web
 
 import com.google.inject.{Inject, Singleton}
+import controllers.web
 import no.uio.musit.security.crypto.MusitCrypto
 import play.api.Logger
 import play.api.libs.json.Json
-import play.api.mvc.{Action, Controller}
-import controllers.web
+import play.api.mvc.{AbstractController, ControllerComponents}
 
 @Singleton
 class Init @Inject()(
-    val crypto: MusitCrypto
-) extends Controller {
+    cc: ControllerComponents,
+    crypto: MusitCrypto
+) extends AbstractController(cc) {
 
   val logger = Logger(classOf[Init])
 
-  def init = Action(parse.urlFormEncoded) { implicit request =>
+  def init = Action(parse.formUrlEncoded) { implicit request =>
     request.body
       .get("_at")
       .flatMap { tokSeq =>

@@ -1,24 +1,18 @@
 package no.uio.musit.service
 
-import no.uio.musit.MusitResults.{
-  MusitNotAuthenticated,
-  MusitNotAuthorized,
-  MusitSuccess
-}
+import no.uio.musit.MusitResults.{MusitNotAuthenticated, MusitNotAuthorized, MusitSuccess}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.MuseumId
 import no.uio.musit.models.Museums._
 import no.uio.musit.security.Permissions.{ElevatedPermission, MusitAdmin, Permission}
-import no.uio.musit.security.crypto.MusitCrypto
 import no.uio.musit.security._
+import no.uio.musit.security.crypto.MusitCrypto
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
-import play.api.mvc.Results._
 import play.api.mvc._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * Every request that is successfully authenticated against dataporten, will
@@ -39,6 +33,7 @@ case class MusitRequest[A](
 ) extends WrappedRequest[A](request)
 
 trait MusitActions {
+  self: BaseController =>
 
   private val logger = Logger(classOf[MusitActions])
 
@@ -52,26 +47,32 @@ trait MusitActions {
       UserInfo,
       AuthenticatedUser,
       Option[Museum]
-  ) => MusitActionResult[T] // scalastyle:ignore
+  ) => MusitActionResult[T]
 
   /**
-   * The base representation of a MUSIT specific request.
+   * Maps an incoming request to a MusitRequest
    */
-  abstract class BaseMusitAction
-      extends ActionBuilder[MusitRequest]
-      with ActionRefiner[Request, MusitRequest] {
+  trait BaseMusitActionRefiner extends ActionRefiner[Request, MusitRequest] {
 
     override def refine[T](request: Request[T]): MusitActionResultF[T]
 
   }
 
-  abstract class BaseSecureAction extends BaseMusitAction {
+  trait BaseSecureAction
+      extends BaseMusitActionRefiner
+      with ActionBuilder[MusitRequest, AnyContent] {
+
+    override def parser: BodyParser[AnyContent] = self.parse.default
+
+    override def executionContext: ExecutionContext = self.defaultExecutionContext
 
     protected def auth[T](
         request: Request[T],
         museumId: Option[MuseumId],
         maybeToken: Option[BearerToken]
-    )(authorize: AuthFunc[T]): MusitActionResultF[T] = {
+    )(
+        authorize: AuthFunc[T]
+    )(implicit ec: ExecutionContext): MusitActionResultF[T] = {
       val museum = museumId.flatMap(Museum.fromMuseumId)
       maybeToken.map { token =>
         val res = for {
@@ -103,6 +104,8 @@ trait MusitActions {
 
   }
 
+  // scalastyle:off method.name
+
   /**
    * A custom Action that checks if the user is authenticated. If the request
    * contains a valid bearer token, the request is enriched with an
@@ -118,6 +121,9 @@ trait MusitActions {
       module: Option[ModuleConstraint],
       permissions: Permission*
   ) extends BaseSecureAction {
+
+    implicit val ec = executionContext
+
     override def refine[T](request: Request[T]): MusitActionResultF[T] = {
       val maybeToken = BearerToken.fromRequestHeader(request)
       auth(request, museumId, maybeToken) { (token, userInfo, authUser, museum) =>
@@ -142,31 +148,36 @@ trait MusitActions {
         }
       }
     }
+
   }
 
   object MusitSecureAction {
-
     def apply(): MusitSecureAction = MusitSecureAction(None, None)
 
     def apply(mid: MuseumId): MusitSecureAction = MusitSecureAction(Some(mid), None)
 
-    def apply(permissions: Permission*): MusitSecureAction =
-      MusitSecureAction(None, None, permissions: _*)
+    def apply(
+        permissions: Permission*
+    ): MusitSecureAction = MusitSecureAction(None, None, permissions: _*)
 
-    def apply(mid: MuseumId, permissions: Permission*): MusitSecureAction =
-      MusitSecureAction(Some(mid), None, permissions: _*)
+    def apply(
+        mid: MuseumId,
+        permissions: Permission*
+    ): MusitSecureAction = MusitSecureAction(Some(mid), None, permissions: _*)
 
     def apply(
         mid: MuseumId,
         module: ModuleConstraint,
         permissions: Permission*
-    ): MusitSecureAction =
-      MusitSecureAction(Some(mid), Some(module), permissions: _*)
+    ): MusitSecureAction = MusitSecureAction(Some(mid), Some(module), permissions: _*)
   }
+
+  // scalastyle:on method.name
 
 }
 
 trait MusitAdminActions extends MusitActions {
+  self: BaseController =>
 
   private val logger = Logger(classOf[MusitAdminActions])
 
@@ -187,6 +198,8 @@ trait MusitAdminActions extends MusitActions {
       module: Option[ModuleConstraint],
       permissions: ElevatedPermission*
   ) extends BaseSecureAction {
+
+    implicit val ec = executionContext
 
     override def refine[T](request: Request[T]): MusitActionResultF[T] = {
       val maybeToken = BearerToken
@@ -220,8 +233,10 @@ trait MusitAdminActions extends MusitActions {
     def apply(permissions: ElevatedPermission*): MusitAdminAction =
       MusitAdminAction(None, None, permissions: _*)
 
-    def apply(mid: MuseumId, permissions: ElevatedPermission*): MusitAdminAction =
-      MusitAdminAction(Some(mid), None, permissions: _*)
+    def apply(
+        mid: MuseumId,
+        permissions: ElevatedPermission*
+    ): MusitAdminAction = MusitAdminAction(Some(mid), None, permissions: _*)
   }
 
 }

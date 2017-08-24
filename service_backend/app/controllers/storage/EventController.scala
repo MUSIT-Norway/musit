@@ -10,14 +10,15 @@ import no.uio.musit.security.Authenticator
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitController
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
+import play.api.mvc.ControllerComponents
 import services.storage.{ControlService, ObservationService}
 
 import scala.concurrent.Future
 
 @Singleton
 class EventController @Inject()(
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val controlService: ControlService,
     val observationService: ObservationService
