@@ -8,16 +8,17 @@ import models.musitobject.MusitObject
 import no.uio.musit.models.ObjectId
 import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import repositories.analysis.dao.AnalysisTables
 import repositories.musitobject.dao.ObjectTables
 import slick.jdbc.{ResultSetConcurrency, ResultSetType}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ElasticsearchThingsDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
-    extends ObjectTables
+class ElasticsearchThingsDao @Inject()(
+    implicit val dbConfigProvider: DatabaseConfigProvider,
+    ec: ExecutionContext
+) extends ObjectTables
     with AnalysisTables {
 
   import profile.api._

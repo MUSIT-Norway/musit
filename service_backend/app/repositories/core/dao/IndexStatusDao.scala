@@ -5,13 +5,14 @@ import models.elasticsearch.IndexStatus
 import no.uio.musit.MusitResults.{MusitDbError, MusitResult, MusitSuccess}
 import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class IndexStatusDao @Inject()(val dbConfigProvider: DatabaseConfigProvider)
-    extends IndexStatusTable {
+class IndexStatusDao @Inject()(
+    implicit val dbConfigProvider: DatabaseConfigProvider,
+    ec: ExecutionContext
+) extends IndexStatusTable {
 
   import profile.api._
 

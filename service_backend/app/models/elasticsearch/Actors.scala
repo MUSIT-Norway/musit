@@ -1,11 +1,12 @@
 package models.elasticsearch
 
 import models.analysis.ActorStamp
+import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.ActorId
 import org.joda.time.DateTime
 import play.api.libs.json.{Json, Writes}
 
-object Actors {
+object Actors extends WithDateTimeFormatters {
   case class ActorSearchStamp(
       id: ActorId,
       date: DateTime,
