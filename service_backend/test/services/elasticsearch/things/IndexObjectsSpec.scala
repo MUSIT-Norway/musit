@@ -7,7 +7,7 @@ import models.elasticsearch.{IndexCallback, IndexConfig}
 import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
 import org.scalatest.concurrent.Eventually
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
-import org.scalatest.time.{Seconds, Span}
+import org.scalatest.time.{Millis, Seconds, Span}
 import services.elasticsearch.DocumentCount._
 import services.elasticsearch.things
 
@@ -36,12 +36,12 @@ class IndexObjectsSpec extends MusitSpecWithAppPerSuite with Eventually {
 
       f.futureValue(timeout) mustBe defined
 
-      eventually {
+      eventually(timeout) {
         val samples = esClient.execute(count(things.indexAlias, things.sampleType))
         val objects = esClient.execute(count(things.indexAlias, things.objectType))
 
         samples.futureValue.count mustBe 1
-        objects.futureValue.count mustBe 57
+        objects.futureValue.count mustBe 59
       }
     }
   }
