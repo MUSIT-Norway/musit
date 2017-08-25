@@ -96,7 +96,6 @@ class SearchServiceSpec
     }
 
     "search where q has no restrictions" taggedAs ElasticsearchContainer in {
-      pending
       val res = service
         .restrictedObjectSearch(
           mid = MuseumId(2),
@@ -112,7 +111,6 @@ class SearchServiceSpec
     }
 
     "search where q has restrictions on subNo" taggedAs ElasticsearchContainer in {
-      pending
       val res = service
         .restrictedObjectSearch(
           mid = MuseumId(2),

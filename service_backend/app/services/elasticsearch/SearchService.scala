@@ -56,9 +56,17 @@ class SearchService @Inject()(client: HttpClient) {
             )
           )
         else None
-      val sam = if (sampleTypeFilter.nonEmpty) Some(must(sampleTypeFilter)) else None
+      val freeQuery =
+        if (sampleTypeFilter.nonEmpty)
+          Some(
+            should(
+              hasParentQuery(objectType, must(sampleTypeFilter), score = true),
+              must(sampleTypeFilter)
+            )
+          )
+        else None
 
-      Some(should(List(obj, sam).flatten))
+      Some(should(List(obj, freeQuery).flatten))
     } else {
       None
     }
