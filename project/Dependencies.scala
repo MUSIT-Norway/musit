@@ -9,7 +9,8 @@ object Dependencies {
   val resolvers = DefaultOptions.resolvers(snapshot = true) ++ Seq(
     Resolver.bintrayRepo("scalaz", "releases"),
     Resolver.typesafeRepo("releases"),
-    Resolver.jcenterRepo
+    Resolver.jcenterRepo,
+    Resolver.defaultLocal
   )
 
   object PlayFrameWork {
@@ -78,7 +79,7 @@ object Dependencies {
 
   // Symbiotic dependencies
   val symbiotic: Seq[ModuleID] = {
-    val symbioticVersion = "0.1.1"
+    val symbioticVersion = "0.1.6"
     val libs = Seq(
       "symbiotic-play",
       "symbiotic-json",

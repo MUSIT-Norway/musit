@@ -7,13 +7,22 @@ echo "## If you are seeing this message in PRODUCTION, something has gone terrib
 echo "################################################################################"
 
 # ------------------------------------------------------------------------
-# Slick Database configuration
+# Slick MUSIT DB configuration
 # ------------------------------------------------------------------------
 export EVOLUTION_ENABLED=false
 export APPLICATION_SECRET=dummyAppSecret
 export SLICK_DB_URL=jdbc:oracle:thin:@db:1521:orcl
 export SLICK_DB_USER=musit
 export SLICK_DB_PASSWORD=musit
+
+# ------------------------------------------------------------------------
+# Postgres DB configuration
+# ------------------------------------------------------------------------
+export SYMBIOTIC_POSTGRES_HOST=postgres_db
+export SYMBIOTIC_POSTGRES_PORT=5432
+export SYMBIOTIC_DB_USER=postgres
+export SYMBIOTIC_DB_PASSWORD=postgres
+export SYMBIOTIC_DB_NAME=postgres
 
 # ------------------------------------------------------------------------
 # The application defaults to use the fake security module (no.uio.musit.security.fake.FakeModule)

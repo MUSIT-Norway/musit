@@ -9,12 +9,18 @@ services:
       - backend
       - auth
       - barcode
+      - document
 
   db:
     image: registry.gitlab.com/musit-norway/docker-oracle-12c:testdata
     shm_size: 4G
     ports:
       - "1521:1521"
+
+  postgres_db:
+    image: postgres:9.6
+    ports:
+      - "5432:5432"
 
   backend:
     image: service_backend:0.1-SNAPSHOT
@@ -76,3 +82,30 @@ services:
       - SLICK_DB_PASSWORD
     links:
       - db
+
+  document:
+    image: service_document:0.1-SNAPSHOT
+    ports:
+      - "7072:7070"
+    environment:
+      - MUSIT_ENV
+      - MUSIT_BASE_URL
+      - DOCKER_HOSTNAME
+      - MUSIT_SECURITY_MODULE
+      - DATAPORTEN_CLIENT_ID
+      - DATAPORTEN_CLIENT_SECRET
+      - DATAPORTEN_SESSION_TIMEOUT
+      - APPLICATION_SECRET
+      - EVOLUTION_ENABLED
+      - SLICK_DB_URL
+      - SLICK_DB_USER
+      - SLICK_DB_PASSWORD
+      # Props for the document management library to connect to postgres
+      - SYMBIOTIC_POSTGRES_HOST
+      - SYMBIOTIC_POSTGRES_PORT
+      - SYMBIOTIC_DB_USER
+      - SYMBIOTIC_DB_PASSWORD
+      - SYMBIOTIC_DB_NAME
+    links:
+      - db
+      - postgres_db

@@ -1,10 +1,10 @@
 package models.document
-import models.document.ArchiveStatuses.ArchiveStatus
-import net.scalytica.symbiotic.api.types.CustomMetadataAttributes._
+
+import models.document.ArchiveItems._
+import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.Implicits._
 import net.scalytica.symbiotic.api.types.PersistentType.UserStamp
 import net.scalytica.symbiotic.api.types.ResourceOwner.Owner
 import net.scalytica.symbiotic.api.types._
-import CustomMetadataAttributes.Implicits._
 
 object ArchiveDocuments {
 
@@ -20,43 +20,14 @@ object ArchiveDocuments {
       lock: Option[Lock],
       version: Version,
       published: Boolean,
-      archiveStatus: ArchiveStatus,
       documentMedium: Option[String],
-      closedStamp: Option[UserStamp],
       createdStamp: Option[UserStamp],
       author: Option[String],
-      documentDetails: Option[DocumentDetails],
+      documentDetails: DocumentDetails,
       stream: Option[FileStream]
   ) extends ArchiveDocumentItem
 
   object ArchiveDocument {
-
-    private[this] def metadataMapFrom(ad: ArchiveDocument): MetadataMap = {
-      MetadataMap(
-        "published"       -> ad.published,
-        "documentMedium"  -> ad.documentMedium,
-        "closedBy"        -> ad.closedStamp.map(_.by.value),
-        "closedDate"      -> ad.closedStamp.map(_.date),
-        "author"          -> ad.author,
-        "documentNumber"  -> ad.documentDetails.map(_.number),
-        "documentType"    -> ad.documentDetails.flatMap(_.docType),
-        "documentSubType" -> ad.documentDetails.flatMap(_.docSubType)
-      )
-    }
-
-    private[this] def managedMetadataFrom(ad: ArchiveDocument): ManagedMetadata = {
-      ManagedMetadata(
-        owner = ad.owner,
-        fid = ad.fid,
-        uploadedBy = ad.createdStamp.map(_.by),
-        version = ad.version,
-        isFolder = Some(false),
-        path = ad.path,
-        description = ad.description,
-        lock = ad.lock,
-        extraAttributes = Some(metadataMapFrom(ad))
-      )
-    }
 
     implicit def archiveDoc2SymbioticFile(ad: ArchiveDocument): File = {
       File(
@@ -66,11 +37,12 @@ object ArchiveDocuments {
         uploadDate = ad.createdStamp.map(_.date),
         length = ad.size,
         stream = ad.stream,
-        metadata = managedMetadataFrom(ad)
+        metadata = ad.managedMetadata
       )
     }
 
     implicit def symbioticFile2ArchiveDoc(f: File): ArchiveDocument = {
+      val ea = f.metadata.extraAttributes
       ArchiveDocument(
         id = f.id,
         fid = f.metadata.fid,
@@ -82,13 +54,14 @@ object ArchiveDocuments {
         path = f.metadata.path,
         lock = f.metadata.lock,
         version = f.metadata.version,
-        published = ???,
-        archiveStatus = ???,
-        documentMedium = ???,
-        closedStamp = ???,
-        createdStamp = ???,
-        author = ???,
-        documentDetails = ???,
+        published = ea.flatMap(e => e.getAs[Boolean]("published")).getOrElse(false),
+        documentMedium = ea.flatMap(e => e.getAs[String]("documentMedium")),
+        createdStamp = for {
+          date <- f.uploadDate
+          by   <- f.metadata.uploadedBy
+        } yield UserStamp(date, by),
+        author = ea.flatMap(e => e.getAs[String]("author")),
+        documentDetails = ea,
         stream = f.stream
       )
     }
