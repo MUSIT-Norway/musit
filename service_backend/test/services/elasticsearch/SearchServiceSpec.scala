@@ -60,6 +60,7 @@ class SearchServiceSpec
           term = None,
           q = None
         )(dummyUser)
+        .map(_.response)
         .futureValue
 
       res.hits.hits.map(toObjectUUID) must contain only (obj1inCol1, sam1FromObj1inCol1)
@@ -75,6 +76,7 @@ class SearchServiceSpec
           term = None,
           q = None
         )(dummyUser)
+        .map(_.response)
         .futureValue
 
       res.hits.hits.map(toObjectUUID) must contain only (obj2inCol2, sam2FromObj2inCol2)
@@ -90,6 +92,7 @@ class SearchServiceSpec
           term = None,
           q = None
         )(dummyUser)
+        .map(_.response)
         .futureValue
 
       res.hits.hits.map(toObjectUUID) must contain only obj3inCol2
@@ -105,6 +108,7 @@ class SearchServiceSpec
           term = None,
           q = Some("C402")
         )(dummyUser)
+        .map(_.response)
         .futureValue
 
       res.hits.hits.map(toObjectUUID) must contain only (obj2inCol2, sam2FromObj2inCol2)
@@ -120,6 +124,7 @@ class SearchServiceSpec
           term = None,
           q = Some("C1610 AND subNo: b")
         )(dummyUser)
+        .map(_.response)
         .futureValue
 
       res.hits.hits.map(toObjectUUID) must contain only obj3inCol2

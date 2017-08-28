@@ -7,11 +7,12 @@ import com.sksamuel.elastic4s.http.HttpClient
 import com.sksamuel.elastic4s.http.search.SearchResponse
 import no.uio.musit.models.{MuseumCollection, MuseumId}
 import no.uio.musit.security.AuthenticatedUser
+import services.elasticsearch.elastic4s.{MusitESResponse, MusitSearchHttpExecutable}
 import services.elasticsearch.things.{indexAlias, objectType, sampleType}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class SearchService @Inject()(client: HttpClient) {
+class SearchService @Inject()(implicit client: HttpClient, ex: ExecutionContext) {
 
   def restrictedObjectSearch(
       mid: MuseumId,
@@ -23,11 +24,11 @@ class SearchService @Inject()(client: HttpClient) {
       q: Option[String]
   )(
       implicit currUsr: AuthenticatedUser
-  ): Future[SearchResponse] = {
+  ): Future[MusitESResponse[SearchResponse]] = {
     val qry = createSearchQuery(mid, collectionIds, museumNo, subNo, term, q)
     client.execute(
       search(IndexAndTypes(indexAlias, Seq(objectType, sampleType))) query qry
-    )
+    )(MusitSearchHttpExecutable.musitSearchHttpExecutable)
   }
 
   private def createSearchQuery(
