@@ -83,9 +83,9 @@ class ElasticsearchThingsDao @Inject()(
     val query =
       afterTimestamp.map { after =>
         sampleObjTable.filter(
-          r => (r.registeredDate > after || r.updatedDate > after) && !r.isDeleted
+          r => r.registeredDate > after || r.updatedDate > after
         )
-      }.getOrElse(sampleObjTable.filter(!_.isDeleted))
+      }.getOrElse(sampleObjTable)
 
     Source.fromPublisher(
       db.stream(

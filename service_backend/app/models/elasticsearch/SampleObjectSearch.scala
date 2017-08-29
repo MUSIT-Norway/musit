@@ -28,7 +28,8 @@ case class SampleObjectSearch(
     description: Option[String],
     note: Option[String],
     registeredStamp: Option[ActorSearchStamp],
-    updatedStamp: Option[ActorSearchStamp]
+    updatedStamp: Option[ActorSearchStamp],
+    isDeleted: Boolean
 ) extends Searchable {
   // it's safe to use get, all document does have an id.
   override val docId       = objectId.map(_.underlying.toString).get
@@ -61,7 +62,8 @@ object SampleObjectSearch {
       so.description,
       so.note,
       so.registeredStamp.map(ActorSearchStamp(_, actorNames)),
-      so.updatedStamp.map(ActorSearchStamp(_, actorNames))
+      so.updatedStamp.map(ActorSearchStamp(_, actorNames)),
+      so.isDeleted
     )
 
 }

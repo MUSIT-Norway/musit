@@ -26,7 +26,8 @@ case class MusitObject(
     numismaticAttribute: Option[NumismaticsAttribute],
     materials: Option[Seq[MusitObjectMaterial]],
     locations: Option[Seq[MusitObjectLocation]],
-    coordinates: Option[Seq[MusitObjectCoordinate]]
+    coordinates: Option[Seq[MusitObjectCoordinate]],
+    isDeleted: Boolean
 )
 
 case class NumismaticsAttribute(
@@ -103,7 +104,8 @@ object MusitObject {
         else None,
       materials = None,
       locations = None,
-      coordinates = None
+      coordinates = None,
+      isDeleted = t._9
     )
   }
 

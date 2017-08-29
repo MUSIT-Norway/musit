@@ -18,7 +18,8 @@ case class MusitObjectSearch(
     arkFindingNo: Option[String],
     natStage: Option[String],
     natGender: Option[String],
-    natLegDate: Option[String]
+    natLegDate: Option[String],
+    isDeleted: Boolean
 ) extends Searchable {
   override val docId       = id.underlying.toString
   override val docParentId = None
@@ -45,6 +46,7 @@ object MusitObjectSearch {
     mo.arkFindingNo,
     mo.natStage,
     mo.natGender,
-    mo.natLegDate
+    mo.natLegDate,
+    mo.isDeleted
   )
 }

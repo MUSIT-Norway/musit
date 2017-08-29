@@ -24,7 +24,8 @@ object MusitObjectsIndexConfig {
         textField("arkFindingNo"),
         textField("natStage"),
         textField("natGender"),
-        textField("natLegDate")
+        textField("natLegDate"),
+        booleanField("isDeleted")
       ),
       mapping(sampleType) as (
         uuid("objectId"),
@@ -53,7 +54,8 @@ object MusitObjectsIndexConfig {
         textField("description"),
         textField("note"),
         actorSearchStamp("registeredStamp"),
-        actorSearchStamp("updatedStamp")
+        actorSearchStamp("updatedStamp"),
+        booleanField("isDeleted")
       ) parent objectType
     )
 }

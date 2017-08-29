@@ -219,7 +219,8 @@ class SearchServiceSpec
       collection: Collection,
       museumNo: MuseumNo,
       subNo: Option[SubNo] = None,
-      term: String = "maske"
+      term: String = "maske",
+      isDeleted: Boolean = false
   ) = {
     val d = MusitObjectSearch(
       id,
@@ -233,7 +234,8 @@ class SearchServiceSpec
       None,
       None,
       None,
-      None
+      None,
+      isDeleted
     )
     indexInto(indexName, things.objectType) id id.underlying.toString doc d
   }
@@ -241,7 +243,8 @@ class SearchServiceSpec
   private def indexSampleDoc(
       fromObject: ObjectUUID,
       sampleId: ObjectUUID,
-      museumId: MuseumId
+      museumId: MuseumId,
+      isDeleted: Boolean = false
   ) = {
     val d = SampleObjectSearch(
       Some(sampleId),
@@ -264,7 +267,8 @@ class SearchServiceSpec
       None,
       None,
       None,
-      None
+      None,
+      isDeleted
     )
 
     val dId = sampleId.underlying.toString
