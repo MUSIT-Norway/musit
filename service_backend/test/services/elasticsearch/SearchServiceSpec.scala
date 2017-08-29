@@ -66,6 +66,26 @@ class SearchServiceSpec
       res.hits.hits.map(toObjectUUID) must contain only (obj1inCol1, sam1FromObj1inCol1)
     }
 
+    "samples must include objects in `inner-hits`" taggedAs ElasticsearchContainer in {
+      pending // todo upgrade elastic4s to version >= 5.4.12
+      val res = service
+        .restrictedObjectSearch(
+          mid = MuseumId(1),
+          collectionIds = Seq(MuseumCollection(Archeology.uuid, None, Seq())),
+          museumNo = None,
+          subNo = None,
+          term = None,
+          q = None
+        )(dummyUser)
+        .map(_.response)
+        .futureValue
+
+      val sampleResult =
+        res.hits.hits.filter(_.id == sam1FromObj1inCol1.underlying.toString).head
+
+      sampleResult.innerHits must not be empty
+    }
+
     "search on MuseumNo with the result of one object and one sample " taggedAs ElasticsearchContainer in {
       val res = service
         .restrictedObjectSearch(

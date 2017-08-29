@@ -26,6 +26,7 @@ class SearchService @Inject()(implicit client: HttpClient, ex: ExecutionContext)
       implicit currUsr: AuthenticatedUser
   ): Future[MusitESResponse[SearchResponse]] = {
     val qry = createSearchQuery(mid, collectionIds, museumNo, subNo, term, q)
+
     client.execute(
       search(IndexAndTypes(indexAlias, Seq(objectType, sampleType))) query qry
     )(MusitSearchHttpExecutable.musitSearchHttpExecutable)
@@ -52,7 +53,8 @@ class SearchService @Inject()(implicit client: HttpClient, ex: ExecutionContext)
         if (objectTypeFilter.nonEmpty)
           Some(
             should(
-              hasParentQuery(objectType, must(objectTypeFilter), score = true),
+              hasParentQuery(objectType, must(objectTypeFilter), score = true) innerHit
+                innerHits("parent objects"),
               must(objectTypeFilter)
             )
           )
@@ -61,7 +63,8 @@ class SearchService @Inject()(implicit client: HttpClient, ex: ExecutionContext)
         if (sampleTypeFilter.nonEmpty)
           Some(
             should(
-              hasParentQuery(objectType, must(sampleTypeFilter), score = true),
+              hasParentQuery(objectType, must(sampleTypeFilter), score = true) innerHit
+                innerHits("parent objects"),
               must(sampleTypeFilter)
             )
           )
@@ -82,8 +85,8 @@ class SearchService @Inject()(implicit client: HttpClient, ex: ExecutionContext)
         hasParentQuery(
           objectType,
           restrictToCollectionAndMuseumQuery(mid, collectionIds),
-          score = false
-        )
+          score = true
+        ) innerHit innerHits("parent objects")
       ).appendMust(termQuery("_type" -> sampleType))
 
     val combinedQuery = {
