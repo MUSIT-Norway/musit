@@ -2,7 +2,7 @@ package services.elasticsearch
 
 import com.google.inject.Inject
 import com.sksamuel.elastic4s.IndexAndTypes
-import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.http.ElasticDsl.{termQuery, _}
 import com.sksamuel.elastic4s.http.HttpClient
 import com.sksamuel.elastic4s.http.search.SearchResponse
 import no.uio.musit.models.{MuseumCollection, MuseumId}
@@ -75,6 +75,11 @@ class SearchService @Inject()(implicit client: HttpClient, ex: ExecutionContext)
       None
     }
 
+    val isNotDeleted = should(
+      hasParentQuery(objectType, termQuery("isDeleted", false), score = false),
+      termQuery("isDeleted", false)
+    )
+
     val onlyAllowedObjectsQuery =
       restrictToCollectionAndMuseumQuery(mid, collectionIds).appendMust(
         termQuery("_type" -> objectType)
@@ -94,7 +99,8 @@ class SearchService @Inject()(implicit client: HttpClient, ex: ExecutionContext)
         should(
           onlyAllowedObjectsQuery,
           onlyAllowedSamplesQuery
-        )
+        ),
+        isNotDeleted
       ).appendMust(contentQuery)
     }
     combinedQuery

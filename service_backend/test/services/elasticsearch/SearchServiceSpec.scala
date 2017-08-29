@@ -42,11 +42,14 @@ class SearchServiceSpec
   val obj3inCol2 = ObjectUUID.fromString("74ac428d-8842-469e-8368-a0000000a003").value
   val obj4inCol2 = ObjectUUID.fromString("409d83ec-d561-4811-adb3-a0000000a004").value
   val obj5inCol1 = ObjectUUID.fromString("409d83ec-d561-4811-adb3-a0000000a005").value
+  val obj6inCol2 = ObjectUUID.fromString("409d83ec-d561-4811-adb3-a0000000a006").value
 
   val sam1FromObj1inCol1 =
     ObjectUUID.fromString("145164cb-1699-4c15-aab5-b0000000b001").value
   val sam2FromObj2inCol2 =
     ObjectUUID.fromString("9ae58109-8b44-402b-a7b9-b0000000b002").value
+  val sam3FromObj6inCol2 =
+    ObjectUUID.fromString("9ae58109-8b44-402b-a7b9-b0000000b003").value
 
   "SearchService" should {
 
@@ -84,6 +87,22 @@ class SearchServiceSpec
         res.hits.hits.filter(_.id == sam1FromObj1inCol1.underlying.toString).head
 
       sampleResult.innerHits must not be empty
+    }
+
+    "search must not include deleted documents " taggedAs ElasticsearchContainer in {
+      val res = service
+        .restrictedObjectSearch(
+          mid = MuseumId(2),
+          collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
+          museumNo = None,
+          subNo = None,
+          term = None,
+          q = None
+        )(dummyUser)
+        .map(_.response)
+        .futureValue
+
+      res.hits.hits.map(toObjectUUID) must contain noneOf (obj6inCol2, sam3FromObj6inCol2)
     }
 
     "search on MuseumNo with the result of one object and one sample " taggedAs ElasticsearchContainer in {
@@ -200,6 +219,19 @@ class SearchServiceSpec
                   Ethnography,
                   MuseumNo("C1610"),
                   Some(SubNo("c"))
+                ),
+                indexMusitObjectDoc(
+                  obj6inCol2,
+                  MuseumId(2),
+                  Ethnography,
+                  MuseumNo("C402"),
+                  isDeleted = true
+                ),
+                indexSampleDoc(
+                  obj6inCol2,
+                  sam3FromObj6inCol2,
+                  MuseumId(2),
+                  isDeleted = true
                 )
               ).refresh(RefreshPolicy.IMMEDIATE)
             )
