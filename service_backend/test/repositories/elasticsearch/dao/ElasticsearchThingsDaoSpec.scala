@@ -2,6 +2,8 @@ package repositories.elasticsearch.dao
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
+import no.uio.musit.models.MuseumCollections.Collection
+import no.uio.musit.models.{MuseumId, ObjectId, ObjectUUID}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import org.joda.time.DateTime
 
@@ -56,6 +58,29 @@ class ElasticsearchThingsDaoSpec extends MusitSpecWithAppPerSuite {
         val res = stream.runWith(Sink.seq).futureValue
 
         res.size must be >= 1
+      }
+
+    }
+
+    "museumId and collection" should {
+
+      "return empty set when no related object are found" in {
+        val res = dao.findObjectsMidAndCollection(Set(ObjectUUID.generate())).futureValue
+
+        res mustBe empty
+      }
+
+      "find entries for object uuid" in {
+        val objIdOne = ObjectUUID.fromString("89f36f77-2c27-4d33-81b4-4d4f9688950d").value
+        val objIdTwo = ObjectUUID.fromString("42b6a92e-de59-4fde-9c46-5c8794be0b34").value
+
+        val res = dao.findObjectsMidAndCollection(Set(objIdOne, objIdTwo)).futureValue
+
+        res.head._3.uuid
+        res must contain only (
+          (objIdOne, MuseumId(99), Collection.fromInt(1)),
+          (objIdTwo, MuseumId(99), Collection.fromInt(4))
+        )
       }
 
     }

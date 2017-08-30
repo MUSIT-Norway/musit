@@ -5,7 +5,8 @@ import akka.stream.scaladsl.Source
 import com.google.inject.{Inject, Singleton}
 import models.analysis.SampleObject
 import models.musitobject.MusitObject
-import no.uio.musit.models.ObjectId
+import no.uio.musit.models.MuseumCollections.Collection
+import no.uio.musit.models.{MuseumId, ObjectId, ObjectUUID}
 import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 import repositories.analysis.dao.AnalysisTables
@@ -99,6 +100,15 @@ class ElasticsearchThingsDao @Inject()(
         )
         .mapResult(fromSampleObjectRow)
     )
+  }
+
+  def findObjectsMidAndCollection(
+      objects: Set[ObjectUUID]
+  ): Future[Seq[(ObjectUUID, MuseumId, Collection)]] = {
+    val query = objTable
+      .filter(r => r.uuid.inSet(objects) && r.newCollectionId.isDefined)
+      .map(r => (r.uuid.get, r.museumId, r.newCollectionId.get)) // safe to call get since all non null values are filtered out
+    db.run(query.result)
   }
 
 }
