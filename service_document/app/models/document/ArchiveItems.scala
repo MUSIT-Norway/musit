@@ -73,6 +73,8 @@ object ArchiveItems {
       )
     }
 
+    def isValidParentFor(fi: ArchiveFolderItem): Boolean
+
   }
 
   /**

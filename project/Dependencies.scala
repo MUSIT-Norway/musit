@@ -79,7 +79,7 @@ object Dependencies {
 
   // Symbiotic dependencies
   val symbiotic: Seq[ModuleID] = {
-    val symbioticVersion = "0.1.6"
+    val symbioticVersion = "0.1.7-SNAPSHOT"
     val libs = Seq(
       "symbiotic-play",
       "symbiotic-json",

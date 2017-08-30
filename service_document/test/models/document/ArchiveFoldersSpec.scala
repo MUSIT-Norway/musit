@@ -1,6 +1,7 @@
 package models.document
 
 import models.document.ArchiveFolders.{Archive, ArchiveFolder, ArchivePart}
+import models.document.ArchiveIdentifiers._
 import models.document.ArchiveItems.ArchiveFolderItem
 import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.Implicits._
 import net.scalytica.symbiotic.api.types.PersistentType.UserStamp

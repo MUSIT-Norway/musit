@@ -8,6 +8,11 @@ import net.scalytica.symbiotic.api.types._
 
 object ArchiveDocuments {
 
+  /**
+   * The {{{ArchiveDocument}}} represents an actual, uploaded, file. Including
+   * a reference to the physical location where the file can be found (the
+   * stream attribute).
+   */
   case class ArchiveDocument(
       id: Option[ArchiveId],
       fid: Option[FileId],
