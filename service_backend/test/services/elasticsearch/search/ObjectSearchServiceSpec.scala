@@ -262,7 +262,7 @@ class ObjectSearchServiceSpec
       subNo,
       term,
       None,
-      Some(CollectionSearch(collection.id, collection.uuid.underlying)),
+      Some(CollectionSearch(collection)),
       None,
       None,
       None,

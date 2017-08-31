@@ -16,10 +16,7 @@ object MusitObjectsIndexConfig {
         textField("subNo"),
         textField("term"),
         longField("mainObjectId"),
-        objectField("collection") fields (
-          intField("id"),
-          uuid("uuid")
-        ),
+        collection,
         textField("arkForm"),
         textField("arkFindingNo"),
         textField("natStage"),

@@ -13,6 +13,8 @@ import play.api.libs.json.{JsObject, Json, Writes}
 
 case class AnalysisSearch(
     id: EventId,
+    museumId: Option[MuseumId],
+    collection: Option[CollectionSearch],
     analysisTypeId: AnalysisTypeId,
     doneBy: Option[ActorSearchStamp],
     registeredBy: Option[ActorSearchStamp],
@@ -34,9 +36,15 @@ case class AnalysisSearch(
 object AnalysisSearch {
   implicit val writes: Writes[AnalysisSearch] = Json.writes[AnalysisSearch]
 
-  def apply(a: Analysis, actorNames: ActorNames): AnalysisSearch =
+  def apply(
+      a: Analysis,
+      actorNames: ActorNames,
+      midAndColl: Option[(MuseumId, MuseumCollections.Collection)]
+  ): AnalysisSearch =
     AnalysisSearch(
       id = a.id.get,
+      museumId = midAndColl.map(_._1),
+      collection = midAndColl.map(mc => CollectionSearch(mc._2)),
       analysisTypeId = a.analysisTypeId,
       doneBy = ActorSearchStamp(a.doneBy, a.doneDate, actorNames),
       registeredBy = ActorSearchStamp(a.registeredBy, a.registeredDate, actorNames),
@@ -102,6 +110,8 @@ object AnalysisCollectionSearch {
 
 case class SampleCreatedSearch(
     id: EventId,
+    museumId: Option[MuseumId],
+    collection: Option[CollectionSearch],
     doneBy: Option[ActorSearchStamp],
     registeredBy: Option[ActorSearchStamp],
     objectId: Option[ObjectUUID],
@@ -115,9 +125,15 @@ case class SampleCreatedSearch(
 object SampleCreatedSearch {
   implicit val writes: Writes[SampleCreatedSearch] = Json.writes[SampleCreatedSearch]
 
-  def apply(s: SampleCreated, actorNames: ActorNames): SampleCreatedSearch =
+  def apply(
+      s: SampleCreated,
+      actorNames: ActorNames,
+      midAndColl: Option[(MuseumId, MuseumCollections.Collection)]
+  ): SampleCreatedSearch =
     SampleCreatedSearch(
       id = s.id.get,
+      museumId = midAndColl.map(_._1),
+      collection = midAndColl.map(mc => CollectionSearch(mc._2)),
       doneBy = ActorSearchStamp(s.doneBy, s.doneDate, actorNames),
       registeredBy = ActorSearchStamp(s.registeredBy, s.registeredDate, actorNames),
       objectId = s.affectedThing,

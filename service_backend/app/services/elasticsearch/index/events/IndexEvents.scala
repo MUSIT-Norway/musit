@@ -13,7 +13,7 @@ import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import org.joda.time.DateTime
 import play.api.{Configuration, Logger}
 import repositories.core.dao.IndexStatusDao
-import repositories.elasticsearch.dao.ElasticsearchEventDao
+import repositories.elasticsearch.dao.{ElasticsearchEventDao, ElasticsearchThingsDao}
 import services.actor.ActorService
 import services.elasticsearch.index.{IndexMaintainer, Indexer, TypeFlow}
 import services.elasticsearch.index.shared.{
@@ -28,6 +28,7 @@ import scala.concurrent.{ExecutionContext, Future}
  */
 class IndexEvents @Inject()(
     analysisEventsExportDao: ElasticsearchEventDao,
+    elasticsearchThingsDao: ElasticsearchThingsDao,
     indexStatusDao: IndexStatusDao,
     actorService: ActorService,
     client: HttpClient,
@@ -105,10 +106,13 @@ class IndexEvents @Inject()(
         createFlowType(config, new AnalysisCollectionTypeFlow(actorService)) {
           case a: AnalysisCollectionSearchType => a
         },
-        createFlowType(config, new AnalysisTypeFlow(actorService)) {
+        createFlowType(config, new AnalysisTypeFlow(actorService, elasticsearchThingsDao)) {
           case a: AnalysisSearchType => a
         },
-        createFlowType(config, new SampleCreatedTypeFlow(actorService)) {
+        createFlowType(
+          config,
+          new SampleCreatedTypeFlow(actorService, elasticsearchThingsDao)
+        ) {
           case a: SampleCreatedEventSearchType => a
         }
       )

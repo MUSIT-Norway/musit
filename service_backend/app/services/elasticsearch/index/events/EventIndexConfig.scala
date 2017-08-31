@@ -11,6 +11,8 @@ object EventIndexConfig {
       mapping(analysisType) as (
         intField("id"),
         intField("analysisTypeId"),
+        textField("museumId"),
+        collection,
         actorSearchStamp("doneBy"),
         actorSearchStamp("registeredBy"),
         actorStamp("responsible"),
@@ -42,6 +44,8 @@ object EventIndexConfig {
       ),
       mapping(sampleType) as (
         intField("id"),
+        textField("museumId"),
+        collection,
         actorSearchStamp("doneBy"),
         actorSearchStamp("registeredBy"),
         uuid("objectId"),

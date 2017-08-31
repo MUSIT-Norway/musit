@@ -3,6 +3,7 @@ package models.elasticsearch
 import java.util.UUID
 
 import models.musitobject.MusitObject
+import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.models.{MuseumId, MuseumNo, ObjectUUID, SubNo}
 import play.api.libs.json.{Json, Writes}
 
@@ -29,6 +30,8 @@ case class CollectionSearch(id: Int, uuid: UUID)
 
 object CollectionSearch {
   implicit val writes: Writes[CollectionSearch] = Json.writes[CollectionSearch]
+
+  def apply(c: Collection): CollectionSearch = CollectionSearch(c.id, c.uuid.underlying)
 }
 
 object MusitObjectSearch {
@@ -41,7 +44,7 @@ object MusitObjectSearch {
     mo.subNo,
     mo.term,
     mo.mainObjectId,
-    mo.collection.map(c => CollectionSearch(c.id, c.uuid.underlying)),
+    mo.collection.map(CollectionSearch.apply),
     mo.arkForm,
     mo.arkFindingNo,
     mo.natStage,
