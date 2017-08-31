@@ -2,10 +2,10 @@ package services
 
 import com.google.inject.{Inject, Singleton}
 import models.document.ArchiveContext
-import models.document.ArchiveFolders.Implicits._
-import models.document.ArchiveFolders.{Archive, ArchiveFolder, ArchivePart}
-import models.document.ArchiveItems.ArchiveFolderItem
-import net.scalytica.symbiotic.api.types.{FolderId, Lock, Path}
+import models.document.ArchiveTypes.Implicits._
+import models.document.ArchiveTypes.{Archive, ArchiveDocument, ArchiveFolder, ArchivePart}
+import models.document.Archiveables.{ArchiveFolderItem, ArchiveItem}
+import net.scalytica.symbiotic.api.types.{FileId, FolderId, Lock, Path}
 import net.scalytica.symbiotic.core.DocManagementService
 import no.uio.musit.MusitResults.{MusitGeneralError, MusitResult, MusitSuccess}
 import no.uio.musit.functional.Implicits.futureMonad
@@ -33,6 +33,17 @@ class DocumentArchiveService @Inject()(
       mid: MuseumId
   )(implicit ac: ArchiveContext): Future[MusitResult[Option[FolderId]]] = {
     dmService.createRootFolder.map(MusitSuccess.apply)
+  }
+
+  def getRootFor(
+      mid: MuseumId,
+      includeFiles: Boolean
+  )(implicit ac: ArchiveContext): Future[MusitResult[Seq[ArchiveItem]]] = {
+    val ftree =
+      if (includeFiles) dmService.treeWithFiles(Some(Path.root))
+      else dmService.treeNoFiles(Some(Path.root))
+
+    ftree.map(tree => MusitSuccess(tree))
   }
 
   def addFolder(
@@ -171,12 +182,91 @@ class DocumentArchiveService @Inject()(
     dmService.unlockFolder(folderId).map(MusitSuccess.apply)
   }
 
+  def getPathsFrom(
+      mid: MuseumId,
+      folderId: FolderId
+  )(implicit ac: ArchiveContext): Future[MusitResult[Seq[(FileId, Path)]]] = {
+    val fmPaths = for {
+      f <- OptionT(dmService.folder(folderId))
+      p <- OptionT(dmService.treePaths(f.path).map {
+            case Nil     => None
+            case entries => Some(entries)
+          })
+    } yield p
+
+    fmPaths.value.map(paths => MusitSuccess(paths.getOrElse(Seq.empty)))
+  }
+
+  def getTreeFrom(
+      mid: MuseumId,
+      folderId: FolderId,
+      includeFiles: Boolean
+  )(implicit ac: ArchiveContext): Future[MusitResult[Seq[ArchiveItem]]] = {
+    dmService
+      .folder(folderId)
+      .flatMap {
+        case Some(f) =>
+          if (includeFiles) dmService.treeWithFiles(f.path)
+          else dmService.treeNoFiles(f.path)
+
+        case None =>
+          Future.successful(Seq.empty)
+
+      }
+      .map(mfs => MusitSuccess(mfs: Seq[ArchiveItem]))
+  }
+
   // ===========================================================================
   //  Service definitions for interacting with ArchiveDocumentItem data types.
   // ===========================================================================
 
+  def getFile(
+      mid: MuseumId,
+      fileId: FileId
+  )(implicit ac: ArchiveContext): Future[MusitResult[Option[ArchiveDocument]]] = {
+    dmService.file(fileId).map(mf => MusitSuccess(mf))
+  }
 
-  // ===========================================================================
-  //  Service definitions for interacting with the virtual filesystem tree
-  // ===========================================================================
+  def isFileLocked(
+      mid: MuseumId,
+      fileId: FileId
+  )(implicit ac: ArchiveContext): Future[MusitResult[Boolean]] = {
+    dmService.fileHasLock(fileId).map(MusitSuccess.apply)
+  }
+
+  def lockFile(
+      mid: MuseumId,
+      fileId: FileId
+  )(implicit ac: ArchiveContext): Future[MusitResult[Option[Lock]]] = {
+    dmService.lockFile(fileId).map(MusitSuccess.apply)
+  }
+
+  def unlockFile(
+      mid: MuseumId,
+      fileId: FileId
+  )(implicit ac: ArchiveContext): Future[MusitResult[Boolean]] = {
+    dmService.unlockFile(fileId).map(MusitSuccess.apply)
+  }
+
+  def moveFile(
+      mid: MuseumId,
+      fileId: FileId,
+      dest: FolderId
+  )(implicit ac: ArchiveContext): Future[MusitResult[Option[ArchiveDocument]]] = {
+    val fmPath = dmService.file(fileId).map(_.flatMap(_.path))
+    val fmDest = dmService.folder(dest)
+
+    val res = for {
+      p <- OptionT(fmPath)
+      d <- OptionT(fmDest)
+      m <- OptionT(
+            dmService
+              .moveFile(fileId, p, d.flattenPath)
+              .map(mf => mf: Option[ArchiveDocument])
+          )
+    } yield m
+
+    res.value.map(MusitSuccess.apply)
+  }
+
 }

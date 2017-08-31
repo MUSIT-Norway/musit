@@ -1,23 +1,24 @@
 package models.document
 
 import models.document.ArchiveIdentifiers._
-import models.document.ArchiveItems._
+import models.document.Archiveables._
 import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.Implicits._
 import net.scalytica.symbiotic.api.types.PersistentType.UserStamp
 import net.scalytica.symbiotic.api.types.ResourceOwner.Owner
 import net.scalytica.symbiotic.api.types._
 import org.joda.time.DateTime
 
-object ArchiveFolders {
+object ArchiveTypes {
+
+  def folderAsArchiveFolderItem(f: Folder): Option[ArchiveFolderItem] =
+    f.fileType.flatMap {
+      case Archive.FolderType       => Some(f: Archive)
+      case ArchivePart.FolderType   => Some(f: ArchivePart)
+      case ArchiveFolder.FolderType => Some(f: ArchiveFolder)
+      case _                        => None
+    }
 
   object Implicits {
-    def folderAsArchiveFolderItem(f: Folder): Option[ArchiveFolderItem] =
-      f.fileType.flatMap {
-        case Archive.FolderType       => Some(f: Archive)
-        case ArchivePart.FolderType   => Some(f: ArchivePart)
-        case ArchiveFolder.FolderType => Some(f: ArchiveFolder)
-        case _                        => None
-      }
 
     @throws(classOf[IllegalArgumentException])
     implicit def folder2ArchiveFolderItem(f: Folder): ArchiveFolderItem = {
@@ -40,6 +41,17 @@ object ArchiveFolders {
         case af: ArchiveFolder => af: Folder
       }
     }
+
+    implicit def managedFileToArchiveItem(mf: ManagedFile): ArchiveItem = {
+      mf match {
+        case f: Folder => folder2ArchiveFolderItem(f)
+        case f: File   => f: ArchiveDocument
+      }
+    }
+
+    implicit def managedFileSeqToArchiveItemSeq(
+        smf: Seq[ManagedFile]
+    ): Seq[ArchiveItem] = smf.map(mf => mf: ArchiveItem)
   }
 
   /**
@@ -233,6 +245,75 @@ object ArchiveFolders {
           by   <- f.metadata.uploadedBy
         } yield UserStamp(date, by)
       )
+    }
+
+  }
+
+  /**
+   * The {{{ArchiveDocument}}} represents an actual, uploaded, file. Including
+   * a reference to the physical location where the file can be found (the
+   * stream attribute).
+   */
+  case class ArchiveDocument(
+      id: Option[ArchiveId],
+      fid: Option[FileId],
+      title: String,
+      size: Option[String],
+      fileType: Option[String],
+      description: Option[String],
+      owner: Option[Owner],
+      path: Option[Path],
+      lock: Option[Lock],
+      version: Version,
+      published: Boolean,
+      documentMedium: Option[String],
+      createdStamp: Option[UserStamp],
+      author: Option[String],
+      documentDetails: DocumentDetails,
+      stream: Option[FileStream]
+  ) extends ArchiveDocumentItem
+
+  object ArchiveDocument {
+
+    implicit def archiveDoc2SymbioticFile(ad: ArchiveDocument): File = {
+      File(
+        id = ad.id,
+        filename = ad.title,
+        fileType = ad.fileType,
+        uploadDate = ad.createdStamp.map(_.date),
+        length = ad.size,
+        stream = ad.stream,
+        metadata = ad.managedMetadata
+      )
+    }
+
+    implicit def symbioticFile2ArchiveDoc(f: File): ArchiveDocument = {
+      val ea = f.metadata.extraAttributes
+      ArchiveDocument(
+        id = f.id,
+        fid = f.metadata.fid,
+        title = f.filename,
+        size = f.length,
+        fileType = f.fileType,
+        description = f.metadata.description,
+        owner = f.metadata.owner,
+        path = f.metadata.path,
+        lock = f.metadata.lock,
+        version = f.metadata.version,
+        published = ea.flatMap(e => e.getAs[Boolean]("published")).getOrElse(false),
+        documentMedium = ea.flatMap(e => e.getAs[String]("documentMedium")),
+        createdStamp = for {
+          date <- f.uploadDate
+          by   <- f.metadata.uploadedBy
+        } yield UserStamp(date, by),
+        author = ea.flatMap(e => e.getAs[String]("author")),
+        documentDetails = ea,
+        stream = f.stream
+      )
+    }
+
+    implicit def optFile2OptArchiveDoc(mf: Option[File]): Option[ArchiveDocument] = {
+      mf.map(f => f: ArchiveDocument)
     }
 
   }

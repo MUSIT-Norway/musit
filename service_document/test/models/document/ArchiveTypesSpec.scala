@@ -1,8 +1,8 @@
 package models.document
 
-import models.document.ArchiveFolders.{Archive, ArchiveFolder, ArchivePart}
+import models.document.ArchiveTypes.{Archive, ArchiveFolder, ArchivePart}
 import models.document.ArchiveIdentifiers._
-import models.document.ArchiveItems.ArchiveFolderItem
+import models.document.Archiveables.ArchiveFolderItem
 import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.Implicits._
 import net.scalytica.symbiotic.api.types.PersistentType.UserStamp
 import net.scalytica.symbiotic.api.types.ResourceOwner.{Owner, UserOwner}
@@ -10,7 +10,7 @@ import net.scalytica.symbiotic.api.types.{FileId, Folder, Lock, Path}
 import org.joda.time.DateTime
 import org.scalatest.{MustMatchers, OptionValues, WordSpec}
 
-class ArchiveFoldersSpec extends WordSpec with MustMatchers with OptionValues {
+class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
 
   val archUser  = ArchiveUserId.create()
   val timestamp = DateTime.now().minusDays(7)

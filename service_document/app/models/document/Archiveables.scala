@@ -6,7 +6,7 @@ import net.scalytica.symbiotic.api.types.PersistentType.UserStamp
 import net.scalytica.symbiotic.api.types.ResourceOwner.Owner
 import net.scalytica.symbiotic.api.types._
 
-object ArchiveItems {
+object Archiveables {
 
   /**
    * Defines base attributes required for any folder or document that are to be

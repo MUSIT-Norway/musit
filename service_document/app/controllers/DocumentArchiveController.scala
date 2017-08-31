@@ -1,8 +1,8 @@
 package controllers
 
 import com.google.inject.{Inject, Singleton}
-import net.scalytica.symbiotic.api.types.FolderId
-import no.uio.musit.security.{Authenticator, DocumentArchive}
+import no.uio.musit.MusitResults.{MusitError, MusitGeneralError, MusitSuccess}
+import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.mvc.ControllerComponents
@@ -21,6 +21,15 @@ class DocumentArchiveController @Inject()(
   // Folder specific endpoints
   // ---------------------------------------------------------------------------
 
+  def getRootTree(mid: Int, includeFiles: Boolean) =
+    MusitSecureAction().async { implicit request =>
+      docService.getRootFor(mid, includeFiles).map {
+        case MusitSuccess(tree)     => ???
+        case MusitGeneralError(msg) => ???
+        case err: MusitError        => ???
+      }
+    }
+
   def addFolder(mid: Int, destFolderId: String) =
     MusitSecureAction().async(parse.json) { implicit request =>
       ???
@@ -28,11 +37,20 @@ class DocumentArchiveController @Inject()(
 
   def updateFolder(mid: Int, folderId: String) =
     MusitSecureAction().async(parse.json) { implicit request =>
-      // TODO: Ensure that the folder PATH is not updatable through this endpoint!!!
+      ???
+    }
+
+  def renameFolder(mid: Int, folderId: String, name: String) =
+    MusitSecureAction().async { implicit request =>
       ???
     }
 
   def getDirectDescendantsById(mid: Int, folderId: String) =
+    MusitSecureAction().async { implicit request =>
+      ???
+    }
+
+  def isLockedFolder(mid: Int, folderId: String) =
     MusitSecureAction().async { implicit request =>
       ???
     }
@@ -47,11 +65,6 @@ class DocumentArchiveController @Inject()(
       ???
     }
 
-  def isLockedFolder(mid: Int, folderId: String) =
-    MusitSecureAction().async { implicit request =>
-      ???
-    }
-
   def moveFolderTo(mid: Int, folderId: String, to: String) =
     MusitSecureAction().async { implicit request =>
       ???
@@ -62,33 +75,59 @@ class DocumentArchiveController @Inject()(
       ???
     }
 
+  def getPathsFrom(mid: Int, folderId: String) =
+    MusitSecureAction().async { implicit request =>
+      ???
+    }
+
+  def getFolderTreeFrom(mid: Int, folderId: String, includeFiles: Boolean) =
+    MusitSecureAction().async { implicit request =>
+      ???
+    }
+
   // ---------------------------------------------------------------------------
   // File specific endpoints
   // ---------------------------------------------------------------------------
 
-  /*
-    File endpoints:
+  def uploadToPath(mid: Int, path: String) =
+    MusitSecureAction().async(parse.multipartFormData) { implicit request =>
+      ???
+    }
 
-      POST        /museum/:mid/files/upload              uploadWithPath(mid: Int, path: String)
-      GET         /museum/:mid/files/:fileId             getFileById(mid: Int, fileId: String)
-      PUT         /museum/:mid/files/:fileId/lock        lockFile(mid: Int, fileId: String)
-      PUT         /museum/:mid/files/:fileId/unlock      unlockFile(mid: Int, fileId: String)
-      GET         /museum/:mid/files/:fileId/islocked    isLockedFile(mid: Int, fileId: String)
-      PUT         /museum/:mid/files/:fileId/move        moveFileTo(mid: Int, fileId: String, to: String)
-   */
+  def getFileMetadataById(mid: Int, fileId: String) =
+    MusitSecureAction().async { implicit request =>
+      docService.getFile(mid, fileId).map {
+        case MusitSuccess(maybeDoc) => ??? // return metadata as json
+        case err: MusitError        => ???
+      }
+    }
 
-  // ---------------------------------------------------------------------------
-  // FSTree specific endpoints
-  // ---------------------------------------------------------------------------
+  def downloadFile(mid: Int, fileId: String) =
+    MusitSecureAction().async { implicit request =>
+      docService.getFile(mid, fileId).map {
+        case MusitSuccess(maybeDoc) => ??? // stream back file
+        case err: MusitError        => ???
+      }
+    }
 
-  /*
-    Tree endpoints:
+  def isLockedFile(mid: Int, fileId: String) =
+    MusitSecureAction().async { implicit request =>
+      ???
+    }
 
-      GET         /museum/:mid/tree                      getRootTree(mid: Int, includeFiles: Boolean ?= false)
-      GET         /museum/:mid/tree/paths                getTreePaths(mid: Int, path: Option[String])
-      GET         /museum/:mid/tree/hierarchy            getFolderHierarchy(mid: Int, path: Option[String])
-      GET         /museum/:mid/subtree                   getSubTree(mid: Int, path: String, includeFiles: Boolean ?= false)
+  def lockFile(mid: Int, fileId: String) =
+    MusitSecureAction().async { implicit request =>
+      ???
+    }
 
- */
+  def unlockFile(mid: Int, fileId: String) =
+    MusitSecureAction().async { implicit request =>
+      ???
+    }
+
+  def moveFileTo(mid: Int, fileId: String, folderId: String) =
+    MusitSecureAction().async { implicit request =>
+      ???
+    }
 
 }

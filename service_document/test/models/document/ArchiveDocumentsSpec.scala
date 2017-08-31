@@ -2,7 +2,7 @@ package models.document
 
 import models.document.ArchiveDocuments.ArchiveDocument
 import models.document.ArchiveIdentifiers._
-import models.document.ArchiveItems.DocumentDetails
+import models.document.Archiveables.DocumentDetails
 import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.Implicits._
 import net.scalytica.symbiotic.api.types.PersistentType.UserStamp
 import net.scalytica.symbiotic.api.types.ResourceOwner.{OrgOwner, Owner}
