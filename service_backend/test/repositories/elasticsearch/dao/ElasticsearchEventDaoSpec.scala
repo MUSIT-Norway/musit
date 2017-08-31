@@ -3,9 +3,10 @@ package repositories.elasticsearch.dao
 import java.util.UUID
 
 import akka.stream.Materializer
-import akka.stream.scaladsl.{Sink, Source}
+import akka.stream.scaladsl.Sink
 import models.analysis.events.{Analysis, AnalysisCollection}
-import no.uio.musit.models.{EventId, GroupId}
+import models.elasticsearch.AnalysisSearchType
+import no.uio.musit.models.{EventId, GroupId, ObjectUUID}
 import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
@@ -61,6 +62,27 @@ class ElasticsearchEventDaoSpec
       val res    = source.runWith(Sink.seq).futureValue
 
       res must have size 3
+    }
+
+    "analysis should include object uuid" in {
+      val gr = Some(dummyGenericResult())
+      val e1 = dummyAnalysis(Some(oid1))
+      val e2 = dummyAnalysis(Some(oid2))
+      val ac = dummyAnalysisCollection(gr, e1, e2)
+      analysisDao.insertCol(defaultMid, ac).futureValue.successValue
+
+      val source = esEventDao.analysisEventsStream()
+      val res    = source.runWith(Sink.seq).futureValue
+
+      val analysisObjectUuids = res.flatMap {
+        case a: AnalysisSearchType => a.objectUuid
+        case _                     => None
+      }
+
+      analysisObjectUuids must contain only (
+        ObjectUUID.fromUUID(UUID.fromString("2e5037d5-4952-4571-9de2-709eb22b01f0")),
+        ObjectUUID.fromUUID(UUID.fromString("4d2e516d-db5f-478e-b409-eac7ff2486e8"))
+      )
     }
 
     "publish after a give timestamp" in {

@@ -154,28 +154,40 @@ object RestrictionSearch {
   implicit val writes = Json.writes[RestrictionSearch]
 }
 
-sealed trait AnalysisModuleEventSearch
+sealed trait AnalysisModuleEventSearch {
+  def objectUuid: Option[ObjectUUID]
+}
 
 object AnalysisModuleEventSearch {
-  def apply(mid: MuseumId, event: AnalysisModuleEvent): AnalysisModuleEventSearch =
+  def apply(
+      mid: MuseumId,
+      originId: Option[ObjectUUID],
+      event: AnalysisModuleEvent
+  ): AnalysisModuleEventSearch =
     event match {
-      case a: Analysis            => AnalysisSearchType(mid, a)
-      case ac: AnalysisCollection => AnalysisCollectionSearchType(mid, ac)
-      case ar: SampleCreated      => SampleCreatedEventSearchType(mid, ar)
+      case a: Analysis => AnalysisSearchType(mid, originId.orElse(a.affectedThing), a)
+      case ac: AnalysisCollection =>
+        AnalysisCollectionSearchType(mid, ac)
+      case ar: SampleCreated =>
+        SampleCreatedEventSearchType(mid, originId.orElse(ar.affectedThing), ar)
     }
 }
 
 final case class AnalysisSearchType(
     museumId: MuseumId,
+    objectUuid: Option[ObjectUUID],
     event: Analysis
 ) extends AnalysisModuleEventSearch
 
 final case class AnalysisCollectionSearchType(
     museumId: MuseumId,
     event: AnalysisCollection
-) extends AnalysisModuleEventSearch
+) extends AnalysisModuleEventSearch {
+  override def objectUuid: Option[ObjectUUID] = None
+}
 
 final case class SampleCreatedEventSearchType(
     museumId: MuseumId,
+    objectUuid: Option[ObjectUUID],
     event: SampleCreated
 ) extends AnalysisModuleEventSearch
