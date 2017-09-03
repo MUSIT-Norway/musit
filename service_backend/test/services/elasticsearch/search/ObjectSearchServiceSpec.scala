@@ -52,7 +52,7 @@ class ObjectSearchServiceSpec
   val sam3FromObj6inCol2 =
     ObjectUUID.fromString("9ae58109-8b44-402b-a7b9-b0000000b003").value
 
-  "SearchService" should {
+  "ObjectSearchService" should {
 
     "only return documents to the with the right museums id and collection" taggedAs ElasticsearchContainer in {
       val res = service
@@ -256,19 +256,19 @@ class ObjectSearchServiceSpec
       isDeleted: Boolean = false
   ) = {
     val d = MusitObjectSearch(
-      id,
-      museumId,
-      museumNo,
-      subNo,
-      term,
-      None,
-      Some(CollectionSearch(collection)),
-      None,
-      None,
-      None,
-      None,
-      None,
-      isDeleted
+      id = id,
+      museumId = museumId,
+      museumNo = museumNo,
+      subNo = subNo,
+      term = term,
+      mainObjectId = None,
+      collection = Some(CollectionSearch(collection)),
+      arkForm = None,
+      arkFindingNo = None,
+      natStage = None,
+      natGender = None,
+      natLegDate = None,
+      isDeleted = isDeleted
     )
     indexInto(indexName, things.objectType) id id.underlying.toString doc d
   }
@@ -280,28 +280,28 @@ class ObjectSearchServiceSpec
       isDeleted: Boolean = false
   ) = {
     val d = SampleObjectSearch(
-      Some(sampleId),
-      fromObject,
-      ParentObject(Some(fromObject), CollectionObjectType),
+      objectId = Some(sampleId),
+      originatedObjectUuid = fromObject,
+      parentObject = ParentObject(Some(fromObject), CollectionObjectType),
       isExtracted = false,
-      museumId,
-      Intact,
-      None,
-      None,
-      None,
-      None,
-      None,
-      SampleTypeId(1),
-      None,
-      None,
-      None,
-      None,
-      NoLeftover,
-      None,
-      None,
-      None,
-      None,
-      isDeleted
+      museumId = museumId,
+      status = Intact,
+      responsible = None,
+      doneByStamp = None,
+      sampleNum = None,
+      sampleId = None,
+      externalId = None,
+      sampleTypeId = SampleTypeId(1),
+      size = None,
+      container = None,
+      storageMedium = None,
+      treatment = None,
+      leftoverSample = NoLeftover,
+      description = None,
+      note = None,
+      registeredStamp = None,
+      updatedStamp = None,
+      isDeleted = isDeleted
     )
 
     val dId = sampleId.underlying.toString
