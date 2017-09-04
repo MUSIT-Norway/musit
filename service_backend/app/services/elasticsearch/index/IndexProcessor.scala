@@ -1,14 +1,17 @@
 package services.elasticsearch.index
 
-import akka.actor.{Actor, ActorRef, ActorSystem, Cancellable, Props}
+import akka.actor.{Actor, ActorLogging, ActorSystem, Cancellable, Props}
+import akka.pattern.ask
 import akka.stream.ActorMaterializer
+import akka.util.Timeout
 import models.elasticsearch.DocumentIndexerStatuses._
 import models.elasticsearch.{IndexCallback, IndexConfig}
 import services.elasticsearch.index.IndexProcessor.InternalProtocol._
 import services.elasticsearch.index.IndexProcessor.Protocol._
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.{DurationDouble, FiniteDuration}
+import scala.util.control.NonFatal
 
 /**
  * Actor that keep the current status on the indexing process. It takes commands
@@ -21,30 +24,49 @@ import scala.concurrent.duration.FiniteDuration
 class IndexProcessor(
     indexer: Indexer,
     indexMaintainer: IndexMaintainer,
+    initDelay: FiniteDuration,
     updateInterval: Option[FiniteDuration]
 )(
     implicit mat: ActorMaterializer
-) extends Actor {
+) extends Actor
+    with ActorLogging {
 
   private implicit val ec: ExecutionContext = context.dispatcher
   private implicit val as: ActorSystem      = context.system
+  private implicit val to: Timeout          = Timeout(10 seconds)
+
+  private val name = self.path.name
 
   var indexStatus: IndexStatus         = IndexStatus()
   var indexConfig: Option[IndexConfig] = None
   var nextUpdate: Option[Cancellable]  = None
 
   override def preStart(): Unit = {
-    val aliasExists = indexMaintainer.indexNameForAlias(indexer.indexAliasName)
-    aliasExists.foreach(
-      optName => {
-        indexConfig = optName.map(in => IndexConfig(in, indexer.indexAliasName))
-        context.become(ready)
-        self.tell(
-          indexConfig.map(_ => RequestUpdateIndex).getOrElse(RequestReindex),
-          ActorRef.noSender
-        )
+    log.info(s"[$name]: Setting up actor")
+    as.scheduler.scheduleOnce(initDelay) { initIndex() }
+  }
+
+  private def initIndex(): Future[Unit] = {
+    log.info(s"[$name]: Checking status for index")
+    indexMaintainer
+      .indexNameForAlias(indexer.indexAliasName)
+      .flatMap(
+        optName => {
+          indexConfig = optName.map(in => IndexConfig(in, indexer.indexAliasName))
+          indexConfig match {
+            case Some(in) => log.info(s"[$name]: Found existing index ($in). Updating it")
+            case None     => log.info(s"[$name]: No index found. Creating a new one.")
+          }
+          context.become(ready)
+          (self ? indexConfig.map(_ => RequestUpdateIndex).getOrElse(RequestReindex))
+            .map(res => log.info(s"[$name]: Response on request: $res"))
+        }
+      )
+      .recover {
+        case NonFatal(t) =>
+          log.error(t, s"[$name]: Failed initialise index, will try again later")
+          as.scheduler.scheduleOnce(5 minutes) { initIndex() }
       }
-    )
   }
 
   override def postStop(): Unit =
@@ -59,16 +81,17 @@ class IndexProcessor(
   def ready: Receive = {
     case RequestUpdateIndex =>
       indexConfig match {
-        case Some(name) if indexStatus.canUpdate =>
+        case Some(indexName) if indexStatus.canUpdate =>
           indexer.updateExistingIndex(
-            name,
+            indexName,
             IndexCallback(
               _ => self ! UpdateIndexSuccess,
-              () => self ! UpdateIndexFailed
+              t => self ! UpdateIndexFailed(t)
             )
           )
           indexStatus = indexStatus.copy(updateIndexStatus = Executing)
           sender() ! Accepted
+          log.info(s"[$name]: Updating index")
 
         case _ =>
           sender() ! NotAccepted
@@ -79,10 +102,11 @@ class IndexProcessor(
         indexer.reindexToNewIndex(
           IndexCallback(
             name => self ! ReindexSuccess(name),
-            () => self ! ReindexFailed
+            t => self ! ReindexFailed
           )
         )
         indexStatus = indexStatus.copy(reindexStatus = Executing)
+        log.info(s"[$name]: Reindexing")
         sender() ! Accepted
       } else {
         sender() ! NotAccepted
@@ -94,17 +118,21 @@ class IndexProcessor(
     case UpdateIndexSuccess =>
       indexStatus = indexStatus.copy(updateIndexStatus = IndexSuccess)
       scheduleNextUpdate()
+      log.info(s"[$name]: Index is up to date")
 
-    case UpdateIndexFailed =>
+    case UpdateIndexFailed(t) =>
       indexStatus = indexStatus.copy(updateIndexStatus = IndexFailed)
+      log.error(t, s"[$name]: Failed to update index")
 
     case ReindexSuccess(newIndexName) =>
       indexStatus = indexStatus.copy(reindexStatus = IndexSuccess)
       indexConfig = Some(newIndexName)
       scheduleNextUpdate()
+      log.info(s"[$name]: Reindex is done")
 
-    case ReindexFailed =>
+    case ReindexFailed(t) =>
       indexStatus = indexStatus.copy(reindexStatus = IndexFailed)
+      log.error(t, s"[$name]: Reindex failed")
 
     case msg =>
       unhandled(msg)
@@ -130,11 +158,19 @@ object IndexProcessor {
   def apply(
       indexer: Indexer,
       indexMaintainer: IndexMaintainer,
-      updateInterval: Option[FiniteDuration]
+      updateInterval: Option[FiniteDuration],
+      initDelay: FiniteDuration = 60 seconds
   )(
       implicit mat: ActorMaterializer
   ) =
-    Props.apply(classOf[IndexProcessor], indexer, indexMaintainer, updateInterval, mat)
+    Props.apply(
+      classOf[IndexProcessor],
+      indexer,
+      indexMaintainer,
+      initDelay,
+      updateInterval,
+      mat
+    )
 
   /**
    * Internal messages protocol
@@ -143,9 +179,9 @@ object IndexProcessor {
 
     sealed trait InternalActorCommand
     case object UpdateIndexSuccess                    extends InternalActorCommand
-    case object UpdateIndexFailed                     extends InternalActorCommand
+    case class UpdateIndexFailed(reason: Throwable)   extends InternalActorCommand
     case class ReindexSuccess(newConfig: IndexConfig) extends InternalActorCommand
-    case object ReindexFailed                         extends InternalActorCommand
+    case class ReindexFailed(reason: Throwable)       extends InternalActorCommand
   }
 
   /**

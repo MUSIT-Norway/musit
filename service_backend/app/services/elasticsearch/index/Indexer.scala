@@ -5,6 +5,7 @@ import akka.stream.Materializer
 import models.elasticsearch.{IndexCallback, IndexConfig}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
 /**
  * Indexer is where the actual indexing work is done. It has the ability to create a new
@@ -69,7 +70,9 @@ trait Indexer {
       mat: Materializer,
       as: ActorSystem
   ): Unit = {
-    createIndex().foreach(reindexDocuments(indexCallback, _))
+    createIndex().map(reindexDocuments(indexCallback, _)).recover {
+      case NonFatal(t) => indexCallback.failure(t)
+    }
   }
 
   /**

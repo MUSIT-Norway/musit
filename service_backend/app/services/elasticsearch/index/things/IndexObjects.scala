@@ -52,7 +52,10 @@ class IndexObjects @Inject()(
 
   override def createIndex()(implicit ec: ExecutionContext) = {
     val config = createIndexConfig()
-    client.execute(MusitObjectsIndexConfig.config(config.name)).map(_ => config)
+    client.execute(MusitObjectsIndexConfig.config(config.name)).flatMap { res =>
+      if (res.acknowledged) Future.successful(config)
+      else Future.failed(new IllegalStateException("Unable to setup index"))
+    }
   }
 
   override def reindexDocuments(indexCallback: IndexCallback, config: IndexConfig)(

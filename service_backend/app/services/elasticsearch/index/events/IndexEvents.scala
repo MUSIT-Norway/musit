@@ -42,7 +42,10 @@ class IndexEvents @Inject()(
 
   override def createIndex()(implicit ec: ExecutionContext): Future[IndexConfig] = {
     val config = createIndexConfig()
-    client.execute(EventIndexConfig.config(config.name)).map(_ => config)
+    client.execute(EventIndexConfig.config(config.name)).flatMap { res =>
+      if (res.acknowledged) Future.successful(config)
+      else Future.failed(new IllegalStateException("Unable to setup index"))
+    }
   }
 
   override def reindexDocuments(indexCallback: IndexCallback, config: IndexConfig)(

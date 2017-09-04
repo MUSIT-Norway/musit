@@ -47,7 +47,7 @@ class IndexEventsSpec
       esIndexer.reindexToNewIndex(
         IndexCallback(
           in => p.success(Some(in)),
-          () => p.success(None)
+          _ => p.success(None)
         )
       )
       val futureIndex = p.future.futureValue(timeout)
@@ -79,7 +79,7 @@ class IndexEventsSpec
       esIndexer.reindexToNewIndex(
         IndexCallback(
           in => promiseIndex.success(Some(in)),
-          () => promiseIndex.success(None)
+          _ => promiseIndex.success(None)
         )
       )
       val index = futureIndex.futureValue(timeout).value
@@ -92,7 +92,7 @@ class IndexEventsSpec
         index,
         IndexCallback(
           in => promiseUpdate.success(Some(in)),
-          () => promiseUpdate.success(None)
+          _ => promiseUpdate.success(None)
         )
       )
       promiseUpdate.future.futureValue(timeout)

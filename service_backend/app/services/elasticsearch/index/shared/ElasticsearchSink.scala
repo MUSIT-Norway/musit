@@ -74,7 +74,7 @@ class DatabaseMaintainedElasticSearchIndexSink(
   }
 
   override def onError: (Throwable) => Unit = { t =>
-    indexCallback.failure()
+    indexCallback.failure(t)
     logger.error(s"Indexing failed for alias ${indexConfig.alias}", t)
   }
 
@@ -106,7 +106,7 @@ class DatabaseMaintainedElasticSearchUpdateIndexSink(
     }
 
   override def onError: (Throwable) => Unit =
-    _ => indexCallback.failure()
+    t => indexCallback.failure(t)
 
   override def responseListener = this
 }

@@ -30,7 +30,7 @@ class IndexObjectsSpec extends MusitSpecWithAppPerSuite with Eventually {
       esIndexer.reindexToNewIndex(
         IndexCallback(
           in => p.success(Some(in)),
-          () => p.success(None)
+          _ => p.success(None)
         )
       )
 

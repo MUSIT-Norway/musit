@@ -9,6 +9,7 @@ import play.api.Logger
 import services.elasticsearch.index.IndexMaintainer._
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
 class IndexMaintainer @Inject()(
     client: HttpClient
@@ -60,10 +61,9 @@ class IndexMaintainer @Inject()(
   def indexNameForAlias(
       alias: String
   )(implicit ec: ExecutionContext): Future[Option[String]] =
-    client.execute(catAliases()).map {
-      _.find(ca => ca.alias == alias && ca.index.startsWith(alias)).map(_.index)
-    }
-
+    client
+      .execute(catAliases())
+      .map(_.find(ca => ca.alias == alias && ca.index.startsWith(alias)).map(_.index))
 }
 
 object IndexMaintainer {
