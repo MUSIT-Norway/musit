@@ -38,6 +38,7 @@ services:
       - SLICK_DB_URL
       - SLICK_DB_USER
       - SLICK_DB_PASSWORD
+      - ELASTICSEARCH_HOST
     links:
       - db
       - elasticsearch

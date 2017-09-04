@@ -16,6 +16,11 @@ export SLICK_DB_USER=musit
 export SLICK_DB_PASSWORD=musit
 
 # ------------------------------------------------------------------------
+# Elasticsearch configuration
+# ------------------------------------------------------------------------
+export ELASTICSEARCH_HOST="elasticsearch"
+
+# ------------------------------------------------------------------------
 # The application defaults to use the fake security module (no.uio.musit.security.fake.FakeModule)
 # If you want to test with Dataporten, make sure to remove the comment on the below line(s)
 # Also you will need to set up an application in Dataporten to get access to a
