@@ -36,7 +36,7 @@ class ElasticsearchService @Inject(
    */
   private implicit val as = ActorSystem(
     "musit-elasticsearch",
-    configuration.getOptional[Configuration]("musit.elasticsearch.akka").map(_.underlying)
+    configuration.getOptional[Configuration]("musit.elasticsearch").map(_.underlying)
   )
   private implicit val mat = ActorMaterializer()
   private implicit val ec  = as.dispatcher
