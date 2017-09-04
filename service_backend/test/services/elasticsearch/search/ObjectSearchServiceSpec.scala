@@ -62,7 +62,7 @@ class ObjectSearchServiceSpec
           museumNo = None,
           subNo = None,
           term = None,
-          q = None
+          queryStr = None
         )(dummyUser)
         .map(_.response)
         .futureValue
@@ -79,7 +79,7 @@ class ObjectSearchServiceSpec
           museumNo = None,
           subNo = None,
           term = None,
-          q = None
+          queryStr = None
         )(dummyUser)
         .map(_.response)
         .futureValue
@@ -98,7 +98,7 @@ class ObjectSearchServiceSpec
           museumNo = None,
           subNo = None,
           term = None,
-          q = None
+          queryStr = None
         )(dummyUser)
         .map(_.response)
         .futureValue
@@ -114,7 +114,7 @@ class ObjectSearchServiceSpec
           museumNo = Some("C402"),
           subNo = None,
           term = None,
-          q = None
+          queryStr = None
         )(dummyUser)
         .map(_.response)
         .futureValue
@@ -130,7 +130,7 @@ class ObjectSearchServiceSpec
           museumNo = Some("C1610"),
           subNo = Some("b"),
           term = None,
-          q = None
+          queryStr = None
         )(dummyUser)
         .map(_.response)
         .futureValue
@@ -146,7 +146,7 @@ class ObjectSearchServiceSpec
           museumNo = None,
           subNo = None,
           term = None,
-          q = Some("C402")
+          queryStr = Some("C402")
         )(dummyUser)
         .map(_.response)
         .futureValue
@@ -162,7 +162,7 @@ class ObjectSearchServiceSpec
           museumNo = None,
           subNo = None,
           term = None,
-          q = Some("C1610 AND subNo: b")
+          queryStr = Some("C1610 AND subNo: b")
         )(dummyUser)
         .map(_.response)
         .futureValue

@@ -21,11 +21,11 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
       museumNo: Option[String],
       subNo: Option[String],
       term: Option[String],
-      q: Option[String]
+      queryStr: Option[String]
   )(
       implicit currUsr: AuthenticatedUser
   ): Future[MusitESResponse[SearchResponse]] = {
-    val qry = createSearchQuery(mid, collectionIds, museumNo, subNo, term, q)
+    val qry = createSearchQuery(mid, collectionIds, museumNo, subNo, term, queryStr)
 
     client.execute(
       search(IndexAndTypes(indexAlias, Seq(objectType, sampleType))) query qry
@@ -104,23 +104,6 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
       ).appendMust(contentQuery)
     }
     combinedQuery
-  }
-
-  private def restrictToCollectionAndMuseumQuery(
-      mid: MuseumId,
-      collectionIds: Seq[MuseumCollection]
-  )(implicit currUsr: AuthenticatedUser) = {
-    if (currUsr.hasGodMode)
-      must(termQuery("museumId", mid.underlying))
-    else
-      must(
-        should(
-          collectionIds.map { c =>
-            matchQuery("collection.uuid", c.uuid.underlying.toString)
-          }
-        ),
-        matchQuery("museumId", mid.underlying)
-      )
   }
 
 }
