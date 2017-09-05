@@ -29,6 +29,9 @@ class DocumentArchiveService @Inject()(
   // ===========================================================================
   //  Service definitions for interacting with ArchiveFolderItem data types.
   // ===========================================================================
+
+  // TODO: Ensure the relevant root nodes for each museum are created/exist on init.
+
   def initRootFor(
       mid: MuseumId
   )(implicit ac: ArchiveContext): Future[MusitResult[Option[FolderId]]] = {

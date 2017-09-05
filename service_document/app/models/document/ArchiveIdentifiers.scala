@@ -2,7 +2,7 @@ package models.document
 
 import net.scalytica.symbiotic.api.types.IdOps
 import net.scalytica.symbiotic.api.types.PartyBaseTypes.{OrgId, UserId}
-import no.uio.musit.models.{ActorId, MuseumCollection, MuseumId}
+import no.uio.musit.models.{ActorId, CollectionUUID, MuseumId}
 
 object ArchiveIdentifiers {
 
@@ -31,42 +31,50 @@ object ArchiveIdentifiers {
       ActorId.unsafeFromString(id.value)
   }
 
-
-  /*
-    TODO:
-
-    Need to come up with a way to assemble a uniquely identifiable
-    archive owner id. This depends a lot on whether or not the root should be
-    for each collection in a museum, or for just the museum.
-
-    In any case, it _might_ be desirable to have 2 different types of owner ID.
-    One being the museumId and another being the museumId + collectionId. This
-    to uniquely separate the archives for each collection in a museum.
-
-    The problem with the last solution is to allow the museum owner access to the
-    museum + collection owner data.
- */
-
   /**
    * A unique identifier that represents the owner of an archive item. By
    * default, in the MUSIT system, all archive items are owned by the Museum.
    *
    * The ArchiveOwnerId is typically used together with the {{{ArchiveContext}}}.
-   * Where it represents
-   *
-   * @param value
+   * Where it is typically used to identify which folder tree to access per call.
    */
   case class ArchiveOwnerId(value: String) extends OrgId
 
   object ArchiveOwnerId extends IdOps[ArchiveOwnerId] {
 
-    def apply(mid: MuseumId, col: Option[MuseumCollection] = None) = {
-
-    }
+    def apply(
+        mid: MuseumId
+    ): ArchiveOwnerId = ArchiveOwnerId(s"${mid.underlying}")
 
     // Implicit converters to help working with the ArchiveOwnerId
 
     override implicit def asId(s: String): ArchiveOwnerId = ArchiveOwnerId(s)
+
+    implicit def midAsId(mid: MuseumId): ArchiveOwnerId = ArchiveOwnerId(mid)
+  }
+
+  /**
+   * The ArchiveCollectionId is used as a grouping mechanism in archive system.
+   * In the underlying library, it is stored in the {{{ManagedMetadata#accessibleBy}}}
+   * list attribute.
+   *
+   * From a MUSIT perspective, it will constrain access to a {{{ManagedFile}}} to
+   * the users with access to the given Collection.
+   */
+  case class ArchiveCollectionId(value: String) extends OrgId
+
+  object ArchiveCollectionId extends IdOps[ArchiveCollectionId] {
+
+    def apply(cid: CollectionUUID): ArchiveCollectionId =
+      ArchiveCollectionId(cid.asString)
+
+    // Implicit converters to help working with the ArchiveCollectionId
+
+    override implicit def asId(s: String): ArchiveCollectionId = ArchiveCollectionId(s)
+
+    implicit def cidAsId(cid: CollectionUUID): ArchiveCollectionId =
+      ArchiveCollectionId(cid)
+
   }
 
 }
