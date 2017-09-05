@@ -16,7 +16,7 @@ import slick.jdbc.{ResultSetConcurrency, ResultSetType}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ElasticsearchThingsDao @Inject()(
+class ElasticsearchObjectsDao @Inject()(
     implicit val dbConfigProvider: DatabaseConfigProvider,
     ec: ExecutionContext
 ) extends ObjectTables
@@ -38,7 +38,7 @@ class ElasticsearchThingsDao @Inject()(
       objTable.filter(_.uuid.isDefined).map(_.id).max
 
     db.run(maxIdValue.result).map { maxId =>
-      ElasticsearchThingsDao.indexRanges(streams, maxId.get.underlying).map {
+      ElasticsearchObjectsDao.indexRanges(streams, maxId.get.underlying).map {
         case (from, to) =>
           val query = objTable.filter(row => (row.id >= from) && (row.id <= to))
           Source.fromPublisher(
@@ -113,7 +113,7 @@ class ElasticsearchThingsDao @Inject()(
 
 }
 
-object ElasticsearchThingsDao {
+object ElasticsearchObjectsDao {
   def indexRanges(count: Int, lastId: Long): List[(Long, Long)] = {
     val oi = Range.Long(lastId / count, lastId + 1, (lastId + 1) / count)
     oi.foldLeft(List.empty[(Long, Long)]) {

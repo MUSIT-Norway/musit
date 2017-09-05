@@ -1,12 +1,11 @@
 package services.elasticsearch.index.events
 
-import akka.NotUsed
 import akka.stream.scaladsl.Flow
 import com.sksamuel.elastic4s.http.ElasticDsl.indexInto
 import com.sksamuel.elastic4s.playjson._
 import models.elasticsearch._
 import no.uio.musit.models.{ActorId, MuseumCollections, MuseumId, ObjectUUID}
-import repositories.elasticsearch.dao.ElasticsearchThingsDao
+import repositories.elasticsearch.dao.ElasticsearchObjectsDao
 import services.actor.ActorService
 import services.elasticsearch.index.TypeFlow
 import services.elasticsearch.index.shared.{
@@ -18,7 +17,7 @@ import scala.concurrent.ExecutionContext
 
 class AnalysisTypeFlow(
     actorService: ActorService,
-    elasticsearchThingsDao: ElasticsearchThingsDao
+    elasticsearchObjectsDao: ElasticsearchObjectsDao
 )(implicit ec: ExecutionContext)
     extends TypeFlow[AnalysisSearchType, AnalysisSearch] {
 
@@ -55,7 +54,7 @@ class AnalysisTypeFlow(
       ): AnalysisSearch = {
         AnalysisSearch(input._1.event, input._2, midAndColl)
       }
-    }.flow(elasticsearchThingsDao, ec)
+    }.flow(elasticsearchObjectsDao, ec)
 
   override def toBulkDefinitions(indexConfig: IndexConfig) =
     Flow[AnalysisSearch].map { event =>

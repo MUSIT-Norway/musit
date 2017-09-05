@@ -14,7 +14,7 @@ class ElasticsearchHealthCheck @Inject()(
     ec: ExecutionContext
 ) extends HealthCheck {
 
-  private[this] val indexes = Indexes(index.events.indexAlias, index.things.indexAlias)
+  private[this] val indexes = Indexes(index.events.indexAlias, index.objects.indexAlias)
   private[this] val hcName  = "elasticsearch"
 
   override def healthCheck(): Future[HealthCheckStatus] = {

@@ -5,7 +5,7 @@ import akka.stream.scaladsl.{Sink, Source}
 import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.models.{MuseumId, ObjectUUID}
 import no.uio.musit.test.MusitSpecWithApp
-import repositories.elasticsearch.dao.ElasticsearchThingsDao
+import repositories.elasticsearch.dao.ElasticsearchObjectsDao
 
 import scala.concurrent.ExecutionContext
 
@@ -13,7 +13,7 @@ class MuseumAndCollectionEnrichFlowSpec extends MusitSpecWithApp {
 
   implicit val ec  = fromInstanceCache[ExecutionContext]
   implicit val mat = fromInstanceCache[Materializer]
-  implicit val dao = fromInstanceCache[ElasticsearchThingsDao]
+  implicit val dao = fromInstanceCache[ElasticsearchObjectsDao]
 
   "MuseumAndCollectionEnrichFlow" should {
     case class InputMsg(id: ObjectUUID)

@@ -13,7 +13,7 @@ import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import org.joda.time.DateTime
 import play.api.{Configuration, Logger}
 import repositories.core.dao.IndexStatusDao
-import repositories.elasticsearch.dao.{ElasticsearchEventDao, ElasticsearchThingsDao}
+import repositories.elasticsearch.dao.{ElasticsearchEventDao, ElasticsearchObjectsDao}
 import services.actor.ActorService
 import services.elasticsearch.index.{IndexMaintainer, Indexer, TypeFlow}
 import services.elasticsearch.index.shared.{
@@ -27,8 +27,8 @@ import scala.concurrent.{ExecutionContext, Future}
  * Index documents into the events index
  */
 class IndexEvents @Inject()(
-    analysisEventsExportDao: ElasticsearchEventDao,
-    elasticsearchThingsDao: ElasticsearchThingsDao,
+    elasticsearchEventDao: ElasticsearchEventDao,
+    elasticsearchObjectsDao: ElasticsearchObjectsDao,
     indexStatusDao: IndexStatusDao,
     actorService: ActorService,
     client: HttpClient,
@@ -54,7 +54,7 @@ class IndexEvents @Inject()(
       as: ActorSystem
   ): Unit = {
 
-    val dbSource     = analysisEventsExportDao.analysisEventsStream()
+    val dbSource     = elasticsearchEventDao.analysisEventsStream()
     val esBulkSource = createFlow(dbSource, config)
 
     val es = new DatabaseMaintainedElasticSearchIndexSink(
@@ -77,7 +77,7 @@ class IndexEvents @Inject()(
       as: ActorSystem
   ): Unit = {
     findLastIndexDateTime().map {
-      _.map(dt => analysisEventsExportDao.analysisEventsStream(Some(dt)))
+      _.map(dt => elasticsearchEventDao.analysisEventsStream(Some(dt)))
         .getOrElse(Source.empty)
     }.map { dbSource =>
       val esBulkSource = createFlow(dbSource, indexConfig)
@@ -109,12 +109,15 @@ class IndexEvents @Inject()(
         createFlowType(config, new AnalysisCollectionTypeFlow(actorService)) {
           case a: AnalysisCollectionSearchType => a
         },
-        createFlowType(config, new AnalysisTypeFlow(actorService, elasticsearchThingsDao)) {
+        createFlowType(
+          config,
+          new AnalysisTypeFlow(actorService, elasticsearchObjectsDao)
+        ) {
           case a: AnalysisSearchType => a
         },
         createFlowType(
           config,
-          new SampleCreatedTypeFlow(actorService, elasticsearchThingsDao)
+          new SampleCreatedTypeFlow(actorService, elasticsearchObjectsDao)
         ) {
           case a: SampleCreatedEventSearchType => a
         }

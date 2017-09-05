@@ -17,8 +17,8 @@ import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.Eventually
-import services.elasticsearch.index.{IndexMaintainer, things}
-import services.elasticsearch.index.things.MusitObjectsIndexConfig
+import services.elasticsearch.index.{IndexMaintainer, objects}
+import services.elasticsearch.index.objects.MusitObjectsIndexConfig
 import utils.testdata.BaseDummyData
 
 import scala.concurrent.ExecutionContext
@@ -36,7 +36,7 @@ class ObjectSearchServiceSpec
 
   private[this] implicit val ec = fromInstanceCache[ExecutionContext]
 
-  private[this] val indexName = things.indexAlias + Random.nextInt(Int.MaxValue)
+  private[this] val indexName = objects.indexAlias + Random.nextInt(Int.MaxValue)
 
   val obj1inCol1 = ObjectUUID.fromString("b0d8ff68-9c5c-4da5-9ef3-a0000000a001").value
   val obj2inCol2 = ObjectUUID.fromString("11b3f5ab-dff6-4b80-90bd-a0000000a002").value
@@ -239,7 +239,7 @@ class ObjectSearchServiceSpec
                 )
               ).refresh(RefreshPolicy.IMMEDIATE)
             )
-      _ <- indexMaintainer.activateIndex(indexName, things.indexAlias)
+      _ <- indexMaintainer.activateIndex(indexName, objects.indexAlias)
     } yield res
 
     setup.futureValue
@@ -273,7 +273,7 @@ class ObjectSearchServiceSpec
       natLegDate = None,
       isDeleted = isDeleted
     )
-    indexInto(indexName, things.objectType) id id.underlying.toString doc d
+    indexInto(indexName, objects.objectType) id id.underlying.toString doc d
   }
 
   private def indexSampleDoc(
@@ -309,6 +309,6 @@ class ObjectSearchServiceSpec
 
     val dId = sampleId.underlying.toString
     val pId = fromObject.underlying.toString
-    indexInto(indexName, things.sampleType) id dId doc d parent pId
+    indexInto(indexName, objects.sampleType) id dId doc d parent pId
   }
 }

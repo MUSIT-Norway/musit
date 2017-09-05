@@ -6,7 +6,7 @@ import com.sksamuel.elastic4s.http.ElasticDsl.indexInto
 import com.sksamuel.elastic4s.playjson._
 import models.elasticsearch._
 import no.uio.musit.models.{ActorId, MuseumCollections, MuseumId}
-import repositories.elasticsearch.dao.ElasticsearchThingsDao
+import repositories.elasticsearch.dao.ElasticsearchObjectsDao
 import services.actor.ActorService
 import services.elasticsearch.index.TypeFlow
 import services.elasticsearch.index.shared.{
@@ -18,7 +18,7 @@ import scala.concurrent.ExecutionContext
 
 class SampleCreatedTypeFlow(
     actorService: ActorService,
-    elasticsearchThingsDao: ElasticsearchThingsDao
+    elasticsearchObjectsDao: ElasticsearchObjectsDao
 )(implicit ec: ExecutionContext)
     extends TypeFlow[SampleCreatedEventSearchType, SampleCreatedSearch] {
 
@@ -52,7 +52,7 @@ class SampleCreatedTypeFlow(
         input: (SampleCreatedEventSearchType, ActorNames),
         midAndColl: Option[(MuseumId, MuseumCollections.Collection)]
     ) = SampleCreatedSearch(input._1.event, input._2, midAndColl)
-  }.flow(elasticsearchThingsDao, ec)
+  }.flow(elasticsearchObjectsDao, ec)
 
   override def toBulkDefinitions(indexConfig: IndexConfig) =
     Flow[SampleCreatedSearch].map { event =>

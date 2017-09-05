@@ -8,7 +8,7 @@ import com.sksamuel.elastic4s.http.search.SearchResponse
 import no.uio.musit.models.{MuseumCollection, MuseumId}
 import no.uio.musit.security.AuthenticatedUser
 import services.elasticsearch.elastic4s.{MusitESResponse, MusitSearchHttpExecutable}
-import services.elasticsearch.index.things.{indexAlias, objectType, sampleType}
+import services.elasticsearch.index.objects.{indexAlias, objectType, sampleType}
 
 import scala.concurrent.{ExecutionContext, Future}
 

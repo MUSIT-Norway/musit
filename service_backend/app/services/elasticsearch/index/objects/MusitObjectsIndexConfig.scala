@@ -1,4 +1,4 @@
-package services.elasticsearch.index.things
+package services.elasticsearch.index.objects
 
 import com.sksamuel.elastic4s.http.ElasticDsl.createIndex
 import com.sksamuel.elastic4s.indexes.CreateIndexDefinition

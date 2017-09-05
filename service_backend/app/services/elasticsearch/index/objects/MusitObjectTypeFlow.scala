@@ -1,4 +1,4 @@
-package services.elasticsearch.index.things
+package services.elasticsearch.index.objects
 
 import akka.stream.scaladsl.Flow
 import com.sksamuel.elastic4s.http.ElasticDsl._

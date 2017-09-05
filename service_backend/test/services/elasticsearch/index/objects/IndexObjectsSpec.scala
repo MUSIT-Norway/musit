@@ -1,4 +1,4 @@
-package services.elasticsearch.index.things
+package services.elasticsearch.index.objects
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
@@ -9,7 +9,6 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.time.{Seconds, Span}
 import services.elasticsearch.DocumentCount._
-import services.elasticsearch.index.things
 
 import scala.concurrent.{ExecutionContext, Promise}
 
@@ -21,7 +20,7 @@ class IndexObjectsSpec extends MusitSpecWithAppPerSuite with Eventually {
   implicit val mat = fromInstanceCache[Materializer]
   implicit val ec  = fromInstanceCache[ExecutionContext]
 
-  "IndexThings" should {
+  "IndexObjects" should {
     val timeout = Timeout(Span(60, Seconds))
 
     "index all object to elasticsearch" taggedAs ElasticsearchContainer in {
@@ -37,8 +36,8 @@ class IndexObjectsSpec extends MusitSpecWithAppPerSuite with Eventually {
       f.futureValue(timeout) mustBe defined
 
       eventually(timeout) {
-        val samples = esClient.execute(count(things.indexAlias, things.sampleType))
-        val objects = esClient.execute(count(things.indexAlias, things.objectType))
+        val samples = esClient.execute(count(indexAlias, sampleType))
+        val objects = esClient.execute(count(indexAlias, objectType))
 
         samples.futureValue.count mustBe 1
         objects.futureValue.count mustBe 59

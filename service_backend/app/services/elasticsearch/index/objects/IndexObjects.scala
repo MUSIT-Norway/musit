@@ -1,4 +1,4 @@
-package services.elasticsearch.index.things
+package services.elasticsearch.index.objects
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{GraphDSL, Merge, Source}
@@ -12,7 +12,7 @@ import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import org.joda.time.DateTime
 import play.api.Configuration
 import repositories.core.dao.IndexStatusDao
-import repositories.elasticsearch.dao.ElasticsearchThingsDao
+import repositories.elasticsearch.dao.ElasticsearchObjectsDao
 import services.actor.ActorService
 import services.elasticsearch.index.{IndexMaintainer, Indexer}
 import services.elasticsearch.index.shared.{
@@ -26,7 +26,7 @@ import scala.concurrent.{ExecutionContext, Future}
  * Index documents into the musit_object index.
  */
 class IndexObjects @Inject()(
-    elasticsearchThingsDao: ElasticsearchThingsDao,
+    elasticsearchObjectsDao: ElasticsearchObjectsDao,
     indexStatusDao: IndexStatusDao,
     actorService: ActorService,
     client: HttpClient,
@@ -65,10 +65,10 @@ class IndexObjects @Inject()(
   ): Unit = {
 
     val sampleSourceFuture = Future.successful(
-      elasticsearchThingsDao.sampleStream(fetchSize, None)
+      elasticsearchObjectsDao.sampleStream(fetchSize, None)
     )
     val sources = for {
-      objSources   <- elasticsearchThingsDao.objectStreams(concurrentSources, fetchSize)
+      objSources   <- elasticsearchObjectsDao.objectStreams(concurrentSources, fetchSize)
       sampleSource <- sampleSourceFuture
     } yield (objSources, sampleSource)
 
@@ -111,7 +111,7 @@ class IndexObjects @Inject()(
   ): Unit = {
     findLastIndexDateTime().map { mdt =>
       mdt.map { dt =>
-        elasticsearchThingsDao.objectsChangedAfterTimestampStream(fetchSize, dt)
+        elasticsearchObjectsDao.objectsChangedAfterTimestampStream(fetchSize, dt)
       }.getOrElse(Source.empty)
     }.map(source => {
       val es = new DatabaseMaintainedElasticSearchUpdateIndexSink(

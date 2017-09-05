@@ -1,6 +1,6 @@
 package services.elasticsearch.index
 
-package object things {
+package object objects {
 
   val indexAlias = "objects"
 

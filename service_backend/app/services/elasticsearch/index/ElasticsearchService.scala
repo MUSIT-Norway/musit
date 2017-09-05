@@ -10,7 +10,7 @@ import play.api.Configuration
 import play.api.inject.ApplicationLifecycle
 import services.elasticsearch.index.IndexProcessor.Protocol._
 import services.elasticsearch.index.events.IndexEvents
-import services.elasticsearch.index.things.IndexObjects
+import services.elasticsearch.index.objects.IndexObjects
 
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationDouble
@@ -47,7 +47,7 @@ class ElasticsearchService @Inject(
     IndexProcessor(indexAnalysisEvents, indexMaintainer, updateInterval),
     "IndexProcessor-Event"
   )
-  private val thingsActor = as.actorOf(
+  private val objectsActor = as.actorOf(
     IndexProcessor(indexMusitObjects, indexMaintainer, updateInterval),
     "IndexProcessor-Objects"
   )
@@ -63,17 +63,17 @@ class ElasticsearchService @Inject(
   def updateIndexEvents(): Future[MusitResult[Unit]] =
     sendToActor(eventActor, RequestUpdateIndex)
 
-  def reindexThings(): Future[MusitResult[Unit]] =
-    sendToActor(thingsActor, RequestReindex)
+  def reindexObjects(): Future[MusitResult[Unit]] =
+    sendToActor(objectsActor, RequestReindex)
 
-  def updateIndexThings(): Future[MusitResult[Unit]] =
-    sendToActor(thingsActor, RequestUpdateIndex)
+  def updateIndexObjects(): Future[MusitResult[Unit]] =
+    sendToActor(objectsActor, RequestUpdateIndex)
 
   def reindexAll(): Future[Seq[MusitResult[Unit]]] =
-    Future.sequence(List(reIndexEvents(), reindexThings()))
+    Future.sequence(List(reIndexEvents(), reindexObjects()))
 
   def updateAllIndices(): Future[Seq[MusitResult[Unit]]] =
-    Future.sequence(List(updateIndexEvents(), updateIndexThings()))
+    Future.sequence(List(updateIndexEvents(), updateIndexObjects()))
 
   private def sendToActor(actor: ActorRef, cmd: IndexActorCommand) =
     (actor ? cmd).map {

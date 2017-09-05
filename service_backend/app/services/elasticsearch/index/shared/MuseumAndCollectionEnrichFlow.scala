@@ -4,7 +4,7 @@ import akka.NotUsed
 import akka.stream.scaladsl.Flow
 import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.models.{MuseumId, ObjectUUID}
-import repositories.elasticsearch.dao.ElasticsearchThingsDao
+import repositories.elasticsearch.dao.ElasticsearchObjectsDao
 
 import scala.concurrent.ExecutionContext
 
@@ -34,7 +34,7 @@ trait MuseumAndCollectionEnrichFlow[In, Out] {
   val groupedInputMsgSize: Int = 100
 
   def flow(
-      implicit objectDao: ElasticsearchThingsDao,
+      implicit objectDao: ElasticsearchObjectsDao,
       ec: ExecutionContext
   ): Flow[In, Out, NotUsed] =
     Flow[In]
