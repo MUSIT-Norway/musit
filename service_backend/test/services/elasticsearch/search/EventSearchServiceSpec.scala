@@ -3,7 +3,7 @@ package services.elasticsearch.search
 import com.sksamuel.elastic4s.DocumentRef
 import com.sksamuel.elastic4s.http.ElasticDsl.{bulk, deleteIndex, _}
 import com.sksamuel.elastic4s.http.HttpClient
-import com.sksamuel.elastic4s.http.search.SearchHit
+import com.sksamuel.elastic4s.http.search.{SearchHit, SearchResponse}
 import models.elasticsearch._
 import com.sksamuel.elastic4s.playjson._
 import no.uio.musit.models.MuseumCollections.{Collection, Ethnography, Moss}
@@ -98,7 +98,6 @@ class EventSearchServiceSpec
     }
 
     "analysisCollection should include `inner-hits` from `analysis`" taggedAs ElasticsearchContainer in {
-      pending // todo upgrade elastic4s to version >= 5.4.12
       val res = service
         .restrictedEventsSearch(
           museum1,
@@ -109,14 +108,12 @@ class EventSearchServiceSpec
         .futureValue
 
       val innerHits =
-        res.hits.hits.find(toEventId(_) == evtId_11).map(_.innerHits).getOrElse(Map.empty)
+        findInnerHit(res, evtId_11, EventSearchService.analysisCollectionInnerHitName)
 
       innerHits must not be empty
-      innerHits.foreach(i => println(s"${i._1} ==> ${i._2.hits.size}"))
     }
 
     "analysis should include `inner-hits` from `analysis collection`" taggedAs ElasticsearchContainer in {
-      pending // todo upgrade elastic4s to version >= 5.4.12
       val res = service
         .restrictedEventsSearch(
           museum1,
@@ -127,13 +124,19 @@ class EventSearchServiceSpec
         .futureValue
 
       val innerHits =
-        res.hits.hits.find(toEventId(_) == evtId_10).map(_.innerHits).getOrElse(Map.empty)
+        findInnerHit(res, evtId_10, EventSearchService.analyseInnerHitName)
 
       innerHits must not be empty
-
-      println(innerHits.keySet)
-      innerHits.foreach(i => println(s"${i._1} ==> ${i._2.hits.size}"))
     }
+  }
+
+  private def findInnerHit(res: SearchResponse, id: EventId, innerHitKey: String) = {
+    res.hits.hits
+      .find(toEventId(_) == id)
+      .map(_.innerHits)
+      .getOrElse(Map.empty)
+      .get(innerHitKey)
+      .map(_.hits)
   }
 
   private def toEventId(s: SearchHit) = EventId(s.id.toLong)

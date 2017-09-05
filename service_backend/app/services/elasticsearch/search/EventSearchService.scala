@@ -48,7 +48,7 @@ class EventSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCon
     val onlyAllowedAnalysisQuery = must(
       restrictToCollectionAndMuseumQuery(mid, collectionIds),
       hasParentQuery(analysisCollectionType, matchAllQuery(), score = false) innerHit innerHits(
-        "analysis_collection_parent"
+        EventSearchService.analyseInnerHitName
       ),
       termQuery("_type" -> analysisType)
     )
@@ -61,7 +61,7 @@ class EventSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCon
         analysisType,
         restrictToCollectionAndMuseumQuery(mid, collectionIds),
         ScoreMode.None
-      ) innerHit innerHits("analysis_children"),
+      ) innerHit innerHits(EventSearchService.analysisCollectionInnerHitName),
       termQuery("_type" -> analysisCollectionType)
     )
 
@@ -78,4 +78,10 @@ class EventSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCon
     )
   }
 
+}
+
+object EventSearchService {
+
+  val analyseInnerHitName            = "analysisCollection"
+  val analysisCollectionInnerHitName = "analysis"
 }

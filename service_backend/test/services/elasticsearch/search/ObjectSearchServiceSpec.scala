@@ -71,7 +71,6 @@ class ObjectSearchServiceSpec
     }
 
     "samples must include objects in `inner-hits`" taggedAs ElasticsearchContainer in {
-      pending // todo upgrade elastic4s to version >= 5.4.12
       val res = service
         .restrictedObjectSearch(
           mid = MuseumId(1),
@@ -87,7 +86,11 @@ class ObjectSearchServiceSpec
       val sampleResult =
         res.hits.hits.filter(_.id == sam1FromObj1inCol1.underlying.toString).head
 
-      sampleResult.innerHits must not be empty
+      val innerHits = sampleResult.innerHits
+        .get(ObjectSearchService.innerHitParentName)
+        .map(a => a.hits)
+
+      innerHits must not be empty
     }
 
     "search must not include deleted documents " taggedAs ElasticsearchContainer in {

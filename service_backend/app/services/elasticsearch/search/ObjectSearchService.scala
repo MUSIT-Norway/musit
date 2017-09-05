@@ -54,7 +54,7 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
           Some(
             should(
               hasParentQuery(objectType, must(objectTypeFilter), score = true) innerHit
-                innerHits("parent objects"),
+                innerHits(ObjectSearchService.innerHitParentName),
               must(objectTypeFilter)
             )
           )
@@ -64,7 +64,7 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
           Some(
             should(
               hasParentQuery(objectType, must(sampleTypeFilter), score = true) innerHit
-                innerHits("parent objects"),
+                innerHits(ObjectSearchService.innerHitParentName),
               must(sampleTypeFilter)
             )
           )
@@ -91,7 +91,7 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
           objectType,
           restrictToCollectionAndMuseumQuery(mid, collectionIds),
           score = true
-        ) innerHit innerHits("parent objects")
+        ) innerHit innerHits(ObjectSearchService.innerHitParentName)
       ).appendMust(termQuery("_type" -> sampleType))
 
     val combinedQuery = {
@@ -106,4 +106,8 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
     combinedQuery
   }
 
+}
+
+object ObjectSearchService {
+  val innerHitParentName = "musit_object"
 }
