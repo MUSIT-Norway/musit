@@ -41,7 +41,6 @@ trait MuseumAndCollectionEnrichFlow[In, Out] {
       .grouped(groupedInputMsgSize)
       .mapAsync(asyncFetch) { inputs =>
         val set = inputs.flatMap(extractObjectUUID).toSet
-        println(set)
         objectDao.findObjectsMidAndCollection(set).map { items =>
           inputs.map(input => {
             val inputId   = extractObjectUUID(input)
