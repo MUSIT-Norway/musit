@@ -13,6 +13,7 @@ import models.elasticsearch.{CollectionSearch, MusitObjectSearch, SampleObjectSe
 import no.uio.musit.models.MuseumCollections.{Archeology, Collection, Ethnography}
 import no.uio.musit.models.ObjectTypes.CollectionObjectType
 import no.uio.musit.models._
+import no.uio.musit.test.matchers.MusitResultValues
 import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy
 import org.scalatest.BeforeAndAfterAll
@@ -28,7 +29,8 @@ class ObjectSearchServiceSpec
     extends MusitSpecWithAppPerSuite
     with Eventually
     with BeforeAndAfterAll
-    with BaseDummyData {
+    with BaseDummyData
+    with MusitResultValues {
 
   private[this] val client          = fromInstanceCache[HttpClient]
   private[this] val indexMaintainer = fromInstanceCache[IndexMaintainer]
@@ -59,13 +61,16 @@ class ObjectSearchServiceSpec
         .restrictedObjectSearch(
           mid = MuseumId(1),
           collectionIds = Seq(MuseumCollection(Archeology.uuid, None, Seq())),
+          limit = 10,
+          from = 0,
           museumNo = None,
           subNo = None,
           term = None,
           queryStr = None
         )(dummyUser)
-        .map(_.response)
         .futureValue
+        .successValue
+        .response
 
       res.hits.hits.map(toObjectUUID) must contain only (obj1inCol1, sam1FromObj1inCol1)
     }
@@ -75,13 +80,16 @@ class ObjectSearchServiceSpec
         .restrictedObjectSearch(
           mid = MuseumId(1),
           collectionIds = Seq(MuseumCollection(Archeology.uuid, None, Seq())),
+          limit = 10,
+          from = 0,
           museumNo = None,
           subNo = None,
           term = None,
           queryStr = None
         )(dummyUser)
-        .map(_.response)
         .futureValue
+        .successValue
+        .response
 
       val sampleResult =
         res.hits.hits.filter(_.id == sam1FromObj1inCol1.underlying.toString).head
@@ -98,13 +106,16 @@ class ObjectSearchServiceSpec
         .restrictedObjectSearch(
           mid = MuseumId(2),
           collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
+          limit = 10,
+          from = 0,
           museumNo = None,
           subNo = None,
           term = None,
           queryStr = None
         )(dummyUser)
-        .map(_.response)
         .futureValue
+        .successValue
+        .response
 
       res.hits.hits.map(toObjectUUID) must contain noneOf (obj6inCol2, sam3FromObj6inCol2)
     }
@@ -114,13 +125,16 @@ class ObjectSearchServiceSpec
         .restrictedObjectSearch(
           mid = MuseumId(2),
           collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
-          museumNo = Some("C402"),
+          limit = 10,
+          from = 0,
+          museumNo = Some(MuseumNo("C402")),
           subNo = None,
           term = None,
           queryStr = None
         )(dummyUser)
-        .map(_.response)
         .futureValue
+        .successValue
+        .response
 
       res.hits.hits.map(toObjectUUID) must contain only (obj2inCol2, sam2FromObj2inCol2)
     }
@@ -130,13 +144,16 @@ class ObjectSearchServiceSpec
         .restrictedObjectSearch(
           mid = MuseumId(2),
           collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
-          museumNo = Some("C1610"),
-          subNo = Some("b"),
+          limit = 10,
+          from = 0,
+          museumNo = Some(MuseumNo("C1610")),
+          subNo = Some(SubNo("b")),
           term = None,
           queryStr = None
         )(dummyUser)
-        .map(_.response)
         .futureValue
+        .successValue
+        .response
 
       res.hits.hits.map(toObjectUUID) must contain only obj3inCol2
     }
@@ -146,13 +163,16 @@ class ObjectSearchServiceSpec
         .restrictedObjectSearch(
           mid = MuseumId(2),
           collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
+          limit = 10,
+          from = 0,
           museumNo = None,
           subNo = None,
           term = None,
           queryStr = Some("C402")
         )(dummyUser)
-        .map(_.response)
         .futureValue
+        .successValue
+        .response
 
       res.hits.hits.map(toObjectUUID) must contain only (obj2inCol2, sam2FromObj2inCol2)
     }
@@ -162,13 +182,16 @@ class ObjectSearchServiceSpec
         .restrictedObjectSearch(
           mid = MuseumId(2),
           collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
+          limit = 10,
+          from = 0,
           museumNo = None,
           subNo = None,
           term = None,
           queryStr = Some("C1610 AND subNo: b")
         )(dummyUser)
-        .map(_.response)
         .futureValue
+        .successValue
+        .response
 
       res.hits.hits.map(toObjectUUID) must contain only obj3inCol2
     }

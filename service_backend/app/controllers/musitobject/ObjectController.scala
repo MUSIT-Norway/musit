@@ -2,15 +2,15 @@ package controllers.musitobject
 
 import com.google.inject.Inject
 import controllers._
-import models.musitobject.ObjectSearchResult
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.models._
-import no.uio.musit.security.Authenticator
+import no.uio.musit.security.{AuthenticatedUser, Authenticator}
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import play.api.libs.json.Json
 import play.api.mvc.ControllerComponents
 import play.api.{Configuration, Logger}
+import services.elasticsearch.search.ObjectSearchService
 import services.musitobject.ObjectService
 import services.storage.StorageNodeService
 
@@ -21,6 +21,7 @@ class ObjectController @Inject()(
     val authService: Authenticator,
     val conf: Configuration,
     val objService: ObjectService,
+    val objectSearchService: ObjectSearchService,
     val nodeService: StorageNodeService
 ) extends MusitController {
 
@@ -55,13 +56,13 @@ class ObjectController @Inject()(
   def search(
       mid: Int,
       collectionIds: String,
-      page: Int,
+      from: Int,
       limit: Int = defaultLimit,
       museumNo: Option[String],
       subNo: Option[String],
       term: Option[String]
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    implicit val currUser = request.user
+    implicit val currUser: AuthenticatedUser = request.user
 
     parseCollectionIdsParam(mid, collectionIds) match {
       case Left(res) => Future.successful(res)
@@ -79,14 +80,16 @@ class ObjectController @Inject()(
           val sno = subNo.map(SubNo.apply)
           val lim = calcLimit(limit)
 
-          objService.search(mid, cids, page, lim, mno, sno, term).map {
-            case MusitSuccess(res) =>
-              Ok(Json.toJson[ObjectSearchResult](res))
+          objectSearchService
+            .restrictedObjectSearch(mid, cids, from, lim, mno, sno, term, None)
+            .map {
+              case MusitSuccess(res) =>
+                Ok(res.raw)
 
-            case err: MusitError =>
-              logger.error(err.message)
-              internalErr(err)
-          }
+              case err: MusitError =>
+                logger.error(err.message)
+                internalErr(err)
+            }
         }
     }
   }
@@ -144,7 +147,7 @@ class ObjectController @Inject()(
       page: Int,
       limit: Int = defaultLimit
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    implicit val currUser = request.user
+    implicit val currUser: AuthenticatedUser = request.user
 
     StorageNodeId
       .fromString(nodeId)
@@ -192,7 +195,7 @@ class ObjectController @Inject()(
       oldBarcode: Long,
       collectionIds: String
   ) = MusitSecureAction(mid, Read).async { request =>
-    implicit val currUser = request.user
+    implicit val currUser: AuthenticatedUser = request.user
 
     parseCollectionIdsParam(mid, collectionIds) match {
       case Left(res) => Future.successful(res)
@@ -213,7 +216,7 @@ class ObjectController @Inject()(
       objectUUID: String,
       collectionIds: String
   ) = MusitSecureAction(mid, Read).async { request =>
-    implicit val currUser = request.user
+    implicit val currUser: AuthenticatedUser = request.user
 
     parseCollectionIdsParam(mid, collectionIds) match {
       case Left(res) => Future.successful(res)
