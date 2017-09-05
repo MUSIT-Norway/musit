@@ -22,8 +22,7 @@ import scala.concurrent.duration.DurationDouble
  * the rest of the application.
  */
 @Singleton
-class ElasticsearchService @Inject(
-  )(
+class ElasticsearchIndexService @Inject()(
     indexAnalysisEvents: IndexEvents,
     indexMusitObjects: IndexObjects,
     indexMaintainer: IndexMaintainer,
