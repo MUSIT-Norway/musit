@@ -14,7 +14,8 @@ class ObjectControllerIntegrationSpec
     extends MusitSpecWithServerPerSuite
     with NodeTestData {
 
-  val fakeToken = BearerToken(FakeUsers.testUserToken)
+  val fakeToken  = BearerToken(FakeUsers.testUserToken)
+  val guestToken = BearerToken(FakeUsers.fakeGuestToken)
 
   val archeologyCollection  = "2e4f2455-1b3b-4a04-80a1-ba92715ff613"
   val numismaticsCollection = "8bbdf9b3-56d1-479a-9509-2ea82842e8f8"
