@@ -1,7 +1,7 @@
 package controllers.storage
 
 import com.google.inject.{Inject, Singleton}
-import controllers.invaludUuidResponse
+import controllers.invalidUuidResponse
 import models.storage.event.control.Control
 import models.storage.event.observation.Observation
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
@@ -52,7 +52,7 @@ class EventController @Inject()(
             Future.successful(BadRequest(JsError.toJson(errors)))
         }
       }
-      .getOrElse(invaludUuidResponse(nodeId))
+      .getOrElse(invalidUuidResponse(nodeId))
   }
 
   /**
@@ -81,7 +81,7 @@ class EventController @Inject()(
             Future.successful(BadRequest(JsError.toJson(errors)))
         }
       }
-      .getOrElse(invaludUuidResponse(nodeId))
+      .getOrElse(invalidUuidResponse(nodeId))
   }
 
   /**
@@ -110,7 +110,7 @@ class EventController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse(invaludUuidResponse(nodeId))
+      .getOrElse(invalidUuidResponse(nodeId))
   }
 
   /**
@@ -138,7 +138,7 @@ class EventController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse(invaludUuidResponse(nodeId))
+      .getOrElse(invalidUuidResponse(nodeId))
   }
 
   /**
@@ -161,7 +161,7 @@ class EventController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse(invaludUuidResponse(nodeId))
+      .getOrElse(invalidUuidResponse(nodeId))
   }
 
   /**
@@ -184,7 +184,7 @@ class EventController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse(invaludUuidResponse(nodeId))
+      .getOrElse(invalidUuidResponse(nodeId))
   }
 
   /**
@@ -235,7 +235,7 @@ class EventController @Inject()(
 
         }
       }
-      .getOrElse(invaludUuidResponse(nodeId))
+      .getOrElse(invalidUuidResponse(nodeId))
   }
 
 }

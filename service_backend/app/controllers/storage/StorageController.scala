@@ -1,7 +1,7 @@
 package controllers.storage
 
 import com.google.inject.Inject
-import controllers.invaludUuidResponse
+import controllers.invalidUuidResponse
 import models.storage.MovableObject
 import models.storage.Move.{DelphiMoveCmd, MoveNodesCmd, MoveObjectsCmd}
 import models.storage.event.move._
@@ -161,7 +161,7 @@ final class StorageController @Inject()(
             InternalServerError(Json.obj("message" -> musitError.message))
         }
       }
-      .getOrElse(invaludUuidResponse(id))
+      .getOrElse(invalidUuidResponse(id))
   }
 
   private def getByStorageNodeId(
@@ -185,7 +185,7 @@ final class StorageController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse(invaludUuidResponse(nodeId))
+      .getOrElse(invalidUuidResponse(nodeId))
   }
 
   private def getByOldBarcode(
@@ -263,7 +263,7 @@ final class StorageController @Inject()(
             Future.successful(BadRequest(JsError.toJson(error)))
         }
       }
-      .getOrElse(invaludUuidResponse(id))
+      .getOrElse(invalidUuidResponse(id))
   }
 
   /**
@@ -302,7 +302,7 @@ final class StorageController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse(invaludUuidResponse(id))
+      .getOrElse(invalidUuidResponse(id))
   }
 
   /**
@@ -484,7 +484,7 @@ final class StorageController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse(invaludUuidResponse(objectId))
+      .getOrElse(invalidUuidResponse(objectId))
   }
 
   /**
@@ -529,7 +529,7 @@ final class StorageController @Inject()(
             )
           }
       }
-      .getOrElse(invaludUuidResponse(objectId))
+      .getOrElse(invalidUuidResponse(objectId))
   }
 
   /**

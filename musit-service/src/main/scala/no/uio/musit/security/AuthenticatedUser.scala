@@ -60,6 +60,10 @@ case class AuthenticatedUser(
     }
   }
 
+  def authorizeForModule(module: ModuleConstraint): MusitResult[Unit] =
+    if (groups.exists(_.module == module)) MusitSuccess(())
+    else MusitNotAuthorized()
+
   def isAuthorized(museumId: MuseumId): Boolean = {
     hasGodMode || Museum.fromMuseumId(museumId).exists(isAuthorizedFor)
   }

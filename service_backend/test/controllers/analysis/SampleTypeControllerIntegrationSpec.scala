@@ -11,8 +11,9 @@ class SampleTypeControllerIntegrationSpec
     extends MusitSpecWithServerPerSuite
     with DateTimeMatchers {
 
-  val mid   = MuseumId(99)
-  val token = BearerToken(FakeUsers.testAdminToken)
+  val mid       = MuseumId(99)
+  val token     = BearerToken(FakeUsers.testAdminToken)
+  val tokenTest = BearerToken(FakeUsers.testUserToken)
 
   val sampleTypeUrl = s"/sampletypes"
 
@@ -23,6 +24,12 @@ class SampleTypeControllerIntegrationSpec
       res.status mustBe OK
       val sampleTypes = res.json.as[JsArray].value
       sampleTypes.size mustBe 51
+    }
+
+    "return 403 Forbidden when trying to list all sampleTypes without access to the module" in {
+      val res = wsUrl(sampleTypeUrl).withHttpHeaders(tokenTest.asHeader).get().futureValue
+      res.status mustBe FORBIDDEN
+
     }
 
   }

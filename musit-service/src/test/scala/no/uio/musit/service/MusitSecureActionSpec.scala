@@ -184,6 +184,22 @@ class MusitSecureActionSpec extends MusitSpecWithAppPerSuite {
         status(res) mustEqual FORBIDDEN
       }
 
+      "accept requests if the user has access to the module" in {
+        val userId = FakeUsers.testUserId
+        val token  = BearerToken(FakeUsers.testUserToken)
+
+        val action = new Dummy().MusitSecureAction(CollectionManagement) { request =>
+          request.token mustBe token
+          request.user.userInfo.id.asString mustBe userId
+          Ok(request.user.userInfo.id.asString)
+        }
+
+        val req = FakeRequest(GET, "/").withHeaders(token.asHeader)
+        val res = call(action, req)
+
+        status(res) mustEqual FORBIDDEN
+      }
+
     }
 
     "used with Admin restrictions on a controller" should {

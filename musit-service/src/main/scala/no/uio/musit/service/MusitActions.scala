@@ -143,7 +143,14 @@ trait MusitActions {
             if (museumId.isDefined) {
               Left(BadRequest(Json.obj("message" -> s"Unknown museum $museumId")))
             } else {
-              Right(MusitRequest(authUser, token, museum, request))
+              module.map { m =>
+                authUser
+                  .authorizeForModule(m)
+                  .map { _ =>
+                    Right(MusitRequest(authUser, token, museum, request))
+                  }
+                  .getOrElse(Left(Forbidden))
+              }.getOrElse(Right(MusitRequest(authUser, token, museum, request)))
             }
         }
       }
