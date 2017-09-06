@@ -8,6 +8,7 @@ import models.elasticsearch._
 import com.sksamuel.elastic4s.playjson._
 import no.uio.musit.models.MuseumCollections.{Collection, Ethnography, Moss}
 import no.uio.musit.models.{EventId, EventTypeId, MuseumCollection, MuseumId}
+import no.uio.musit.test.matchers.MusitResultValues
 import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy
 import org.scalatest.BeforeAndAfterAll
@@ -23,7 +24,8 @@ class EventSearchServiceSpec
     extends MusitSpecWithAppPerSuite
     with Eventually
     with BeforeAndAfterAll
-    with BaseDummyData {
+    with BaseDummyData
+    with MusitResultValues {
 
   private[this] val client          = fromInstanceCache[HttpClient]
   private[this] val indexMaintainer = fromInstanceCache[IndexMaintainer]
@@ -56,12 +58,15 @@ class EventSearchServiceSpec
     "only return documents to the with the right museums id and collection" taggedAs ElasticsearchContainer in {
       val res = service
         .restrictedEventsSearch(
-          museum1,
+          mid = museum1,
           collectionIds = Seq(MuseumCollection(collection1.uuid, None, Seq())),
-          None
+          from = 0,
+          limit = 10,
+          queryStr = None
         )
-        .map(_.response)
         .futureValue
+        .successValue
+        .response
 
       res.hits.hits.map(toEventId) must contain only (evtId_10, evtId_11, evtId_12)
     }
@@ -69,12 +74,15 @@ class EventSearchServiceSpec
     "search should return a subset" taggedAs ElasticsearchContainer in {
       val res = service
         .restrictedEventsSearch(
-          museum1,
+          mid = museum1,
           collectionIds = Seq(MuseumCollection(collection1.uuid, None, Seq())),
-          Some(""" id:11 AND _type:"analysis" """)
+          from = 0,
+          limit = 10,
+          queryStr = Some(""" id:11 AND _type:"analysis" """)
         )
-        .map(_.response)
         .futureValue
+        .successValue
+        .response
 
       // id 10 comes from that we're searching in paren/child for the query as well.
       // This isn't wrong but we should probably adjust the score/boost.
@@ -84,12 +92,15 @@ class EventSearchServiceSpec
     "not by pass the authorization in `q`" taggedAs ElasticsearchContainer in {
       val res = service
         .restrictedEventsSearch(
-          museum1,
+          mid = museum1,
           collectionIds = Seq(MuseumCollection(collection1.uuid, None, Seq())),
-          Some(s"collection.uuid: ${collection2.uuid}")
+          from = 0,
+          limit = 10,
+          queryStr = Some(s"collection.uuid: ${collection2.uuid}")
         )
-        .map(_.response)
         .futureValue
+        .successValue
+        .response
 
       res.hits.hits.map(toEventId) must contain noneOf (
         evtId_20, evtId_21, evtId_22,
@@ -100,12 +111,15 @@ class EventSearchServiceSpec
     "analysisCollection should include `inner-hits` from `analysis`" taggedAs ElasticsearchContainer in {
       val res = service
         .restrictedEventsSearch(
-          museum1,
+          mid = museum1,
           collectionIds = Seq(MuseumCollection(collection1.uuid, None, Seq())),
-          None
+          from = 0,
+          limit = 10,
+          queryStr = None
         )
-        .map(_.response)
         .futureValue
+        .successValue
+        .response
 
       val innerHits =
         findInnerHit(res, evtId_11, EventSearchService.analysisCollectionInnerHitName)
@@ -116,12 +130,15 @@ class EventSearchServiceSpec
     "analysis should include `inner-hits` from `analysis collection`" taggedAs ElasticsearchContainer in {
       val res = service
         .restrictedEventsSearch(
-          museum1,
+          mid = museum1,
           collectionIds = Seq(MuseumCollection(collection1.uuid, None, Seq())),
-          None
+          from = 0,
+          limit = 10,
+          queryStr = None
         )
-        .map(_.response)
         .futureValue
+        .successValue
+        .response
 
       val innerHits =
         findInnerHit(res, evtId_10, EventSearchService.analyseInnerHitName)

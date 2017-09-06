@@ -106,7 +106,7 @@ class ObjectController @Inject()(
       mainObjectId: String,
       collectionIds: String
   ) = MusitSecureAction(mid, Read).async { implicit request =>
-    implicit val currUser = request.user
+    implicit val currUser: AuthenticatedUser = request.user
 
     ObjectUUID
       .fromString(mainObjectId)
