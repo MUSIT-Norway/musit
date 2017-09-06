@@ -16,7 +16,7 @@ class SampleTypeController @Inject()(
 ) extends MusitController {
 
   def getSampleTypeList =
-    MusitSecureAction(CollectionManagement).async { implicit request =>
+    MusitSecureAction().async { implicit request =>
       sampleTypeService.getSampleTypeList.map {
         case MusitSuccess(t) => listAsPlayResult(t)
         case err: MusitError => internalErr(err)
