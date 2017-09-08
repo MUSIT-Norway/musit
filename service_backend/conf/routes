@@ -111,7 +111,7 @@ GET           /:mid/analyses/categories                                      con
 # Analysis endpoints
 POST          /:mid/analyses                                                 controllers.analysis.AnalysisController.saveAnalysisEvent(mid: Int)
 GET           /:mid/analyses                                                 controllers.analysis.AnalysisController.getAnalysisEvents(mid: Int, collectionIds: String)
-GET           /:mid/analuses/search                                          controllers.analysis.AnalysisController.search(mid: Int, collectionIds: String, q: Option[String], from: Int ?= 0, limit: Int ?=25)
+GET           /:mid/analyses/search                                          controllers.analysis.AnalysisController.search(mid: Int, collectionIds: String, q: Option[String], from: Int ?= 0, limit: Int ?=25)
 GET           /:mid/analyses/:id                                             controllers.analysis.AnalysisController.getAnalysisById(mid: Int, id: Long)
 PUT           /:mid/analyses/:id                                             controllers.analysis.AnalysisController.updateAnalysisEvent(mid: Int, id: Long)
 GET           /:mid/analyses/:id/children                                    controllers.analysis.AnalysisController.getChildAnalyses(mid: Int, id: Long)
