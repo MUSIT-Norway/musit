@@ -78,9 +78,9 @@ object Dependencies {
   }
 
   // Symbiotic dependencies
-  val symbiotic: Seq[ModuleID] = {
-    val symbioticVersion = "0.1.7-SNAPSHOT"
-    val libs = Seq(
+  object Symbiotic {
+    val symbioticVersion = "0.1.8-SNAPSHOT"
+    val artifacts = Seq(
       "symbiotic-play",
       "symbiotic-json",
       "symbiotic-core",
@@ -88,7 +88,9 @@ object Dependencies {
       "symbiotic-elasticsearch"
     )
 
-    libs.map("net.scalytica" %% _ % symbioticVersion)
+    val libs: Seq[ModuleID] = artifacts.map("net.scalytica" %% _ % symbioticVersion)
+
+    val testkit = "net.scalytica" %% "symbiotic-testkit" % symbioticVersion % Test
   }
 
   val playDependencies: Seq[ModuleID] = Seq(

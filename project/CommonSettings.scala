@@ -60,6 +60,12 @@ object CommonSettings {
     sources in (Compile, doc) := Seq.empty
   )
 
+  lazy val AllTests       = config("allTests") extend Test
+  lazy val ContainerTests = config("containerTests") extend Test
+
+  def testArg(key: String, value: String) =
+    Tests.Argument(TestFrameworks.ScalaTest, key, value)
+
   // scalastyle:off
   def BaseProject(projName: String): Project =
     Project(projName, file(projName))
@@ -89,6 +95,21 @@ object CommonSettings {
         BuildInfoPlugin,
         SbtNativePackager,
         DockerPlugin
+      )
+      .configs(AllTests, ContainerTests)
+      .settings(
+        inConfig(ContainerTests)(Defaults.testTasks),
+        inConfig(AllTests)(Defaults.testTasks),
+        testOptions in Test := Seq(
+          // exclude
+          testArg("-l", "musit.ElasticsearchContainer")
+        ),
+        testOptions in ContainerTests := Seq(
+          // include
+          testArg("-n", "musit.ElasticsearchContainer"),
+          testArg("-n", "musit.PostgresContainer")
+        ),
+        testOptions in AllTests := Seq()
       )
       .settings(
         dependencyOverrides += "com.typesafe.play" %% "play-logback" % Dependencies.PlayFrameWork.version

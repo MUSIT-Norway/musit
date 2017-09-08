@@ -1,7 +1,7 @@
 package models.document
 
 import net.scalytica.symbiotic.api.types.IdOps
-import net.scalytica.symbiotic.api.types.PartyBaseTypes.{OrgId, UserId}
+import net.scalytica.symbiotic.api.types.PartyBaseTypes.{OrgId, PartyId, UserId}
 import no.uio.musit.models.{ActorId, CollectionUUID, MuseumId}
 
 object ArchiveIdentifiers {
@@ -71,6 +71,12 @@ object ArchiveIdentifiers {
     // Implicit converters to help working with the ArchiveCollectionId
 
     override implicit def asId(s: String): ArchiveCollectionId = ArchiveCollectionId(s)
+
+    implicit def fromOptPartyId(mpid: Option[PartyId]): Option[ArchiveCollectionId] =
+      mpid.map(pid => ArchiveCollectionId(pid.value))
+
+    implicit def optCidAsId(ocid: Option[CollectionUUID]): Option[ArchiveCollectionId] =
+      ocid.map(cid => cid: CollectionUUID)
 
     implicit def cidAsId(cid: CollectionUUID): ArchiveCollectionId =
       ArchiveCollectionId(cid)

@@ -5,8 +5,9 @@ import models.document.ArchiveIdentifiers._
 import models.document.Archiveables.ArchiveFolderItem
 import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.Implicits._
 import net.scalytica.symbiotic.api.types.PersistentType.UserStamp
-import net.scalytica.symbiotic.api.types.ResourceOwner.{Owner, UserOwner}
+import net.scalytica.symbiotic.api.types.ResourceParties.{Owner, Usr}
 import net.scalytica.symbiotic.api.types.{FileId, Folder, Lock, Path}
+import no.uio.musit.models.MuseumCollections
 import org.joda.time.DateTime
 import org.scalatest.{MustMatchers, OptionValues, WordSpec}
 
@@ -21,6 +22,7 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
       String,
       Option[String],
       Option[Owner],
+      Option[ArchiveCollectionId],
       Option[Path],
       Option[Lock],
       Boolean,
@@ -39,7 +41,8 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
     fid,
     title,
     description,
-    Some(Owner(archUser, UserOwner)),
+    Some(Owner(archUser, Usr)),
+    Some(MuseumCollections.Archeology.uuid),
     Some(Path("/foo/bar/baz")),
     Some(Lock(archUser, timestamp.plusDays(2))),
     false,
@@ -77,16 +80,19 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
       actual.uploadDate mustBe expected.createdStamp.map(_.date)
       actual.length mustBe None
       actual.stream mustBe None
-      actual.metadata.owner mustBe expected.owner
-      actual.metadata.fid mustBe expected.fid
-      actual.metadata.uploadedBy mustBe expected.createdStamp.map(_.by)
-      actual.metadata.version mustBe 1
-      actual.metadata.isFolder mustBe Some(true)
-      actual.metadata.path mustBe expected.path
-      actual.metadata.description mustBe expected.description
-      actual.metadata.lock mustBe expected.lock
 
-      val e = actual.metadata.extraAttributes.value
+      val md = actual.metadata
+      md.owner mustBe expected.owner
+      md.accessibleBy.headOption.map(_.id.value) mustBe expected.collection.map(_.value)
+      md.fid mustBe expected.fid
+      md.uploadedBy mustBe expected.createdStamp.map(_.by)
+      md.version mustBe 1
+      md.isFolder mustBe Some(true)
+      md.path mustBe expected.path
+      md.description mustBe expected.description
+      md.lock mustBe expected.lock
+
+      val e = md.extraAttributes.value
       e.getAs[Boolean]("published") mustBe Some(expected.published)
       e.getAs[String]("documentMedium") mustBe expected.documentMedium
       e.getAs[DateTime]("closedDate") mustBe expected.closedStamp.map(_.date)
@@ -119,16 +125,19 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
       actual.uploadDate mustBe expected.createdStamp.map(_.date)
       actual.length mustBe None
       actual.stream mustBe None
-      actual.metadata.owner mustBe expected.owner
-      actual.metadata.fid mustBe expected.fid
-      actual.metadata.uploadedBy mustBe expected.createdStamp.map(_.by)
-      actual.metadata.version mustBe 1
-      actual.metadata.isFolder mustBe Some(true)
-      actual.metadata.path mustBe expected.path
-      actual.metadata.description mustBe expected.description
-      actual.metadata.lock mustBe expected.lock
 
-      val e = actual.metadata.extraAttributes.value
+      val md = actual.metadata
+      md.owner mustBe expected.owner
+      md.accessibleBy.headOption.map(_.id.value) mustBe expected.collection.map(_.value)
+      md.fid mustBe expected.fid
+      md.uploadedBy mustBe expected.createdStamp.map(_.by)
+      md.version mustBe 1
+      md.isFolder mustBe Some(true)
+      md.path mustBe expected.path
+      md.description mustBe expected.description
+      md.lock mustBe expected.lock
+
+      val e = md.extraAttributes.value
       e.getAs[Boolean]("published") mustBe Some(expected.published)
       e.getAs[String]("documentMedium") mustBe expected.documentMedium
       e.getAs[DateTime]("closedDate") mustBe expected.closedStamp.map(_.date)
@@ -161,16 +170,19 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
       actual.uploadDate mustBe expected.createdStamp.map(_.date)
       actual.length mustBe None
       actual.stream mustBe None
-      actual.metadata.owner mustBe expected.owner
-      actual.metadata.fid mustBe expected.fid
-      actual.metadata.uploadedBy mustBe expected.createdStamp.map(_.by)
-      actual.metadata.version mustBe 1
-      actual.metadata.isFolder mustBe Some(true)
-      actual.metadata.path mustBe expected.path
-      actual.metadata.description mustBe expected.description
-      actual.metadata.lock mustBe expected.lock
 
-      val e = actual.metadata.extraAttributes.value
+      val md = actual.metadata
+      md.owner mustBe expected.owner
+      md.accessibleBy.headOption.map(_.id.value) mustBe expected.collection.map(_.value)
+      md.fid mustBe expected.fid
+      md.uploadedBy mustBe expected.createdStamp.map(_.by)
+      md.version mustBe 1
+      md.isFolder mustBe Some(true)
+      md.path mustBe expected.path
+      md.description mustBe expected.description
+      md.lock mustBe expected.lock
+
+      val e = md.extraAttributes.value
       e.getAs[Boolean]("published") mustBe Some(expected.published)
       e.getAs[String]("documentMedium") mustBe expected.documentMedium
       e.getAs[DateTime]("closedDate") mustBe expected.closedStamp.map(_.date)

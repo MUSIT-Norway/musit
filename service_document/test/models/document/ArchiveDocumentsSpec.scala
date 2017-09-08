@@ -1,12 +1,13 @@
 package models.document
 
-import models.document.ArchiveDocuments.ArchiveDocument
 import models.document.ArchiveIdentifiers._
+import models.document.ArchiveTypes.ArchiveDocument
 import models.document.Archiveables.DocumentDetails
 import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.Implicits._
 import net.scalytica.symbiotic.api.types.PersistentType.UserStamp
-import net.scalytica.symbiotic.api.types.ResourceOwner.{OrgOwner, Owner}
+import net.scalytica.symbiotic.api.types.ResourceParties.{Org, Owner}
 import net.scalytica.symbiotic.api.types.{File, FileId, Lock, Path}
+import no.uio.musit.models.MuseumCollections
 import org.joda.time.DateTime
 import org.scalatest.{MustMatchers, OptionValues, WordSpec}
 
@@ -25,9 +26,10 @@ class ArchiveDocumentsSpec extends WordSpec with MustMatchers with OptionValues 
     owner = Some(
       Owner(
         ArchiveOwnerId.create(),
-        ownerType = OrgOwner
+        tpe = Org
       )
     ),
+    collection = Some(MuseumCollections.Archeology.uuid),
     path = Some(Path.root),
     lock = Some(
       Lock(
@@ -64,16 +66,19 @@ class ArchiveDocumentsSpec extends WordSpec with MustMatchers with OptionValues 
       symFile.uploadDate mustBe doc.createdStamp.map(_.date)
       symFile.length mustBe doc.size
       symFile.stream mustBe None
-      symFile.metadata.owner mustBe doc.owner
-      symFile.metadata.fid mustBe doc.fid
-      symFile.metadata.uploadedBy mustBe doc.createdStamp.map(_.by)
-      symFile.metadata.version mustBe doc.version
-      symFile.metadata.isFolder mustBe Some(false)
-      symFile.metadata.path mustBe doc.path
-      symFile.metadata.description mustBe doc.description
-      symFile.metadata.lock mustBe doc.lock
 
-      val symExtAttr = symFile.metadata.extraAttributes.value
+      val md = symFile.metadata
+      md.owner mustBe doc.owner
+      md.accessibleBy.headOption.map(_.id.value) mustBe doc.collection.map(_.value)
+      md.fid mustBe doc.fid
+      md.uploadedBy mustBe doc.createdStamp.map(_.by)
+      md.version mustBe doc.version
+      md.isFolder mustBe Some(false)
+      md.path mustBe doc.path
+      md.description mustBe doc.description
+      md.lock mustBe doc.lock
+
+      val symExtAttr = md.extraAttributes.value
       symExtAttr.getAs[Boolean]("published") mustBe Some(doc.published)
       symExtAttr.getAs[String]("documentMedium") mustBe doc.documentMedium
       symExtAttr.getAs[Int]("documentNumber") mustBe Some(doc.documentDetails.number)

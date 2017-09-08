@@ -1,9 +1,9 @@
 package services
 
 import com.google.inject.{Inject, Singleton}
-import models.document.ArchiveContext
+import models.document.{ArchiveAddContext, ArchiveContext}
 import models.document.ArchiveTypes.Implicits._
-import models.document.ArchiveTypes.{Archive, ArchiveDocument, ArchiveFolder, ArchivePart}
+import models.document.ArchiveTypes._
 import models.document.Archiveables.{ArchiveFolderItem, ArchiveItem}
 import net.scalytica.symbiotic.api.types.{FileId, FolderId, Lock, Path}
 import net.scalytica.symbiotic.core.DocManagementService
@@ -34,11 +34,17 @@ class DocumentArchiveService @Inject()(
 
   def initRootFor(
       mid: MuseumId
-  )(implicit ac: ArchiveContext): Future[MusitResult[Option[FolderId]]] = {
+  )(implicit ac: ArchiveAddContext): Future[MusitResult[Option[FolderId]]] = {
     dmService.createRootFolder.map(MusitSuccess.apply)
   }
 
-  def getRootFor(
+  def rootFolder(
+      mid: MuseumId
+  )(implicit ac: ArchiveContext): Future[MusitResult[Option[ArchiveRoot]]] = {
+    dmService.folder(Path.root).map(mr => MusitSuccess(mr.map(f => f: ArchiveRoot)))
+  }
+
+  def getRootTreeFor(
       mid: MuseumId,
       includeFiles: Boolean
   )(implicit ac: ArchiveContext): Future[MusitResult[Seq[ArchiveItem]]] = {
@@ -49,25 +55,59 @@ class DocumentArchiveService @Inject()(
     ftree.map(tree => MusitSuccess(tree))
   }
 
+  def foo(
+      afi: ArchiveFolderItem
+  )(implicit ac: ArchiveAddContext): Future[MusitResult[Option[FolderId]]] = {
+    val enriched = afi.enrich()
+    logger.debug(
+      "==================================================\n" +
+        s"Folder was enriched with owner and creation info:" +
+        s"\n${enriched}" +
+        "=================================================="
+    )
+    dmService
+      .createFolder(enriched)
+      .map { mfid =>
+        logger.debug(s"Folder was created with $mfid")
+        MusitSuccess(mfid)
+      }
+      .recover {
+        case ex =>
+          logger.error("BUUUHUUUUUU", ex)
+          throw ex
+      }
+  }
+
+//  scalastyle:off
   def addFolder(
       mid: MuseumId,
       dest: FolderId,
       afi: ArchiveFolderItem
-  )(implicit ac: ArchiveContext): Future[MusitResult[Option[FolderId]]] = {
+  )(implicit ac: ArchiveAddContext): Future[MusitResult[Option[FolderId]]] = {
     afi.path.map { p =>
       dmService.folderExists(p).flatMap { exists =>
         if (!exists) {
           dmService.folder(dest).flatMap { mdf =>
+            logger.debug(
+              s"Destination folder is: ${mdf.map(f => (f.filename, f.metadata.fid))}"
+            )
             mdf.map { df =>
               if (df.isValidParentFor(afi)) {
-                dmService.createFolder(afi).map(MusitSuccess.apply)
+                // Ensure that the owner and created stamps are set to the
+                // values specified in the current context
+                foo(afi)
               } else {
+                logger.debug("Destination folder is NOT valid")
                 generalErrorF(
                   s"${df.flattenPath} is an invalid location for ${afi.getClass}"
                 )
               }
             }.getOrElse {
-              generalErrorF("Cannot add folder to destination because it doesn't exist.")
+              generalErrorF(
+                "Cannot add folder to destination because " +
+                  "1) it doesn't exist " +
+                  "2) insufficient priveleges."
+              )
             }
           }
         } else {
@@ -271,5 +311,7 @@ class DocumentArchiveService @Inject()(
 
     res.value.map(MusitSuccess.apply)
   }
+
+  // TODO: Add service methods for file upload
 
 }

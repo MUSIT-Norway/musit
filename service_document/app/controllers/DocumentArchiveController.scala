@@ -26,15 +26,16 @@ class DocumentArchiveController @Inject()(
     MusitSecureAction().async { implicit request =>
       implicit val ctx = ArchiveContext(request.user, mid)
 
-      docService.getRootFor(mid, includeFiles).map {
+      docService.getRootTreeFor(mid, includeFiles).map {
         case MusitSuccess(tree)     => ???
         case MusitGeneralError(msg) => ???
         case err: MusitError        => ???
       }
     }
 
-  def addFolder(mid: Int, destFolderId: String) =
+  def addFolder(mid: Int, destFolderId: String, collectionId: Option[String]) =
     MusitSecureAction().async(parse.json) { implicit request =>
+      // TODO: Verify that the user has access to collectionId
       implicit val ctx = ArchiveContext(request.user, mid)
       ???
     }
@@ -81,12 +82,6 @@ class DocumentArchiveController @Inject()(
       ???
     }
 
-  def uploadToFolder(mid: Int, folderId: String) =
-    MusitSecureAction().async(parse.multipartFormData) { implicit request =>
-      implicit val ctx = ArchiveContext(request.user, mid)
-      ???
-    }
-
   def getPathsFrom(mid: Int, folderId: String) =
     MusitSecureAction().async { implicit request =>
       implicit val ctx = ArchiveContext(request.user, mid)
@@ -103,8 +98,16 @@ class DocumentArchiveController @Inject()(
   // File specific endpoints
   // ---------------------------------------------------------------------------
 
-  def uploadToPath(mid: Int, path: String) =
+  def uploadToFolder(mid: Int, folderId: String, collectionId: Option[String]) =
     MusitSecureAction().async(parse.multipartFormData) { implicit request =>
+      // TODO: Verify that the user has access to collectionId
+      implicit val ctx = ArchiveContext(request.user, mid)
+      ???
+    }
+
+  def uploadToPath(mid: Int, path: String, collectionId: Option[String]) =
+    MusitSecureAction().async(parse.multipartFormData) { implicit request =>
+      // TODO: Verify that the user has access to collectionId
       implicit val ctx = ArchiveContext(request.user, mid)
       ???
     }

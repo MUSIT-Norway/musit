@@ -1,9 +1,10 @@
 package models.document
 
+import models.document.ArchiveIdentifiers.ArchiveCollectionId
 import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.Implicits._
 import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.MetadataMap
 import net.scalytica.symbiotic.api.types.PersistentType.UserStamp
-import net.scalytica.symbiotic.api.types.ResourceOwner.Owner
+import net.scalytica.symbiotic.api.types.ResourceParties.{AllowedParty, Owner}
 import net.scalytica.symbiotic.api.types._
 
 object Archiveables {
@@ -27,6 +28,8 @@ object Archiveables {
     val createdStamp: Option[UserStamp]
     val published: Boolean
 
+    val collection: Option[ArchiveCollectionId]
+
     // restrictions / "klausulering" here or in document?
 
     // val storageLocation: Option[StorageNodeId] ???
@@ -40,6 +43,10 @@ object Archiveables {
     def managedMetadata: ManagedMetadata = {
       ManagedMetadata(
         owner = owner,
+        accessibleBy = owner
+          .map(o => AllowedParty(o.id))
+          .toSeq ++ collection.map(p => AllowedParty(p))
+          .toSeq,
         fid = fid,
         uploadedBy = createdStamp.map(_.by),
         isFolder = Some(true),
@@ -56,6 +63,9 @@ object Archiveables {
         "documentMedium" -> documentMedium
       )
     }
+
+    def enrich()(implicit ctx: ArchiveAddContext): ArchiveItem
+
   }
 
   /**
@@ -74,6 +84,8 @@ object Archiveables {
     }
 
     def isValidParentFor(fi: ArchiveFolderItem): Boolean
+
+    def enrich()(implicit ctx: ArchiveAddContext): ArchiveFolderItem
 
   }
 
@@ -115,6 +127,7 @@ object Archiveables {
     override def managedMetadata: ManagedMetadata = {
       ManagedMetadata(
         owner = owner,
+        accessibleBy = collection.map(p => AllowedParty(p)).toSeq,
         fid = fid,
         uploadedBy = createdStamp.map(_.by),
         isFolder = Some(false),
@@ -129,6 +142,8 @@ object Archiveables {
       super.metadataMap ++
         documentDetails ++
         MetadataMap("author" -> author)
+
+    def enrich()(implicit ctx: ArchiveAddContext): ArchiveDocumentItem
 
   }
 

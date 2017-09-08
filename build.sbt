@@ -110,7 +110,8 @@ lazy val serviceBackend = (
 lazy val serviceDocument = (
   PlayProject("service_document")
     settings (libraryDependencies ++= testablePlayWithPersistenceDependencies)
-    settings (libraryDependencies ++= symbiotic)
+    settings (libraryDependencies ++= Symbiotic.libs)
+    settings (libraryDependencies += Symbiotic.testkit)
     settings (routesGenerator := InjectedRoutesGenerator)
     settings (packageName in Docker := "musit_service_document")
-  ) dependsOn (musitService, musitTest % Test)
+) dependsOn (musitService, musitTest % Test)

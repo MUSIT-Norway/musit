@@ -4,8 +4,9 @@ import models.document.ArchiveIdentifiers._
 import models.document.Archiveables._
 import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.Implicits._
 import net.scalytica.symbiotic.api.types.PersistentType.UserStamp
-import net.scalytica.symbiotic.api.types.ResourceOwner.Owner
+import net.scalytica.symbiotic.api.types.ResourceParties.Owner
 import net.scalytica.symbiotic.api.types._
+import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
 
 object ArchiveTypes {
@@ -16,6 +17,9 @@ object ArchiveTypes {
       case ArchivePart.FolderType   => Some(f: ArchivePart)
       case ArchiveFolder.FolderType => Some(f: ArchiveFolder)
       case _                        => None
+    }.orElse {
+      if (Path.root == f.flattenPath) Some(f: ArchiveRoot)
+      else None
     }
 
   object Implicits {
@@ -54,6 +58,50 @@ object ArchiveTypes {
     ): Seq[ArchiveItem] = smf.map(mf => mf: ArchiveItem)
   }
 
+  case class ArchiveRoot(
+      id: Option[ArchiveId],
+      fid: Option[FileId],
+      owner: Option[Owner]
+  ) extends ArchiveFolderItem {
+    val title: String                           = "root"
+    val description: Option[String]             = None
+    val collection: Option[ArchiveCollectionId] = None
+    val path: Option[Path]                      = Some(Path.root)
+    val lock: Option[Lock]                      = None
+    val published: Boolean                      = false
+    val documentMedium: Option[String]          = None
+    val closedStamp: Option[UserStamp]          = None
+    val createdStamp: Option[UserStamp]         = None
+
+    override def isValidParentFor(fi: ArchiveFolderItem): Boolean = fi match {
+      case _: Archive => true
+      case _          => false
+    }
+
+    override def enrich()(implicit ctx: ArchiveAddContext) = this.copy(
+      owner = Some(ctx.owner)
+    )
+  }
+
+  object ArchiveRoot {
+
+    implicit def archiveRoot2SymbioticRoot(ar: ArchiveRoot): Folder = {
+      Folder(
+        id = ar.id,
+        filename = ar.title,
+        metadata = ar.managedMetadata
+      )
+    }
+
+    implicit def symbioticFolder2ArchiveRoot(f: Folder): ArchiveRoot = {
+      ArchiveRoot(
+        id = f.id,
+        fid = f.metadata.fid,
+        owner = f.metadata.owner
+      )
+    }
+  }
+
   /**
    * Each Museum can 1 and only 1 Archive folder. It is the basis of the entire
    * archive structure for a given museum. An Archive node will be the first
@@ -66,7 +114,8 @@ object ArchiveTypes {
       title: String,
       description: Option[String],
       owner: Option[Owner],
-      path: Option[Path],
+      collection: Option[ArchiveCollectionId],
+      path: Option[Path], // must include its own title as the last element!
       lock: Option[Lock],
       published: Boolean,
       documentMedium: Option[String],
@@ -75,9 +124,15 @@ object ArchiveTypes {
   ) extends ArchiveFolderItem {
 
     override def isValidParentFor(fi: ArchiveFolderItem): Boolean = fi match {
-      case ap: ArchivePart => true
-      case afi             => false
+      case _: ArchivePart => true
+      case _              => false
     }
+
+    override def enrich()(implicit ctx: ArchiveAddContext) = this.copy(
+      owner = Some(ctx.owner),
+      collection = ctx.collection,
+      createdStamp = Some(UserStamp(by = ctx.currentUser, date = dateTimeNow))
+    )
 
   }
 
@@ -103,6 +158,7 @@ object ArchiveTypes {
         title = f.filename,
         description = f.metadata.description,
         owner = f.metadata.owner,
+        collection = f.metadata.accessibleBy.map(_.id).headOption,
         path = f.metadata.path,
         lock = f.metadata.lock,
         published = ea.flatMap(e => e.getAs[Boolean]("published")).getOrElse(false),
@@ -129,7 +185,8 @@ object ArchiveTypes {
       title: String,
       description: Option[String],
       owner: Option[Owner],
-      path: Option[Path],
+      collection: Option[ArchiveCollectionId],
+      path: Option[Path], // must include its own title as the last element!
       lock: Option[Lock],
       published: Boolean,
       documentMedium: Option[String],
@@ -138,10 +195,16 @@ object ArchiveTypes {
   ) extends ArchiveFolderItem {
 
     override def isValidParentFor(fi: ArchiveFolderItem): Boolean = fi match {
-      case afi: ArchiveFolder      => true
-      case ad: ArchiveDocumentItem => true
-      case _                       => false
+      case _: ArchiveFolder       => true
+      case _: ArchiveDocumentItem => true
+      case _                      => false
     }
+
+    override def enrich()(implicit ctx: ArchiveAddContext) = this.copy(
+      owner = Some(ctx.owner),
+      collection = ctx.accessibleParties.headOption,
+      createdStamp = Some(UserStamp(by = ctx.currentUser, date = dateTimeNow))
+    )
 
   }
 
@@ -167,6 +230,7 @@ object ArchiveTypes {
         title = f.filename,
         description = f.metadata.description,
         owner = f.metadata.owner,
+        collection = f.metadata.accessibleBy.map(_.id).headOption,
         path = f.metadata.path,
         lock = f.metadata.lock,
         published = ea.flatMap(e => e.getAs[Boolean]("published")).getOrElse(false),
@@ -194,7 +258,8 @@ object ArchiveTypes {
       title: String,
       description: Option[String],
       owner: Option[Owner],
-      path: Option[Path],
+      collection: Option[ArchiveCollectionId],
+      path: Option[Path], // must include its own title as the last element!
       lock: Option[Lock],
       published: Boolean,
       documentMedium: Option[String],
@@ -203,10 +268,16 @@ object ArchiveTypes {
   ) extends ArchiveFolderItem {
 
     override def isValidParentFor(fi: ArchiveFolderItem): Boolean = fi match {
-      case afi: ArchiveFolder      => true
-      case ad: ArchiveDocumentItem => true
-      case _                       => false
+      case _: ArchiveFolder       => true
+      case _: ArchiveDocumentItem => true
+      case _                      => false
     }
+
+    override def enrich()(implicit ctx: ArchiveAddContext) = this.copy(
+      owner = Some(ctx.owner),
+      collection = ctx.accessibleParties.headOption,
+      createdStamp = Some(UserStamp(by = ctx.currentUser, date = dateTimeNow))
+    )
 
   }
 
@@ -232,6 +303,7 @@ object ArchiveTypes {
         title = f.filename,
         description = f.metadata.description,
         owner = f.metadata.owner,
+        collection = f.metadata.accessibleBy.map(_.id).headOption,
         path = f.metadata.path,
         lock = f.metadata.lock,
         published = ea.flatMap(e => e.getAs[Boolean]("published")).getOrElse(false),
@@ -262,7 +334,8 @@ object ArchiveTypes {
       fileType: Option[String],
       description: Option[String],
       owner: Option[Owner],
-      path: Option[Path],
+      collection: Option[ArchiveCollectionId],
+      path: Option[Path], // must NOT include its own title as the last element!
       lock: Option[Lock],
       version: Version,
       published: Boolean,
@@ -271,7 +344,15 @@ object ArchiveTypes {
       author: Option[String],
       documentDetails: DocumentDetails,
       stream: Option[FileStream]
-  ) extends ArchiveDocumentItem
+  ) extends ArchiveDocumentItem {
+
+    override def enrich()(implicit ctx: ArchiveAddContext) = this.copy(
+      owner = Some(ctx.owner),
+      collection = ctx.accessibleParties.headOption,
+      createdStamp = Some(UserStamp(by = ctx.currentUser, date = dateTimeNow))
+    )
+
+  }
 
   object ArchiveDocument {
 
@@ -297,6 +378,7 @@ object ArchiveTypes {
         fileType = f.fileType,
         description = f.metadata.description,
         owner = f.metadata.owner,
+        collection = f.metadata.accessibleBy.map(_.id).headOption,
         path = f.metadata.path,
         lock = f.metadata.lock,
         version = f.metadata.version,
