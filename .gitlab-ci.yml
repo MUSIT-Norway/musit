@@ -26,13 +26,23 @@ test:
     MUSIT_FUTURE_INTERVAL: "50"
 
   coverage: '/\[info]\sAll\sdone\.\sCoverage\swas\s\[(.*)%\]/'
+
+  variables:
+    POSTGRES_DB: postgres
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    SYMBIOTIC_POSTGRES_HOST: "postgres"
+
+  services:
+    - name: postgres:latest
+
   script:
     - echo "Building and running tests..."
     # Check if the scalafmt modified any files during the build. If yes, fail the build.
     - sbt clean scalastyle scalafmt
     - git status
     - git diff --exit-code || (echo "ERROR Scala formatting check failed, see differences above."; false)
-    - if [[ -n "$CODACY_PROJECT_TOKEN" ]]; then echo "Running with code coverage..."; sbt coverage test coverageReport; sbt coverageAggregate; sbt codacyCoverage; else echo "Coverage reporting disabled for forks"; sbt test; fi
+    - if [[ -n "$CODACY_PROJECT_TOKEN" ]]; then echo "Running with code coverage..."; sbt coverage test coverageReport; sbt coverageAggregate; sbt codacyCoverage; else echo "Coverage reporting disabled for forks"; sbt allTests:test; fi
 
 build:
   stage: build
