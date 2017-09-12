@@ -128,7 +128,9 @@ object Archiveables {
     override def managedMetadata: ManagedMetadata = {
       ManagedMetadata(
         owner = owner,
-        accessibleBy = collection.map(p => AllowedParty(p)).toSeq,
+        accessibleBy = owner
+          .map(o => AllowedParty(o.id))
+          .toSeq ++ collection.map(p => AllowedParty(p)).toSeq,
         fid = fid,
         uploadedBy = createdStamp.map(_.by),
         isFolder = Some(false),

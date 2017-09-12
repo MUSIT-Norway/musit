@@ -69,7 +69,7 @@ class ArchiveDocumentsSpec extends WordSpec with MustMatchers with OptionValues 
 
       val md = symFile.metadata
       md.owner mustBe doc.owner
-      md.accessibleBy.headOption.map(_.id.value) mustBe doc.collection.map(_.value)
+      md.accessibleBy.tail.headOption.map(_.id.value) mustBe doc.collection.map(_.value)
       md.fid mustBe doc.fid
       md.uploadedBy mustBe doc.createdStamp.map(_.by)
       md.version mustBe doc.version

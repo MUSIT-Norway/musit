@@ -8,6 +8,7 @@ import net.scalytica.symbiotic.api.types.PersistentType.UserStamp
 import net.scalytica.symbiotic.api.types.ResourceParties.{Owner, Usr}
 import net.scalytica.symbiotic.api.types.{FileId, Folder, Lock, Path}
 import no.uio.musit.models.MuseumCollections
+import no.uio.musit.models.MuseumCollections.Archeology
 import org.joda.time.DateTime
 import org.scalatest.{MustMatchers, OptionValues, WordSpec}
 
@@ -35,14 +36,15 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
   def createArchiveFolderItem[A <: ArchiveFolderItem](
       fid: Option[FileId],
       title: String,
-      description: Option[String]
+      description: Option[String],
+      setCollection: Boolean = true
   )(init: FolderItemInit[A]) = init(
     ArchiveId.generateAsOpt(),
     fid,
     title,
     description,
     Some(Owner(archUser, Usr)),
-    Some(MuseumCollections.Archeology.uuid),
+    if (setCollection) Some(MuseumCollections.Archeology.uuid) else None,
     Some(Path("/foo/bar/baz")),
     Some(Lock(archUser, timestamp.plusDays(2))),
     false,
@@ -68,7 +70,8 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
     val expected = createArchiveFolderItem(
       fid = FileId.createOpt(),
       title = "test archive",
-      description = Some("this is a test")
+      description = Some("this is a test"),
+      setCollection = false
     )(Archive.apply)
 
     "be implicitly converted to a symbiotic Folder" in {
@@ -83,7 +86,8 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
 
       val md = actual.metadata
       md.owner mustBe expected.owner
-      md.accessibleBy.headOption.map(_.id.value) mustBe expected.collection.map(_.value)
+      md.accessibleBy.size mustBe 1
+      md.accessibleBy.headOption.map(_.id.value) mustBe Some(archUser.value)
       md.fid mustBe expected.fid
       md.uploadedBy mustBe expected.createdStamp.map(_.by)
       md.version mustBe 1
@@ -128,7 +132,7 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
 
       val md = actual.metadata
       md.owner mustBe expected.owner
-      md.accessibleBy.headOption.map(_.id.value) mustBe expected.collection.map(_.value)
+      md.accessibleBy.map(_.id.value) must contain allOf (archUser.value, Archeology.uuid.asString) // scalastyle:ignore
       md.fid mustBe expected.fid
       md.uploadedBy mustBe expected.createdStamp.map(_.by)
       md.version mustBe 1
@@ -173,7 +177,7 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
 
       val md = actual.metadata
       md.owner mustBe expected.owner
-      md.accessibleBy.headOption.map(_.id.value) mustBe expected.collection.map(_.value)
+      md.accessibleBy.map(_.id.value) must contain allOf (archUser.value, Archeology.uuid.asString) // scalastyle:ignore
       md.fid mustBe expected.fid
       md.uploadedBy mustBe expected.createdStamp.map(_.by)
       md.version mustBe 1
