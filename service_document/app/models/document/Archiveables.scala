@@ -45,8 +45,7 @@ object Archiveables {
         owner = owner,
         accessibleBy = owner
           .map(o => AllowedParty(o.id))
-          .toSeq ++ collection.map(p => AllowedParty(p))
-          .toSeq,
+          .toSeq ++ collection.map(p => AllowedParty(p)).toSeq,
         fid = fid,
         uploadedBy = createdStamp.map(_.by),
         isFolder = Some(true),
@@ -86,6 +85,8 @@ object Archiveables {
     def isValidParentFor(fi: ArchiveFolderItem): Boolean
 
     def enrich()(implicit ctx: ArchiveAddContext): ArchiveFolderItem
+
+    def updatePath(p: Path): ArchiveFolderItem
 
   }
 

@@ -11,7 +11,7 @@ import org.joda.time.DateTime
 
 object ArchiveTypes {
 
-  def folderAsArchiveFolderItem(f: Folder): Option[ArchiveFolderItem] =
+  def folderAsArchiveFolderItem(f: Folder): Option[ArchiveFolderItem] = {
     f.fileType.flatMap {
       case Archive.FolderType       => Some(f: Archive)
       case ArchivePart.FolderType   => Some(f: ArchivePart)
@@ -21,6 +21,14 @@ object ArchiveTypes {
       if (Path.root == f.flattenPath) Some(f: ArchiveRoot)
       else None
     }
+  }
+
+  def asTypeString(a: ArchiveFolderItem): String = a match {
+    case ar: ArchiveRoot   => ArchiveRoot.FolderType
+    case a: Archive        => Archive.FolderType
+    case ap: ArchivePart   => ArchivePart.FolderType
+    case af: ArchiveFolder => ArchiveFolder.FolderType
+  }
 
   object Implicits {
 
@@ -40,9 +48,10 @@ object ArchiveTypes {
 
     implicit def archiveFolderItemAsFolder(afi: ArchiveFolderItem): Folder = {
       afi match {
-        case a: Archive        => a: Folder
-        case ap: ArchivePart   => ap: Folder
-        case af: ArchiveFolder => af: Folder
+        case ar: ArchiveRoot   => ArchiveRoot.archiveRoot2SymbioticRoot(ar)
+        case ac: Archive       => Archive.archive2SymbioticFolder(ac)
+        case ap: ArchivePart   => ArchivePart.archivePart2SymbioticFolder(ap)
+        case af: ArchiveFolder => ArchiveFolder.archiveFolder2SymbioticFolder(af)
       }
     }
 
@@ -63,7 +72,7 @@ object ArchiveTypes {
       fid: Option[FileId],
       owner: Option[Owner]
   ) extends ArchiveFolderItem {
-    val title: String                           = "root"
+    val title: String                           = ArchiveRoot.FolderType
     val description: Option[String]             = None
     val collection: Option[ArchiveCollectionId] = None
     val path: Option[Path]                      = Some(Path.root)
@@ -81,9 +90,13 @@ object ArchiveTypes {
     override def enrich()(implicit ctx: ArchiveAddContext) = this.copy(
       owner = Some(ctx.owner)
     )
+
+    override def updatePath(p: Path) = this
   }
 
   object ArchiveRoot {
+
+    val FolderType = "root"
 
     implicit def archiveRoot2SymbioticRoot(ar: ArchiveRoot): Folder = {
       Folder(
@@ -133,6 +146,8 @@ object ArchiveTypes {
       collection = ctx.collection,
       createdStamp = Some(UserStamp(by = ctx.currentUser, date = dateTimeNow))
     )
+
+    override def updatePath(p: Path) = this.copy(path = Some(p))
 
   }
 
@@ -206,6 +221,8 @@ object ArchiveTypes {
       createdStamp = Some(UserStamp(by = ctx.currentUser, date = dateTimeNow))
     )
 
+    override def updatePath(p: Path) = this.copy(path = Some(p))
+
   }
 
   object ArchivePart {
@@ -278,6 +295,8 @@ object ArchiveTypes {
       collection = ctx.accessibleParties.headOption,
       createdStamp = Some(UserStamp(by = ctx.currentUser, date = dateTimeNow))
     )
+
+    override def updatePath(p: Path) = this.copy(path = Some(p))
 
   }
 

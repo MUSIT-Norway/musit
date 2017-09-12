@@ -1,7 +1,6 @@
 package utils.testdata
 
 import models.document.ArchiveTypes._
-import net.scalytica.symbiotic.api.types.Path
 import no.uio.musit.models.MuseumId
 
 trait ArchiveableGenerators {
@@ -10,8 +9,7 @@ trait ArchiveableGenerators {
   def generateArchive(
       mid: MuseumId,
       title: String,
-      desc: Option[String] = None,
-      path: Option[Path] = None
+      desc: Option[String] = None
   ): Archive = {
     Archive(
       id = None,
@@ -20,7 +18,49 @@ trait ArchiveableGenerators {
       description = desc,
       owner = None, // Will be set by DocumentArchiveService
       collection = None, // Will be set by DocumentArchiveService
-      path = path.map(_.append(title)),
+      path = None, // Will be set by DocumentArchiveService
+      lock = None,
+      published = false,
+      documentMedium = Some("digital"),
+      closedStamp = None,
+      createdStamp = None // Will be set by DocumentArchiveService
+    )
+  }
+
+  def generateArchivePart(
+      mid: MuseumId,
+      title: String,
+      desc: Option[String] = None
+  ): ArchivePart = {
+    ArchivePart(
+      id = None,
+      fid = None,
+      title = title,
+      description = desc,
+      owner = None, // Will be set by DocumentArchiveService
+      collection = None, // Will be set by DocumentArchiveService
+      path = None, // Will be set by DocumentArchiveService
+      lock = None,
+      published = false,
+      documentMedium = Some("digital"),
+      closedStamp = None,
+      createdStamp = None // Will be set by DocumentArchiveService
+    )
+  }
+
+  def generateArchiveFolder(
+      mid: MuseumId,
+      title: String,
+      desc: Option[String] = None
+  ): ArchiveFolder = {
+    ArchiveFolder(
+      id = None,
+      fid = None,
+      title = title,
+      description = desc,
+      owner = None, // Will be set by DocumentArchiveService
+      collection = None, // Will be set by DocumentArchiveService
+      path = None, // Will be set by DocumentArchiveService
       lock = None,
       published = false,
       documentMedium = Some("digital"),

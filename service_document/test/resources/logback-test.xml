@@ -11,20 +11,20 @@
     </encoder>
   </appender>
 
-  <logger name="play" level="DEBUG"/>
+  <logger name="play" level="WARN"/>
   <logger name="akka" level="ERROR"/>
   <logger name="slick.jdbc" level="OFF"/>
 
-  <logger name="net.scalytica.symbiotic" level="DEBUG"/>
+  <!--<logger name="net.scalytica.symbiotic" level="DEBUG"/>-->
   <!--<logger name="net.scalytica.symbiotic.test.specs" level="DEBUG"/>-->
   <!--<logger name="net.scalytica.symbiotic.core.DocManagementService" level="DEBUG"/>-->
-  <!--<logger name="net.scalytica.symbiotic.postgres.docmanagement" level="DEBUG"/>-->
+  <!--<logger name="net.scalytica.symbiotic.postgres" level="DEBUG"/>-->
 
   <logger name="Application" level="OFF"/>
   <logger name="no.uio.musit" level="OFF"/>
   <logger name="controllers" level="OFF"/>
   <logger name="services" level="DEBUG"/>
-  <logger name="models" level="OFF"/>
+  <logger name="models" level="DEBUG"/>
 
   <root level="ERROR">
     <appender-ref ref="STDOUT"/>

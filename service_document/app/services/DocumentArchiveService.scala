@@ -1,11 +1,11 @@
 package services
 
 import com.google.inject.{Inject, Singleton}
-import models.document.{ArchiveAddContext, ArchiveContext}
 import models.document.ArchiveTypes.Implicits._
 import models.document.ArchiveTypes._
 import models.document.Archiveables.{ArchiveFolderItem, ArchiveItem}
-import net.scalytica.symbiotic.api.types.{FileId, FolderId, Lock, Path}
+import models.document.{ArchiveAddContext, ArchiveContext}
+import net.scalytica.symbiotic.api.types._
 import net.scalytica.symbiotic.core.DocManagementService
 import no.uio.musit.MusitResults.{MusitGeneralError, MusitResult, MusitSuccess}
 import no.uio.musit.functional.Implicits.futureMonad
@@ -55,66 +55,39 @@ class DocumentArchiveService @Inject()(
     ftree.map(tree => MusitSuccess(tree))
   }
 
-  def foo(
-      afi: ArchiveFolderItem
-  )(implicit ac: ArchiveAddContext): Future[MusitResult[Option[FolderId]]] = {
-    val enriched = afi.enrich()
-    logger.debug(
-      "==================================================\n" +
-        s"Folder was enriched with owner and creation info:" +
-        s"\n${enriched}" +
-        "=================================================="
-    )
-    dmService
-      .createFolder(enriched)
-      .map { mfid =>
-        logger.debug(s"Folder was created with $mfid")
-        MusitSuccess(mfid)
-      }
-      .recover {
-        case ex =>
-          logger.error("BUUUHUUUUUU", ex)
-          throw ex
-      }
-  }
-
-//  scalastyle:off
   def addFolder(
       mid: MuseumId,
       dest: FolderId,
       afi: ArchiveFolderItem
   )(implicit ac: ArchiveAddContext): Future[MusitResult[Option[FolderId]]] = {
-    afi.path.map { p =>
-      dmService.folderExists(p).flatMap { exists =>
-        if (!exists) {
-          dmService.folder(dest).flatMap { mdf =>
-            logger.debug(
-              s"Destination folder is: ${mdf.map(f => (f.filename, f.metadata.fid))}"
-            )
-            mdf.map { df =>
-              if (df.isValidParentFor(afi)) {
-                // Ensure that the owner and created stamps are set to the
-                // values specified in the current context
-                foo(afi)
-              } else {
-                logger.debug("Destination folder is NOT valid")
-                generalErrorF(
-                  s"${df.flattenPath} is an invalid location for ${afi.getClass}"
-                )
-              }
-            }.getOrElse {
+    dmService.folder(dest).flatMap { mdf =>
+      mdf.map { df =>
+        val p = df.flattenPath.append(afi.title)
+        dmService.folderExists(p).flatMap { exists =>
+          if (!exists) {
+            if (df.isValidParentFor(afi)) {
+              // Ensure that the owner and created stamps are set to the
+              // values specified in the current context. Also ensure that the
+              // Path is correctly set.
+              val enriched = afi.enrich().updatePath(p)
+              dmService.createFolder(enriched).map(MusitSuccess.apply)
+            } else {
               generalErrorF(
-                "Cannot add folder to destination because " +
-                  "1) it doesn't exist " +
-                  "2) insufficient priveleges."
+                s"${df.flattenPath} is an invalid location for ${afi.getClass}"
               )
             }
+          } else {
+            generalErrorF(s"Folder ${afi.title} already exists.")
           }
-        } else {
-          generalErrorF(s"Folder ${afi.title} already exists.")
         }
+      }.getOrElse {
+        generalErrorF(
+          "Cannot add folder to destination because " +
+            "1) it doesn't exist " +
+            "2) insufficient privileges."
+        )
       }
-    }.getOrElse(generalErrorF(s"Folder does not contain a valid destination path."))
+    }
   }
 
   def updateFolder(
@@ -150,23 +123,27 @@ class DocumentArchiveService @Inject()(
       folderId: FolderId,
       dest: FolderId
   )(implicit ac: ArchiveContext): Future[MusitResult[Seq[Path]]] = {
-    val fmf = dmService.folder(folderId)
-    val fmd = dmService.folder(dest)
-
-    val res = for {
-      f <- OptionT(fmf)
-      d <- OptionT(fmd)
-      m <- OptionT(
-            dmService.moveFolder(f.flattenPath, d.flattenPath.append(f.title)).map {
-              case Nil => None
-              case upd => Some(upd)
+    dmService.folder(folderId).flatMap { maybeFolder =>
+      maybeFolder.map { f =>
+        dmService.folder(dest).flatMap { maybeDest =>
+          maybeDest.map { d =>
+            if (d.isValidParentFor(f)) {
+              dmService.moveFolder(f.flattenPath, d.flattenPath.append(f.title)).map {
+                case Nil => MusitGeneralError(s"Folder $folderId was not moved.")
+                case upd => MusitSuccess(upd)
+              }
+            } else {
+              generalErrorF(s"Moving an ${f.getClass} to an ${d.getClass} isn't allowed")
             }
-          )
-    } yield m
-
-    res.value.map {
-      case Some(upd) => MusitSuccess(upd)
-      case None      => MusitGeneralError(s"Folder $folderId was not moved.")
+          }.getOrElse {
+            generalErrorF(
+              s"Cannot move folder $folderId to $dest because it doesn't exist"
+            )
+          }
+        }
+      }.getOrElse {
+        generalErrorF(s"Cannot move folder $folderId because it doesn't exist")
+      }
     }
   }
 
@@ -211,14 +188,14 @@ class DocumentArchiveService @Inject()(
     dmService.folderHasLock(folderId).map(MusitSuccess.apply)
   }
 
-  def lockFolder(
+  def closeFolder(
       mid: MuseumId,
       folderId: FolderId
   )(implicit ac: ArchiveContext): Future[MusitResult[Option[Lock]]] = {
     dmService.lockFolder(folderId).map(MusitSuccess.apply)
   }
 
-  def unlockFolder(
+  def reopenFolder(
       mid: MuseumId,
       folderId: FolderId
   )(implicit ac: ArchiveContext): Future[MusitResult[Boolean]] = {
