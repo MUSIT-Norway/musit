@@ -49,12 +49,8 @@ class AnalysisControllerIntegrationSpec
   val saveResultUrl   = (mid: Int) => (id: Long) => s"${getAnalysisUrl(mid)(id)}/results"
   val getForObjectUrl = (mid: Int) => (oid: String) => s"${baseUrl(mid)}/objects/$oid"
 
-  def saveAnalysis(ajs: JsValue): WSResponse = {
-    wsUrl(addAnalysisUrl(mid)).withHttpHeaders(token.asHeader).post(ajs).futureValue
-  }
-
-  def saveTestAnalysis(ajs: JsValue): WSResponse = {
-    wsUrl(addAnalysisUrl(mid)).withHttpHeaders(tokenTest.asHeader).post(ajs).futureValue
+  def saveAnalysis(ajs: JsValue, t: BearerToken = token): WSResponse = {
+    wsUrl(addAnalysisUrl(mid)).withHttpHeaders(t.asHeader).post(ajs).futureValue
   }
 
   "Using the analysis controller" when {
@@ -479,7 +475,7 @@ class AnalysisControllerIntegrationSpec
           objects = Seq(testObjectUUID)
         )
 
-        saveTestAnalysis(js).status mustBe FORBIDDEN // creates ids 1 to 2
+        saveAnalysis(js, tokenTest).status mustBe FORBIDDEN // creates ids 1 to 2
       }
 
     }

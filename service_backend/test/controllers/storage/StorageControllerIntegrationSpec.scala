@@ -77,10 +77,10 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       mid: Int,
       token: BearerToken,
       js: JsValue
-  ): (WSResponse) = {
+  ): WSResponse = {
     val res =
       wsUrl(StorageNodesUrl(mid)).withHttpHeaders(token.asHeader).post(js).futureValue
-    (res)
+    res
   }
 
   // TODO: add override def beforeTests to bootstrap a re-usable structure to

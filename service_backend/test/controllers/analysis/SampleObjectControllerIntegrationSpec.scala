@@ -83,6 +83,7 @@ class SampleObjectControllerIntegrationSpec
       cd: DateTime,
       origObject: String,
       maybeParent: Option[String],
+      t: BearerToken = token,
       parentObjectType: ObjectType = CollectionObjectType,
       numToCreate: Int = 10
   ): Seq[WSResponse] = {
@@ -97,29 +98,7 @@ class SampleObjectControllerIntegrationSpec
         maybeExtId = Some(s"ext$index"),
         maybeNote = Some("This is a sample note")
       )
-      wsUrl(addUrl(mid)).withHttpHeaders(token.asHeader).post(js).futureValue
-    }
-  }
-
-  def createAndSaveTest(
-      cd: DateTime,
-      origObject: String,
-      maybeParent: Option[String],
-      parentObjectType: ObjectType = CollectionObjectType,
-      numToCreate: Int = 10
-  ): Seq[WSResponse] = {
-    (1 to numToCreate).map { index =>
-      val js = createSaveJSON(
-        originatingObject = origObject,
-        maybeParent = maybeParent,
-        parentObjectType = parentObjectType,
-        doneBy = adminId,
-        doneDate = cd,
-        maybeSampleId = Some(s"sample$index"),
-        maybeExtId = Some(s"ext$index"),
-        maybeNote = Some("This is a sample note")
-      )
-      wsUrl(addUrl(mid)).withHttpHeaders(tokenTest.asHeader).post(js).futureValue
+      wsUrl(addUrl(mid)).withHttpHeaders(t.asHeader).post(js).futureValue
     }
   }
 
@@ -250,7 +229,7 @@ class SampleObjectControllerIntegrationSpec
       }
       val (s1, s2) = (cs1.head, cs1.last)
 
-      val cs2 = createAndSave(cd, orig, Some(s2), SampleObjectType, 2).map { r =>
+      val cs2 = createAndSave(cd, orig, Some(s2), token, SampleObjectType, 2).map { r =>
         r.status mustBe CREATED
         val sid = r.json.as[String]
         addedSampleIds += sid
@@ -281,7 +260,7 @@ class SampleObjectControllerIntegrationSpec
       }
       val (s1, s2) = (cs1.head, cs1.last)
 
-      val cs2 = createAndSave(cd, orig, Some(s2), SampleObjectType, 2).map { r =>
+      val cs2 = createAndSave(cd, orig, Some(s2), token, SampleObjectType, 2).map { r =>
         r.status mustBe CREATED
         val sid = r.json.as[String]
         addedSampleIds += sid
@@ -436,7 +415,7 @@ class SampleObjectControllerIntegrationSpec
 
     "Return 403 Forbidden when trying to add a few new SampleObjects without permission" in {
       val cd      = DateTime.now.minusWeeks(2)
-      val results = createAndSaveTest(cd, parentObject, Some(parentObject))
+      val results = createAndSave(cd, parentObject, Some(parentObject), tokenTest)
 
       forAll(results) { r =>
         r.status mustBe FORBIDDEN

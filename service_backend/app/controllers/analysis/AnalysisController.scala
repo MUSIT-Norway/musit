@@ -7,7 +7,7 @@ import models.analysis.events.SaveCommands._
 import models.analysis.events._
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess, MusitValidationError}
 import no.uio.musit.models.{CollectionUUID, EventId, MuseumId, ObjectUUID}
-import no.uio.musit.security.Permissions.Write
+import no.uio.musit.security.Permissions.{Read, Write}
 import no.uio.musit.security.{Authenticator, CollectionManagement}
 import no.uio.musit.service.MusitController
 import play.api.Logger
@@ -43,14 +43,14 @@ class AnalysisController @Inject()(
     }
 
   def getAllAnalysisCategories(mid: MuseumId) =
-    MusitSecureAction(mid, CollectionManagement).async { implicit request =>
+    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
       Future.successful(
         listAsPlayResult(EventCategories.values)(Category.richWrites)
       )
     }
 
   def getAnalysisById(mid: MuseumId, id: Long) =
-    MusitSecureAction(mid, CollectionManagement).async { implicit request =>
+    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
       implicit val currUser = request.user
       analysisService.findById(mid, id).map {
         case MusitSuccess(ma) => ma.map(ae => Ok(Json.toJson(ae))).getOrElse(NotFound)
@@ -59,7 +59,7 @@ class AnalysisController @Inject()(
     }
 
   def getChildAnalyses(mid: MuseumId, id: Long) =
-    MusitSecureAction(mid, CollectionManagement).async { implicit request =>
+    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
       implicit val currUser = request.user
       analysisService.childrenFor(mid, id).map {
         case MusitSuccess(analyses) => listAsPlayResult(analyses)
@@ -68,7 +68,7 @@ class AnalysisController @Inject()(
     }
 
   def getAnalysisForObject(mid: MuseumId, oid: String) =
-    MusitSecureAction(mid, CollectionManagement).async { implicit request =>
+    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
       implicit val currUser = request.user
 
       ObjectUUID
@@ -149,7 +149,7 @@ class AnalysisController @Inject()(
     }
 
   def getAnalysisEvents(mid: MuseumId, collectionIds: String) =
-    MusitSecureAction(mid, CollectionManagement).async { implicit request =>
+    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
       implicit val currUser = request.user
 
       parseCollectionIdsParam(mid, collectionIds)(request.user) match {

@@ -38,7 +38,7 @@ class SampleObjectController @Inject()(
   }
 
   def getById(mid: MuseumId, uuid: String) =
-    MusitSecureAction(mid, CollectionManagement).async { implicit request =>
+    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
       implicit val currUser = request.user
 
       ObjectUUID
@@ -52,7 +52,7 @@ class SampleObjectController @Inject()(
     }
 
   def getForMuseum(mid: MuseumId) =
-    MusitSecureAction(mid, CollectionManagement).async { implicit request =>
+    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
       implicit val currUser = request.user
 
       get[Seq[SampleObject]](soService.findForMuseum(mid))(
@@ -61,7 +61,7 @@ class SampleObjectController @Inject()(
     }
 
   def getForParentObject(mid: MuseumId, uuid: String) =
-    MusitSecureAction(mid, CollectionManagement).async { implicit request =>
+    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
       implicit val currUser = request.user
 
       ObjectUUID
@@ -75,7 +75,7 @@ class SampleObjectController @Inject()(
     }
 
   def getForOriginatingObject(mid: MuseumId, uuid: String) =
-    MusitSecureAction(mid, CollectionManagement).async { implicit request =>
+    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
       implicit val currUser = request.user
 
       ObjectUUID
