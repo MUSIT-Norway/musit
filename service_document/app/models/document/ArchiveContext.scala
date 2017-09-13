@@ -5,7 +5,7 @@ import net.scalytica.symbiotic.api.types.PartyBaseTypes.{OrgId, PartyId, UserId}
 import net.scalytica.symbiotic.api.types.ResourceParties._
 import net.scalytica.symbiotic.api.types.SymbioticContext
 import no.uio.musit.models.{ActorId, CollectionUUID, MuseumId}
-import no.uio.musit.security.AuthenticatedUser
+import no.uio.musit.security.{AuthenticatedUser, DocumentArchive}
 
 sealed trait BaseArchiveContext extends SymbioticContext {
 
@@ -35,7 +35,7 @@ object ArchiveContext {
     ArchiveContext(
       currentUser = authUser.id,
       mid = mid,
-      collections = authUser.collectionsFor(mid).map(_.uuid)
+      collections = authUser.collectionsFor(mid, DocumentArchive).map(_.uuid)
     )
   }
 
@@ -91,9 +91,31 @@ object ArchiveAddContext {
   def apply(
       authUser: AuthenticatedUser,
       mid: MuseumId,
+      maybeCollection: Option[CollectionUUID]
+  ): ArchiveAddContext = {
+    val ownerId = ArchiveOwnerId(mid)
+    ArchiveAddContext(
+      currentUser = authUser.id,
+      owner = Owner(ownerId),
+      collections = maybeCollection.toSeq
+    )
+  }
+
+  def apply(
+      authUser: AuthenticatedUser,
+      mid: MuseumId,
       collections: Seq[CollectionUUID]
   ): ArchiveAddContext = {
     val ownerId = ArchiveOwnerId(mid)
     ArchiveAddContext(authUser.id, Owner(ownerId), collections)
   }
+
+  implicit def toArchiveContext(addCtx: ArchiveAddContext): ArchiveContext = {
+    ArchiveContext(
+      currentUser = addCtx.currentUser,
+      owner = addCtx.owner,
+      collections = addCtx.collections
+    )
+  }
+
 }

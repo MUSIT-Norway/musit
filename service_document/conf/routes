@@ -16,14 +16,13 @@ GET         /healthcheck                                     controllers.HealthC
 GET         /museum/:mid/folders                             controllers.DocumentArchiveController.getRootTree(mid: Int, includeFiles: Boolean ?= false)
 POST        /museum/:mid/folders                             controllers.DocumentArchiveController.addFolder(mid: Int, destFolderId: String, collectionId: Option[String])
 PUT         /museum/:mid/folders/:folderId                   controllers.DocumentArchiveController.updateFolder(mid: Int, folderId: String)
-GET         /museum/:mid/folders/:folderId                   controllers.DocumentArchiveController.getDirectDescendantsById(mid: Int, folderId: String)
+GET         /museum/:mid/folders/:folderId                   controllers.DocumentArchiveController.getDirectChildrenForId(mid: Int, folderId: String)
 PUT         /museum/:mid/folders/:folderId/move              controllers.DocumentArchiveController.moveFolderTo(mid: Int, folderId: String, to: String)
 PUT         /museum/:mid/folders/:folderId/rename            controllers.DocumentArchiveController.renameFolder(mid: Int, folderId: String, name: String)
-GET         /museum/:mid/folders/:folderId/islocked          controllers.DocumentArchiveController.isLockedFolder(mid: Int, folderId: String)
-PUT         /museum/:mid/folders/:folderId/lock              controllers.DocumentArchiveController.lockFolder(mid: Int, folderId: String)
-PUT         /museum/:mid/folders/:folderId/unlock            controllers.DocumentArchiveController.unlockFolder(mid: Int, folderId: String)
+GET         /museum/:mid/folders/:folderId/islocked          controllers.DocumentArchiveController.isClosedFolder(mid: Int, folderId: String)
+PUT         /museum/:mid/folders/:folderId/lock              controllers.DocumentArchiveController.closeFolder(mid: Int, folderId: String)
+PUT         /museum/:mid/folders/:folderId/unlock            controllers.DocumentArchiveController.openFolder(mid: Int, folderId: String)
 GET         /museum/:mid/folders/:folderId/tree              controllers.DocumentArchiveController.getFolderTreeFrom(mid: Int, folderId: String, includeFiles: Boolean ?= false)
-GET         /museum/:mid/folders/:folderId/tree/paths        controllers.DocumentArchiveController.getPathsFrom(mid: Int, folderId: String)
 
 POST        /museum/:mid/folders/:folderId/upload            controllers.DocumentArchiveController.uploadToFolder(mid: Int, folderId: String, collectionId: Option[String])
 

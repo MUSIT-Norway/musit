@@ -3,6 +3,7 @@ package models.document
 import net.scalytica.symbiotic.api.types.IdOps
 import net.scalytica.symbiotic.api.types.PartyBaseTypes.{OrgId, PartyId, UserId}
 import no.uio.musit.models.{ActorId, CollectionUUID, MuseumId}
+import play.api.libs.json._
 
 object ArchiveIdentifiers {
 
@@ -19,6 +20,12 @@ object ArchiveIdentifiers {
   case class ArchiveUserId(value: String) extends UserId
 
   object ArchiveUserId extends IdOps[ArchiveUserId] {
+
+    implicit val reads: Reads[ArchiveUserId] = Reads { jsv =>
+      JsSuccess(ArchiveUserId(jsv.as[String]))
+    }
+
+    implicit val writes: Writes[ArchiveUserId] = Writes(a => JsString(a.value))
 
     // Implicit converters to help working with the ArchiveUserId.
 
@@ -46,6 +53,12 @@ object ArchiveIdentifiers {
         mid: MuseumId
     ): ArchiveOwnerId = ArchiveOwnerId(s"${mid.underlying}")
 
+    implicit val reads: Reads[ArchiveOwnerId] = Reads { jsv =>
+      JsSuccess(ArchiveOwnerId(jsv.as[String]))
+    }
+
+    implicit val writes: Writes[ArchiveOwnerId] = Writes(a => JsString(a.value))
+
     // Implicit converters to help working with the ArchiveOwnerId
 
     override implicit def asId(s: String): ArchiveOwnerId = ArchiveOwnerId(s)
@@ -67,6 +80,12 @@ object ArchiveIdentifiers {
 
     def apply(cid: CollectionUUID): ArchiveCollectionId =
       ArchiveCollectionId(cid.asString)
+
+    implicit val reads: Reads[ArchiveCollectionId] = Reads { jsv =>
+      JsSuccess(ArchiveCollectionId(jsv.as[String]))
+    }
+
+    implicit val writes: Writes[ArchiveCollectionId] = Writes(a => JsString(a.value))
 
     // Implicit converters to help working with the ArchiveCollectionId
 

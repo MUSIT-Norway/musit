@@ -1,9 +1,8 @@
 package services
 
 import com.google.inject.{Inject, Singleton}
-import models.document.ArchiveTypes.Implicits._
 import models.document.ArchiveTypes._
-import models.document.Archiveables.{ArchiveFolderItem, ArchiveItem}
+import models.document.ArchiveTypes.Implicits._
 import models.document.{ArchiveAddContext, ArchiveContext}
 import net.scalytica.symbiotic.api.types._
 import net.scalytica.symbiotic.core.DocManagementService
@@ -38,13 +37,13 @@ class DocumentArchiveService @Inject()(
     dmService.createRootFolder.map(MusitSuccess.apply)
   }
 
-  def rootFolder(
+  def archiveRoot(
       mid: MuseumId
   )(implicit ac: ArchiveContext): Future[MusitResult[Option[ArchiveRoot]]] = {
     dmService.folder(Path.root).map(mr => MusitSuccess(mr.map(f => f: ArchiveRoot)))
   }
 
-  def getRootTreeFor(
+  def getArchiveRootTreeFor(
       includeFiles: Boolean
   )(implicit ac: ArchiveContext): Future[MusitResult[Seq[ArchiveItem]]] = {
     val ftree =
@@ -54,10 +53,10 @@ class DocumentArchiveService @Inject()(
     ftree.map(tree => MusitSuccess(tree))
   }
 
-  def addFolder(
+  def addArchiveFolderItem(
       dest: FolderId,
       afi: ArchiveFolderItem
-  )(implicit ac: ArchiveAddContext): Future[MusitResult[Option[FolderId]]] = {
+  )(implicit ac: ArchiveAddContext): Future[MusitResult[Option[ArchiveFolderItem]]] = {
     dmService.folder(dest).flatMap { mdf =>
       mdf.map { df =>
         val p = df.flattenPath.append(afi.title)
@@ -68,7 +67,13 @@ class DocumentArchiveService @Inject()(
               // values specified in the current context. Also ensure that the
               // Path is correctly set.
               val enriched = afi.enrich().updatePath(p)
-              dmService.createFolder(enriched).map(MusitSuccess.apply)
+              dmService.createFolder(enriched).flatMap {
+                case Some(fid) =>
+                  getArchiveFolderItem(fid)(ac)
+
+                case None =>
+                  generalErrorF(s"ArchiveItemFolder ${afi.title} was not created")
+              }
             } else {
               generalErrorF(
                 s"${df.flattenPath} is an invalid location for ${afi.getClass}"
@@ -88,7 +93,7 @@ class DocumentArchiveService @Inject()(
     }
   }
 
-  def updateFolder(
+  def updateArchiveFolderItem(
       folderId: FolderId,
       afi: ArchiveFolderItem
   )(implicit ac: ArchiveContext): Future[MusitResult[Option[FolderId]]] = {
@@ -115,7 +120,7 @@ class DocumentArchiveService @Inject()(
     }
   }
 
-  def moveFolder(
+  def moveArchiveFolderItem(
       folderId: FolderId,
       dest: FolderId
   )(implicit ac: ArchiveContext): Future[MusitResult[Seq[Path]]] = {
@@ -143,7 +148,7 @@ class DocumentArchiveService @Inject()(
     }
   }
 
-  def renameFolder(
+  def renameArchiveFolderItem(
       folderId: FolderId,
       newName: String
   )(implicit ac: ArchiveContext): Future[MusitResult[Seq[Path]]] = {
@@ -161,13 +166,16 @@ class DocumentArchiveService @Inject()(
             // Rename the folder by moving it. Works similarly as the mv cmd in linux.
             dmService
               .moveFolder(f.flattenPath, f.flattenPath.parent.append(newName))
-              .map(MusitSuccess.apply)
+              .map { res =>
+                if (res.nonEmpty) MusitSuccess(res)
+                else MusitGeneralError(s"Couldn't change name of $folderId to $newName")
+              }
           }
         }
     }
   }
 
-  def getFolder(
+  def getArchiveFolderItem(
       folderId: FolderId
   )(
       implicit ac: ArchiveContext
@@ -175,19 +183,19 @@ class DocumentArchiveService @Inject()(
     dmService.folder(folderId).map(mf => MusitSuccess(mf))
   }
 
-  def isFolderLocked(
+  def isArchiveFolderItemClosed(
       folderId: FolderId
   )(implicit ac: ArchiveContext): Future[MusitResult[Boolean]] = {
     dmService.folderHasLock(folderId).map(MusitSuccess.apply)
   }
 
-  def closeFolder(
+  def closeArchiveFolderItem(
       folderId: FolderId
   )(implicit ac: ArchiveContext): Future[MusitResult[Option[Lock]]] = {
     dmService.lockFolder(folderId).map(MusitSuccess.apply)
   }
 
-  def reopenFolder(
+  def openArchiveFolderItem(
       folderId: FolderId
   )(implicit ac: ArchiveContext): Future[MusitResult[Boolean]] = {
     dmService.unlockFolder(folderId).map(MusitSuccess.apply)

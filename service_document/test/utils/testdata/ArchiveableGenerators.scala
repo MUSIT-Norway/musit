@@ -4,7 +4,6 @@ import java.io.{File => JFile}
 
 import akka.stream.scaladsl.FileIO
 import models.document.ArchiveTypes._
-import models.document.Archiveables.DocumentDetails
 import no.uio.musit.models.MuseumId
 
 trait ArchiveableGenerators {

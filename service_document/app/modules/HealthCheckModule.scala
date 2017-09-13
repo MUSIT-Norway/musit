@@ -27,12 +27,15 @@ class ZabbixExecutorProvider @Inject()(
     materializer: Materializer
 ) extends Provider[ZabbixExecutor] {
 
-  override def get() = ZabbixExecutor(
-    BuildInfo.name,
-    s"api/${routes.HealthCheckController.healthCheck().url.replaceAll("/service_document/", "")}",
-    healthChecks,
-    environment.mode,
-    configuration
-  )
+  override def get() = {
+    val healthCheckUrl = routes.HealthCheckController.healthCheck().url
+    ZabbixExecutor(
+      BuildInfo.name,
+      s"api/${healthCheckUrl.replaceAll("/service_document/", "")}",
+      healthChecks,
+      environment.mode,
+      configuration
+    )
+  }
 
 }

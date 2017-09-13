@@ -68,8 +68,27 @@ case class AuthenticatedUser(
     groups.filter(_.museumId == museumId).flatMap(_.collections)
   }
 
+  def collectionsFor(
+      museumId: MuseumId,
+      module: ModuleConstraint
+  ): Seq[MuseumCollection] = {
+    groups
+      .filter(g => g.museumId == museumId && g.module == module)
+      .flatMap(_.collections)
+  }
+
   def canAccess(mid: MuseumId, collection: CollectionUUID): Boolean = {
     hasGodMode || collectionsFor(mid).exists(_.uuid == collection)
+  }
+
+  def canAccess(
+      mid: MuseumId,
+      module: ModuleConstraint,
+      collectionUUID: Option[CollectionUUID]
+  ): Boolean = hasGodMode || groups.exists { g =>
+    g.module == module && g.museumId == mid && collectionUUID.forall { id =>
+      g.collections.exists(_.uuid == id)
+    }
   }
 
   def authorize(
