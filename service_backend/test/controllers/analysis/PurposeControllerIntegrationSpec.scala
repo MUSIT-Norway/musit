@@ -10,7 +10,8 @@ class PurposeControllerIntegrationSpec
     extends MusitSpecWithServerPerSuite
     with DateTimeMatchers {
 
-  val token = BearerToken(FakeUsers.testAdminToken)
+  val token     = BearerToken(FakeUsers.testAdminToken)
+  val tokenTest = BearerToken(FakeUsers.testUserToken)
 
   val purposeUrl = s"/purposes"
 
@@ -25,6 +26,11 @@ class PurposeControllerIntegrationSpec
       (purpose \ "id").as[Int] mustBe 1
       (purpose \ "noPurpose").as[String] mustBe "Materialbestemmelse"
       (purpose \ "enPurpose").as[String] mustBe "Material determination"
+    }
+
+    "return 403 Forbidden when trying to list all purposes without permission" in {
+      val res = wsUrl(purposeUrl).withHttpHeaders(tokenTest.asHeader).get().futureValue
+      res.status mustBe FORBIDDEN
     }
 
   }

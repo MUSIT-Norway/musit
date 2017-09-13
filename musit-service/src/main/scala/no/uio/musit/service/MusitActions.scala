@@ -143,7 +143,14 @@ trait MusitActions {
             if (museumId.isDefined) {
               Left(BadRequest(Json.obj("message" -> s"Unknown museum $museumId")))
             } else {
-              Right(MusitRequest(authUser, token, museum, request))
+              module.map { m =>
+                authUser
+                  .authorizeForModule(m)
+                  .map { _ =>
+                    Right(MusitRequest(authUser, token, museum, request))
+                  }
+                  .getOrElse(Left(Forbidden))
+              }.getOrElse(Right(MusitRequest(authUser, token, museum, request)))
             }
         }
       }
@@ -155,6 +162,12 @@ trait MusitActions {
     def apply(): MusitSecureAction = MusitSecureAction(None, None)
 
     def apply(mid: MuseumId): MusitSecureAction = MusitSecureAction(Some(mid), None)
+
+    def apply(mid: MuseumId, module: ModuleConstraint): MusitSecureAction =
+      MusitSecureAction(Some(mid), Some(module))
+
+    def apply(module: ModuleConstraint): MusitSecureAction =
+      MusitSecureAction(None, Some(module))
 
     def apply(
         permissions: Permission*

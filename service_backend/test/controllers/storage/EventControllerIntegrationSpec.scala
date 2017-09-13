@@ -25,9 +25,10 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
 
   val nodeId2 = "b56b654a-6de3-442f-97af-ca6d806cc5a6"
 
-  val fakeToken = BearerToken(FakeUsers.testWriteToken)
-  val userId    = ActorId.unsafeFromString(FakeUsers.testWriteId)
-  val godToken  = BearerToken(FakeUsers.superUserToken)
+  val fakeToken  = BearerToken(FakeUsers.testWriteToken)
+  val userId     = ActorId.unsafeFromString(FakeUsers.testWriteId)
+  val godToken   = BearerToken(FakeUsers.superUserToken)
+  val guestToken = BearerToken(FakeUsers.fakeGuestToken)
 
   override def beforeTests(): Unit = {
     Try {
@@ -81,6 +82,16 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
         .status mustBe FORBIDDEN
     }
 
+    "not allow users without WRITE access to StorageFacility module to register a new control" in {
+      val badUserId = ActorId(UUID.fromString("8efd41bb-bc58-4bbf-ac95-eea21ba9db81"))
+      val json      = Json.parse(EventJsonGenerator.controlJson(badUserId, 20))
+      wsUrl(ControlsUrl(mid, nodeId2))
+        .withHttpHeaders(guestToken.asHeader)
+        .post(json)
+        .futureValue
+        .status mustBe FORBIDDEN
+    }
+
     "get a specific control for a node" in {
       val ctrlId = 2L
       val res = wsUrl(ControlUrl(mid, nodeId2, ctrlId))
@@ -102,6 +113,15 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
       val ctrlId = 2L
       wsUrl(ControlUrl(mid, nodeId2, ctrlId))
         .withHttpHeaders(token.asHeader)
+        .get()
+        .futureValue
+        .status mustBe FORBIDDEN
+    }
+
+    "not allow access to control if user doesn't have READ permission on StorageFacility" in {
+      val ctrlId = 2L
+      wsUrl(ControlUrl(mid, nodeId2, ctrlId))
+        .withHttpHeaders(guestToken.asHeader)
         .get()
         .futureValue
         .status mustBe FORBIDDEN
@@ -224,12 +244,32 @@ class EventControllerIntegrationSpec extends MusitSpecWithServerPerSuite with In
       // TODO: Verify ordering.
     }
 
+    "not list all controls and observations for a node if user have no access to " +
+      "StorageFacility module" in {
+      val res = wsUrl(CtrlObsForNodeUrl(mid, nodeId2))
+        .withHttpHeaders(guestToken.asHeader)
+        .get()
+        .futureValue
+
+      res.status mustBe FORBIDDEN
+    }
+
     "not allow access to controls and observations if user doesn't have READ " +
       "permission" in {
       val token  = BearerToken(FakeUsers.nhmReadToken)
       val ctrlId = 2L
       wsUrl(CtrlObsForNodeUrl(mid, nodeId2))
         .withHttpHeaders(token.asHeader)
+        .get()
+        .futureValue
+        .status mustBe FORBIDDEN
+    }
+
+    "not allow access to controls and observations if user doesn't have READ " +
+      "permission in StorageFacility module" in {
+      val ctrlId = 2L
+      wsUrl(CtrlObsForNodeUrl(mid, nodeId2))
+        .withHttpHeaders(guestToken.asHeader)
         .get()
         .futureValue
         .status mustBe FORBIDDEN

@@ -1,7 +1,7 @@
 package controllers.storage
 
 import com.google.inject.Inject
-import controllers.invaludUuidResponse
+import controllers.invalidUuidResponse
 import models.storage.MovableObject
 import models.storage.Move.{DelphiMoveCmd, MoveNodesCmd, MoveObjectsCmd}
 import models.storage.event.move._
@@ -12,7 +12,7 @@ import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
 import no.uio.musit.security.Permissions._
-import no.uio.musit.security.{AuthenticatedUser, Authenticator}
+import no.uio.musit.security.{AuthenticatedUser, Authenticator, StorageFacility}
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.json._
@@ -74,18 +74,19 @@ final class StorageController @Inject()(
    */
   def add(
       mid: Int
-  ) = MusitSecureAction(mid, Admin).async(parse.json) { implicit request =>
-    implicit val currUsr = request.user
+  ) = MusitSecureAction(mid, StorageFacility, Admin).async(parse.json) {
+    implicit request =>
+      implicit val currUsr = request.user
 
-    request.body.validate[StorageNode] match {
-      case JsSuccess(node, _) =>
-        service.addNode(mid, node).map(addResponse)
+      request.body.validate[StorageNode] match {
+        case JsSuccess(node, _) =>
+          service.addNode(mid, node).map(addResponse)
 
-      case err: JsError =>
-        val jserr = JsError.toJson(err)
-        logger.error(s"Received an invalid JSON:\n${Json.prettyPrint(jserr)}")
-        Future.successful(BadRequest(jserr))
-    }
+        case err: JsError =>
+          val jserr = JsError.toJson(err)
+          logger.error(s"Received an invalid JSON:\n${Json.prettyPrint(jserr)}")
+          Future.successful(BadRequest(jserr))
+      }
   }
 
   /**
@@ -112,22 +113,23 @@ final class StorageController @Inject()(
    *
    * @see [[models.storage.nodes.RootNode]]
    */
-  def root(mid: Int) = MusitSecureAction(mid, Read).async { implicit request =>
-    implicit val currUser = request.user
+  def root(mid: Int) = MusitSecureAction(mid, StorageFacility, Read).async {
+    implicit request =>
+      implicit val currUser = request.user
 
-    service.rootNodes(mid).map {
-      case MusitSuccess(roots) =>
-        Ok(Json.toJson[Seq[StorageNode]](roots))
+      service.rootNodes(mid).map {
+        case MusitSuccess(roots) =>
+          Ok(Json.toJson[Seq[StorageNode]](roots))
 
-      case musitError: MusitError =>
-        musitError match {
-          case MusitValidationError(message, exp, act) =>
-            BadRequest(Json.obj("message" -> message))
+        case musitError: MusitError =>
+          musitError match {
+            case MusitValidationError(message, exp, act) =>
+              BadRequest(Json.obj("message" -> message))
 
-          case internal: MusitError =>
-            InternalServerError(Json.obj("message" -> internal.message))
-        }
-    }
+            case internal: MusitError =>
+              InternalServerError(Json.obj("message" -> internal.message))
+          }
+      }
   }
 
   /**
@@ -143,7 +145,7 @@ final class StorageController @Inject()(
       id: String,
       page: Int,
       limit: Int
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { implicit request =>
     implicit val currUser = request.user
 
     StorageNodeId
@@ -161,7 +163,7 @@ final class StorageController @Inject()(
             InternalServerError(Json.obj("message" -> musitError.message))
         }
       }
-      .getOrElse(invaludUuidResponse(id))
+      .getOrElse(invalidUuidResponse(id))
   }
 
   private def getByStorageNodeId(
@@ -185,7 +187,7 @@ final class StorageController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse(invaludUuidResponse(nodeId))
+      .getOrElse(invalidUuidResponse(nodeId))
   }
 
   private def getByOldBarcode(
@@ -208,7 +210,7 @@ final class StorageController @Inject()(
   def getById(
       mid: Int,
       id: String
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { implicit request =>
     implicit val currUser = request.user
 
     getByStorageNodeId(mid, id)
@@ -221,7 +223,7 @@ final class StorageController @Inject()(
       mid: Int,
       storageNodeId: Option[String],
       oldBarcode: Option[Long]
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { implicit request =>
     implicit val currUser = request.user
 
     storageNodeId
@@ -244,26 +246,27 @@ final class StorageController @Inject()(
   def update(
       mid: Int,
       id: String
-  ) = MusitSecureAction(mid, Admin).async(parse.json) { implicit request =>
-    implicit val currUsr = request.user
+  ) = MusitSecureAction(mid, StorageFacility, Admin).async(parse.json) {
+    implicit request =>
+      implicit val currUsr = request.user
 
-    StorageNodeId
-      .fromString(id)
-      .map { sid =>
-        request.body.validate[StorageNode] match {
-          case JsSuccess(node, _) =>
-            service.updateNode(mid, sid, node).map {
-              case MusitSuccess(maybeUpdated) =>
-                maybeUpdated.map(upd => Ok(Json.toJson(upd))).getOrElse(NotFound)
+      StorageNodeId
+        .fromString(id)
+        .map { sid =>
+          request.body.validate[StorageNode] match {
+            case JsSuccess(node, _) =>
+              service.updateNode(mid, sid, node).map {
+                case MusitSuccess(maybeUpdated) =>
+                  maybeUpdated.map(upd => Ok(Json.toJson(upd))).getOrElse(NotFound)
 
-              case err: MusitError =>
-                InternalServerError(Json.obj("message" -> err.message))
-            }
-          case JsError(error) =>
-            Future.successful(BadRequest(JsError.toJson(error)))
+                case err: MusitError =>
+                  InternalServerError(Json.obj("message" -> err.message))
+              }
+            case JsError(error) =>
+              Future.successful(BadRequest(JsError.toJson(error)))
+          }
         }
-      }
-      .getOrElse(invaludUuidResponse(id))
+        .getOrElse(invalidUuidResponse(id))
   }
 
   /**
@@ -272,7 +275,7 @@ final class StorageController @Inject()(
   def delete(
       mid: Int,
       id: String
-  ) = MusitSecureAction(mid, Admin).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Admin).async { implicit request =>
     implicit val currUsr = request.user
 
     StorageNodeId
@@ -302,7 +305,7 @@ final class StorageController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse(invaludUuidResponse(id))
+      .getOrElse(invalidUuidResponse(id))
   }
 
   /**
@@ -313,35 +316,36 @@ final class StorageController @Inject()(
    */
   def moveNode(
       mid: Int
-  ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
-    implicit val currUsr = request.user
+  ) = MusitSecureAction(mid, StorageFacility, Write).async(parse.json) {
+    implicit request =>
+      implicit val currUsr = request.user
 
-    request.body.validate[MoveNodesCmd] match {
-      case JsSuccess(cmd, _) =>
-        val events = MoveNode.fromCommand(request.user.id, cmd)
-        service.moveNodes(mid, cmd.destination, events).map {
-          case MusitSuccess(nids) =>
-            val failed = cmd.items.filterNot(nids.contains)
-            Ok(
-              Json.obj(
-                "moved"  -> nids.map(_.underlying),
-                "failed" -> failed.map(_.underlying)
+      request.body.validate[MoveNodesCmd] match {
+        case JsSuccess(cmd, _) =>
+          val events = MoveNode.fromCommand(request.user.id, cmd)
+          service.moveNodes(mid, cmd.destination, events).map {
+            case MusitSuccess(nids) =>
+              val failed = cmd.items.filterNot(nids.contains)
+              Ok(
+                Json.obj(
+                  "moved"  -> nids.map(_.underlying),
+                  "failed" -> failed.map(_.underlying)
+                )
               )
-            )
 
-          case MusitValidationError(msg, _, _) =>
-            BadRequest(Json.obj("message" -> msg))
+            case MusitValidationError(msg, _, _) =>
+              BadRequest(Json.obj("message" -> msg))
 
-          case err: MusitError =>
-            InternalServerError(Json.obj("messsage" -> err.message))
-        }
+            case err: MusitError =>
+              InternalServerError(Json.obj("messsage" -> err.message))
+          }
 
-      case JsError(error) =>
-        logger.warn(
-          s"Error parsing JSON:\n${Json.prettyPrint(JsError.toJson(error))}"
-        )
-        Future.successful(BadRequest(JsError.toJson(error)))
-    }
+        case JsError(error) =>
+          logger.warn(
+            s"Error parsing JSON:\n${Json.prettyPrint(JsError.toJson(error))}"
+          )
+          Future.successful(BadRequest(JsError.toJson(error)))
+      }
   }
 
   /**
@@ -379,34 +383,35 @@ final class StorageController @Inject()(
    */
   def moveObject(
       mid: Int
-  ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
-    implicit val currUser = request.user
+  ) = MusitSecureAction(mid, StorageFacility, Write).async(parse.json) {
+    implicit request =>
+      implicit val currUser = request.user
 
-    val js = request.body
+      val js = request.body
 
-    val jsRes = js.validate[MoveObjectsCmd].orElse(js.validate[DelphiMoveCmd])
+      val jsRes = js.validate[MoveObjectsCmd].orElse(js.validate[DelphiMoveCmd])
 
-    jsRes match {
-      case JsSuccess(cmd: MoveObjectsCmd, _) =>
-        val events = MoveObject.fromCommand(currUser.id, cmd)
-        mvObjects(mid, cmd.destination, events) { oids =>
-          val mobs = cmd.items.map(_.id)
-          (mobs.filter(oids.contains), mobs.filterNot(oids.contains))
-        }
+      jsRes match {
+        case JsSuccess(cmd: MoveObjectsCmd, _) =>
+          val events = MoveObject.fromCommand(currUser.id, cmd)
+          mvObjects(mid, cmd.destination, events) { oids =>
+            val mobs = cmd.items.map(_.id)
+            (mobs.filter(oids.contains), mobs.filterNot(oids.contains))
+          }
 
-      case JsSuccess(cmd: DelphiMoveCmd, _) =>
-        moveObjectForDelphi(mid, cmd)
+        case JsSuccess(cmd: DelphiMoveCmd, _) =>
+          moveObjectForDelphi(mid, cmd)
 
-      case JsSuccess(bad, path) =>
-        Future.successful(BadRequest(Json.obj("message" -> "Unknown command.")))
+        case JsSuccess(bad, path) =>
+          Future.successful(BadRequest(Json.obj("message" -> "Unknown command.")))
 
-      case JsError(error) =>
-        logger.warn(
-          s"Error parsing JSON:" +
-            s"\n${Json.prettyPrint(JsError.toJson(error))}"
-        )
-        Future.successful(BadRequest(JsError.toJson(error)))
-    }
+        case JsError(error) =>
+          logger.warn(
+            s"Error parsing JSON:" +
+              s"\n${Json.prettyPrint(JsError.toJson(error))}"
+          )
+          Future.successful(BadRequest(JsError.toJson(error)))
+      }
   }
 
   /**
@@ -470,7 +475,7 @@ final class StorageController @Inject()(
       objectId: String,
       objectType: String,
       limit: Int
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { implicit request =>
     implicit val currUser = request.user
 
     ObjectUUID
@@ -484,7 +489,7 @@ final class StorageController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse(invaludUuidResponse(objectId))
+      .getOrElse(invalidUuidResponse(objectId))
   }
 
   /**
@@ -494,7 +499,7 @@ final class StorageController @Inject()(
       mid: Int,
       objectId: String,
       objectType: String
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { implicit request =>
     implicit val currUser = request.user
 
     ObjectUUID
@@ -529,7 +534,7 @@ final class StorageController @Inject()(
             )
           }
       }
-      .getOrElse(invaludUuidResponse(objectId))
+      .getOrElse(invalidUuidResponse(objectId))
   }
 
   /**
@@ -537,31 +542,32 @@ final class StorageController @Inject()(
    */
   def currentObjectLocations(
       mid: Int
-  ) = MusitSecureAction(mid, Read).async(parse.json) { implicit request =>
-    implicit val currUser = request.user
+  ) = MusitSecureAction(mid, StorageFacility, Read).async(parse.json) {
+    implicit request =>
+      implicit val currUser = request.user
 
-    request.body.validate[Seq[MovableObject]] match {
-      case JsSuccess(objs, _) =>
-        service.currentObjectLocations(mid, objs.map(_.id)).map {
-          case MusitSuccess(objectsLocations) =>
-            Ok(Json.toJson(objectsLocations))
+      request.body.validate[Seq[MovableObject]] match {
+        case JsSuccess(objs, _) =>
+          service.currentObjectLocations(mid, objs.map(_.id)).map {
+            case MusitSuccess(objectsLocations) =>
+              Ok(Json.toJson(objectsLocations))
 
-          case err: MusitError =>
-            logger.error(
-              "An unexpected error occurred when trying to get " +
-                s"current location for a list of ${objs.size} objectIds. " +
-                s"Message was: ${err.message}"
-            )
-            InternalServerError(Json.obj("message" -> err.message))
-        }
+            case err: MusitError =>
+              logger.error(
+                "An unexpected error occurred when trying to get " +
+                  s"current location for a list of ${objs.size} objectIds. " +
+                  s"Message was: ${err.message}"
+              )
+              InternalServerError(Json.obj("message" -> err.message))
+          }
 
-      case JsError(error) =>
-        logger.warn(
-          s"Error parsing JSON:" +
-            s"\n${Json.prettyPrint(JsError.toJson(error))}"
-        )
-        Future.successful(BadRequest(JsError.toJson(error)))
-    }
+        case JsError(error) =>
+          logger.warn(
+            s"Error parsing JSON:" +
+              s"\n${Json.prettyPrint(JsError.toJson(error))}"
+          )
+          Future.successful(BadRequest(JsError.toJson(error)))
+      }
   }
 
   /**
@@ -572,7 +578,7 @@ final class StorageController @Inject()(
       searchStr: Option[String],
       page: Int,
       limit: Int
-  ) = MusitSecureAction(mid, Read).async { request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { request =>
     implicit val currUser = request.user
 
     searchStr match {

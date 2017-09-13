@@ -25,6 +25,7 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
   val adminToken = BearerToken(FakeUsers.testAdminToken)
   val adminId    = ActorId.unsafeFromString(FakeUsers.testAdminId)
   val godToken   = BearerToken(FakeUsers.superUserToken)
+  val guestToken = BearerToken(FakeUsers.fakeGuestToken)
 
   private val insertedNodeIds = Map.newBuilder[Long, StorageNodeId]
 
@@ -72,6 +73,16 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
     (res, ids._1)
   }
 
+  def postNodeWithWrongPermission(
+      mid: Int,
+      token: BearerToken,
+      js: JsValue
+  ): WSResponse = {
+    val res =
+      wsUrl(StorageNodesUrl(mid)).withHttpHeaders(token.asHeader).post(js).futureValue
+    res
+  }
+
   // TODO: add override def beforeTests to bootstrap a re-usable structure to
   // avoid boilerplate bootstrapping in all the tests.
 
@@ -106,7 +117,21 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       genAndAddRootNode(mid, 2).size mustBe 2
       genAndAddRootNode(4, 2, 3).size mustBe 2
     }
-
+    "return 403 FOrbidden when trying to create root nodes without right module permission" in {
+      def tryToAddRootNode(mid: Int, numNodes: Int, from: Int = 1): Seq[Root] = {
+        val fromIncInserted = from + 25
+        val addedNodes      = Seq.newBuilder[Root]
+        for (i <- fromIncInserted until numNodes + fromIncInserted) {
+          val res = wsUrl(RootNodeUrl(mid))
+            .withHttpHeaders(guestToken.asHeader)
+            .post(rootJson(s"root-$i"))
+            .futureValue
+        }
+        addedNodes.result()
+      }
+      tryToAddRootNode(mid, 4).size mustBe 0
+      tryToAddRootNode(4, 4, 5).size mustBe 0
+    }
     "successfully create an organisation node" in {
       val json     = organisationJson("My Org1", Some(StorageNodeDatabaseId(1)))
       val response = postNode(mid, adminToken, json)
@@ -122,6 +147,11 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       organisation.path mustBe NodePath(",1,27,")
       organisation.updatedBy mustBe Some(adminId)
       organisation.updatedDate.value.year() mustBe DateTime.now().year()
+    }
+    "return 403 FOrbidden when trying to create an organisation node without right module permission" in {
+      val json     = organisationJson("My Org2", Some(StorageNodeDatabaseId(1)))
+      val response = postNodeWithWrongPermission(mid, guestToken, json)
+      response.status mustBe FORBIDDEN
     }
 
     "successfully create a building node" in {
@@ -209,6 +239,15 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         Some(1)
       )
       organisation mustBe an[Organisation]
+    }
+
+    "return 403 Forbidden when trying to get an organisation without right module permission" in {
+      val response = wsUrl(StorageNodeUrl(mid, getIdStringFor(27)))
+        .withHttpHeaders(guestToken.asHeader)
+        .get()
+        .futureValue
+      response.status mustBe FORBIDDEN
+
     }
 
     "successfully get a building" in {
@@ -327,6 +366,30 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       updated.areaTo mustBe Some(.8)
       updated.heightTo mustBe Some(.8)
       updated.updatedBy.value mustBe adminId
+    }
+
+    "return 403 Forbidden when trying to update a storage unit without module access" in {
+      val response = wsUrl(StorageNodeUrl(mid, getIdStringFor(29)))
+        .withHttpHeaders(readToken.asHeader)
+        .get()
+        .futureValue
+
+      response.status mustBe OK
+
+      val updatedJson = {
+        Json.parse(response.body).as[JsObject] ++ Json.obj(
+          "name"     -> "My Shelf2b",
+          "areaTo"   -> JsNumber(.8),
+          "heightTo" -> JsNumber(.8)
+        )
+      }
+
+      val updRes = wsUrl(StorageNodeUrl(mid, getIdStringFor(31)))
+        .withHttpHeaders(guestToken.asHeader)
+        .put(updatedJson)
+        .futureValue
+
+      updRes.status mustBe FORBIDDEN
     }
 
     "successfully update a room" in {
@@ -501,6 +564,15 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       }
     }
 
+    "return 403 Forbidden when trying to list all children for a node without module access" in {
+      // fetch children for nodeId = 1
+      val res = wsUrl(NodeChildrenUrl(mid, "dca44956-40d0-48dc-bd0d-921b825ad019"))
+        .withHttpHeaders(guestToken.asHeader)
+        .get()
+        .futureValue
+      res.status mustBe FORBIDDEN
+    }
+
     "successfully delete a storage node" in {
       val json = storageUnitJson("Remove me", StorageNodeDatabaseId(29))
       val res  = postNode(mid, adminToken, json)
@@ -525,6 +597,14 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         .get()
         .futureValue
       notFound.status mustBe NOT_FOUND
+    }
+
+    "return 403 Forbidden when trying to delete a storage node without module access" in {
+      val rmRes = wsUrl(StorageNodeUrl(mid, getIdStringFor(35)))
+        .withHttpHeaders(guestToken.asHeader)
+        .delete()
+        .futureValue
+      rmRes.status mustBe FORBIDDEN
     }
 
     "respond with 404 when deleting a node that doesn't exist" in {
@@ -603,6 +683,23 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       )
       moved mustBe a[StorageUnit]
       moved.path mustBe NodePath(",1,27,28,29,31,36,")
+    }
+
+    "return 403 Forbidden when trying to move a single node without module access" in {
+
+      val moveJson = Json.parse(
+        s"""{
+           |  "doneBy": "${adminId.asString}",
+           |  "destination": "${getIdStringFor(31)}",
+           |  "items": ["${getIdStringFor(36)}"]
+           |}""".stripMargin
+      )
+
+      val moveRes = wsUrl(MoveStorageNodeUrl(mid))
+        .withHttpHeaders(guestToken.asHeader)
+        .put(moveJson)
+        .futureValue
+      moveRes.status mustBe FORBIDDEN
     }
 
     "fail when trying to move a node to an invalid destination" in {
@@ -833,6 +930,32 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       (move.json \ "moved").as[JsArray].value.map(_.as[String]).head mustBe id2
     }
 
+    "return 403 Forbidden when trying to move a single object without module access" in {
+      val id2      = "8ae52969-63b8-42be-bfd0-d8ebef2169eb"
+      val destNode = "3562e09e-6cf4-4b27-acad-e655e771c016"
+
+      val res = wsUrl(ObjLocationHistoryUrl(mid, id2))
+        .withHttpHeaders(readToken.asHeader)
+        .get()
+        .futureValue
+
+      val moveJson = Json.parse(
+        s"""{
+           |  "doneBy": "${adminId.asString}",
+           |  "destination": "$destNode",
+           |  "items": [{
+           |    "id": "$id2",
+           |    "objectType": "collection"
+           |  }]
+           |}""".stripMargin
+      )
+      val move = wsUrl(MoveObjectUrl(mid))
+        .withHttpHeaders(guestToken.asHeader)
+        .put(moveJson)
+        .futureValue
+      move.status mustBe FORBIDDEN
+    }
+
     "successfully fetch the location history for a given object" in {
       val id2 = "8ae52969-63b8-42be-bfd0-d8ebef2169eb"
 
@@ -866,6 +989,18 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       (lastElem \ "from" \ "pathNames").as[JsArray].value must not be empty
       (lastElem \ "to" \ "path").as[NodePath] mustBe NodePath(",1,3,4,6,")
       (lastElem \ "to" \ "pathNames").as[JsArray].value must not be empty
+    }
+
+    "return 403 Forbidden when trying to fetch the location history for a given object without module access" in {
+      val id2 = "8ae52969-63b8-42be-bfd0-d8ebef2169eb"
+
+      val res = wsUrl(ObjLocationHistoryUrl(mid, id2))
+        .withHttpHeaders(guestToken.asHeader)
+        .get()
+        .futureValue
+
+      res.status mustBe FORBIDDEN
+
     }
 
     "successfully get currentLocation of a single object" in {
@@ -916,6 +1051,19 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
 
       val js = currentLocation.json
       (js \ "nodeId").as[String] mustBe nid
+    }
+
+    "return 403 Forbidden when trying to get currentLocation of a sample object without module access" in {
+      val id2 = "28cf7c75-66b2-4991-b871-d92baeec0049"
+      val nid = "01134afe-b262-434b-a71f-8f697bc75e56"
+
+      val currentLocation = wsUrl(ObjCurrentLocationUrl(mid, id2))
+        .withQueryStringParameters(("objectType", "sample"))
+        .withHttpHeaders(guestToken.asHeader)
+        .get()
+        .futureValue
+
+      currentLocation.status mustBe FORBIDDEN
     }
 
     "respond with 403 when trying to get a node using wrong museum" in {
@@ -1203,6 +1351,19 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
       res.status mustBe OK
       (res.json \ "name").as[String] mustBe "Naturværelset"
       (res.json \ "type").as[String] mustBe "Room"
+    }
+
+    "return 403 Forbidden when trying to find a storage node when calling the " +
+      "scan service with a UUID without module access" in {
+      val uuid = "244f09a3-eb1a-49e7-80ee-7a07baa016dd"
+
+      val res = wsUrl(ScanUrl(mid))
+        .withHttpHeaders(guestToken.asHeader)
+        .withQueryStringParameters("storageNodeId" -> uuid)
+        .get()
+        .futureValue
+
+      res.status mustBe FORBIDDEN
     }
 
     "find a storage node when calling the scan service with an old barcode" in {
