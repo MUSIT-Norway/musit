@@ -26,7 +26,7 @@ class DocumentArchiveController @Inject()(
     MusitSecureAction().async { implicit request =>
       implicit val ctx = ArchiveContext(request.user, mid)
 
-      docService.getRootTreeFor(mid, includeFiles).map {
+      docService.getRootTreeFor(includeFiles).map {
         case MusitSuccess(tree)     => ???
         case MusitGeneralError(msg) => ???
         case err: MusitError        => ???
@@ -105,17 +105,10 @@ class DocumentArchiveController @Inject()(
       ???
     }
 
-  def uploadToPath(mid: Int, path: String, collectionId: Option[String]) =
-    MusitSecureAction().async(parse.multipartFormData) { implicit request =>
-      // TODO: Verify that the user has access to collectionId
-      implicit val ctx = ArchiveContext(request.user, mid)
-      ???
-    }
-
   def getFileMetadataById(mid: Int, fileId: String) =
     MusitSecureAction().async { implicit request =>
       implicit val ctx = ArchiveContext(request.user, mid)
-      docService.getFile(mid, fileId).map {
+      docService.getArchiveDocument(fileId).map {
         case MusitSuccess(maybeDoc) => ??? // return metadata as json
         case err: MusitError        => ???
       }
@@ -124,7 +117,7 @@ class DocumentArchiveController @Inject()(
   def downloadFile(mid: Int, fileId: String) =
     MusitSecureAction().async { implicit request =>
       implicit val ctx = ArchiveContext(request.user, mid)
-      docService.getFile(mid, fileId).map {
+      docService.getArchiveDocument(fileId).map {
         case MusitSuccess(maybeDoc) => ??? // stream back file
         case err: MusitError        => ???
       }

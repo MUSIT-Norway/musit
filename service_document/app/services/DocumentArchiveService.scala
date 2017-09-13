@@ -45,7 +45,6 @@ class DocumentArchiveService @Inject()(
   }
 
   def getRootTreeFor(
-      mid: MuseumId,
       includeFiles: Boolean
   )(implicit ac: ArchiveContext): Future[MusitResult[Seq[ArchiveItem]]] = {
     val ftree =
@@ -56,7 +55,6 @@ class DocumentArchiveService @Inject()(
   }
 
   def addFolder(
-      mid: MuseumId,
       dest: FolderId,
       afi: ArchiveFolderItem
   )(implicit ac: ArchiveAddContext): Future[MusitResult[Option[FolderId]]] = {
@@ -91,7 +89,6 @@ class DocumentArchiveService @Inject()(
   }
 
   def updateFolder(
-      mid: MuseumId,
       folderId: FolderId,
       afi: ArchiveFolderItem
   )(implicit ac: ArchiveContext): Future[MusitResult[Option[FolderId]]] = {
@@ -119,7 +116,6 @@ class DocumentArchiveService @Inject()(
   }
 
   def moveFolder(
-      mid: MuseumId,
       folderId: FolderId,
       dest: FolderId
   )(implicit ac: ArchiveContext): Future[MusitResult[Seq[Path]]] = {
@@ -148,7 +144,6 @@ class DocumentArchiveService @Inject()(
   }
 
   def renameFolder(
-      mid: MuseumId,
       folderId: FolderId,
       newName: String
   )(implicit ac: ArchiveContext): Future[MusitResult[Seq[Path]]] = {
@@ -173,7 +168,6 @@ class DocumentArchiveService @Inject()(
   }
 
   def getFolder(
-      mid: MuseumId,
       folderId: FolderId
   )(
       implicit ac: ArchiveContext
@@ -182,28 +176,24 @@ class DocumentArchiveService @Inject()(
   }
 
   def isFolderLocked(
-      mid: MuseumId,
       folderId: FolderId
   )(implicit ac: ArchiveContext): Future[MusitResult[Boolean]] = {
     dmService.folderHasLock(folderId).map(MusitSuccess.apply)
   }
 
   def closeFolder(
-      mid: MuseumId,
       folderId: FolderId
   )(implicit ac: ArchiveContext): Future[MusitResult[Option[Lock]]] = {
     dmService.lockFolder(folderId).map(MusitSuccess.apply)
   }
 
   def reopenFolder(
-      mid: MuseumId,
       folderId: FolderId
   )(implicit ac: ArchiveContext): Future[MusitResult[Boolean]] = {
     dmService.unlockFolder(folderId).map(MusitSuccess.apply)
   }
 
   def getPathsFrom(
-      mid: MuseumId,
       folderId: FolderId
   )(implicit ac: ArchiveContext): Future[MusitResult[Seq[(FileId, Path)]]] = {
     val fmPaths = for {
@@ -218,7 +208,6 @@ class DocumentArchiveService @Inject()(
   }
 
   def getTreeFrom(
-      mid: MuseumId,
       folderId: FolderId,
       includeFiles: Boolean
   )(implicit ac: ArchiveContext): Future[MusitResult[Seq[ArchiveItem]]] = {
@@ -236,40 +225,64 @@ class DocumentArchiveService @Inject()(
       .map(mfs => MusitSuccess(mfs: Seq[ArchiveItem]))
   }
 
+  def getChildrenFor(
+      folderId: FolderId
+  )(implicit ac: ArchiveContext): Future[MusitResult[Seq[ArchiveItem]]] = {
+    dmService.folder(folderId).flatMap { maybeFolder =>
+      maybeFolder.map { f =>
+        dmService
+          .childrenWithFiles(f.metadata.path)
+          .map(_.map(mf => mf: ArchiveItem))
+          .map(MusitSuccess.apply)
+      }.getOrElse {
+        generalErrorF(s"Could not find folder $folderId")
+      }
+    }
+  }
+
   // ===========================================================================
   //  Service definitions for interacting with ArchiveDocumentItem data types.
   // ===========================================================================
 
-  def getFile(
-      mid: MuseumId,
+  def saveArchiveDocument(
+      dest: FolderId,
+      ad: ArchiveDocument
+  )(implicit ac: ArchiveAddContext): Future[MusitResult[Option[FileId]]] = {
+    dmService.folder(dest).flatMap { maybeDest =>
+      maybeDest.map { df =>
+        val enriched = ad.enrich().updatePath(df.flattenPath)
+        dmService.saveFile(enriched).map(MusitSuccess.apply)
+      }.getOrElse {
+        generalErrorF(s"Unable to save ArchiveDocuemtn in $dest because it doesn't exist")
+      }
+    }
+  }
+
+  def getArchiveDocument(
       fileId: FileId
   )(implicit ac: ArchiveContext): Future[MusitResult[Option[ArchiveDocument]]] = {
     dmService.file(fileId).map(mf => MusitSuccess(mf))
   }
 
-  def isFileLocked(
-      mid: MuseumId,
+  def isArchiveDocumentLocked(
       fileId: FileId
   )(implicit ac: ArchiveContext): Future[MusitResult[Boolean]] = {
     dmService.fileHasLock(fileId).map(MusitSuccess.apply)
   }
 
-  def lockFile(
-      mid: MuseumId,
+  def lockArchiveDocument(
       fileId: FileId
   )(implicit ac: ArchiveContext): Future[MusitResult[Option[Lock]]] = {
     dmService.lockFile(fileId).map(MusitSuccess.apply)
   }
 
-  def unlockFile(
-      mid: MuseumId,
+  def unlockArchiveDocument(
       fileId: FileId
   )(implicit ac: ArchiveContext): Future[MusitResult[Boolean]] = {
     dmService.unlockFile(fileId).map(MusitSuccess.apply)
   }
 
-  def moveFile(
-      mid: MuseumId,
+  def moveArchiveDocument(
       fileId: FileId,
       dest: FolderId
   )(implicit ac: ArchiveContext): Future[MusitResult[Option[ArchiveDocument]]] = {
@@ -288,7 +301,5 @@ class DocumentArchiveService @Inject()(
 
     res.value.map(MusitSuccess.apply)
   }
-
-  // TODO: Add service methods for file upload
 
 }

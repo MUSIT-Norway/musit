@@ -1,6 +1,10 @@
 package utils.testdata
 
+import java.io.{File => JFile}
+
+import akka.stream.scaladsl.FileIO
 import models.document.ArchiveTypes._
+import models.document.Archiveables.DocumentDetails
 import no.uio.musit.models.MuseumId
 
 trait ArchiveableGenerators {
@@ -69,7 +73,37 @@ trait ArchiveableGenerators {
     )
   }
 
-  // TODO: generators for ArchivePart
-  // TODO: generators for ArchiveFolder
-  // TODO: generators for ArchiveDocument
+  def generateArchiveDocument(
+      mid: MuseumId,
+      author: String,
+      title: String,
+      desc: Option[String] = None
+  ): ArchiveDocument = {
+    val fileUri    = getClass.getClassLoader.getResource("test_files/clean.pdf").toURI
+    val filePath   = new JFile(fileUri).toPath
+    val fileSource = FileIO.fromPath(filePath)
+
+    ArchiveDocument(
+      id = None,
+      fid = None,
+      title = title,
+      size = None,
+      fileType = Some("application/pdf"),
+      description = desc,
+      owner = None, // Will be set by DocumentArchiveService
+      collection = None, // Will be set by DocumentArchiveService
+      path = None, // Will be set by DocumentArchiveService
+      lock = None,
+      version = 1,
+      published = false,
+      documentMedium = Some("digital"),
+      createdStamp = None, // Will be set by DocumentArchiveService
+      author = Some(author),
+      documentDetails = DocumentDetails(
+        docType = Some("foo"),
+        docSubType = Some("bar")
+      ),
+      stream = Some(fileSource)
+    )
+  }
 }

@@ -22,11 +22,11 @@ PUT         /museum/:mid/folders/:folderId/rename            controllers.Documen
 GET         /museum/:mid/folders/:folderId/islocked          controllers.DocumentArchiveController.isLockedFolder(mid: Int, folderId: String)
 PUT         /museum/:mid/folders/:folderId/lock              controllers.DocumentArchiveController.lockFolder(mid: Int, folderId: String)
 PUT         /museum/:mid/folders/:folderId/unlock            controllers.DocumentArchiveController.unlockFolder(mid: Int, folderId: String)
-POST        /museum/:mid/folders/:folderId/upload            controllers.DocumentArchiveController.uploadToFolder(mid: Int, folderId: String, collectionId: Option[String])
 GET         /museum/:mid/folders/:folderId/tree              controllers.DocumentArchiveController.getFolderTreeFrom(mid: Int, folderId: String, includeFiles: Boolean ?= false)
 GET         /museum/:mid/folders/:folderId/tree/paths        controllers.DocumentArchiveController.getPathsFrom(mid: Int, folderId: String)
 
-POST        /museum/:mid/files/upload                        controllers.DocumentArchiveController.uploadToPath(mid: Int, path: String, collectionId: Option[String])
+POST        /museum/:mid/folders/:folderId/upload            controllers.DocumentArchiveController.uploadToFolder(mid: Int, folderId: String, collectionId: Option[String])
+
 GET         /museum/:mid/files/:fileId                       controllers.DocumentArchiveController.getFileMetadataById(mid: Int, fileId: String)
 GET         /museum/:mid/files/:fileId/download              controllers.DocumentArchiveController.downloadFile(mid: Int, fileId: String)
 GET         /museum/:mid/files/:fileId/islocked              controllers.DocumentArchiveController.isLockedFile(mid: Int, fileId: String)

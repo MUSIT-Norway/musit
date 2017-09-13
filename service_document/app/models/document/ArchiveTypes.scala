@@ -217,7 +217,7 @@ object ArchiveTypes {
 
     override def enrich()(implicit ctx: ArchiveAddContext) = this.copy(
       owner = Some(ctx.owner),
-      collection = ctx.accessibleParties.headOption,
+      collection = ctx.collection,
       createdStamp = Some(UserStamp(by = ctx.currentUser, date = dateTimeNow))
     )
 
@@ -292,7 +292,7 @@ object ArchiveTypes {
 
     override def enrich()(implicit ctx: ArchiveAddContext) = this.copy(
       owner = Some(ctx.owner),
-      collection = ctx.accessibleParties.headOption,
+      collection = ctx.collection,
       createdStamp = Some(UserStamp(by = ctx.currentUser, date = dateTimeNow))
     )
 
@@ -367,9 +367,11 @@ object ArchiveTypes {
 
     override def enrich()(implicit ctx: ArchiveAddContext) = this.copy(
       owner = Some(ctx.owner),
-      collection = ctx.accessibleParties.headOption,
+      collection = ctx.collection,
       createdStamp = Some(UserStamp(by = ctx.currentUser, date = dateTimeNow))
     )
+
+    def updatePath(p: Path) = this.copy(path = Some(p))
 
   }
 
