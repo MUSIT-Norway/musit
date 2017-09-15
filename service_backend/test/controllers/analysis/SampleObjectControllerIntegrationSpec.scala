@@ -28,6 +28,8 @@ class SampleObjectControllerIntegrationSpec
 
   val mid          = Museums.Test.id.underlying
   val token        = BearerToken(FakeUsers.testAdminToken)
+  val tokenRead    = BearerToken(FakeUsers.testReadToken)
+  val tokenTest    = BearerToken(FakeUsers.testUserToken)
   val adminId      = FakeUsers.testAdminId
   val dummyActorId = ActorId.generate().asString
 
@@ -81,6 +83,7 @@ class SampleObjectControllerIntegrationSpec
       cd: DateTime,
       origObject: String,
       maybeParent: Option[String],
+      t: BearerToken = token,
       parentObjectType: ObjectType = CollectionObjectType,
       numToCreate: Int = 10
   ): Seq[WSResponse] = {
@@ -95,7 +98,7 @@ class SampleObjectControllerIntegrationSpec
         maybeExtId = Some(s"ext$index"),
         maybeNote = Some("This is a sample note")
       )
-      wsUrl(addUrl(mid)).withHttpHeaders(token.asHeader).post(js).futureValue
+      wsUrl(addUrl(mid)).withHttpHeaders(t.asHeader).post(js).futureValue
     }
   }
 
@@ -226,7 +229,7 @@ class SampleObjectControllerIntegrationSpec
       }
       val (s1, s2) = (cs1.head, cs1.last)
 
-      val cs2 = createAndSave(cd, orig, Some(s2), SampleObjectType, 2).map { r =>
+      val cs2 = createAndSave(cd, orig, Some(s2), token, SampleObjectType, 2).map { r =>
         r.status mustBe CREATED
         val sid = r.json.as[String]
         addedSampleIds += sid
@@ -235,7 +238,7 @@ class SampleObjectControllerIntegrationSpec
       val (s3, s4) = (cs2.head, cs2.last)
 
       val res =
-        wsUrl(forOrigUrl(mid)(orig)).withHttpHeaders(token.asHeader).get().futureValue
+        wsUrl(forOrigUrl(mid)(orig)).withHttpHeaders(tokenRead.asHeader).get().futureValue
 
       res.status mustBe OK
       val objects = res.json.as[JsArray].value
@@ -257,7 +260,7 @@ class SampleObjectControllerIntegrationSpec
       }
       val (s1, s2) = (cs1.head, cs1.last)
 
-      val cs2 = createAndSave(cd, orig, Some(s2), SampleObjectType, 2).map { r =>
+      val cs2 = createAndSave(cd, orig, Some(s2), token, SampleObjectType, 2).map { r =>
         r.status mustBe CREATED
         val sid = r.json.as[String]
         addedSampleIds += sid
@@ -266,7 +269,7 @@ class SampleObjectControllerIntegrationSpec
       val (s3, s4) = (cs2.head, cs2.last)
 
       val res =
-        wsUrl(childrenUrl(mid)(s2)).withHttpHeaders(token.asHeader).get().futureValue
+        wsUrl(childrenUrl(mid)(s2)).withHttpHeaders(tokenRead.asHeader).get().futureValue
 
       res.status mustBe OK
       val objects = res.json.as[JsArray].value
@@ -286,7 +289,7 @@ class SampleObjectControllerIntegrationSpec
       val objectId = (expJs \ "objectId").as[String]
 
       val res =
-        wsUrl(getUrl(mid)(objectId)).withHttpHeaders(token.asHeader).get().futureValue
+        wsUrl(getUrl(mid)(objectId)).withHttpHeaders(tokenRead.asHeader).get().futureValue
 
       res.status mustBe OK
 
@@ -318,7 +321,10 @@ class SampleObjectControllerIntegrationSpec
       val objectId = (expJs \ "objectId").as[String]
 
       val res =
-        wsUrl(deleteUrl(mid)(objectId)).withHttpHeaders(token.asHeader).get().futureValue
+        wsUrl(deleteUrl(mid)(objectId))
+          .withHttpHeaders(token.asHeader)
+          .delete()
+          .futureValue
 
       res.status mustBe OK
     }
@@ -327,7 +333,10 @@ class SampleObjectControllerIntegrationSpec
       val objectId = "123e4567-e89b-12d3-a456-426655440000"
 
       val res =
-        wsUrl(deleteUrl(mid)(objectId)).withHttpHeaders(token.asHeader).get().futureValue
+        wsUrl(deleteUrl(mid)(objectId))
+          .withHttpHeaders(token.asHeader)
+          .delete()
+          .futureValue
 
       res.status mustBe NOT_FOUND
     }
@@ -336,7 +345,10 @@ class SampleObjectControllerIntegrationSpec
       val objectId = "123"
 
       val res =
-        wsUrl(deleteUrl(mid)(objectId)).withHttpHeaders(token.asHeader).get().futureValue
+        wsUrl(deleteUrl(mid)(objectId))
+          .withHttpHeaders(token.asHeader)
+          .delete()
+          .futureValue
 
       res.status mustBe BAD_REQUEST
     }
@@ -399,6 +411,60 @@ class SampleObjectControllerIntegrationSpec
         (so \ "parentObject" \ "objectType").as[String] mustBe "collection"
         (so \ "museumId").as[Int] mustBe mid
       }
+    }
+
+    "Return 403 Forbidden when trying to add a few new SampleObjects without permission" in {
+      val cd      = DateTime.now.minusWeeks(2)
+      val results = createAndSave(cd, parentObject, Some(parentObject), tokenTest)
+
+      forAll(results) { r =>
+        r.status mustBe FORBIDDEN
+      }
+    }
+
+    "Return 403 Forbidden when trying to delete a specific sample object without permission" in {
+      val all = getAllForTestMuseum
+
+      val expJs    = (all.json \ 2).as[JsObject]
+      val objectId = (expJs \ "objectId").as[String]
+
+      val res =
+        wsUrl(deleteUrl(mid)(objectId))
+          .withHttpHeaders(tokenRead.asHeader)
+          .delete()
+          .futureValue
+
+      res.status mustBe FORBIDDEN
+    }
+
+    "Return 403 Forbidden when trying to update a specific sample object without permission" in {
+      val all = getAllForTestMuseum
+
+      val expJs    = (all.json \ 2).as[JsObject]
+      val objectId = (expJs \ "objectId").as[String]
+
+      val ujs = updateJson[String](expJs, __ \ "note", "Updated note")
+
+      val res =
+        wsUrl(updateUrl(mid)(objectId))
+          .withHttpHeaders(tokenRead.asHeader)
+          .put(ujs)
+          .futureValue
+
+      res.status mustBe FORBIDDEN
+    }
+
+    "Return 403 Forbidden when trying to return the sample object with the given ID without permission" in {
+      val all = getAllForTestMuseum
+
+      val expJs    = (all.json \ 2).as[JsObject]
+      val objectId = (expJs \ "objectId").as[String]
+
+      val res =
+        wsUrl(getUrl(mid)(objectId)).withHttpHeaders(tokenTest.asHeader).get().futureValue
+
+      res.status mustBe FORBIDDEN
+
     }
   }
 

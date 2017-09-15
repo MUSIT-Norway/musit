@@ -29,8 +29,10 @@ class AnalysisControllerIntegrationSpec
     with AnalysisJsonGenerators
     with AnalysisJsonValidators {
 
-  val mid   = MuseumId(99)
-  val token = BearerToken(FakeUsers.testAdminToken)
+  val mid       = MuseumId(99)
+  val token     = BearerToken(FakeUsers.testAdminToken)
+  val tokenRead = BearerToken(FakeUsers.testReadToken)
+  val tokenTest = BearerToken(FakeUsers.testUserToken)
 
   val baseUrl = (mid: Int) => s"/$mid/analyses"
 
@@ -47,8 +49,8 @@ class AnalysisControllerIntegrationSpec
   val saveResultUrl   = (mid: Int) => (id: Long) => s"${getAnalysisUrl(mid)(id)}/results"
   val getForObjectUrl = (mid: Int) => (oid: String) => s"${baseUrl(mid)}/objects/$oid"
 
-  def saveAnalysis(ajs: JsValue): WSResponse = {
-    wsUrl(addAnalysisUrl(mid)).withHttpHeaders(token.asHeader).post(ajs).futureValue
+  def saveAnalysis(ajs: JsValue, t: BearerToken = token): WSResponse = {
+    wsUrl(addAnalysisUrl(mid)).withHttpHeaders(t.asHeader).post(ajs).futureValue
   }
 
   "Using the analysis controller" when {
@@ -56,7 +58,8 @@ class AnalysisControllerIntegrationSpec
     "fetching analysis types" should {
 
       "return all event types" in {
-        val res = wsUrl(typesUrl(mid)).withHttpHeaders(token.asHeader).get().futureValue
+        val res =
+          wsUrl(typesUrl(mid)).withHttpHeaders(tokenRead.asHeader).get().futureValue
 
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 46
@@ -64,7 +67,7 @@ class AnalysisControllerIntegrationSpec
 
       "return all event categories" in {
         val res =
-          wsUrl(categoriesUrl(mid)).withHttpHeaders(token.asHeader).get().futureValue
+          wsUrl(categoriesUrl(mid)).withHttpHeaders(tokenRead.asHeader).get().futureValue
 
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 13
@@ -75,7 +78,10 @@ class AnalysisControllerIntegrationSpec
       "return all event types in an analysis category" in {
         val catId = EventCategories.Dating.id
         val res =
-          wsUrl(typeCatUrl(mid)(catId)).withHttpHeaders(token.asHeader).get().futureValue
+          wsUrl(typeCatUrl(mid)(catId))
+            .withHttpHeaders(tokenRead.asHeader)
+            .get()
+            .futureValue
 
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 3
@@ -84,7 +90,10 @@ class AnalysisControllerIntegrationSpec
       "return all types in a category where some have extra description attributes" in {
         val catId = EventCategories.Image.id
         val res =
-          wsUrl(typeCatUrl(mid)(catId)).withHttpHeaders(token.asHeader).get().futureValue
+          wsUrl(typeCatUrl(mid)(catId))
+            .withHttpHeaders(tokenRead.asHeader)
+            .get()
+            .futureValue
 
         res.status mustBe OK
         val arr = res.json.as[JsArray].value
@@ -110,7 +119,7 @@ class AnalysisControllerIntegrationSpec
 
       "return measurement type with extra result type" in {
         val res =
-          wsUrl(typesUrl(mid)).withHttpHeaders(token.asHeader).get().futureValue
+          wsUrl(typesUrl(mid)).withHttpHeaders(tokenRead.asHeader).get().futureValue
 
         res.status mustBe OK
         val arr = res.json.as[JsArray].value
@@ -130,6 +139,17 @@ class AnalysisControllerIntegrationSpec
 
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 28
+      }
+
+      "return 403 FORBIDDEN if not permission to module" in {
+        val catId = EventCategories.Dating.id
+        val res =
+          wsUrl(typeCatUrl(mid)(catId))
+            .withHttpHeaders(tokenTest.asHeader)
+            .get()
+            .futureValue
+
+        res.status mustBe FORBIDDEN
       }
 
     }
@@ -184,7 +204,10 @@ class AnalysisControllerIntegrationSpec
 
         saveAnalysis(js).status mustBe CREATED // creates ids 7 to 8
         val ares =
-          wsUrl(getAnalysisUrl(mid)(7L)).withHttpHeaders(token.asHeader).get().futureValue
+          wsUrl(getAnalysisUrl(mid)(7L))
+            .withHttpHeaders(tokenRead.asHeader)
+            .get()
+            .futureValue
 
         ares.status mustBe OK
         (ares.json \ "orgId").as[Int] mustBe 312
@@ -252,7 +275,7 @@ class AnalysisControllerIntegrationSpec
         // with 1 analysis each before this.
         val res =
           wsUrl(getAnalysisUrl(mid)(10L))
-            .withHttpHeaders(token.asHeader)
+            .withHttpHeaders(tokenRead.asHeader)
             .get()
             .futureValue
 
@@ -271,7 +294,7 @@ class AnalysisControllerIntegrationSpec
 
       "return 404 NotFound if the ID can't be found" in {
         wsUrl(getAnalysisUrl(mid)(100L))
-          .withHttpHeaders(token.asHeader)
+          .withHttpHeaders(tokenRead.asHeader)
           .get()
           .futureValue
           .status mustBe NOT_FOUND
@@ -309,7 +332,7 @@ class AnalysisControllerIntegrationSpec
 
         val res =
           wsUrl(getAnalysisUrl(mid)(11L))
-            .withHttpHeaders(token.asHeader)
+            .withHttpHeaders(tokenRead.asHeader)
             .get()
             .futureValue
 
@@ -327,7 +350,7 @@ class AnalysisControllerIntegrationSpec
       "get all analyses in an analysis collection/batch" in {
         val res =
           wsUrl(getChildrenUrl(mid)(11L))
-            .withHttpHeaders(token.asHeader)
+            .withHttpHeaders(tokenRead.asHeader)
             .get()
             .futureValue
 
@@ -337,7 +360,7 @@ class AnalysisControllerIntegrationSpec
 
       "get all analyses related to an object" in {
         val res = wsUrl(getForObjectUrl(mid)(testObjectUUID.asString))
-          .withHttpHeaders(token.asHeader)
+          .withHttpHeaders(tokenRead.asHeader)
           .get()
           .futureValue
 
@@ -362,7 +385,10 @@ class AnalysisControllerIntegrationSpec
 
       "include the saved result when fetching the analysis" in {
         val res =
-          wsUrl(getAnalysisUrl(mid)(2L)).withHttpHeaders(token.asHeader).get().futureValue
+          wsUrl(getAnalysisUrl(mid)(2L))
+            .withHttpHeaders(tokenRead.asHeader)
+            .get()
+            .futureValue
 
         res.status mustBe OK
         (res.json \ "id").as[Long] mustBe 2L
@@ -386,11 +412,22 @@ class AnalysisControllerIntegrationSpec
             .futureValue
 
         res.status mustBe OK
+
+        val resNotPermission =
+          wsUrl(saveResultUrl(mid)(2L))
+            .withHttpHeaders(tokenTest.asHeader)
+            .put(js)
+            .futureValue
+
+        resNotPermission.status mustBe FORBIDDEN
       }
 
       "include the new result when fetching the analysis" in {
         val res =
-          wsUrl(getAnalysisUrl(mid)(2L)).withHttpHeaders(token.asHeader).get().futureValue
+          wsUrl(getAnalysisUrl(mid)(2L))
+            .withHttpHeaders(tokenRead.asHeader)
+            .get()
+            .futureValue
 
         res.status mustBe OK
         (res.json \ "id").as[Long] mustBe 2L
@@ -404,7 +441,7 @@ class AnalysisControllerIntegrationSpec
       "only return analyses related to a collection in a museum" in {
         val res =
           wsUrl(getAnalysesUrl(mid))
-            .withHttpHeaders(token.asHeader)
+            .withHttpHeaders(tokenRead.asHeader)
             .withQueryStringParameters("collectionIds" -> Archeology.uuid.asString)
             .get()
             .futureValue
@@ -415,11 +452,32 @@ class AnalysisControllerIntegrationSpec
 
       "get an analysis with orgId" in {
         val al =
-          wsUrl(getAnalysisUrl(mid)(7L)).withHttpHeaders(token.asHeader).get().futureValue
+          wsUrl(getAnalysisUrl(mid)(7L))
+            .withHttpHeaders(tokenRead.asHeader)
+            .get()
+            .futureValue
         al.status mustBe OK
         (al.json \ "orgId").asOpt[Int] mustBe Some(317)
       }
-    }
 
+      "return 403 if the user has wrong permission" in {
+        wsUrl(getAnalysisUrl(mid)(7L))
+          .withHttpHeaders(tokenTest.asHeader)
+          .get()
+          .futureValue
+          .status mustBe FORBIDDEN
+      }
+
+      "return 403 forbidden when trying to save a new generic analysis without permission to module" in {
+        val edate = DateTime.now
+        val js = createSaveAnalysisCollectionJSON(
+          eventDate = Some(edate),
+          objects = Seq(testObjectUUID)
+        )
+
+        saveAnalysis(js, tokenTest).status mustBe FORBIDDEN // creates ids 1 to 2
+      }
+
+    }
   }
 }

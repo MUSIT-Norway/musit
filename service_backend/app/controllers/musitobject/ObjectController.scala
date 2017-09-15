@@ -121,7 +121,7 @@ class ObjectController @Inject()(
             }
         }
       }
-      .getOrElse(invaludUuidResponse(mainObjectId))
+      .getOrElse(invalidUuidResponse(mainObjectId))
   }
 
   // scalastyle:off method.length
@@ -182,7 +182,7 @@ class ObjectController @Inject()(
             }
         }
       }
-      .getOrElse(invaludUuidResponse(nodeId))
+      .getOrElse(invalidUuidResponse(nodeId))
   }
 
   // scalastyle:on method.length
@@ -234,7 +234,7 @@ class ObjectController @Inject()(
                 internalErr(r)
             }
           }
-          .getOrElse(invaludUuidResponse(objectUUID))
+          .getOrElse(invalidUuidResponse(objectUUID))
     }
   }
 }

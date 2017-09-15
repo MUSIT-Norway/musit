@@ -1,12 +1,12 @@
 package controllers.storage
 
 import com.google.inject.{Inject, Singleton}
-import controllers.invaludUuidResponse
+import controllers.invalidUuidResponse
 import models.storage.event.control.Control
 import models.storage.event.observation.Observation
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.models.StorageNodeId
-import no.uio.musit.security.Authenticator
+import no.uio.musit.security.{Authenticator, StorageFacility}
 import no.uio.musit.security.Permissions._
 import no.uio.musit.service.MusitController
 import play.api.Logger
@@ -33,26 +33,27 @@ class EventController @Inject()(
   def addControl(
       mid: Int,
       nodeId: String
-  ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
-    implicit val currUser = request.user
+  ) = MusitSecureAction(mid, StorageFacility, Write).async(parse.json) {
+    implicit request =>
+      implicit val currUser = request.user
 
-    StorageNodeId
-      .fromString(nodeId)
-      .map { nid =>
-        request.body.validate[Control] match {
-          case JsSuccess(ctrl, jsPath) =>
-            controlService.add(mid, nid, ctrl).map {
-              case MusitSuccess(addedCtrl) =>
-                Created(Json.toJson(addedCtrl))
+      StorageNodeId
+        .fromString(nodeId)
+        .map { nid =>
+          request.body.validate[Control] match {
+            case JsSuccess(ctrl, jsPath) =>
+              controlService.add(mid, nid, ctrl).map {
+                case MusitSuccess(addedCtrl) =>
+                  Created(Json.toJson(addedCtrl))
 
-              case err: MusitError =>
-                InternalServerError(Json.obj("message" -> err.message))
-            }
-          case JsError(errors) =>
-            Future.successful(BadRequest(JsError.toJson(errors)))
+                case err: MusitError =>
+                  InternalServerError(Json.obj("message" -> err.message))
+              }
+            case JsError(errors) =>
+              Future.successful(BadRequest(JsError.toJson(errors)))
+          }
         }
-      }
-      .getOrElse(invaludUuidResponse(nodeId))
+        .getOrElse(invalidUuidResponse(nodeId))
   }
 
   /**
@@ -62,26 +63,27 @@ class EventController @Inject()(
   def addObservation(
       mid: Int,
       nodeId: String
-  ) = MusitSecureAction(mid, Write).async(parse.json) { implicit request =>
-    implicit val currUser = request.user
+  ) = MusitSecureAction(mid, StorageFacility, Write).async(parse.json) {
+    implicit request =>
+      implicit val currUser = request.user
 
-    StorageNodeId
-      .fromString(nodeId)
-      .map { nid =>
-        request.body.validate[Observation] match {
-          case JsSuccess(obs, jsPath) =>
-            observationService.add(mid, nid, obs).map {
-              case MusitSuccess(addedObs) =>
-                Created(Json.toJson(addedObs))
+      StorageNodeId
+        .fromString(nodeId)
+        .map { nid =>
+          request.body.validate[Observation] match {
+            case JsSuccess(obs, jsPath) =>
+              observationService.add(mid, nid, obs).map {
+                case MusitSuccess(addedObs) =>
+                  Created(Json.toJson(addedObs))
 
-              case err: MusitError =>
-                InternalServerError(Json.obj("message" -> err.message))
-            }
-          case JsError(errors) =>
-            Future.successful(BadRequest(JsError.toJson(errors)))
+                case err: MusitError =>
+                  InternalServerError(Json.obj("message" -> err.message))
+              }
+            case JsError(errors) =>
+              Future.successful(BadRequest(JsError.toJson(errors)))
+          }
         }
-      }
-      .getOrElse(invaludUuidResponse(nodeId))
+        .getOrElse(invalidUuidResponse(nodeId))
   }
 
   /**
@@ -92,7 +94,7 @@ class EventController @Inject()(
       mid: Int,
       nodeId: String,
       eventId: Long
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { implicit request =>
     implicit val currUser = request.user
 
     StorageNodeId
@@ -110,7 +112,7 @@ class EventController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse(invaludUuidResponse(nodeId))
+      .getOrElse(invalidUuidResponse(nodeId))
   }
 
   /**
@@ -121,7 +123,7 @@ class EventController @Inject()(
       mid: Int,
       nodeId: String,
       eventId: Long
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { implicit request =>
     implicit val currUser = request.user
 
     StorageNodeId
@@ -138,7 +140,7 @@ class EventController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse(invaludUuidResponse(nodeId))
+      .getOrElse(invalidUuidResponse(nodeId))
   }
 
   /**
@@ -147,7 +149,7 @@ class EventController @Inject()(
   def listControls(
       mid: Int,
       nodeId: String
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { implicit request =>
     implicit val currUser = request.user
 
     StorageNodeId
@@ -161,7 +163,7 @@ class EventController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse(invaludUuidResponse(nodeId))
+      .getOrElse(invalidUuidResponse(nodeId))
   }
 
   /**
@@ -170,7 +172,7 @@ class EventController @Inject()(
   def listObservations(
       mid: Int,
       nodeId: String
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { implicit request =>
     implicit val currUser = request.user
 
     StorageNodeId
@@ -184,7 +186,7 @@ class EventController @Inject()(
             InternalServerError(Json.obj("message" -> err.message))
         }
       }
-      .getOrElse(invaludUuidResponse(nodeId))
+      .getOrElse(invalidUuidResponse(nodeId))
   }
 
   /**
@@ -194,7 +196,7 @@ class EventController @Inject()(
   def listEventsForNode(
       mid: Int,
       nodeId: String
-  ) = MusitSecureAction(mid, Read).async { implicit request =>
+  ) = MusitSecureAction(mid, StorageFacility, Read).async { implicit request =>
     implicit val currUser = request.user
 
     StorageNodeId
@@ -235,7 +237,7 @@ class EventController @Inject()(
 
         }
       }
-      .getOrElse(invaludUuidResponse(nodeId))
+      .getOrElse(invalidUuidResponse(nodeId))
   }
 
 }
