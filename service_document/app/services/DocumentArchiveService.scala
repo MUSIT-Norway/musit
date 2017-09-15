@@ -6,7 +6,12 @@ import models.document.ArchiveTypes.Implicits._
 import models.document.{ArchiveAddContext, ArchiveContext}
 import net.scalytica.symbiotic.api.types._
 import net.scalytica.symbiotic.core.DocManagementService
-import no.uio.musit.MusitResults.{MusitGeneralError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{
+  MusitGeneralError,
+  MusitNotFound,
+  MusitResult,
+  MusitSuccess
+}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.OptionT
 import no.uio.musit.models.MuseumId
@@ -25,6 +30,7 @@ class DocumentArchiveService @Inject()(
   private val logger = Logger(classOf[DocumentArchiveService])
 
   private def generalErrorF(msg: String) = evaluated(MusitGeneralError(msg))
+  private def notFoundF(msg: String)     = evaluated(MusitNotFound(msg))
 
   // ===========================================================================
   //  Service definitions for interacting with ArchiveFolderItem data types.
@@ -34,14 +40,20 @@ class DocumentArchiveService @Inject()(
 
   def initRootFor(
       mid: MuseumId
-  )(implicit ac: ArchiveAddContext): Future[MusitResult[Option[FolderId]]] = {
-    dmService.createRootFolder.map(MusitSuccess.apply)
+  )(implicit ac: ArchiveAddContext): Future[MusitResult[FolderId]] = {
+    dmService.createRootFolder.map {
+      case Some(root) => MusitSuccess(root)
+      case None       => MusitGeneralError(s"Root for $mid was not created")
+    }
   }
 
   def archiveRoot(
       mid: MuseumId
-  )(implicit ac: ArchiveContext): Future[MusitResult[Option[ArchiveRoot]]] = {
-    dmService.folder(Path.root).map(mr => MusitSuccess(mr.map(f => f: ArchiveRoot)))
+  )(implicit ac: ArchiveContext): Future[MusitResult[ArchiveRoot]] = {
+    dmService.folder(Path.root).map {
+      case Some(root) => MusitSuccess(root: ArchiveRoot)
+      case None       => MusitNotFound(s"Couldn't find root for $mid")
+    }
   }
 
   def getArchiveRootTreeFor(
@@ -57,7 +69,7 @@ class DocumentArchiveService @Inject()(
   def addArchiveFolderItem(
       dest: FolderId,
       afi: ArchiveFolderItem
-  )(implicit ac: ArchiveAddContext): Future[MusitResult[Option[ArchiveFolderItem]]] = {
+  )(implicit ac: ArchiveAddContext): Future[MusitResult[ArchiveFolderItem]] = {
     dmService.folder(dest).flatMap { mdf =>
       mdf.map { df =>
         val p = df.flattenPath.append(afi.title)
@@ -97,11 +109,11 @@ class DocumentArchiveService @Inject()(
   def updateArchiveFolderItem(
       folderId: FolderId,
       afi: ArchiveFolderItem
-  )(implicit ac: ArchiveContext): Future[MusitResult[Option[ArchiveFolderItem]]] = {
+  )(implicit ac: ArchiveContext): Future[MusitResult[ArchiveFolderItem]] = {
     dmService.folder(folderId).flatMap {
       case None =>
         logger.debug(s"Nothing was updated because folder $folderId doesn't exist.")
-        evaluated(MusitSuccess(None))
+        notFoundF(s"Could not find $folderId")
 
       case Some(existing) =>
         val upd = afi match {
@@ -134,13 +146,11 @@ class DocumentArchiveService @Inject()(
               generalErrorF(s"Moving an ${f.getClass} to an ${d.getClass} isn't allowed")
             }
           }.getOrElse {
-            generalErrorF(
-              s"Cannot move folder $folderId to $dest because it doesn't exist"
-            )
+            notFoundF(s"Cannot move folder $folderId to $dest because it doesn't exist")
           }
         }
       }.getOrElse {
-        generalErrorF(s"Cannot move folder $folderId because it doesn't exist")
+        notFoundF(s"Cannot move folder $folderId because it doesn't exist")
       }
     }
   }
@@ -151,7 +161,7 @@ class DocumentArchiveService @Inject()(
   )(implicit ac: ArchiveContext): Future[MusitResult[Seq[Path]]] = {
     dmService.folder(folderId).flatMap {
       case None =>
-        generalErrorF(s"No such folder $folderId")
+        notFoundF(s"No such folder $folderId")
 
       case Some(f) =>
         dmService.treeNoFiles(f.path.map(_.parent)).flatMap { siblings =>
@@ -176,8 +186,11 @@ class DocumentArchiveService @Inject()(
       folderId: FolderId
   )(
       implicit ac: ArchiveContext
-  ): Future[MusitResult[Option[ArchiveFolderItem]]] = {
-    dmService.folder(folderId).map(mf => MusitSuccess(mf))
+  ): Future[MusitResult[ArchiveFolderItem]] = {
+    dmService.folder(folderId).map {
+      case Some(afi) => MusitSuccess(afi)
+      case None      => MusitNotFound(s"Couldn't find folder $folderId")
+    }
   }
 
   def isArchiveFolderItemClosed(
@@ -188,8 +201,11 @@ class DocumentArchiveService @Inject()(
 
   def closeArchiveFolderItem(
       folderId: FolderId
-  )(implicit ac: ArchiveContext): Future[MusitResult[Option[Lock]]] = {
-    dmService.lockFolder(folderId).map(MusitSuccess.apply)
+  )(implicit ac: ArchiveContext): Future[MusitResult[Lock]] = {
+    dmService.lockFolder(folderId).map {
+      case Some(lock) => MusitSuccess(lock)
+      case None       => MusitGeneralError(s"Lock was not applied to $folderId")
+    }
   }
 
   def openArchiveFolderItem(
@@ -252,13 +268,16 @@ class DocumentArchiveService @Inject()(
   def saveArchiveDocument(
       dest: FolderId,
       ad: ArchiveDocument
-  )(implicit ac: ArchiveAddContext): Future[MusitResult[Option[FileId]]] = {
+  )(implicit ac: ArchiveAddContext): Future[MusitResult[FileId]] = {
     dmService.folder(dest).flatMap { maybeDest =>
       maybeDest.map { df =>
         val enriched = ad.enrich().updatePath(df.flattenPath)
-        dmService.saveFile(enriched).map(MusitSuccess.apply)
+        dmService.saveFile(enriched).map {
+          case Some(fid) => MusitSuccess(fid)
+          case None      => MusitGeneralError(s"File ${ad.title} was not saved.")
+        }
       }.getOrElse {
-        generalErrorF(s"Unable to save ArchiveDocument in $dest because it doesn't exist")
+        notFoundF(s"Unable to save ArchiveDocument in $dest because it doesn't exist")
       }
     }
   }
@@ -266,7 +285,7 @@ class DocumentArchiveService @Inject()(
   def updateArchiveDocument(
       fileId: FileId,
       ad: ArchiveDocument
-  )(implicit ac: ArchiveContext): Future[MusitResult[Option[ArchiveDocument]]] = {
+  )(implicit ac: ArchiveContext): Future[MusitResult[ArchiveDocument]] = {
     dmService.file(fileId).flatMap { maybeFile =>
       maybeFile.map { _ =>
         dmService.updateFile(ad.copy(fid = Some(fileId))).flatMap {
@@ -274,7 +293,7 @@ class DocumentArchiveService @Inject()(
           case None    => generalErrorF(s"File $fileId could not be updated.")
         }
       }.getOrElse {
-        generalErrorF(
+        notFoundF(
           s"Unable to update ArchiveDocument $fileId because it doesn't exist"
         )
       }
@@ -283,8 +302,11 @@ class DocumentArchiveService @Inject()(
 
   def getArchiveDocument(
       fileId: FileId
-  )(implicit ac: ArchiveContext): Future[MusitResult[Option[ArchiveDocument]]] = {
-    dmService.file(fileId).map(mf => MusitSuccess(mf))
+  )(implicit ac: ArchiveContext): Future[MusitResult[ArchiveDocument]] = {
+    dmService.file(fileId).map {
+      case Some(ad) => MusitSuccess(ad)
+      case None     => MusitNotFound(s"Could not find ArchiveDocument $fileId")
+    }
   }
 
   def isArchiveDocumentLocked(
@@ -295,8 +317,11 @@ class DocumentArchiveService @Inject()(
 
   def lockArchiveDocument(
       fileId: FileId
-  )(implicit ac: ArchiveContext): Future[MusitResult[Option[Lock]]] = {
-    dmService.lockFile(fileId).map(MusitSuccess.apply)
+  )(implicit ac: ArchiveContext): Future[MusitResult[Lock]] = {
+    dmService.lockFile(fileId).map {
+      case Some(lock) => MusitSuccess(lock)
+      case None       => MusitGeneralError(s"Lock was not applied to $fileId")
+    }
   }
 
   def unlockArchiveDocument(
@@ -308,7 +333,7 @@ class DocumentArchiveService @Inject()(
   def moveArchiveDocument(
       fileId: FileId,
       dest: FolderId
-  )(implicit ac: ArchiveContext): Future[MusitResult[Option[ArchiveDocument]]] = {
+  )(implicit ac: ArchiveContext): Future[MusitResult[ArchiveDocument]] = {
     val fmPath = dmService.file(fileId).map(_.flatMap(_.path))
     val fmDest = dmService.folder(dest)
 
@@ -322,7 +347,10 @@ class DocumentArchiveService @Inject()(
           )
     } yield m
 
-    res.value.map(MusitSuccess.apply)
+    res.value.map {
+      case Some(ad) => MusitSuccess(ad)
+      case None     => MusitGeneralError(s"ArchiveDocument $fileId was not moved.")
+    }
   }
 
 }

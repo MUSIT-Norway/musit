@@ -78,7 +78,7 @@ class DocumentArchiveServiceSpec
       existingFolderName: String
   ) = {
     val aid =
-      service.addArchiveFolderItem(parentId, afi).futureValue.successValue.value.fid.value
+      service.addArchiveFolderItem(parentId, afi).futureValue.successValue.fid.value
     folderAdded(defaultMuseumId, aid, ArchiveTypes.asTypeString(afi))
 
     service.renameArchiveFolderItem(aid, existingFolderName).futureValue match {
@@ -96,10 +96,10 @@ class DocumentArchiveServiceSpec
       name: String
   ) = {
     val aid =
-      service.addArchiveFolderItem(parentId, afi).futureValue.successValue.value.fid.value
+      service.addArchiveFolderItem(parentId, afi).futureValue.successValue.fid.value
     folderAdded(defaultMuseumId, aid, ArchiveTypes.asTypeString(afi))
 
-    val ap = service.getArchiveFolderItem(aid).futureValue.successValue.value
+    val ap = service.getArchiveFolderItem(aid).futureValue.successValue
 
     val res = service.renameArchiveFolderItem(aid, name).futureValue.successValue
 
@@ -110,21 +110,18 @@ class DocumentArchiveServiceSpec
 
     "initialize the root directory for the test museum" taggedAs PG in {
       val res = service.initRootFor(defaultMuseumId).futureValue.successValue
-      res must not be empty
-      folderAdded(defaultMuseumId, res.value, "root")
+      folderAdded(defaultMuseumId, res, "root")
     }
 
     "initialize the root directory for KHM" taggedAs PG in {
       val res = service.initRootFor(Museums.Khm.id)(khmAddCtx).futureValue.successValue
-      res must not be empty
-      folderAdded(defaultMuseumId, res.value, "root")
+      folderAdded(defaultMuseumId, res, "root")
     }
 
     "get the root folder for the Test museum" taggedAs PG in {
       val res = service.archiveRoot(defaultMuseumId).futureValue.successValue
-      res must not be empty
-      res.value.title mustBe "root"
-      res.value.metadata.fid.value mustBe getRootId(defaultMuseumId)
+      res.title mustBe "root"
+      res.metadata.fid.value mustBe getRootId(defaultMuseumId)
     }
 
     "add an Archive folder to the root" taggedAs PG in {
@@ -136,9 +133,8 @@ class DocumentArchiveServiceSpec
       )
 
       val res = service.addArchiveFolderItem(root, archive).futureValue.successValue
-      res must not be empty
 
-      folderAdded(defaultMuseumId, res.value.fid.value, Archive.FolderType)
+      folderAdded(defaultMuseumId, res.fid.value, Archive.FolderType)
     }
 
     "not allow adding an Archive to an Archive" taggedAs PG in {
@@ -198,9 +194,8 @@ class DocumentArchiveServiceSpec
 
       val res =
         service.addArchiveFolderItem(archiveId, archivePart).futureValue.successValue
-      res must not be empty
 
-      folderAdded(defaultMuseumId, res.value.fid.value, ArchivePart.FolderType)
+      folderAdded(defaultMuseumId, res.fid.value, ArchivePart.FolderType)
     }
 
     "not allow adding an Archive to an ArchivePart" taggedAs PG in {
@@ -231,9 +226,8 @@ class DocumentArchiveServiceSpec
 
       val res =
         service.addArchiveFolderItem(partId, folder).futureValue.successValue
-      res must not be empty
 
-      folderAdded(defaultMuseumId, res.value.fid.value, ArchiveFolder.FolderType)
+      folderAdded(defaultMuseumId, res.fid.value, ArchiveFolder.FolderType)
     }
 
     "not allow adding an Archive to an ArchiveFolder" taggedAs PG in {
@@ -275,9 +269,8 @@ class DocumentArchiveServiceSpec
 
       val res =
         service.addArchiveFolderItem(folderId, folder).futureValue.successValue
-      res must not be empty
 
-      folderAdded(defaultMuseumId, res.value.fid.value, ArchiveFolder.FolderType)
+      folderAdded(defaultMuseumId, res.fid.value, ArchiveFolder.FolderType)
     }
 
     "not add an ArchiveFolder with name of existing ArchiveFolder" taggedAs PG in {
@@ -300,46 +293,39 @@ class DocumentArchiveServiceSpec
       val archiveId = getArchiveId(defaultMuseumId, 0)
 
       val res = service.getArchiveFolderItem(archiveId).futureValue.successValue
-      res must not be empty
 
-      val a = res.get
-      a mustBe an[Archive]
-      a.title mustBe "archive 1"
-      a.fid mustBe Some(archiveId)
-      a.owner.value.id mustBe ArchiveOwnerId(defaultMuseumId)
+      res mustBe an[Archive]
+      res.title mustBe "archive 1"
+      res.fid mustBe Some(archiveId)
+      res.owner.value.id mustBe ArchiveOwnerId(defaultMuseumId)
     }
 
     "get an ArchivePart by id" taggedAs PG in {
       val partId = getArchivePartId(defaultMuseumId, 0)
 
       val res = service.getArchiveFolderItem(partId).futureValue.successValue
-      res must not be empty
 
-      val ap = res.get
-      ap mustBe an[ArchivePart]
-      ap.title mustBe "archive part 1"
-      ap.fid mustBe Some(partId)
-      ap.owner.value.id mustBe ArchiveOwnerId(defaultMuseumId)
+      res mustBe an[ArchivePart]
+      res.title mustBe "archive part 1"
+      res.fid mustBe Some(partId)
+      res.owner.value.id mustBe ArchiveOwnerId(defaultMuseumId)
     }
 
     "get an ArchiveFolder by id" taggedAs PG in {
       val folderId = getArchiveFolderId(defaultMuseumId, 0)
 
       val res = service.getArchiveFolderItem(folderId).futureValue.successValue
-      res must not be empty
 
-      val af = res.get
-      af mustBe an[ArchiveFolder]
-      af.title mustBe "archive folder 1"
-      af.fid mustBe Some(folderId)
-      af.owner.value.id mustBe ArchiveOwnerId(defaultMuseumId)
+      res mustBe an[ArchiveFolder]
+      res.title mustBe "archive folder 1"
+      res.fid mustBe Some(folderId)
+      res.owner.value.id mustBe ArchiveOwnerId(defaultMuseumId)
     }
 
     "update an Archive" taggedAs PG in {
       val archiveId = getArchiveId(defaultMuseumId, 0)
 
-      val a1 =
-        service.getArchiveFolderItem(archiveId).futureValue.successValue.value
+      val a1 = service.getArchiveFolderItem(archiveId).futureValue.successValue
 
       val upd = a1 match {
         case ar: Archive => ar.copy(description = Some("Archive 1 updated"))
@@ -350,15 +336,13 @@ class DocumentArchiveServiceSpec
         .updateArchiveFolderItem(archiveId, upd)
         .futureValue
         .successValue
-        .value
         .description mustBe Some("Archive 1 updated")
     }
 
     "update an ArchivePart" taggedAs PG in {
       val partId = getArchivePartId(defaultMuseumId, 0)
 
-      val ap1 =
-        service.getArchiveFolderItem(partId).futureValue.successValue.value
+      val ap1 = service.getArchiveFolderItem(partId).futureValue.successValue
 
       val upd = ap1 match {
         case ar: ArchivePart => ar.copy(description = Some("ArchivePart 1 updated"))
@@ -369,15 +353,13 @@ class DocumentArchiveServiceSpec
         .updateArchiveFolderItem(partId, upd)
         .futureValue
         .successValue
-        .value
         .description mustBe Some("ArchivePart 1 updated")
     }
 
     "update an ArchiveFolder" taggedAs PG in {
       val folderId = getArchiveFolderId(defaultMuseumId, 0)
 
-      val af1 =
-        service.getArchiveFolderItem(folderId).futureValue.successValue.value
+      val af1 = service.getArchiveFolderItem(folderId).futureValue.successValue
 
       val upd = af1 match {
         case ar: ArchiveFolder => ar.copy(description = Some("ArchiveFolder 1 updated"))
@@ -388,7 +370,6 @@ class DocumentArchiveServiceSpec
         .updateArchiveFolderItem(folderId, upd)
         .futureValue
         .successValue
-        .value
         .description mustBe Some("ArchiveFolder 1 updated")
     }
 
@@ -467,21 +448,15 @@ class DocumentArchiveServiceSpec
       )
 
       val aid =
-        service
-          .addArchiveFolderItem(partId, folder)
-          .futureValue
-          .successValue
-          .value
-          .fid
-          .value
+        service.addArchiveFolderItem(partId, folder).futureValue.successValue.fid.value
       folderAdded(defaultMuseumId, aid, ArchiveFolder.FolderType)
 
       val dest = getArchiveFolderId(defaultMuseumId, 2)
-      val df   = service.getArchiveFolderItem(dest).futureValue.successValue.value
+      val df   = service.getArchiveFolderItem(dest).futureValue.successValue
 
-      val res = service.moveArchiveFolderItem(aid, dest).futureValue.successValue
-
-      res must contain(df.path.value.append(folder.title))
+      service.moveArchiveFolderItem(aid, dest).futureValue.successValue must contain(
+        df.path.value.append(folder.title)
+      )
     }
 
     "not be possible to move an ArchiveFolder to an Archive" taggedAs PG in {
@@ -517,7 +492,6 @@ class DocumentArchiveServiceSpec
         .closeArchiveFolderItem(archiveId)
         .futureValue
         .successValue
-        .value
         .by mustBe ctx.currentUser
     }
 
@@ -551,7 +525,6 @@ class DocumentArchiveServiceSpec
         .closeArchiveFolderItem(partId)
         .futureValue
         .successValue
-        .value
         .by mustBe ctx.currentUser
     }
 
@@ -583,9 +556,8 @@ class DocumentArchiveServiceSpec
       )
 
       val res = service.saveArchiveDocument(folderId, ad).futureValue.successValue
-      res must not be empty
 
-      fileAdded(defaultMuseumId, res.value)
+      fileAdded(defaultMuseumId, res)
     }
 
     "save an ArchiveDocument in an ArchivePart" in {
@@ -598,9 +570,8 @@ class DocumentArchiveServiceSpec
       )
 
       val res = service.saveArchiveDocument(partId, ad).futureValue.successValue
-      res must not be empty
 
-      fileAdded(defaultMuseumId, res.value)
+      fileAdded(defaultMuseumId, res)
     }
 
     "save an ArchiveDocument in an Archive" in {
@@ -613,15 +584,14 @@ class DocumentArchiveServiceSpec
       )
 
       val res = service.saveArchiveDocument(archiveId, ad).futureValue.successValue
-      res must not be empty
 
-      fileAdded(defaultMuseumId, res.value)
+      fileAdded(defaultMuseumId, res)
     }
 
     "get an ArchiveDocument" in {
       val fid = getArchiveDocumentId(defaultMuseumId, 0)
 
-      val res = service.getArchiveDocument(fid).futureValue.successValue.value
+      val res = service.getArchiveDocument(fid).futureValue.successValue
 
       res.title mustBe "archive document 1"
       res.description mustBe Some("test archive document 1")
@@ -639,10 +609,10 @@ class DocumentArchiveServiceSpec
         desc = Some("test archive document 4")
       )
 
-      val fid = service.saveArchiveDocument(folderId, ad).futureValue.successValue.value
+      val fid = service.saveArchiveDocument(folderId, ad).futureValue.successValue
       fileAdded(defaultMuseumId, fid)
 
-      val orig = service.getArchiveDocument(fid).futureValue.successValue.value
+      val orig = service.getArchiveDocument(fid).futureValue.successValue
 
       val mod = orig.copy(
         description = Some("test archive document 4 - updated"),
@@ -650,7 +620,7 @@ class DocumentArchiveServiceSpec
         author = Some("Anakin Skywalker")
       )
 
-      val res = service.updateArchiveDocument(fid, mod).futureValue.successValue.value
+      val res = service.updateArchiveDocument(fid, mod).futureValue.successValue
 
       res.title mustBe orig.title
       res.author mustBe Some("Anakin Skywalker")
@@ -662,7 +632,7 @@ class DocumentArchiveServiceSpec
     "not update immutable fields on an ArchiveDocument" in {
       val fid = getArchiveDocumentId(defaultMuseumId, 3)
 
-      val orig = service.getArchiveDocument(fid).futureValue.successValue.value
+      val orig = service.getArchiveDocument(fid).futureValue.successValue
 
       val mod = orig.copy(
         title = "foo",
@@ -670,7 +640,7 @@ class DocumentArchiveServiceSpec
         fileType = Some("blæh!")
       )
 
-      val res = service.updateArchiveDocument(fid, mod).futureValue.successValue.value
+      val res = service.updateArchiveDocument(fid, mod).futureValue.successValue
 
       res.fid mustBe orig.fid
       res.title mustBe orig.title

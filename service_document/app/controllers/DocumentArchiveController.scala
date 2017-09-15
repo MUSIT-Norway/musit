@@ -2,16 +2,14 @@ package controllers
 
 import java.net.URLEncoder.encode
 
+import akka.stream.scaladsl.FileIO
 import com.google.inject.{Inject, Singleton}
 import models.document.{ArchiveAddContext, ArchiveContext}
 import models.document.ArchiveTypes._
 import net.scalytica.symbiotic.json.Implicits.{PathFormatters, lockFormat}
-import no.uio.musit.MusitResults.{
-  MusitError,
-  MusitGeneralError,
-  MusitResult,
-  MusitSuccess
-}
+import no.uio.musit.MusitResults._
+import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.security.Permissions.{Read, Write}
 import no.uio.musit.security.{Authenticator, DocumentArchive}
@@ -35,6 +33,7 @@ class DocumentArchiveController @Inject()(
   private[this] def respond[A](res: MusitResult[A])(success: A => Result): Result = {
     res match {
       case MusitSuccess(s)        => success(s)
+      case MusitNotFound(msg)     => NotFound(Json.obj("msg" -> msg))
       case MusitGeneralError(msg) => BadRequest(Json.obj("msg" -> msg))
       case err: MusitError        => InternalServerError(Json.obj("msg" -> err.message))
     }
@@ -66,15 +65,7 @@ class DocumentArchiveController @Inject()(
         request.body.validate[ArchiveFolderItem] match {
           case JsSuccess(afi, _) =>
             docService.addArchiveFolderItem(destFolderId, afi).map { r =>
-              respond(r) { maybeAdded =>
-                maybeAdded.map { added =>
-                  Created(Json.toJson[ArchiveFolderItem](added))
-                }.getOrElse {
-                  InternalServerError(
-                    Json.obj("msg" -> "Could not find the folder that was added")
-                  )
-                }
-              }
+              respond(r)(added => Created(Json.toJson[ArchiveFolderItem](added)))
             }
 
           case err: JsError =>
@@ -92,11 +83,7 @@ class DocumentArchiveController @Inject()(
       request.body.validate[ArchiveFolderItem] match {
         case JsSuccess(afi, _) =>
           docService.updateArchiveFolderItem(folderId, afi).map { r =>
-            respond(r) { maybeFolder =>
-              maybeFolder
-                .map(d => Ok(Json.toJson[ArchiveFolderItem](d)))
-                .getOrElse(NotFound)
-            }
+            respond(r)(d => Ok(Json.toJson[ArchiveFolderItem](d)))
           }
 
         case err: JsError =>
@@ -144,7 +131,7 @@ class DocumentArchiveController @Inject()(
       implicit val ctx = ArchiveContext(request.user, mid)
 
       docService.closeArchiveFolderItem(folderId).map { r =>
-        respond(r)(ml => ml.map(l => Ok(Json.toJson(l))).getOrElse(NotModified))
+        respond(r)(l => Ok(Json.toJson(l)))
       }
     }
 
@@ -193,8 +180,27 @@ class DocumentArchiveController @Inject()(
         if (request.user.canAccess(mid, DocumentArchive, colId)) {
           implicit val ctx = ArchiveAddContext(request.user, mid, colId)
 
-          // TODO: implement me
-          ???
+          request.body.files.headOption.map { tmp =>
+            ArchiveDocument(
+              title = tmp.filename,
+              fileType = tmp.contentType,
+              stream = Option(FileIO.fromPath(tmp.ref.path))
+            )
+          }.map { ad =>
+            val res = for {
+              a <- MusitResultT(docService.saveArchiveDocument(folderId, ad))
+              b <- MusitResultT(docService.getArchiveDocument(a)(ctx))
+            } yield b
+
+            res.value.map {
+              case MusitSuccess(added) =>
+                Ok(Json.toJson(added))
+
+              case err: MusitError =>
+                InternalServerError(Json.obj("msg" -> s"${err.message}"))
+            }
+          }.getOrElse(evaluated(BadRequest(Json.obj("msg" -> s"No attached file"))))
+
         } else {
           evaluated(Forbidden(Json.obj("msg" -> s"Unauthorized access")))
         }
@@ -207,11 +213,7 @@ class DocumentArchiveController @Inject()(
       request.body.validate[ArchiveDocument] match {
         case JsSuccess(ad, _) =>
           docService.updateArchiveDocument(fileId, ad).map { r =>
-            respond(r) { maybeDoc =>
-              maybeDoc
-                .map(d => Ok(Json.toJson[ArchiveDocumentItem](d)))
-                .getOrElse(NotFound)
-            }
+            respond(r)(d => Ok(Json.toJson[ArchiveDocumentItem](d)))
           }
 
         case err: JsError =>
@@ -223,9 +225,7 @@ class DocumentArchiveController @Inject()(
     MusitSecureAction(mid, DocumentArchive, Read).async { implicit request =>
       implicit val ctx = ArchiveContext(request.user, mid)
       docService.getArchiveDocument(fileId).map { r =>
-        respond(r) { md =>
-          md.map(d => Ok(Json.toJson[ArchiveDocumentItem](d))).getOrElse(NotFound)
-        }
+        respond(r)(d => Ok(Json.toJson[ArchiveDocumentItem](d)))
       }
     }
 
@@ -233,15 +233,13 @@ class DocumentArchiveController @Inject()(
     MusitSecureAction(mid, DocumentArchive, Read).async { implicit request =>
       implicit val ctx = ArchiveContext(request.user, mid)
       docService.getArchiveDocument(fileId).map { r =>
-        respond(r) { maybeDoc =>
-          maybeDoc.map { doc =>
-            doc.stream.map { source =>
-              val cd =
-                s"""attachment; filename="${doc.filename}"; filename*=UTF-8''""" +
-                  encode(doc.filename, "UTF-8").replace("+", "%20")
+        respond(r) { doc =>
+          doc.stream.map { source =>
+            val cd =
+              s"""attachment; filename="${doc.filename}"; filename*=UTF-8''""" +
+                encode(doc.filename, "UTF-8").replace("+", "%20")
 
-              Ok.chunked(source).withHeaders(CONTENT_DISPOSITION -> cd)
-            }.getOrElse(NotFound)
+            Ok.chunked(source).withHeaders(CONTENT_DISPOSITION -> cd)
           }.getOrElse(NotFound)
         }
       }
@@ -252,7 +250,7 @@ class DocumentArchiveController @Inject()(
       implicit val ctx = ArchiveContext(request.user, mid)
 
       docService.isArchiveDocumentLocked(fileId).map { r =>
-        respond(r)(locked => Ok(Json.obj("isLocked" -> locked)))
+        respond(r)(l => Ok(Json.obj("isLocked" -> l)))
       }
     }
 
@@ -261,7 +259,7 @@ class DocumentArchiveController @Inject()(
       implicit val ctx = ArchiveContext(request.user, mid)
 
       docService.lockArchiveDocument(fileId).map { r =>
-        respond(r)(ml => ml.map(l => Ok(Json.toJson(l))).getOrElse(NotModified))
+        respond(r)(l => Ok(Json.toJson(l)))
       }
     }
 
@@ -279,10 +277,7 @@ class DocumentArchiveController @Inject()(
       implicit val ctx = ArchiveContext(request.user, mid)
 
       docService.moveArchiveDocument(fileId, to).map { r =>
-        respond(r) { modPaths =>
-          if (modPaths.nonEmpty) Ok(Json.toJson(modPaths))
-          else NotModified
-        }
+        respond(r)(d => Ok(Json.toJson(d)))
       }
     }
 
