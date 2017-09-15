@@ -5,11 +5,12 @@ import models.document.ArchiveTypes._
 import models.document.{ArchiveAddContext, ArchiveContext, ArchiveTypes}
 import net.scalytica.symbiotic.api.types.{FileId, FolderId}
 import net.scalytica.symbiotic.test.specs.PostgresSpec
-import no.uio.musit.MusitResults.{MusitGeneralError, MusitSuccess}
+import no.uio.musit.MusitResults.MusitGeneralError
 import no.uio.musit.models.{MuseumCollections, MuseumId, Museums}
 import no.uio.musit.test.matchers.MusitResultValues
 import no.uio.musit.test.{MusitSpecWithAppPerSuite, PostgresContainer => PG}
 import org.scalatest.time.{Millis, Span}
+import org.scalatest.Inspectors.forAll
 import utils.testdata.{ArchiveableGenerators, BaseDummyData}
 
 import scala.util.Properties.envOrNone
@@ -348,16 +349,9 @@ class DocumentArchiveServiceSpec
       service
         .updateArchiveFolderItem(archiveId, upd)
         .futureValue
-        .successValue mustBe Some(archiveId)
-
-      service
-        .getArchiveFolderItem(archiveId)
-        .futureValue
         .successValue
         .value
-        .description mustBe Some(
-        "Archive 1 updated"
-      )
+        .description mustBe Some("Archive 1 updated")
     }
 
     "update an ArchivePart" taggedAs PG in {
@@ -371,18 +365,12 @@ class DocumentArchiveServiceSpec
         case bad             => fail(s"Expected an Archive, got ${bad.getClass}")
       }
 
-      service.updateArchiveFolderItem(partId, upd).futureValue.successValue mustBe Some(
-        partId
-      )
-
       service
-        .getArchiveFolderItem(partId)
+        .updateArchiveFolderItem(partId, upd)
         .futureValue
         .successValue
         .value
-        .description mustBe Some(
-        "ArchivePart 1 updated"
-      )
+        .description mustBe Some("ArchivePart 1 updated")
     }
 
     "update an ArchiveFolder" taggedAs PG in {
@@ -396,18 +384,12 @@ class DocumentArchiveServiceSpec
         case bad               => fail(s"Expected an Archive, got ${bad.getClass}")
       }
 
-      service.updateArchiveFolderItem(folderId, upd).futureValue.successValue mustBe Some(
-        folderId
-      )
-
       service
-        .getArchiveFolderItem(folderId)
+        .updateArchiveFolderItem(folderId, upd)
         .futureValue
         .successValue
         .value
-        .description mustBe Some(
-        "ArchiveFolder 1 updated"
-      )
+        .description mustBe Some("ArchiveFolder 1 updated")
     }
 
     "not rename an Archive to an already existing name" taggedAs PG in {
@@ -648,28 +630,109 @@ class DocumentArchiveServiceSpec
       res.stream must not be empty
     }
 
+    "update an ArchiveDocument" in {
+      val folderId = getArchiveFolderId(defaultMuseumId, 0)
+      val ad = generateArchiveDocument(
+        defaultMuseumId,
+        author = "Darth Vader",
+        title = "archive document 4",
+        desc = Some("test archive document 4")
+      )
+
+      val fid = service.saveArchiveDocument(folderId, ad).futureValue.successValue.value
+      fileAdded(defaultMuseumId, fid)
+
+      val orig = service.getArchiveDocument(fid).futureValue.successValue.value
+
+      val mod = orig.copy(
+        description = Some("test archive document 4 - updated"),
+        documentMedium = Some("paper"),
+        author = Some("Anakin Skywalker")
+      )
+
+      val res = service.updateArchiveDocument(fid, mod).futureValue.successValue.value
+
+      res.title mustBe orig.title
+      res.author mustBe Some("Anakin Skywalker")
+      res.description mustBe Some("test archive document 4 - updated")
+      res.documentMedium mustBe Some("paper")
+      res.path mustBe orig.path
+    }
+
+    "not update immutable fields on an ArchiveDocument" in {
+      val fid = getArchiveDocumentId(defaultMuseumId, 3)
+
+      val orig = service.getArchiveDocument(fid).futureValue.successValue.value
+
+      val mod = orig.copy(
+        title = "foo",
+        version = orig.version + 10,
+        fileType = Some("blæh!")
+      )
+
+      val res = service.updateArchiveDocument(fid, mod).futureValue.successValue.value
+
+      res.fid mustBe orig.fid
+      res.title mustBe orig.title
+      res.version mustBe orig.version
+      res.fileType mustBe orig.fileType
+    }
+
+    /*
+      Tree now looks as follows
+
+      FOLDERS:
+      (archive 1               , Some(Path(/root/archive 1)))
+      (archive part 1          , Some(Path(/root/archive 1/archive part 1)))
+      (archive folder 1        , Some(Path(/root/archive 1/archive part 1/archive folder 1)))
+      (archive folder 2        , Some(Path(/root/archive 1/archive part 1/archive folder 1/archive folder 2)))
+      (archive folder 3        , Some(Path(/root/archive 1/archive part 1/archive folder 3)))
+      (archive folder 5        , Some(Path(/root/archive 1/archive part 1/archive folder 3/archive folder 5)))
+      (archive folder 4 renamed, Some(Path(/root/archive 1/archive part 1/archive folder 4 renamed)))
+      (archive part 2          , Some(Path(/root/archive 1/archive part 2)))
+
+      FILES:
+      (archive document 3      , Some(Path(/root/archive 1)))
+      (archive document 2      , Some(Path(/root/archive 1/archive part 1)))
+      (archive document 1      , Some(Path(/root/archive 1/archive part 1/archive folder 1)))
+      (archive document 4      , Some(Path(/root/archive 1/archive part 1/archive folder 1)))
+     */
+
     "return an entire Archive tree" in {
       val archiveId = getArchiveId(defaultMuseumId, 0)
 
       val res =
         service.getTreeFrom(archiveId, includeFiles = true).futureValue.successValue
 
-      println(res.map(ai => (ai.title, ai.path)).mkString("\n", "\n", "\n"))
+      val archives = res.filter(_.isInstanceOf[Archive])
+      val parts    = res.filter(_.isInstanceOf[ArchivePart])
+      val folders  = res.filter(_.isInstanceOf[ArchiveFolder])
+      val docs     = res.filter(_.isInstanceOf[ArchiveDocument])
 
-      /*
-(archive 1,Some(Path(/root/archive 1)))
-(archive part 1,Some(Path(/root/archive 1/archive part 1)))
-(archive folder 1,Some(Path(/root/archive 1/archive part 1/archive folder 1)))
-(archive folder 1,Some(Path(/root/archive 1/archive part 1/archive folder 1/archive folder 1)))
-(archive folder 2,Some(Path(/root/archive 1/archive part 1/archive folder 2)))
-(archive folder 4,Some(Path(/root/archive 1/archive part 1/archive folder 2/archive folder 4)))
-(archive folder 3 renamed,Some(Path(/root/archive 1/archive part 1/archive folder 3 renamed)))
-(archive part 2,Some(Path(/root/archive 1/archive part 2)))
-(archive document 3,Some(Path(/root/archive 1)))
-(archive document 2,Some(Path(/root/archive 1/archive part 1)))
-(archive document 1,Some(Path(/root/archive 1/archive part 1/archive folder 1)))
-     */
+      archives.size mustBe 1
+      parts.size mustBe 2
+      folders.size mustBe 5
+      docs.size mustBe 4
 
+      forAll(archives)(a => a.title must startWith("archive "))
+      forAll(parts)(p => p.title must startWith("archive part "))
+      forAll(folders)(f => f.title must startWith("archive folder "))
+      forAll(docs)(doc => doc.title must startWith("archive document "))
+    }
+
+    "return all direct children of an ArchiveFolderItem" in {
+      val partId = getArchivePartId(defaultMuseumId, 0)
+      val expected = Seq(
+        "archive folder 1",
+        "archive folder 3",
+        "archive folder 4 renamed",
+        "archive document 2"
+      )
+
+      val res = service.getChildrenFor(partId).futureValue.successValue
+
+      res.size mustBe 4
+      res.map(_.title) must contain allElementsOf expected
     }
 
   }

@@ -79,7 +79,7 @@ object Dependencies {
 
   // Symbiotic dependencies
   object Symbiotic {
-    val symbioticVersion = "0.1.7"
+    val symbioticVersion = "0.1.10"
     val artifacts = Seq(
       "symbiotic-play",
       "symbiotic-json",

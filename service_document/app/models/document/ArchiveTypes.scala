@@ -110,7 +110,7 @@ object ArchiveTypes {
           .map(o => AllowedParty(o.id))
           .toSeq ++ collection.map(p => AllowedParty(p)).toSeq,
         fid = fid,
-        uploadedBy = createdStamp.map(_.by),
+        createdBy = createdStamp.map(_.by),
         isFolder = Some(true),
         path = path,
         description = description,
@@ -274,7 +274,7 @@ object ArchiveTypes {
           .map(o => AllowedParty(o.id))
           .toSeq ++ collection.map(p => AllowedParty(p)).toSeq,
         fid = fid,
-        uploadedBy = createdStamp.map(_.by),
+        createdBy = createdStamp.map(_.by),
         isFolder = Some(false),
         path = path,
         description = description,
@@ -450,8 +450,8 @@ object ArchiveTypes {
           by   <- ea.flatMap(e => e.getAs[String]("closedBy")).map(ArchiveUserId.apply)
         } yield UserStamp(date, by),
         createdStamp = for {
-          date <- f.uploadDate
-          by   <- f.metadata.uploadedBy
+          date <- f.createdDate
+          by   <- f.metadata.createdBy
         } yield UserStamp(date, by)
       )
     }
@@ -526,8 +526,8 @@ object ArchiveTypes {
           by   <- ea.flatMap(e => e.getAs[String]("closedBy")).map(ArchiveUserId.apply)
         } yield UserStamp(date, by),
         createdStamp = for {
-          date <- f.uploadDate
-          by   <- f.metadata.uploadedBy
+          date <- f.createdDate
+          by   <- f.metadata.createdBy
         } yield UserStamp(date, by)
       )
     }
@@ -603,8 +603,8 @@ object ArchiveTypes {
           by   <- ea.flatMap(e => e.getAs[String]("closedBy")).map(ArchiveUserId.apply)
         } yield UserStamp(date, by),
         createdStamp = for {
-          date <- f.uploadDate
-          by   <- f.metadata.uploadedBy
+          date <- f.createdDate
+          by   <- f.metadata.createdBy
         } yield UserStamp(date, by)
       )
     }
@@ -677,7 +677,7 @@ object ArchiveTypes {
         id = ad.id,
         filename = ad.title,
         fileType = ad.fileType,
-        uploadDate = ad.createdStamp.map(_.date),
+        createdDate = ad.createdStamp.map(_.date),
         length = ad.size,
         stream = ad.stream,
         metadata = ad.managedMetadata
@@ -701,8 +701,8 @@ object ArchiveTypes {
         published = ea.flatMap(e => e.getAs[Boolean]("published")).getOrElse(false),
         documentMedium = ea.flatMap(e => e.getAs[String]("documentMedium")),
         createdStamp = for {
-          date <- f.uploadDate
-          by   <- f.metadata.uploadedBy
+          date <- f.createdDate
+          by   <- f.metadata.createdBy
         } yield UserStamp(date, by),
         author = ea.flatMap(e => e.getAs[String]("author")),
         documentDetails = ea,

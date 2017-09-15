@@ -13,6 +13,7 @@ import no.uio.musit.models.MuseumId
 import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future.{successful => evaluated}
 
 @Singleton
 class DocumentArchiveService @Inject()(
@@ -23,7 +24,7 @@ class DocumentArchiveService @Inject()(
 
   private val logger = Logger(classOf[DocumentArchiveService])
 
-  private def generalErrorF(msg: String) = Future.successful(MusitGeneralError(msg))
+  private def generalErrorF(msg: String) = evaluated(MusitGeneralError(msg))
 
   // ===========================================================================
   //  Service definitions for interacting with ArchiveFolderItem data types.
@@ -96,26 +97,22 @@ class DocumentArchiveService @Inject()(
   def updateArchiveFolderItem(
       folderId: FolderId,
       afi: ArchiveFolderItem
-  )(implicit ac: ArchiveContext): Future[MusitResult[Option[FolderId]]] = {
+  )(implicit ac: ArchiveContext): Future[MusitResult[Option[ArchiveFolderItem]]] = {
     dmService.folder(folderId).flatMap {
       case None =>
         logger.debug(s"Nothing was updated because folder $folderId doesn't exist.")
-        Future.successful(MusitSuccess(None))
+        evaluated(MusitSuccess(None))
 
       case Some(existing) =>
         val upd = afi match {
-          case a: Archive        => a.copy(path = existing.path, title = existing.title)
-          case ap: ArchivePart   => ap.copy(path = existing.path, title = existing.title)
-          case af: ArchiveFolder => af.copy(path = existing.path, title = existing.title)
+          case a: Archive       => a.copy(path = existing.path, title = existing.title)
+          case a: ArchivePart   => a.copy(path = existing.path, title = existing.title)
+          case a: ArchiveFolder => a.copy(path = existing.path, title = existing.title)
         }
 
-        dmService.updateFolder(upd).map {
-          case None =>
-            logger.debug(s"Folder $folderId was not updated")
-            MusitSuccess(None)
-
-          case ok =>
-            MusitSuccess(ok)
+        dmService.updateFolder(upd).flatMap {
+          case Some(_) => getArchiveFolderItem(folderId)
+          case None    => generalErrorF(s"Folder $folderId could not be updated.")
         }
     }
   }
@@ -227,7 +224,7 @@ class DocumentArchiveService @Inject()(
           else dmService.treeNoFiles(f.path)
 
         case None =>
-          Future.successful(Seq.empty)
+          evaluated(Seq.empty)
 
       }
       .map(mfs => MusitSuccess(mfs: Seq[ArchiveItem]))
@@ -261,7 +258,25 @@ class DocumentArchiveService @Inject()(
         val enriched = ad.enrich().updatePath(df.flattenPath)
         dmService.saveFile(enriched).map(MusitSuccess.apply)
       }.getOrElse {
-        generalErrorF(s"Unable to save ArchiveDocuemtn in $dest because it doesn't exist")
+        generalErrorF(s"Unable to save ArchiveDocument in $dest because it doesn't exist")
+      }
+    }
+  }
+
+  def updateArchiveDocument(
+      fileId: FileId,
+      ad: ArchiveDocument
+  )(implicit ac: ArchiveContext): Future[MusitResult[Option[ArchiveDocument]]] = {
+    dmService.file(fileId).flatMap { maybeFile =>
+      maybeFile.map { _ =>
+        dmService.updateFile(ad.copy(fid = Some(fileId))).flatMap {
+          case Some(_) => getArchiveDocument(fileId)
+          case None    => generalErrorF(s"File $fileId could not be updated.")
+        }
+      }.getOrElse {
+        generalErrorF(
+          s"Unable to update ArchiveDocument $fileId because it doesn't exist"
+        )
       }
     }
   }

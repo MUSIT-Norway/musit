@@ -27,6 +27,7 @@ GET         /museum/:mid/folders/:folderId/tree              controllers.Documen
 POST        /museum/:mid/folders/:folderId/upload            controllers.DocumentArchiveController.uploadToFolder(mid: Int, folderId: String, collectionId: Option[String])
 
 GET         /museum/:mid/files/:fileId                       controllers.DocumentArchiveController.getFileMetadataById(mid: Int, fileId: String)
+PUT         /museum/:mid/files/:fileId                       controllers.DocumentArchiveController.updateFile(mid: Int, fileId: String)
 GET         /museum/:mid/files/:fileId/download              controllers.DocumentArchiveController.downloadFile(mid: Int, fileId: String)
 GET         /museum/:mid/files/:fileId/islocked              controllers.DocumentArchiveController.isLockedFile(mid: Int, fileId: String)
 PUT         /museum/:mid/files/:fileId/lock                  controllers.DocumentArchiveController.lockFile(mid: Int, fileId: String)

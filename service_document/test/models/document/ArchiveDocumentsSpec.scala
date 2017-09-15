@@ -62,7 +62,7 @@ class ArchiveDocumentsSpec extends WordSpec with MustMatchers with OptionValues 
       symFile.id.map(_.toString) mustBe doc.id.map(_.asString)
       symFile.filename mustBe doc.title
       symFile.fileType mustBe doc.fileType
-      symFile.uploadDate mustBe doc.createdStamp.map(_.date)
+      symFile.createdDate mustBe doc.createdStamp.map(_.date)
       symFile.length mustBe doc.size
       symFile.stream mustBe None
 
@@ -70,7 +70,7 @@ class ArchiveDocumentsSpec extends WordSpec with MustMatchers with OptionValues 
       md.owner mustBe doc.owner
       md.accessibleBy.tail.headOption.map(_.id.value) mustBe doc.collection.map(_.value)
       md.fid mustBe doc.fid
-      md.uploadedBy mustBe doc.createdStamp.map(_.by)
+      md.createdBy mustBe doc.createdStamp.map(_.by)
       md.version mustBe doc.version
       md.isFolder mustBe Some(false)
       md.path mustBe doc.path

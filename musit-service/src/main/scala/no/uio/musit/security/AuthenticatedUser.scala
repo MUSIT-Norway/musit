@@ -77,10 +77,6 @@ case class AuthenticatedUser(
       .flatMap(_.collections)
   }
 
-  def canAccess(mid: MuseumId, collection: CollectionUUID): Boolean = {
-    hasGodMode || collectionsFor(mid).exists(_.uuid == collection)
-  }
-
   def canAccess(
       mid: MuseumId,
       module: ModuleConstraint,

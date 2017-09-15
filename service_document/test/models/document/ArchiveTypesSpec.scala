@@ -79,7 +79,7 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
       actual.id.map(_.toString) mustBe expected.id.map(_.asString)
       actual.filename mustBe expected.title
       actual.fileType mustBe Some(Archive.FolderType)
-      actual.uploadDate mustBe expected.createdStamp.map(_.date)
+      actual.createdDate mustBe expected.createdStamp.map(_.date)
       actual.length mustBe None
       actual.stream mustBe None
 
@@ -88,7 +88,7 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
       md.accessibleBy.size mustBe 1
       md.accessibleBy.headOption.map(_.id.value) mustBe Some(archUser.value)
       md.fid mustBe expected.fid
-      md.uploadedBy mustBe expected.createdStamp.map(_.by)
+      md.createdBy mustBe expected.createdStamp.map(_.by)
       md.version mustBe 1
       md.isFolder mustBe Some(true)
       md.path mustBe expected.path
@@ -125,7 +125,7 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
       actual.id.map(_.toString) mustBe expected.id.map(_.asString)
       actual.filename mustBe expected.title
       actual.fileType mustBe Some(ArchivePart.FolderType)
-      actual.uploadDate mustBe expected.createdStamp.map(_.date)
+      actual.createdDate mustBe expected.createdStamp.map(_.date)
       actual.length mustBe None
       actual.stream mustBe None
 
@@ -133,7 +133,7 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
       md.owner mustBe expected.owner
       md.accessibleBy.map(_.id.value) must contain allOf (archUser.value, Archeology.uuid.asString) // scalastyle:ignore
       md.fid mustBe expected.fid
-      md.uploadedBy mustBe expected.createdStamp.map(_.by)
+      md.createdBy mustBe expected.createdStamp.map(_.by)
       md.version mustBe 1
       md.isFolder mustBe Some(true)
       md.path mustBe expected.path
@@ -170,7 +170,7 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
       actual.id.map(_.toString) mustBe expected.id.map(_.asString)
       actual.filename mustBe expected.title
       actual.fileType mustBe Some(ArchiveFolder.FolderType)
-      actual.uploadDate mustBe expected.createdStamp.map(_.date)
+      actual.createdDate mustBe expected.createdStamp.map(_.date)
       actual.length mustBe None
       actual.stream mustBe None
 
@@ -178,7 +178,7 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
       md.owner mustBe expected.owner
       md.accessibleBy.map(_.id.value) must contain allOf (archUser.value, Archeology.uuid.asString) // scalastyle:ignore
       md.fid mustBe expected.fid
-      md.uploadedBy mustBe expected.createdStamp.map(_.by)
+      md.createdBy mustBe expected.createdStamp.map(_.by)
       md.version mustBe 1
       md.isFolder mustBe Some(true)
       md.path mustBe expected.path
