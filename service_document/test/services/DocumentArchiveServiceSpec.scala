@@ -546,7 +546,7 @@ class DocumentArchiveServiceSpec
       service.openArchiveFolderItem(partId).futureValue.successValue mustBe true
     }
 
-    "save an ArchiveDocument in an ArchiveFolder" in {
+    "save an ArchiveDocument in an ArchiveFolder" taggedAs PG in {
       val folderId = getArchiveFolderId(defaultMuseumId, 0)
       val ad = generateArchiveDocument(
         defaultMuseumId,
@@ -560,7 +560,7 @@ class DocumentArchiveServiceSpec
       fileAdded(defaultMuseumId, res)
     }
 
-    "save an ArchiveDocument in an ArchivePart" in {
+    "save an ArchiveDocument in an ArchivePart" taggedAs PG in {
       val partId = getArchivePartId(defaultMuseumId, 0)
       val ad = generateArchiveDocument(
         defaultMuseumId,
@@ -574,7 +574,7 @@ class DocumentArchiveServiceSpec
       fileAdded(defaultMuseumId, res)
     }
 
-    "save an ArchiveDocument in an Archive" in {
+    "save an ArchiveDocument in an Archive" taggedAs PG in {
       val archiveId = getArchiveId(defaultMuseumId, 0)
       val ad = generateArchiveDocument(
         defaultMuseumId,
@@ -588,7 +588,7 @@ class DocumentArchiveServiceSpec
       fileAdded(defaultMuseumId, res)
     }
 
-    "get an ArchiveDocument" in {
+    "get an ArchiveDocument" taggedAs PG in {
       val fid = getArchiveDocumentId(defaultMuseumId, 0)
 
       val res = service.getArchiveDocument(fid).futureValue.successValue
@@ -600,7 +600,7 @@ class DocumentArchiveServiceSpec
       res.stream must not be empty
     }
 
-    "update an ArchiveDocument" in {
+    "update an ArchiveDocument" taggedAs PG in {
       val folderId = getArchiveFolderId(defaultMuseumId, 0)
       val ad = generateArchiveDocument(
         defaultMuseumId,
@@ -629,7 +629,7 @@ class DocumentArchiveServiceSpec
       res.path mustBe orig.path
     }
 
-    "not update immutable fields on an ArchiveDocument" in {
+    "not update immutable fields on an ArchiveDocument" taggedAs PG in {
       val fid = getArchiveDocumentId(defaultMuseumId, 3)
 
       val orig = service.getArchiveDocument(fid).futureValue.successValue
@@ -668,7 +668,7 @@ class DocumentArchiveServiceSpec
       (archive document 4      , Some(Path(/root/archive 1/archive part 1/archive folder 1)))
      */
 
-    "return an entire Archive tree" in {
+    "return an entire Archive tree" taggedAs PG in {
       val archiveId = getArchiveId(defaultMuseumId, 0)
 
       val res =
@@ -690,7 +690,7 @@ class DocumentArchiveServiceSpec
       forAll(docs)(doc => doc.title must startWith("archive document "))
     }
 
-    "return all direct children of an ArchiveFolderItem" in {
+    "return all direct children of an ArchiveFolderItem" taggedAs PG in {
       val partId = getArchivePartId(defaultMuseumId, 0)
       val expected = Seq(
         "archive folder 1",
