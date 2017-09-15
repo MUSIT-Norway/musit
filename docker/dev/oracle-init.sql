@@ -940,3 +940,56 @@ INSERT INTO musit_mapping.musitthing (musitthing_uuid, object_id, museumno, subn
 INSERT INTO musit_mapping.musitthing (musitthing_uuid, object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid, old_schemaname, new_collection_id, updated_date) VALUES                ('42cfdae4-2fd4-4102-8ad6-d9e504f9fd33', 53, 'MusK113', NULL, 'Fin bendings', 113, NULL, 99, 'USD_ARK_GJENSTAND_O', 1, current_timestamp);
 INSERT INTO musit_mapping.musitthing (musitthing_uuid, object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid, old_schemaname, new_collection_id, updated_date) VALUES                ('aba6a67c-f742-4a44-b13e-0415ec1abb2a', 54, 'MusN13', NULL, 'Makrellsopp', 13, NULL, 99, 'MUSIT_BOTANIKK_SOPP', 6, current_timestamp);
 INSERT INTO musit_mapping.musitthing (musitthing_uuid, object_id, museumno, subno, term, museumnoasnumber, subnoasnumber, museumid, old_schemaname, new_collection_id, updated_date) VALUES                ('59df0090-aff2-4a82-8968-bfa06c2df861', 55, 'MusK108', NULL, 'Skinnpung', 108, NULL, 99, 'USD_ARK_GJENSTAND_O', 1, current_timestamp);
+
+
+
+CREATE SCHEMA IF NOT EXISTS MUSARK_CONSERVATION;
+
+CREATE SEQUENCE MUSARK_CONSERVATION.event_eventid_seq
+INCREMENT BY 1
+START WITH 1
+NOMAXVALUE
+NOCYCLE
+NOCACHE;
+
+CREATE TABLE MUSARK_CONSERVATION.EVENT (
+  event_id        NUMBER(20) DEFAULT MUSARK_CONSERVATION.event_eventid_seq.nextval,
+  type_id         INTEGER                  NOT NULL,
+  museum_id       INTEGER                  NOT NULL,
+  done_by         VARCHAR2(512),
+  done_date       TIMESTAMP WITH TIME ZONE,
+  updated_date    TIMESTAMP WITH TIME ZONE,
+  registered_by   VARCHAR2(36)             NOT NULL,
+  registered_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  part_of         NUMBER(20),
+  affected_uuid   VARCHAR2(36),
+  note            VARCHAR2(500),
+  case_numbers    VARCHAR2(1000),
+  event_json      CLOB,
+  PRIMARY KEY (event_id),
+  CONSTRAINT ensure_event_json CHECK (event_json IS JSON)
+  );
+
+
+CREATE SEQUENCE MUSARK_CONSERVATION.event_type_typeid_seq
+INCREMENT BY 1
+START WITH 1
+NOMAXVALUE
+NOCYCLE
+NOCACHE;
+
+CREATE TABLE MUSARK_CONSERVATION.EVENT_TYPE (
+  type_id     INTEGER DEFAULT MUSARK_CONSERVATION.event_type_typeid_seq.nextval,
+  no_name                      VARCHAR2(100) NOT NULL,
+  en_name                      VARCHAR2(100) NOT NULL,
+  collections                  VARCHAR2(500), -- if empty then all collections, else value is ',uuid_1,uuid_2,uuid_9,'     LIKE '%,uuid_2,%'
+  extra_description_type       VARCHAR2(50),
+  extra_description_attributes CLOB,
+  PRIMARY KEY (type_id)
+);
+
+
+-- INSERTING EVENT TYPES / CONSERVATION TYPES
+INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('konserveringsprosess', 'conservation process',NULL, NULL, NULL);
+INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('preparering','preparation', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
+INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('bevaring', 'preservation','ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
