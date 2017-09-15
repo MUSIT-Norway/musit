@@ -648,6 +648,32 @@ object ArchiveTypes {
 
   object ArchiveDocument {
 
+    def apply(
+        title: String,
+        fileType: Option[String],
+        stream: Option[FileStream]
+    ): ArchiveDocument = {
+      ArchiveDocument(
+        id = None,
+        fid = None,
+        title = title,
+        size = None,
+        fileType = fileType,
+        description = None,
+        owner = None,
+        collection = None,
+        path = None,
+        lock = None,
+        version = 1,
+        published = false,
+        documentMedium = None,
+        createdStamp = None,
+        author = None,
+        documentDetails = None,
+        stream = stream
+      )
+    }
+
     val DocType = "archive_document"
 
     implicit def readsToIgnoreReads[T](r: JsPath): IgnoreJsPath = IgnoreJsPath(r)
