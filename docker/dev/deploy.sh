@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# ------------------------------------------------------------------------
+# Include secrets that can't be in this script
+# ------------------------------------------------------------------------
+source secrets.sh
+
 echo "################################################################################"
 echo "## IMPORTANT!"
 echo "## This script is ONLY meant for DEVELOPMENT, and NOT for PRODUCTION."
@@ -36,8 +41,7 @@ export MUSIT_BASE_URL="http://localhost"
 export DOCKET_HOSTNAME=$(hostname)
 export MUSIT_SECURITY_MODULE="no.uio.musit.security.dataporten.DataportenModule"
 export CALLBACK_URL="http://musit-test:8888/api/auth/rest/authenticate"
-export CLIENT_ID="ccee5f45-6f32-4315-9a89-9e6ad98a8186"
-export CLIENT_SECRET="d01c882a-b24c-4ebf-9035-381a9a8cd74e"
+
 export DATAPORTEN_CLIENT_ID=$CLIENT_ID
 export DATAPORTEN_CLIENT_SECRET=$CLIENT_SECRET
 export DATAPORTEN_SESSION_TIMEOUT="4 hours"
