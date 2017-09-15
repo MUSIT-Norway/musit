@@ -21,7 +21,7 @@ class MusitResultValuesSpec
       res mustBe a[Success[_]]
     }
 
-    "return success when type of type MusitError" in {
+    "return failure when type is MusitError" in {
       val res = Try { MusitEmpty.successValue }
 
       res mustBe a[Failure[_]]
