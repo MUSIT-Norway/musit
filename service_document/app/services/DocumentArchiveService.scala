@@ -279,7 +279,7 @@ class DocumentArchiveService @Inject()(
   private def saveArchiveDocument(
       folder: ArchiveFolderItem,
       ad: ArchiveDocument
-  ): Future[MusitResult[FileId]] = {
+  )(implicit ac: ArchiveAddContext): Future[MusitResult[FileId]] = {
     val enriched = ad.enrich().updatePath(folder.flattenPath)
     dmService.saveFile(enriched).map {
       case Some(fid) => MusitSuccess(fid)
