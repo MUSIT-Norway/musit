@@ -21,6 +21,8 @@ object ArchiveIdentifiers {
 
   object ArchiveUserId extends IdOps[ArchiveUserId] {
 
+    val empty = ArchiveUserId("00000000-0000-0000-0000-000000000000")
+
     implicit val reads: Reads[ArchiveUserId] = Reads { jsv =>
       JsSuccess(ArchiveUserId(jsv.as[String]))
     }

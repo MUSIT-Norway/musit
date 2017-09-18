@@ -1,7 +1,6 @@
 package models.document
 
 import models.document.ArchiveIdentifiers._
-import models.document.ArchiveTypes.{ArchiveDocument, DocumentDetails}
 import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.Implicits._
 import net.scalytica.symbiotic.api.types.PersistentType.UserStamp
 import net.scalytica.symbiotic.api.types.ResourceParties.{Org, Owner}

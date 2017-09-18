@@ -1,6 +1,6 @@
 package models.document
 
-import models.document.ArchiveTypes._
+import models.document.Implicits._
 import models.document.ArchiveIdentifiers._
 import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.Implicits._
 import net.scalytica.symbiotic.api.types.PersistentType.UserStamp
@@ -164,7 +164,7 @@ class ArchiveTypesSpec extends WordSpec with MustMatchers with OptionValues {
       description = Some("this is a test")
     )(ArchiveFolder.apply)
 
-    "be implicitly converted to symbiotic Folder" in {
+    "be implicitly converted to a symbiotic Folder" in {
       val actual: Folder = expected
 
       actual.id.map(_.toString) mustBe expected.id.map(_.asString)

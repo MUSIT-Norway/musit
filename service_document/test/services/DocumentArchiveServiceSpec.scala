@@ -1,18 +1,21 @@
 package services
 
 import models.document.ArchiveIdentifiers.ArchiveOwnerId
-import models.document.ArchiveTypes._
-import models.document.{ArchiveAddContext, ArchiveContext, ArchiveTypes}
+import models.document.Implicits._
+import models.document.{ArchiveAddContext, ArchiveContext, _}
+import modules.Bootstrapper
 import net.scalytica.symbiotic.api.types.{FileId, FolderId}
 import net.scalytica.symbiotic.test.specs.PostgresSpec
 import no.uio.musit.MusitResults.MusitGeneralError
 import no.uio.musit.models.{MuseumCollections, MuseumId, Museums}
 import no.uio.musit.test.matchers.MusitResultValues
 import no.uio.musit.test.{MusitSpecWithAppPerSuite, PostgresContainer => PG}
-import org.scalatest.time.{Millis, Span}
 import org.scalatest.Inspectors.forAll
+import org.scalatest.time.{Millis, Span}
 import utils.testdata.{ArchiveableGenerators, BaseDummyData}
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.util.Properties.envOrNone
 
 class DocumentArchiveServiceSpec
@@ -72,6 +75,14 @@ class DocumentArchiveServiceSpec
     files.result().filter(_._1 == mid)(idx)._2
   }
 
+  override def initDatabase(): Either[String, Unit] = {
+    val res = super.initDatabase()
+
+    Await.result(Bootstrapper.init(service.dmService), 5 seconds)
+
+    res
+  }
+
   def failRenameFolderTest[A <: ArchiveFolderItem](
       parentId: FolderId,
       afi: A,
@@ -79,7 +90,7 @@ class DocumentArchiveServiceSpec
   ) = {
     val aid =
       service.addArchiveFolderItem(parentId, afi).futureValue.successValue.fid.value
-    folderAdded(defaultMuseumId, aid, ArchiveTypes.asTypeString(afi))
+    folderAdded(defaultMuseumId, aid, afi.typeString)
 
     service.renameArchiveFolderItem(aid, existingFolderName).futureValue match {
       case MusitGeneralError(err) =>
@@ -97,7 +108,7 @@ class DocumentArchiveServiceSpec
   ) = {
     val aid =
       service.addArchiveFolderItem(parentId, afi).futureValue.successValue.fid.value
-    folderAdded(defaultMuseumId, aid, ArchiveTypes.asTypeString(afi))
+    folderAdded(defaultMuseumId, aid, afi.typeString)
 
     val ap = service.getArchiveFolderItem(aid).futureValue.successValue
 
@@ -108,26 +119,16 @@ class DocumentArchiveServiceSpec
 
   "The DocumentArchiveService" should {
 
-    "initialize the root directory for the test museum" taggedAs PG in {
-      val res = service.initRootFor(defaultMuseumId).futureValue.successValue
-      folderAdded(defaultMuseumId, res, "root")
-    }
-
-    "initialize the root directory for KHM" taggedAs PG in {
-      val res = service.initRootFor(Museums.Khm.id)(khmAddCtx).futureValue.successValue
-      folderAdded(defaultMuseumId, res, "root")
-    }
-
     "get the root folder for the Test museum" taggedAs PG in {
       val res = service.archiveRoot(defaultMuseumId).futureValue.successValue
       res.title mustBe "root"
-      res.metadata.fid.value mustBe getRootId(defaultMuseumId)
+      res.metadata.fid must not be empty
+      folderAdded(defaultMuseumId, res.metadata.fid.value, ArchiveRoot.FolderType)
     }
 
     "add an Archive folder to the root" taggedAs PG in {
       val root = getRootId(defaultMuseumId)
       val archive = generateArchive(
-        mid = defaultMuseumId,
         title = "archive 1",
         desc = Some("test archive 1")
       )
@@ -139,10 +140,7 @@ class DocumentArchiveServiceSpec
 
     "not allow adding an Archive to an Archive" taggedAs PG in {
       val archiveId = getArchiveId(defaultMuseumId, 0)
-      val archive = generateArchive(
-        mid = defaultMuseumId,
-        title = "archive_fail"
-      )
+      val archive = generateArchive(title = "archive_fail")
 
       service.addArchiveFolderItem(archiveId, archive).futureValue match {
         case MusitGeneralError(err) =>
@@ -155,7 +153,6 @@ class DocumentArchiveServiceSpec
     "not allow adding an ArchivePart folder to the root" taggedAs PG in {
       val root = getRootId(defaultMuseumId)
       val archivePart = generateArchivePart(
-        mid = defaultMuseumId,
         title = "archive part",
         desc = Some("test archive part")
       )
@@ -171,7 +168,6 @@ class DocumentArchiveServiceSpec
     "not allow adding an ArchiveFolder to the root" taggedAs PG in {
       val root = getRootId(defaultMuseumId)
       val archiveFolder = generateArchiveFolder(
-        mid = defaultMuseumId,
         title = "archive folder",
         desc = Some("test archive folder")
       )
@@ -187,7 +183,6 @@ class DocumentArchiveServiceSpec
     "add an ArchivePart to an Archive" taggedAs PG in {
       val archiveId = getArchiveId(defaultMuseumId, 0)
       val archivePart = generateArchivePart(
-        mid = defaultMuseumId,
         title = "archive part 1",
         desc = Some("test archive part 1")
       )
@@ -200,10 +195,7 @@ class DocumentArchiveServiceSpec
 
     "not allow adding an Archive to an ArchivePart" taggedAs PG in {
       val partId = getArchivePartId(defaultMuseumId, 0)
-      val archive = generateArchive(
-        mid = defaultMuseumId,
-        title = "archive_fail"
-      )
+      val archive = generateArchive(title = "archive_fail")
 
       service.addArchiveFolderItem(partId, archive).futureValue match {
         case MusitGeneralError(err) =>
@@ -219,10 +211,7 @@ class DocumentArchiveServiceSpec
 
     "add an ArchiveFolder to an ArchivePart" taggedAs PG in {
       val partId = getArchivePartId(defaultMuseumId, 0)
-      val folder = generateArchiveFolder(
-        mid = defaultMuseumId,
-        title = "archive folder 1"
-      )
+      val folder = generateArchiveFolder(title = "archive folder 1")
 
       val res =
         service.addArchiveFolderItem(partId, folder).futureValue.successValue
@@ -232,10 +221,7 @@ class DocumentArchiveServiceSpec
 
     "not allow adding an Archive to an ArchiveFolder" taggedAs PG in {
       val folderId = getArchiveFolderId(defaultMuseumId, 0)
-      val archive = generateArchive(
-        mid = defaultMuseumId,
-        title = "archive_fail"
-      )
+      val archive = generateArchive(title = "archive_fail")
 
       service.addArchiveFolderItem(folderId, archive).futureValue match {
         case MusitGeneralError(err) =>
@@ -247,10 +233,7 @@ class DocumentArchiveServiceSpec
 
     "not allow adding an ArchivePart to an ArchiveFolder" taggedAs PG in {
       val folderId = getArchiveFolderId(defaultMuseumId, 0)
-      val part = generateArchivePart(
-        mid = defaultMuseumId,
-        title = "archive_part_fail"
-      )
+      val part = generateArchivePart(title = "archive_part_fail")
 
       service.addArchiveFolderItem(folderId, part).futureValue match {
         case MusitGeneralError(err) =>
@@ -262,10 +245,7 @@ class DocumentArchiveServiceSpec
 
     "add an ArchiveFolder to another ArchiveFolder" taggedAs PG in {
       val folderId = getArchiveFolderId(defaultMuseumId, 0)
-      val folder = generateArchiveFolder(
-        mid = defaultMuseumId,
-        title = "archive folder 2"
-      )
+      val folder = generateArchiveFolder(title = "archive folder 2")
 
       val res =
         service.addArchiveFolderItem(folderId, folder).futureValue.successValue
@@ -275,10 +255,7 @@ class DocumentArchiveServiceSpec
 
     "not add an ArchiveFolder with name of existing ArchiveFolder" taggedAs PG in {
       val folderId = getArchiveFolderId(defaultMuseumId, 0)
-      val folder = generateArchiveFolder(
-        mid = defaultMuseumId,
-        title = "archive folder 2"
-      )
+      val folder = generateArchiveFolder(title = "archive folder 2")
 
       service.addArchiveFolderItem(folderId, folder).futureValue match {
         case MusitGeneralError(err) =>
@@ -329,7 +306,7 @@ class DocumentArchiveServiceSpec
 
       val upd = a1 match {
         case ar: Archive => ar.copy(description = Some("Archive 1 updated"))
-        case bad         => fail(s"Expected an Archive, got ${bad.getClass}")
+        case bad => fail(s"Expected an Archive, got ${bad.getClass}")
       }
 
       service
@@ -346,7 +323,7 @@ class DocumentArchiveServiceSpec
 
       val upd = ap1 match {
         case ar: ArchivePart => ar.copy(description = Some("ArchivePart 1 updated"))
-        case bad             => fail(s"Expected an Archive, got ${bad.getClass}")
+        case bad => fail(s"Expected an Archive, got ${bad.getClass}")
       }
 
       service
@@ -363,7 +340,7 @@ class DocumentArchiveServiceSpec
 
       val upd = af1 match {
         case ar: ArchiveFolder => ar.copy(description = Some("ArchiveFolder 1 updated"))
-        case bad               => fail(s"Expected an Archive, got ${bad.getClass}")
+        case bad => fail(s"Expected an Archive, got ${bad.getClass}")
       }
 
       service
@@ -376,7 +353,6 @@ class DocumentArchiveServiceSpec
     "not rename an Archive to an already existing name" taggedAs PG in {
       val root = getRootId(defaultMuseumId)
       val archive = generateArchive(
-        mid = defaultMuseumId,
         title = "archive 3",
         desc = Some("test archive 3")
       )
@@ -387,7 +363,6 @@ class DocumentArchiveServiceSpec
     "rename an Archive" taggedAs PG in {
       val root = getRootId(defaultMuseumId)
       val archive = generateArchive(
-        mid = defaultMuseumId,
         title = "archive 4",
         desc = Some("test archive 4")
       )
@@ -398,7 +373,6 @@ class DocumentArchiveServiceSpec
     "not rename an ArchivePart to an already existing name" taggedAs PG in {
       val archiveId = getArchiveId(defaultMuseumId, 0)
       val part = generateArchivePart(
-        mid = defaultMuseumId,
         title = "archive part 2",
         desc = Some("test archive part 2")
       )
@@ -409,7 +383,6 @@ class DocumentArchiveServiceSpec
     "rename an ArchivePart" taggedAs PG in {
       val archiveId = getArchiveId(defaultMuseumId, 2)
       val part = generateArchivePart(
-        mid = defaultMuseumId,
         title = "archive part 3",
         desc = Some("test archive part 3")
       )
@@ -420,7 +393,6 @@ class DocumentArchiveServiceSpec
     "not rename an ArchiveFolder to an already existing name" taggedAs PG in {
       val archiveId = getArchivePartId(defaultMuseumId, 0)
       val part = generateArchiveFolder(
-        mid = defaultMuseumId,
         title = "archive folder 3",
         desc = Some("test archive folder 3")
       )
@@ -431,7 +403,6 @@ class DocumentArchiveServiceSpec
     "rename an ArchiveFolder" taggedAs PG in {
       val archiveId = getArchivePartId(defaultMuseumId, 0)
       val part = generateArchiveFolder(
-        mid = defaultMuseumId,
         title = "archive folder 4",
         desc = Some("test archive folder 4")
       )
@@ -442,7 +413,6 @@ class DocumentArchiveServiceSpec
     "move an ArchiveFolder" taggedAs PG in {
       val partId = getArchivePartId(defaultMuseumId, 0)
       val folder = generateArchiveFolder(
-        mid = defaultMuseumId,
         title = "archive folder 5",
         desc = Some("test archive folder 5")
       )
@@ -452,7 +422,7 @@ class DocumentArchiveServiceSpec
       folderAdded(defaultMuseumId, aid, ArchiveFolder.FolderType)
 
       val dest = getArchiveFolderId(defaultMuseumId, 2)
-      val df   = service.getArchiveFolderItem(dest).futureValue.successValue
+      val df = service.getArchiveFolderItem(dest).futureValue.successValue
 
       service.moveArchiveFolderItem(aid, dest).futureValue.successValue must contain(
         df.path.value.append(folder.title)
@@ -460,7 +430,7 @@ class DocumentArchiveServiceSpec
     }
 
     "not be possible to move an ArchiveFolder to an Archive" taggedAs PG in {
-      val destId   = getArchiveId(defaultMuseumId, 0)
+      val destId = getArchiveId(defaultMuseumId, 0)
       val folderId = getArchiveFolderId(defaultMuseumId, 3)
 
       service.moveArchiveFolderItem(folderId, destId).futureValue match {
@@ -498,7 +468,6 @@ class DocumentArchiveServiceSpec
     "not allow modifying content in a closed Archive" taggedAs PG in {
       val archiveId = getArchiveId(defaultMuseumId, 0)
       val archivePart = generateArchivePart(
-        mid = defaultMuseumId,
         title = "archive part 4",
         desc = Some("test archive part 4")
       )
@@ -549,7 +518,6 @@ class DocumentArchiveServiceSpec
     "save an ArchiveDocument in an ArchiveFolder" taggedAs PG in {
       val folderId = getArchiveFolderId(defaultMuseumId, 0)
       val ad = generateArchiveDocument(
-        defaultMuseumId,
         author = "Darth Vader",
         title = "archive document 1",
         desc = Some("test archive document 1")
@@ -563,7 +531,6 @@ class DocumentArchiveServiceSpec
     "save an ArchiveDocument in an ArchivePart" taggedAs PG in {
       val partId = getArchivePartId(defaultMuseumId, 0)
       val ad = generateArchiveDocument(
-        defaultMuseumId,
         author = "Darth Vader",
         title = "archive document 2",
         desc = Some("test archive document 2")
@@ -577,7 +544,6 @@ class DocumentArchiveServiceSpec
     "save an ArchiveDocument in an Archive" taggedAs PG in {
       val archiveId = getArchiveId(defaultMuseumId, 0)
       val ad = generateArchiveDocument(
-        defaultMuseumId,
         author = "Darth Vader",
         title = "archive document 3",
         desc = Some("test archive document 3")
@@ -603,7 +569,6 @@ class DocumentArchiveServiceSpec
     "update an ArchiveDocument" taggedAs PG in {
       val folderId = getArchiveFolderId(defaultMuseumId, 0)
       val ad = generateArchiveDocument(
-        defaultMuseumId,
         author = "Darth Vader",
         title = "archive document 4",
         desc = Some("test archive document 4")
@@ -675,9 +640,9 @@ class DocumentArchiveServiceSpec
         service.getTreeFrom(archiveId, includeFiles = true).futureValue.successValue
 
       val archives = res.filter(_.isInstanceOf[Archive])
-      val parts    = res.filter(_.isInstanceOf[ArchivePart])
-      val folders  = res.filter(_.isInstanceOf[ArchiveFolder])
-      val docs     = res.filter(_.isInstanceOf[ArchiveDocument])
+      val parts = res.filter(_.isInstanceOf[ArchivePart])
+      val folders = res.filter(_.isInstanceOf[ArchiveFolder])
+      val docs = res.filter(_.isInstanceOf[ArchiveDocument])
 
       archives.size mustBe 1
       parts.size mustBe 2

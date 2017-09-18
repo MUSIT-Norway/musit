@@ -22,9 +22,10 @@
 
   <logger name="Application" level="OFF"/>
   <logger name="no.uio.musit" level="OFF"/>
+  <logger name="modules" level="OFF"/>
   <logger name="controllers" level="OFF"/>
-  <logger name="services" level="DEBUG"/>
-  <logger name="models" level="DEBUG"/>
+  <logger name="services" level="OFF"/>
+  <logger name="models" level="OFF"/>
 
   <root level="ERROR">
     <appender-ref ref="STDOUT"/>

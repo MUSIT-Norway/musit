@@ -1,9 +1,9 @@
 package services
 
 import com.google.inject.{Inject, Singleton}
-import models.document.ArchiveTypes._
-import models.document.ArchiveTypes.Implicits._
-import models.document.{ArchiveAddContext, ArchiveContext}
+import controllers.{generalErrorF, notFoundF}
+import models.document.Implicits._
+import models.document._
 import net.scalytica.symbiotic.api.types._
 import net.scalytica.symbiotic.core.DocManagementService
 import no.uio.musit.MusitResults.{
@@ -17,8 +17,8 @@ import no.uio.musit.functional.MonadTransformers.OptionT
 import no.uio.musit.models.MuseumId
 import play.api.Logger
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.Future.{successful => evaluated}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DocumentArchiveService @Inject()(
@@ -27,25 +27,11 @@ class DocumentArchiveService @Inject()(
     val dmService: DocManagementService
 ) {
 
-  private val logger = Logger(classOf[DocumentArchiveService])
-
-  private def generalErrorF(msg: String) = evaluated(MusitGeneralError(msg))
-  private def notFoundF(msg: String)     = evaluated(MusitNotFound(msg))
+  private val log = Logger(getClass)
 
   // ===========================================================================
   //  Service definitions for interacting with ArchiveFolderItem data types.
   // ===========================================================================
-
-  // TODO: Ensure the relevant root nodes for each museum are created/exist on init.
-
-  def initRootFor(
-      mid: MuseumId
-  )(implicit ac: ArchiveAddContext): Future[MusitResult[FolderId]] = {
-    dmService.createRootFolder.map {
-      case Some(root) => MusitSuccess(root)
-      case None       => MusitGeneralError(s"Root for $mid was not created")
-    }
-  }
 
   def archiveRoot(
       mid: MuseumId
@@ -112,7 +98,7 @@ class DocumentArchiveService @Inject()(
   )(implicit ac: ArchiveContext): Future[MusitResult[ArchiveFolderItem]] = {
     dmService.folder(folderId).flatMap {
       case None =>
-        logger.debug(s"Nothing was updated because folder $folderId doesn't exist.")
+        log.debug(s"Nothing was updated because folder $folderId doesn't exist.")
         notFoundF(s"Could not find $folderId")
 
       case Some(existing) =>

@@ -3,14 +3,11 @@ package utils.testdata
 import java.io.{File => JFile}
 
 import akka.stream.scaladsl.FileIO
-import models.document.ArchiveTypes._
-import no.uio.musit.models.MuseumId
+import models.document._
 
 trait ArchiveableGenerators {
 
-  // TODO: generators for Archive
   def generateArchive(
-      mid: MuseumId,
       title: String,
       desc: Option[String] = None
   ): Archive = {
@@ -31,7 +28,6 @@ trait ArchiveableGenerators {
   }
 
   def generateArchivePart(
-      mid: MuseumId,
       title: String,
       desc: Option[String] = None
   ): ArchivePart = {
@@ -52,7 +48,6 @@ trait ArchiveableGenerators {
   }
 
   def generateArchiveFolder(
-      mid: MuseumId,
       title: String,
       desc: Option[String] = None
   ): ArchiveFolder = {
@@ -73,7 +68,6 @@ trait ArchiveableGenerators {
   }
 
   def generateArchiveDocument(
-      mid: MuseumId,
       author: String,
       title: String,
       desc: Option[String] = None

@@ -1,22 +1,19 @@
 package controllers
 
-import java.net.URLEncoder.encode
-
 import akka.stream.scaladsl.FileIO
 import com.google.inject.{Inject, Singleton}
-import models.document.{ArchiveAddContext, ArchiveContext}
-import models.document.ArchiveTypes._
+import models.document.{ArchiveAddContext, ArchiveContext, _}
 import net.scalytica.symbiotic.json.Implicits.{PathFormatters, lockFormat}
 import no.uio.musit.MusitResults._
-import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.functional.Implicits.futureMonad
+import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.security.Permissions.{Read, Write}
 import no.uio.musit.security.{Authenticator, DocumentArchive}
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.json.{JsError, JsSuccess, Json}
-import play.api.mvc.{ControllerComponents, Result}
+import play.api.mvc.ControllerComponents
 import services.DocumentArchiveService
 
 import scala.concurrent.Future.{successful => evaluated}
@@ -28,16 +25,7 @@ class DocumentArchiveController @Inject()(
     val docService: DocumentArchiveService
 ) extends MusitController {
 
-  private val logger = Logger(classOf[DocumentArchiveController])
-
-  private[this] def respond[A](res: MusitResult[A])(success: A => Result): Result = {
-    res match {
-      case MusitSuccess(s)        => success(s)
-      case MusitNotFound(msg)     => NotFound(Json.obj("msg" -> msg))
-      case MusitGeneralError(msg) => BadRequest(Json.obj("msg" -> msg))
-      case err: MusitError        => InternalServerError(Json.obj("msg" -> err.message))
-    }
-  }
+  private val log = Logger(classOf[DocumentArchiveController])
 
   // ---------------------------------------------------------------------------
   // Folder specific endpoints
@@ -72,7 +60,7 @@ class DocumentArchiveController @Inject()(
             evaluated(BadRequest(JsError.toJson(err)))
         }
       } else {
-        evaluated(Forbidden(Json.obj("msg" -> s"Unauthorized access")))
+        evaluated(Forbidden(Json.obj("message" -> s"Unauthorized access")))
       }
     }
 
@@ -197,12 +185,12 @@ class DocumentArchiveController @Inject()(
                 Ok(Json.toJson(added))
 
               case err: MusitError =>
-                InternalServerError(Json.obj("msg" -> s"${err.message}"))
+                InternalServerError(Json.obj("message" -> s"${err.message}"))
             }
-          }.getOrElse(evaluated(BadRequest(Json.obj("msg" -> s"No attached file"))))
+          }.getOrElse(evaluated(BadRequest(Json.obj("message" -> s"No attached file"))))
 
         } else {
-          evaluated(Forbidden(Json.obj("msg" -> s"Unauthorized access")))
+          evaluated(Forbidden(Json.obj("message" -> s"Unauthorized access")))
         }
     }
 
@@ -235,12 +223,11 @@ class DocumentArchiveController @Inject()(
       docService.getArchiveDocument(fileId).map { r =>
         respond(r) { doc =>
           doc.stream.map { source =>
-            val cd =
-              s"""attachment; filename="${doc.filename}"; filename*=UTF-8''""" +
-                encode(doc.filename, "UTF-8").replace("+", "%20")
-
-            Ok.chunked(source).withHeaders(CONTENT_DISPOSITION -> cd)
-          }.getOrElse(NotFound)
+            Ok.chunked(source)
+              .withHeaders(CONTENT_DISPOSITION -> ContentDisposition(doc.title))
+          }.getOrElse {
+            NotFound(Json.obj("message" -> s"Could not find physical file for $fileId"))
+          }
         }
       }
     }
