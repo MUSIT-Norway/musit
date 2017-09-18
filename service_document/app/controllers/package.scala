@@ -5,12 +5,7 @@ import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.mvc.Results.{BadRequest, InternalServerError, NotFound}
 
-import scala.concurrent.Future.{successful => evaluated}
-
 package object controllers {
-
-  def generalErrorF(msg: String) = evaluated(MusitGeneralError(msg))
-  def notFoundF(msg: String)     = evaluated(MusitNotFound(msg))
 
   def respond[A](res: MusitResult[A])(success: A => Result): Result = {
     res match {

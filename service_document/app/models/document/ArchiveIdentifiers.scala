@@ -66,6 +66,7 @@ object ArchiveIdentifiers {
     override implicit def asId(s: String): ArchiveOwnerId = ArchiveOwnerId(s)
 
     implicit def midAsId(mid: MuseumId): ArchiveOwnerId = ArchiveOwnerId(mid)
+
   }
 
   /**

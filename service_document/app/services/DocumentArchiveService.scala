@@ -1,7 +1,6 @@
 package services
 
 import com.google.inject.{Inject, Singleton}
-import controllers.{generalErrorF, notFoundF}
 import models.document.Implicits._
 import models.document._
 import net.scalytica.symbiotic.api.types._
@@ -255,16 +254,36 @@ class DocumentArchiveService @Inject()(
       dest: FolderId,
       ad: ArchiveDocument
   )(implicit ac: ArchiveAddContext): Future[MusitResult[FileId]] = {
-    dmService.folder(dest).flatMap { maybeDest =>
-      maybeDest.map { df =>
-        val enriched = ad.enrich().updatePath(df.flattenPath)
-        dmService.saveFile(enriched).map {
-          case Some(fid) => MusitSuccess(fid)
-          case None      => MusitGeneralError(s"File ${ad.title} was not saved.")
-        }
+    dmService.folder(dest).flatMap { maybeFolder =>
+      maybeFolder.map { df =>
+        saveArchiveDocument(df, ad)
       }.getOrElse {
         notFoundF(s"Unable to save ArchiveDocument in $dest because it doesn't exist")
       }
+    }
+  }
+
+  def saveArchiveDocument(
+      dest: Path,
+      ad: ArchiveDocument
+  )(implicit ac: ArchiveAddContext): Future[MusitResult[FileId]] = {
+    dmService.folder(dest).flatMap { maybeFolder =>
+      maybeFolder.map { df =>
+        saveArchiveDocument(df, ad)
+      }.getOrElse {
+        notFoundF(s"Unable to save ArchiveDocument in $dest because it doesn't exist")
+      }
+    }
+  }
+
+  private def saveArchiveDocument(
+      folder: ArchiveFolderItem,
+      ad: ArchiveDocument
+  ): Future[MusitResult[FileId]] = {
+    val enriched = ad.enrich().updatePath(folder.flattenPath)
+    dmService.saveFile(enriched).map {
+      case Some(fid) => MusitSuccess(fid)
+      case None      => MusitGeneralError(s"File ${ad.title} was not saved.")
     }
   }
 

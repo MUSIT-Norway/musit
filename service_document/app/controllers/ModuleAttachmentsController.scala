@@ -2,7 +2,11 @@ package controllers
 
 import akka.stream.scaladsl.FileIO
 import com.google.inject.{Inject, Singleton}
-import models.document.{ArchiveAddContext, ArchiveContext, ArchiveDocument}
+import models.document._
+import net.scalytica.symbiotic.api.types.FileId
+import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.security.Permissions.{Read, Write}
 import no.uio.musit.security.{Authenticator, CollectionManagement}
@@ -41,17 +45,43 @@ class ModuleAttachmentsController @Inject()(
               stream = Option(FileIO.fromPath(tmp.ref.path))
             )
           }.map { ad =>
-            ???
+            val dest = BaseFolders.AnalysisFolder.path(mid)
+
+            val res = for {
+              a <- MusitResultT(docService.saveArchiveDocument(dest, ad))
+              b <- MusitResultT(docService.getArchiveDocument(a)(ctx))
+            } yield b
+
+            res.value.map {
+              case MusitSuccess(added) =>
+                Ok(Json.toJson(added))
+
+              case err: MusitError =>
+                InternalServerError(Json.obj("message" -> s"${err.message}"))
+            }
           }.getOrElse(evaluated(BadRequest(Json.obj("message" -> s"No attached file"))))
-          ???
         } else {
           evaluated(Forbidden(Json.obj("message" -> s"Unauthorized access")))
         }
     }
 
-  def getFilesForAnalysisResult(mid: Int, fileIds: Seq[String]) =
+  def getFilesForAnalysisResult(mid: Int, fileIds: String) =
     MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
-      ???
+      implicit val ctx = ArchiveContext(request.user, mid)
+
+      val fids = fileIds.split(",").map(FileId.apply)
+
+      val res = MusitResultT.sequenceF {
+        fids.map(fid => docService.getArchiveDocument(fid))
+      }
+
+      res.value.map {
+        case MusitSuccess(docs) =>
+          Ok(Json.toJson[Seq[ArchiveDocumentItem]](docs))
+
+        case err: MusitError =>
+          InternalServerError(Json.obj("message" -> err.message))
+      }
     }
 
   def downloadAnalysisResult(mid: Int, fileId: String) = {
