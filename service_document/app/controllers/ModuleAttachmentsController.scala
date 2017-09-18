@@ -41,7 +41,6 @@ class ModuleAttachmentsController @Inject()(
               stream = Option(FileIO.fromPath(tmp.ref.path))
             )
           }.map { ad =>
-
             ???
           }.getOrElse(evaluated(BadRequest(Json.obj("message" -> s"No attached file"))))
           ???
@@ -52,8 +51,6 @@ class ModuleAttachmentsController @Inject()(
 
   def getFilesForAnalysisResult(mid: Int, fileIds: Seq[String]) =
     MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
-
-
       ???
     }
 

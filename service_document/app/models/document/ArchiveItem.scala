@@ -15,7 +15,7 @@ import play.api.libs.json._
 trait ArchiveItem {
 
   val id: Option[ArchiveId] // unique identifier for file/folder (unique version)
-  val fid: Option[FileId] // Identifier for the file/folder (all versions)
+  val fid: Option[FileId]   // Identifier for the file/folder (all versions)
   val title: String
   val description: Option[String]
   val owner: Option[Owner]
@@ -57,7 +57,7 @@ trait ArchiveItem {
 
   def metadataMap: MetadataMap = {
     MetadataMap(
-      "published" -> published,
+      "published"      -> published,
       "documentMedium" -> documentMedium
     )
   }

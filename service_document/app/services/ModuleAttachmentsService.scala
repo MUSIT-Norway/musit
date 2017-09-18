@@ -15,6 +15,4 @@ class ModuleAttachmentsService @Inject()(
 
   private val log = Logger(getClass)
 
-
-
 }

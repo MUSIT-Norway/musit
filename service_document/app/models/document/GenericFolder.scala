@@ -21,17 +21,17 @@ case class GenericFolder(
     path: Option[Path]
 ) extends ArchiveFolderItem {
 
-  override val description: Option[String] = None
+  override val description: Option[String]             = None
   override val collection: Option[ArchiveCollectionId] = None
-  override val lock: Option[Lock] = None
-  override val published: Boolean = false
-  override val documentMedium: Option[String] = None
-  override val closedStamp: Option[UserStamp] = None
-  override val createdStamp: Option[UserStamp] = None
+  override val lock: Option[Lock]                      = None
+  override val published: Boolean                      = false
+  override val documentMedium: Option[String]          = None
+  override val closedStamp: Option[UserStamp]          = None
+  override val createdStamp: Option[UserStamp]         = None
 
   override def isValidParentFor(fi: ArchiveFolderItem): Boolean = fi match {
     case _: GenericFolder => true
-    case _ => false
+    case _                => false
   }
 
   override def enrich()(implicit ctx: ArchiveAddContext) = this.copy(
