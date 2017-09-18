@@ -98,7 +98,7 @@ class SampleObjectController @Inject()(
     StorageNodeId
       .fromString(nodeId)
       .map { nid =>
-        parseCollectionIdsParam(mid, collectionIds) match {
+        parseCollectionIdsParam(mid, AccessAll, collectionIds) match {
           case Left(res) => Future.successful(res)
           case Right(cids) =>
             nodeService.exists(mid, nid).flatMap {

@@ -146,7 +146,11 @@ class AnalysisController @Inject()(
     MusitSecureAction().async { implicit request =>
       implicit val currUser = request.user
 
-      parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+      parseCollectionIdsParam(
+        mid,
+        CollectionManagement,
+        collectionIds
+      )(request.user) match {
         case Left(res) =>
           Future.successful(res)
 

@@ -15,8 +15,9 @@ object Museums {
 
   object Museum {
 
-    def museumIdToString(i: MuseumId) =
-      fromMuseumId(i).map(_.shortName).getOrElse("")
+    @throws(classOf[java.util.NoSuchElementException])
+    def unsafeMuseumIdToString(i: MuseumId) =
+      fromMuseumId(i).map(_.shortName).get
 
     def fromMuseumId(i: MuseumId): Option[Museum] =
       i match {

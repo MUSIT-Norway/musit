@@ -5,7 +5,7 @@ import controllers._
 import models.musitobject.ObjectSearchResult
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.models._
-import no.uio.musit.security.Authenticator
+import no.uio.musit.security.{AccessAll, Authenticator}
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import play.api.libs.json.Json
@@ -63,7 +63,7 @@ class ObjectController @Inject()(
   ) = MusitSecureAction(mid, Read).async { implicit request =>
     implicit val currUser = request.user
 
-    parseCollectionIdsParam(mid, collectionIds) match {
+    parseCollectionIdsParam(mid, AccessAll, collectionIds) match {
       case Left(res) => Future.successful(res)
       case Right(cids) =>
         if (museumNo.isEmpty && subNo.isEmpty && term.isEmpty) {
@@ -108,7 +108,7 @@ class ObjectController @Inject()(
     ObjectUUID
       .fromString(mainObjectId)
       .map { oid =>
-        parseCollectionIdsParam(mid, collectionIds) match {
+        parseCollectionIdsParam(mid, AccessAll, collectionIds) match {
           case Left(res) => Future.successful(res)
           case Right(cids) =>
             objService.findMainObjectChildren(mid, oid, cids).map {
@@ -149,7 +149,7 @@ class ObjectController @Inject()(
     StorageNodeId
       .fromString(nodeId)
       .map { nid =>
-        parseCollectionIdsParam(mid, collectionIds) match {
+        parseCollectionIdsParam(mid, AccessAll, collectionIds) match {
           case Left(res) => Future.successful(res)
           case Right(cids) =>
             nodeService.exists(mid, nid).flatMap {
@@ -194,7 +194,7 @@ class ObjectController @Inject()(
   ) = MusitSecureAction(mid, Read).async { request =>
     implicit val currUser = request.user
 
-    parseCollectionIdsParam(mid, collectionIds) match {
+    parseCollectionIdsParam(mid, AccessAll, collectionIds) match {
       case Left(res) => Future.successful(res)
       case Right(cids) =>
         objService.findByOldBarcode(mid, oldBarcode, cids).map {
@@ -215,7 +215,7 @@ class ObjectController @Inject()(
   ) = MusitSecureAction(mid, Read).async { request =>
     implicit val currUser = request.user
 
-    parseCollectionIdsParam(mid, collectionIds) match {
+    parseCollectionIdsParam(mid, AccessAll, collectionIds) match {
       case Left(res) => Future.successful(res)
       case Right(cids) =>
         ObjectUUID
