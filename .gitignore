@@ -33,3 +33,4 @@ node_modules/
 postgres-storage/*
 frontend
 buildinfo.properties
+docker/dev/secrets.sh
