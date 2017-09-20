@@ -13,6 +13,8 @@ import models.elasticsearch.{CollectionSearch, MusitObjectSearch, SampleObjectSe
 import no.uio.musit.models.MuseumCollections.{Archeology, Collection, Ethnography}
 import no.uio.musit.models.ObjectTypes.CollectionObjectType
 import no.uio.musit.models._
+import no.uio.musit.security.Permissions.GodMode
+import no.uio.musit.security.{AccessAll, GroupInfo, ModuleConstraint}
 import no.uio.musit.test.matchers.MusitResultValues
 import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy
@@ -40,6 +42,20 @@ class ObjectSearchServiceSpec
 
   private[this] val indexName = objects.indexAlias + Random.nextInt(Int.MaxValue)
 
+  val godUser = dummyUser.copy(
+    groups = Seq(
+      GroupInfo(
+        GroupId(UUID.randomUUID()),
+        "test",
+        AccessAll,
+        GodMode,
+        defaultMuseumId,
+        None,
+        Seq()
+      )
+    )
+  )
+
   val obj1inCol1 = ObjectUUID.fromString("b0d8ff68-9c5c-4da5-9ef3-a0000000a001").value
   val obj2inCol2 = ObjectUUID.fromString("11b3f5ab-dff6-4b80-90bd-a0000000a002").value
   val obj3inCol2 = ObjectUUID.fromString("74ac428d-8842-469e-8368-a0000000a003").value
@@ -55,6 +71,28 @@ class ObjectSearchServiceSpec
     ObjectUUID.fromString("9ae58109-8b44-402b-a7b9-b0000000b003").value
 
   "ObjectSearchService" should {
+
+    "include all documents from a museum when user has god mode" taggedAs ElasticsearchContainer in {
+      val res = service
+        .restrictedObjectSearch(
+          mid = MuseumId(2),
+          collectionIds = Seq(),
+          limit = 10,
+          from = 0,
+          museumNo = None,
+          subNo = None,
+          term = None,
+          queryStr = None
+        )(godUser)
+        .futureValue
+        .successValue
+        .response
+
+      res.hits.hits.map(toObjectUUID) must contain only (
+        obj2inCol2, sam2FromObj2inCol2, obj3inCol2, obj4inCol2
+        //, obj6inCol2, sam3FromObj6inCol2 // deleted
+      )
+    }
 
     "only return documents to the with the right museums id and collection" taggedAs ElasticsearchContainer in {
       val res = service
