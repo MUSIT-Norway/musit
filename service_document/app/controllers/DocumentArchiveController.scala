@@ -7,7 +7,6 @@ import net.scalytica.symbiotic.json.Implicits.{PathFormatters, lockFormat}
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
-import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.security.Permissions.{Read, Write}
 import no.uio.musit.security.{Authenticator, DocumentArchive}
 import no.uio.musit.service.MusitController
@@ -46,22 +45,27 @@ class DocumentArchiveController @Inject()(
   def addFolder(mid: Int, destFolderId: String, collectionId: Option[String]) =
     MusitSecureAction(mid, DocumentArchive, Write).async(parse.json) { implicit request =>
       // Verify that the user has access to collectionId
-      val colId = collectionId.map(id => Collection.fromString(id).uuid)
-      if (request.user.canAccess(mid, DocumentArchive, colId)) {
-        implicit val ctx = ArchiveAddContext(request.user, mid, colId)
+      parseMaybeCollectionIdParam(collectionId) match {
+        case Right(maybeColId) =>
+          if (request.user.canAccess(mid, DocumentArchive, maybeColId)) {
+            implicit val ctx = ArchiveAddContext(request.user, mid, maybeColId)
 
-        request.body.validate[ArchiveFolderItem] match {
-          case JsSuccess(afi, _) =>
-            docService.addArchiveFolderItem(destFolderId, afi).map { r =>
-              respond(r)(added => Created(Json.toJson[ArchiveFolderItem](added)))
+            request.body.validate[ArchiveFolderItem] match {
+              case JsSuccess(afi, _) =>
+                docService.addArchiveFolderItem(destFolderId, afi).map { r =>
+                  respond(r)(added => Created(Json.toJson[ArchiveFolderItem](added)))
+                }
+
+              case err: JsError =>
+                evaluated(BadRequest(JsError.toJson(err)))
             }
+          } else {
+            evaluated(Forbidden(Json.obj("message" -> s"Unauthorized access")))
+          }
 
-          case err: JsError =>
-            evaluated(BadRequest(JsError.toJson(err)))
-        }
-      } else {
-        evaluated(Forbidden(Json.obj("message" -> s"Unauthorized access")))
+        case Left(err) => evaluated(err)
       }
+
     }
 
   def updateFolder(mid: Int, folderId: String) =
@@ -164,33 +168,39 @@ class DocumentArchiveController @Inject()(
     MusitSecureAction(mid, DocumentArchive, Write).async(parse.multipartFormData) {
       implicit request =>
         // Verify that the user has access to collectionId
-        val colId = collectionId.map(id => Collection.fromString(id).uuid)
-        if (request.user.canAccess(mid, DocumentArchive, colId)) {
-          implicit val ctx = ArchiveAddContext(request.user, mid, colId)
+        parseMaybeCollectionIdParam(collectionId) match {
+          case Right(maybeColId) =>
+            if (request.user.canAccess(mid, DocumentArchive, maybeColId)) {
+              implicit val ctx = ArchiveAddContext(request.user, mid, maybeColId)
 
-          request.body.files.headOption.map { tmp =>
-            ArchiveDocument(
-              title = tmp.filename,
-              fileType = tmp.contentType,
-              stream = Option(FileIO.fromPath(tmp.ref.path))
-            )
-          }.map { ad =>
-            val res = for {
-              a <- MusitResultT(docService.saveArchiveDocument(folderId, ad))
-              b <- MusitResultT(docService.getArchiveDocument(a)(ctx))
-            } yield b
+              request.body.files.headOption.map { tmp =>
+                ArchiveDocument(
+                  title = tmp.filename,
+                  fileType = tmp.contentType,
+                  stream = Option(FileIO.fromPath(tmp.ref.path))
+                )
+              }.map { ad =>
+                val res = for {
+                  a <- MusitResultT(docService.saveArchiveDocument(folderId, ad))
+                  b <- MusitResultT(docService.getArchiveDocument(a)(ctx))
+                } yield b
 
-            res.value.map {
-              case MusitSuccess(added) =>
-                Ok(Json.toJson(added))
+                res.value.map {
+                  case MusitSuccess(added) =>
+                    Created(Json.toJson(added))
 
-              case err: MusitError =>
-                InternalServerError(Json.obj("message" -> s"${err.message}"))
+                  case err: MusitError =>
+                    InternalServerError(Json.obj("message" -> s"${err.message}"))
+                }
+              }.getOrElse(
+                evaluated(BadRequest(Json.obj("message" -> s"No attached file")))
+              )
+
+            } else {
+              evaluated(Forbidden(Json.obj("message" -> s"Unauthorized access")))
             }
-          }.getOrElse(evaluated(BadRequest(Json.obj("message" -> s"No attached file"))))
 
-        } else {
-          evaluated(Forbidden(Json.obj("message" -> s"Unauthorized access")))
+          case Left(err) => evaluated(err)
         }
     }
 

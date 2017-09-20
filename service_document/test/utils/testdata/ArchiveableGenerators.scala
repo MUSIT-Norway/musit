@@ -1,11 +1,17 @@
 package utils.testdata
 
 import java.io.{File => JFile}
+import java.nio.file.{Files => JFiles}
 
 import akka.stream.scaladsl.FileIO
 import models.document._
 
 trait ArchiveableGenerators {
+
+  val fileUri    = getClass.getClassLoader.getResource("test_files/clean.pdf").toURI
+  val jfile      = new JFile(fileUri)
+  val jfilePath  = jfile.toPath
+  val fileSource = FileIO.fromPath(jfilePath)
 
   def generateArchive(
       title: String,
@@ -72,10 +78,6 @@ trait ArchiveableGenerators {
       title: String,
       desc: Option[String] = None
   ): ArchiveDocument = {
-    val fileUri    = getClass.getClassLoader.getResource("test_files/clean.pdf").toURI
-    val filePath   = new JFile(fileUri).toPath
-    val fileSource = FileIO.fromPath(filePath)
-
     ArchiveDocument(
       id = None,
       fid = None,

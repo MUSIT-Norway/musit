@@ -178,6 +178,18 @@ class DocumentArchiveService @Inject()(
     }
   }
 
+  def archiveFolderItemPathExists(
+      path: Path
+  )(implicit ac: ArchiveContext): Future[MusitResult[Boolean]] = {
+    dmService.folderExists(path).map(MusitSuccess.apply)
+  }
+
+  def createGenericFolderItemAtPath(
+      path: Path
+  )(implicit ad: ArchiveAddContext): Future[MusitResult[Option[FolderId]]] = {
+    dmService.createFolder(GenericFolder(path).enrich()).map(MusitSuccess.apply)
+  }
+
   def isArchiveFolderItemClosed(
       folderId: FolderId
   )(implicit ac: ArchiveContext): Future[MusitResult[Boolean]] = {

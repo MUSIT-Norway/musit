@@ -21,7 +21,8 @@ object BaseFolders {
   sealed trait ModuleFolder {
     val moduleName: String
 
-    def path(museumId: MuseumId) = ModulesFolderPath.append(moduleName)
+    def path(museumId: MuseumId): Path = ModulesFolderPath.append(moduleName)
+
   }
 
   object AnalysisFolder extends ModuleFolder {
