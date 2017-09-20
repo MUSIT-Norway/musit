@@ -24,7 +24,7 @@ trait BaseColumnTypeMappers extends ColumnTypesImplicits {
 
   // Implicit that extends Email typed columns with a toLowerCase method
   implicit class EmailColumnExtensionMethods[P1](val c: Rep[Email]) {
-    implicit def emailTypedType = implicitly[TypedType[Email]]
+    implicit def emailTypedType: TypedType[Email] = implicitly[TypedType[Email]]
 
     def toLowerCase(implicit tt: TypedType[Email]) =
       Library.LCase.column[Email](c.toNode)
