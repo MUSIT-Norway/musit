@@ -16,13 +16,14 @@ export SLICK_DB_USER=musit
 export SLICK_DB_PASSWORD=musit
 
 # ------------------------------------------------------------------------
-# Postgres DB configuration
+# Document module specific configuration (including postgres)
 # ------------------------------------------------------------------------
 export SYMBIOTIC_POSTGRES_HOST=postgres_db
 export SYMBIOTIC_POSTGRES_PORT=5432
 export SYMBIOTIC_DB_USER=postgres
 export SYMBIOTIC_DB_PASSWORD=postgres
 export SYMBIOTIC_DB_NAME=postgres
+export SYMBIOTIC_FS_ROOT_DIR="dman/files"
 
 # ------------------------------------------------------------------------
 # The application defaults to use the fake security module (no.uio.musit.security.fake.FakeModule)

@@ -106,6 +106,7 @@ services:
       - SYMBIOTIC_DB_USER
       - SYMBIOTIC_DB_PASSWORD
       - SYMBIOTIC_DB_NAME
+      - SYMBIOTIC_FS_ROOT_DIR
     links:
       - db
       - postgres_db
