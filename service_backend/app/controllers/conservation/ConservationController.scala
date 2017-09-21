@@ -12,17 +12,16 @@ import play.api.mvc.ControllerComponents
 import services.conservation.ConservationProcesService
 
 @Singleton
-class ConservationProcessController @Inject()(
+class ConservationController @Inject()(
     val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val consProcService: ConservationProcesService
 ) extends MusitController {
 
-  val logger = Logger(classOf[ConservationProcessController])
+  val logger = Logger(classOf[ConservationController])
 
   def getConservationTypes(
       mid: MuseumId,
-      categoryId: Option[Int],
       collectionIds: Option[String]
   ) =
     MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>

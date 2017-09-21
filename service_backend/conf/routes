@@ -144,3 +144,8 @@ GET           /purposes                                                      con
 POST          /:mid/loans                                                    controllers.loan.LoanController.createLoan(mid: Int)
 GET           /:mid/loans/active                                             controllers.loan.LoanController.findActiveLoan(mid: Int)
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Conservation module
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ConservationType endpoint
+GET           /:mid/conservations/types                                           controllers.conservation.ConservationController.getConservationTypes(mid: Int, collectionIds: Option[String])
