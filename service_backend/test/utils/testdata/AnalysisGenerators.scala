@@ -82,7 +82,8 @@ trait AnalysisGenerators {
       registeredBy = Some(dummyActorId),
       registeredDate = Some(dateTimeNow),
       extRef = extRef,
-      comment = comment
+      comment = comment,
+      attachments = None
     )
   }
 
@@ -96,7 +97,8 @@ trait AnalysisGenerators {
       registeredDate = Some(dateTimeNow),
       extRef = extRef,
       comment = comment,
-      age = age
+      age = age,
+      attachments = None
     )
   }
 
