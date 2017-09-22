@@ -66,7 +66,8 @@ object Dependencies {
   val zxingClient = "com.google.zxing" % "javase"       % "3.3.0" % Test
 
   // Oracle specifics
-  def dir    = new java.io.File(".").getCanonicalPath
+  def dir = new java.io.File(".").getCanonicalPath
+
   val oracle = "com.oracle" % "ojdbc7" % "my" from s"file://$dir/libs/ojdbc7.jar"
 
   val enumeratumDeps: Seq[ModuleID] = {
@@ -79,7 +80,7 @@ object Dependencies {
 
   // Symbiotic dependencies
   object Symbiotic {
-    val symbioticVersion = "0.1.10"
+    val symbioticVersion = "0.1.11"
     val artifacts = Seq(
       "symbiotic-play",
       "symbiotic-json",
