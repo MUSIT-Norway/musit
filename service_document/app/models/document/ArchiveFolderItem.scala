@@ -4,6 +4,7 @@ import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.Implicits._
 import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.MetadataMap
 import net.scalytica.symbiotic.api.types.Path
 import net.scalytica.symbiotic.api.types.PersistentType.UserStamp
+import net.scalytica.symbiotic.json.Implicits._
 import play.api.libs.json._
 
 /**
@@ -55,7 +56,8 @@ object ArchiveFolderItem {
     override def writes(o: ArchiveFolderItem): JsValue = o match {
       case a: ArchiveRoot =>
         ArchiveRoot.format.writes(a).as[JsObject] ++ Json.obj(
-          tpe -> ArchiveRoot.FolderType
+          "path" -> Json.toJson(Path.root),
+          tpe    -> ArchiveRoot.FolderType
         )
 
       case a: Archive =>

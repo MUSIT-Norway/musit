@@ -1,27 +1,20 @@
 package controllers
 
-import akka.stream.scaladsl.Source
-import modules.Bootstrapper
-import net.scalytica.symbiotic.test.specs.PostgresSpec
-import no.uio.musit.models.{CollectionUUID, EventId, MuseumCollections, MuseumId}
+import no.uio.musit.models.{EventId, MuseumCollections}
 import no.uio.musit.security.BearerToken
-import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
+import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite, PostgresContainer => PG}
 import org.scalatest.Inspectors.forAll
 import org.scalatest.time.{Millis, Span}
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
-import play.api.mvc.MultipartFormData.FilePart
 import play.api.test.Helpers._
-import services.DocumentArchiveService
 import utils.testdata.{ArchiveableGenerators, BaseDummyData}
 
-import scala.concurrent.Await
-import scala.concurrent.duration._
 import scala.util.Properties.envOrNone
 
 class ModuleAttachmentsControllerIntegrationSpec
     extends MusitSpecWithServerPerSuite
-    with PostgresSpec
+    with ArchiveSpec
     with BaseDummyData
     with ArchiveableGenerators {
 
@@ -35,27 +28,10 @@ class ModuleAttachmentsControllerIntegrationSpec
     interval = Span(interval, Millis)
   )
 
-  private[this] val service = fromInstanceCache[DocumentArchiveService]
-
-  override def initDatabase(): Either[String, Unit] = {
-    val res = super.initDatabase()
-
-    Await.result(Bootstrapper.init(service.dmService), 5 seconds)
-
-    res
-  }
-
   val baseUrl                = (mid: Int) => s"/museum/$mid"
   val analysesAttachmentsUrl = (mid: Int) => s"${baseUrl(mid)}/analyses/attachments"
   val downloadAnalysisAttachmentUrl = (mid: Int, fid: String) =>
     s"${analysesAttachmentsUrl(mid)}/$fid"
-
-  val token         = BearerToken(FakeUsers.testAdminToken)
-  val tokenWrite    = BearerToken(FakeUsers.testWriteToken)
-  val tokenRead     = BearerToken(FakeUsers.testReadToken)
-  val noAccessToken = BearerToken(FakeUsers.testUserToken)
-
-  val addedFiles = Seq.newBuilder[String]
 
   def testUploadFile(
       filename: String,
@@ -63,14 +39,8 @@ class ModuleAttachmentsControllerIntegrationSpec
       collection: MuseumCollections.Collection,
       tok: BearerToken
   ): WSResponse = {
-    val fp = Source.single(
-      FilePart(
-        key = "file",
-        filename = filename,
-        contentType = Some("application/pdf"),
-        ref = fileSource
-      )
-    )
+    val fp = createFilePart(filename, fileSource)
+
     wsUrl(analysesAttachmentsUrl(defaultMuseumId))
       .withHttpHeaders(tok.asHeader)
       .withQueryStringParameters(
@@ -81,37 +51,11 @@ class ModuleAttachmentsControllerIntegrationSpec
       .futureValue
   }
 
-  def validateJsonRes(
-      mid: MuseumId,
-      colId: CollectionUUID,
-      filename: String,
-      version: Int,
-      path: String,
-      createdBy: String,
-      js: JsValue
-  ) = {
-    (js \ "id").asOpt[String] must not be empty
-    (js \ "fid").asOpt[String] must not be empty
-    (js \ "title").as[String] mustBe filename
-    (js \ "fileType").as[String] mustBe "application/pdf"
-    (js \ "owner" \ "ownerId").as[String] mustBe s"${mid.underlying}"
-    (js \ "owner" \ "ownerType").as[String] mustBe "org"
-    (js \ "collection").as[String] mustBe colId.asString
-    (js \ "path").as[String] mustBe path
-    (js \ "version").as[Int] mustBe version
-    (js \ "published").as[Boolean] mustBe false
-    (js \ "createdStamp" \ "by").as[String] mustBe createdBy
-    (js \ "createdStamp" \ "date").asOpt[String] must not be empty
-    (js \ "documentDetails" \ "number").as[Int] mustBe 1
-
-    addedFiles += (js \ "fid").as[String]
-  }
-
   "Using the ModuleAttachmentsController" when {
 
     "working with analysis results" should {
 
-      "upload a file" in {
+      "upload a file" taggedAs PG in {
         val res = testUploadFile("testfile1.pdf", 1L, MuseumCollections.Archeology, token)
 
         res.status mustBe CREATED
@@ -128,7 +72,7 @@ class ModuleAttachmentsControllerIntegrationSpec
         )
       }
 
-      "upload a second file" in {
+      "upload a second file" taggedAs PG in {
         val res = testUploadFile("testfile2.pdf", 1L, MuseumCollections.Archeology, token)
 
         res.status mustBe CREATED
@@ -145,7 +89,7 @@ class ModuleAttachmentsControllerIntegrationSpec
         )
       }
 
-      "upload a third file" in {
+      "upload a third file" taggedAs PG in {
         val res = testUploadFile("testfile3.pdf", 1L, MuseumCollections.Archeology, token)
 
         res.status mustBe CREATED
@@ -162,7 +106,7 @@ class ModuleAttachmentsControllerIntegrationSpec
         )
       }
 
-      "upload a file with an existing name for a different analysis" in {
+      "upload a file with an existing name for a different analysis" taggedAs PG in {
         val res = testUploadFile("testfile1.pdf", 4L, MuseumCollections.Archeology, token)
 
         res.status mustBe CREATED
@@ -179,7 +123,7 @@ class ModuleAttachmentsControllerIntegrationSpec
         )
       }
 
-      "not allow uploading a file without Write access to Collection Management" in {
+      "prevent file upload without Write access to Collection Management" taggedAs PG in {
         testUploadFile(
           "testfile_fail.pdf",
           5L,
@@ -188,7 +132,14 @@ class ModuleAttachmentsControllerIntegrationSpec
         ).status mustBe FORBIDDEN
       }
 
-      "fetch metadata for a list of file ids" in {
+      "prevent uploading when file already exists for given analysis" taggedAs PG in {
+        val res = testUploadFile("testfile1.pdf", 4L, MuseumCollections.Archeology, token)
+
+        res.status mustBe BAD_REQUEST
+        res.contentType mustBe JSON
+      }
+
+      "fetch metadata for a list of file ids" taggedAs PG in {
         val res = wsUrl(analysesAttachmentsUrl(defaultMuseumId))
           .withHttpHeaders(token.asHeader)
           .withQueryStringParameters("fileIds" -> addedFiles.result().mkString(","))
@@ -221,7 +172,7 @@ class ModuleAttachmentsControllerIntegrationSpec
         // TODO: Parse JSON array
       }
 
-      "not allow fetching file ids without Read access to Collection Management" in {
+      "prevent listing files without Read access to Collection Mngmt" taggedAs PG in {
         wsUrl(analysesAttachmentsUrl(defaultMuseumId))
           .withHttpHeaders(noAccessToken.asHeader)
           .withQueryStringParameters("fileIds" -> addedFiles.result().mkString(","))
@@ -230,7 +181,7 @@ class ModuleAttachmentsControllerIntegrationSpec
           .status mustBe FORBIDDEN
       }
 
-      "download a file" in {
+      "download a file" taggedAs PG in {
         val fid = addedFiles.result()(1)
         val res = wsUrl(downloadAnalysisAttachmentUrl(defaultMuseumId, fid))
           .withHttpHeaders(token.asHeader)
@@ -241,7 +192,7 @@ class ModuleAttachmentsControllerIntegrationSpec
         res.contentType mustBe BINARY
       }
 
-      "not allow downloading a file without Read access to Collection Management" in {
+      "prevent file download without Read access to Collection Mngmt" taggedAs PG in {
         val fid = addedFiles.result()(1)
         wsUrl(downloadAnalysisAttachmentUrl(defaultMuseumId, fid))
           .withHttpHeaders(noAccessToken.asHeader)

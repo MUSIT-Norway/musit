@@ -6,33 +6,33 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # General endpoints
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-GET         /buildinfo                                               controllers.Application.buildInfo
-GET         /healthcheck                                             controllers.HealthCheckController.healthCheck
+GET         /buildinfo                                       controllers.Application.buildInfo
+GET         /healthcheck                                     controllers.HealthCheckController.healthCheck
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Document management endpoints
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-GET         /museum/:mid/folders                                     controllers.DocumentArchiveController.getRootTree(mid: Int, includeFiles: Boolean ?= false)
-POST        /museum/:mid/folders                                     controllers.DocumentArchiveController.addFolder(mid: Int, destFolderId: String, collectionId: Option[String])
-PUT         /museum/:mid/folders/:folderId                           controllers.DocumentArchiveController.updateFolder(mid: Int, folderId: String)
-GET         /museum/:mid/folders/:folderId                           controllers.DocumentArchiveController.getDirectChildrenForId(mid: Int, folderId: String)
-PUT         /museum/:mid/folders/:folderId/move                      controllers.DocumentArchiveController.moveFolderTo(mid: Int, folderId: String, to: String)
-PUT         /museum/:mid/folders/:folderId/rename                    controllers.DocumentArchiveController.renameFolder(mid: Int, folderId: String, name: String)
-GET         /museum/:mid/folders/:folderId/islocked                  controllers.DocumentArchiveController.isClosedFolder(mid: Int, folderId: String)
-PUT         /museum/:mid/folders/:folderId/lock                      controllers.DocumentArchiveController.closeFolder(mid: Int, folderId: String)
-PUT         /museum/:mid/folders/:folderId/unlock                    controllers.DocumentArchiveController.openFolder(mid: Int, folderId: String)
-GET         /museum/:mid/folders/:folderId/tree                      controllers.DocumentArchiveController.getFolderTreeFrom(mid: Int, folderId: String, includeFiles: Boolean ?= false)
+GET         /museum/:mid/folders                             controllers.DocumentArchiveController.getRootTree(mid: Int, includeFiles: Boolean ?= false)
+POST        /museum/:mid/folders                             controllers.DocumentArchiveController.addFolder(mid: Int, destFolderId: String, collectionId: Option[String])
+PUT         /museum/:mid/folders/:folderId                   controllers.DocumentArchiveController.updateFolder(mid: Int, folderId: String)
+GET         /museum/:mid/folders/:folderId                   controllers.DocumentArchiveController.getDirectChildrenForId(mid: Int, folderId: String)
+PUT         /museum/:mid/folders/:folderId/move              controllers.DocumentArchiveController.moveFolderTo(mid: Int, folderId: String, to: String)
+PUT         /museum/:mid/folders/:folderId/rename            controllers.DocumentArchiveController.renameFolder(mid: Int, folderId: String, name: String)
+GET         /museum/:mid/folders/:folderId/isclosed          controllers.DocumentArchiveController.isClosedFolder(mid: Int, folderId: String)
+PUT         /museum/:mid/folders/:folderId/close             controllers.DocumentArchiveController.closeFolder(mid: Int, folderId: String)
+PUT         /museum/:mid/folders/:folderId/open              controllers.DocumentArchiveController.openFolder(mid: Int, folderId: String)
+GET         /museum/:mid/folders/:folderId/tree              controllers.DocumentArchiveController.getFolderTreeFrom(mid: Int, folderId: String, includeFiles: Boolean ?= false)
 
-POST        /museum/:mid/folders/:folderId/upload                    controllers.DocumentArchiveController.uploadToFolder(mid: Int, folderId: String, collectionId: Option[String])
+POST        /museum/:mid/folders/:folderId/upload            controllers.DocumentArchiveController.uploadToFolder(mid: Int, folderId: String, collectionId: Option[String])
 
-GET         /museum/:mid/files/:fileId                               controllers.DocumentArchiveController.getFileMetadataById(mid: Int, fileId: String)
-PUT         /museum/:mid/files/:fileId                               controllers.DocumentArchiveController.updateFile(mid: Int, fileId: String)
-GET         /museum/:mid/files/:fileId/download                      controllers.DocumentArchiveController.downloadFile(mid: Int, fileId: String)
-GET         /museum/:mid/files/:fileId/islocked                      controllers.DocumentArchiveController.isLockedFile(mid: Int, fileId: String)
-PUT         /museum/:mid/files/:fileId/lock                          controllers.DocumentArchiveController.lockFile(mid: Int, fileId: String)
-PUT         /museum/:mid/files/:fileId/unlock                        controllers.DocumentArchiveController.unlockFile(mid: Int, fileId: String)
-PUT         /museum/:mid/files/:fileId/move                          controllers.DocumentArchiveController.moveFileTo(mid: Int, fileId: String, folderId: String)
+GET         /museum/:mid/files/:fileId                       controllers.DocumentArchiveController.getFileMetadataById(mid: Int, fileId: String)
+PUT         /museum/:mid/files/:fileId                       controllers.DocumentArchiveController.updateFile(mid: Int, fileId: String)
+GET         /museum/:mid/files/:fileId/download              controllers.DocumentArchiveController.downloadFile(mid: Int, fileId: String)
+GET         /museum/:mid/files/:fileId/islocked              controllers.DocumentArchiveController.isLockedFile(mid: Int, fileId: String)
+PUT         /museum/:mid/files/:fileId/lock                  controllers.DocumentArchiveController.lockFile(mid: Int, fileId: String)
+PUT         /museum/:mid/files/:fileId/unlock                controllers.DocumentArchiveController.unlockFile(mid: Int, fileId: String)
+PUT         /museum/:mid/files/:fileId/move                  controllers.DocumentArchiveController.moveFileTo(mid: Int, fileId: String, folderId: String)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Analysis Module endpoints

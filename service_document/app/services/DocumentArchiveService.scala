@@ -5,12 +5,7 @@ import models.document.Implicits._
 import models.document._
 import net.scalytica.symbiotic.api.types._
 import net.scalytica.symbiotic.core.DocManagementService
-import no.uio.musit.MusitResults.{
-  MusitGeneralError,
-  MusitNotFound,
-  MusitResult,
-  MusitSuccess
-}
+import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.OptionT
 import no.uio.musit.models.MuseumId
@@ -463,10 +458,22 @@ class DocumentArchiveService @Inject()(
       ad: ArchiveDocument
   )(implicit ac: ArchiveAddContext): Future[MusitResult[FileId]] = {
     val enriched = ad.enrich().updatePath(folder.flattenPath)
-    dmService.saveFile(enriched).map {
-      case Some(fid) => MusitSuccess(fid)
-      case None      => MusitGeneralError(s"File ${ad.title} was not saved.")
+    dmService.latestFile(enriched.title, enriched.path).flatMap {
+      case None =>
+        dmService.saveFile(enriched).map {
+          case Some(fid) => MusitSuccess(fid)
+          case None      => MusitGeneralError(s"File ${ad.title} was not saved.")
+        }
+
+      case Some(exists) =>
+        evaluated(
+          MusitValidationError(
+            s"Can't add file because a file with the name ${ad.title} already" +
+              s" exists in ${ad.path}"
+          )
+        )
     }
+
   }
 
   /**

@@ -75,6 +75,9 @@ object ArchiveItem {
       (json \ tpe)
         .asOpt[String]
         .map {
+          case GenericFolder.FolderType =>
+            GenericFolder.format.reads(json)
+
           case ArchiveDocument.DocType =>
             ArchiveDocument.format.reads(json)
 
@@ -87,6 +90,11 @@ object ArchiveItem {
     }
 
     override def writes(o: ArchiveItem): JsValue = o match {
+      case g: GenericFolder =>
+        GenericFolder.format.writes(g).as[JsObject] ++ Json.obj(
+          tpe -> GenericFolder.FolderType
+        )
+
       case a: ArchiveFolderItem =>
         ArchiveFolderItem.ArchiveFolderItemFormat.writes(a)
 

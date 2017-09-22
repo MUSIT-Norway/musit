@@ -4,7 +4,12 @@ import akka.stream.scaladsl.FileIO
 import com.google.inject.{Inject, Singleton}
 import models.document._
 import net.scalytica.symbiotic.api.types.{FileId, FolderId, Path}
-import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{
+  MusitError,
+  MusitResult,
+  MusitSuccess,
+  MusitValidationError
+}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.{CollectionUUID, MuseumId}
@@ -75,8 +80,11 @@ class ModuleAttachmentsController @Inject()(
           case MusitSuccess(added) =>
             Created(Json.toJson(added))
 
+          case MusitValidationError(msg, _, _) =>
+            BadRequest(Json.obj("message" -> msg))
+
           case err: MusitError =>
-            InternalServerError(Json.obj("message" -> s"${err.message}"))
+            InternalServerError(Json.obj("message" -> err.message))
         }
       }.getOrElse {
         evaluated(BadRequest(Json.obj("message" -> s"No attached file")))

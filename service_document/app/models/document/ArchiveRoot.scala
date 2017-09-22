@@ -5,7 +5,7 @@ import net.scalytica.symbiotic.api.types.PersistentType.UserStamp
 import net.scalytica.symbiotic.api.types.ResourceParties.Owner
 import net.scalytica.symbiotic.api.types.{FileId, Folder, Lock, Path}
 import net.scalytica.symbiotic.json.Implicits._
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json._
 
 case class ArchiveRoot(
     id: Option[ArchiveId],
