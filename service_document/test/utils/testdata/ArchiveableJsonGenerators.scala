@@ -2,7 +2,6 @@ package utils.testdata
 
 trait ArchiveableJsonGenerators { self: BaseDummyData =>
 
-
   def addArchiveJsonStr(
       title: String,
       desc: Option[String]

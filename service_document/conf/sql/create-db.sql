@@ -21,6 +21,7 @@ CREATE TABLE symbiotic_dman.files (
   file_name       TEXT    NOT NULL,
   path            TEXT    NOT NULL,
   is_folder       BOOLEAN NOT NULL,
+  is_deleted      BOOLEAN NOT NULL,
   accessible_by   JSONB   NOT NULL,
   content_type    TEXT,
   length          NUMERIC,
