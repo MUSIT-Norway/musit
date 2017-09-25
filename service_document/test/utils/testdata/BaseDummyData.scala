@@ -1,5 +1,8 @@
 package utils.testdata
 
+import java.io.{File => JFile}
+
+import akka.stream.scaladsl.FileIO
 import models.document.{ArchiveAddContext, ArchiveContext}
 import no.uio.musit.models.{ActorId, MuseumCollections, MuseumId}
 import no.uio.musit.security.{AuthenticatedUser, SessionUUID, UserInfo, UserSession}
@@ -27,5 +30,10 @@ trait BaseDummyData {
 
   val dummyAddContext: ArchiveAddContext =
     ArchiveAddContext(dummyUser, defaultMuseumId, MuseumCollections.Archeology.uuid)
+
+  val fileUri    = getClass.getClassLoader.getResource("test_files/clean.pdf").toURI
+  val jfile      = new JFile(fileUri)
+  val jfilePath  = jfile.toPath
+  val fileSource = FileIO.fromPath(jfilePath)
 
 }

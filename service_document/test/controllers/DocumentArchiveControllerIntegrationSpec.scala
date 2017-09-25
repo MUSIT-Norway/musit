@@ -1,14 +1,16 @@
 package controllers
 
-import models.document.BaseFolders
+import models.document.{Archive, ArchiveItem, BaseFolders}
 import net.scalytica.symbiotic.api.types.Path
 import net.scalytica.symbiotic.api.types.ResourceParties.Org
+import no.uio.musit.models.Museums
+import no.uio.musit.models.Museums.Museum
 import no.uio.musit.test.{MusitSpecWithServerPerSuite, PostgresContainer => PG}
 import org.scalatest.Inspectors.forAll
 import org.scalatest.time.{Millis, Span}
 import play.api.libs.json._
 import play.api.test.Helpers._
-import utils.testdata.{ArchiveableGenerators, BaseDummyData}
+import utils.testdata.{ArchiveableGenerators, ArchiveableJsonGenerators, BaseDummyData}
 
 import scala.util.Properties.envOrNone
 
@@ -41,6 +43,7 @@ class DocumentArchiveControllerIntegrationSpec
     with ArchiveSpec
     with BaseDummyData
     with ArchiveableGenerators
+    with ArchiveableJsonGenerators
     with DocArchUrls {
 
   override val timeout =
@@ -57,7 +60,7 @@ class DocumentArchiveControllerIntegrationSpec
 
     "adding ArchiveFolderItems" should {
 
-      "return the folder tree from the ArchiveRoot for a museum" in {
+      "return the folder tree from the ArchiveRoot for the Test museum" in {
         val res = wsUrl(foldersBaseUrl(defaultMuseumId))
           .withHttpHeaders(token.asHeader)
           .withQueryStringParameters("includeFiles" -> "false")
@@ -74,6 +77,10 @@ class DocumentArchiveControllerIntegrationSpec
         forAll(resArr) { js =>
           (js \ "owner" \ "ownerId").as[String] mustBe defaultMuseumId.underlying.toString
           (js \ "owner" \ "ownerType").as[String] mustBe Org.tpe
+
+          val fid = (js \ "fid").as[String]
+          val tpe = (js \ "type").as[String]
+          addFolder(defaultMuseumId, fid, tpe)
         }
 
         val paths = resArr.map(js => (js \ "path").as[String]).map(Path.apply)
@@ -86,12 +93,73 @@ class DocumentArchiveControllerIntegrationSpec
         paths must contain allElementsOf expectedPaths
       }
 
-      "add an Archive to a museum" taggedAs PG in {
-        pending
+      "return the folder tree from the ArchiveRoot for NHM" in {
+        val res = wsUrl(foldersBaseUrl(Museums.Nhm.id))
+          .withHttpHeaders(nhmReadToken.asHeader)
+          .withQueryStringParameters("includeFiles" -> "false")
+          .get()
+          .futureValue
+
+        res.status mustBe OK
+        res.contentType mustBe JSON
+
+        val resArr = res.json.as[JsArray].value
+
+        resArr.size mustBe 6
+
+        forAll(resArr) { js =>
+          (js \ "owner" \ "ownerId").as[String] mustBe Museums.Nhm.id.underlying.toString
+          (js \ "owner" \ "ownerType").as[String] mustBe Org.tpe
+
+          val fid = (js \ "fid").as[String]
+          val tpe = (js \ "type").as[String]
+          addFolder(Museums.Nhm.id, fid, tpe)
+        }
       }
 
       "prevent adding an Archive without correct authorization" taggedAs PG in {
-        pending
+        val a      = addArchiveJsonStr("fail", Some("failed archive"))
+        val rootId = getArchiveRoot(Museums.Nhm.id).fid
+
+        wsUrl(foldersBaseUrl(Museums.Nhm.id))
+          .withHttpHeaders(
+            CONTENT_TYPE -> JSON,
+            tokenWrite.asHeader // unauthorized token
+          )
+          .withQueryStringParameters("destFolderId" -> rootId)
+          .post(a)
+          .futureValue
+          .status mustBe FORBIDDEN
+      }
+
+      "add an Archive to a museum" taggedAs PG in {
+        val a      = addArchiveJsonStr("foobar", Some("fizz buzz description"))
+        val rootId = getArchiveRoot(defaultMuseumId).fid
+
+        val res = wsUrl(foldersBaseUrl(defaultMuseumId))
+          .withHttpHeaders(
+            CONTENT_TYPE -> JSON,
+            tokenWrite.asHeader
+          )
+          .withQueryStringParameters("destFolderId" -> rootId)
+          .post(a)
+          .futureValue
+
+        res.status mustBe CREATED
+        res.contentType mustBe JSON
+
+        (res.json \ "id").asOpt[String] must not be empty
+        (res.json \ "fid").asOpt[String] must not be empty
+        (res.json \ "title").as[String] mustBe "foobar"
+        (res.json \ "description").as[String] mustBe "fizz buzz description"
+        (res.json \ "owner" \ "ownerId").as[String] mustBe "99"
+        (res.json \ "owner" \ "ownerType").as[String] mustBe "org"
+        (res.json \ "path").as[String] mustBe "/root/foobar"
+        (res.json \ "published").as[Boolean] mustBe false
+        (res.json \ "documentMedium").as[String] mustBe "digital"
+        (res.json \ "createdStamp" \ "date").asOpt[String] must not be empty
+        (res.json \ "createdStamp" \ "by").asOpt[String] must not be empty
+        (res.json \ "type").as[String] mustBe Archive.FolderType
       }
 
       "add an ArchivePart to the root" taggedAs PG in {

@@ -5,8 +5,8 @@ import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.Implicits._
 import net.scalytica.symbiotic.api.types.PersistentType.UserStamp
 import net.scalytica.symbiotic.api.types.ResourceParties.Owner
 import net.scalytica.symbiotic.api.types._
-import net.scalytica.symbiotic.json.Implicits._
 import net.scalytica.symbiotic.json.IgnoreJsPath
+import net.scalytica.symbiotic.json.Implicits._
 import no.uio.musit.time.dateTimeNow
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -51,13 +51,14 @@ object ArchiveDocument {
   def apply(
       title: String,
       fileType: Option[String],
+      fileSize: Option[String],
       stream: Option[FileStream]
   ): ArchiveDocument = {
     ArchiveDocument(
       id = None,
       fid = None,
       title = title,
-      size = None,
+      size = fileSize,
       fileType = fileType,
       description = None,
       owner = None,

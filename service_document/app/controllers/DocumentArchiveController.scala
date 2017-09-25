@@ -1,5 +1,7 @@
 package controllers
 
+import java.nio.file.Files
+
 import akka.stream.scaladsl.FileIO
 import com.google.inject.{Inject, Singleton}
 import models.document.{ArchiveAddContext, ArchiveContext, _}
@@ -16,6 +18,7 @@ import play.api.mvc.ControllerComponents
 import services.DocumentArchiveService
 
 import scala.concurrent.Future.{successful => evaluated}
+import scala.util.Try
 
 @Singleton
 class DocumentArchiveController @Inject()(
@@ -177,6 +180,7 @@ class DocumentArchiveController @Inject()(
                 ArchiveDocument(
                   title = tmp.filename,
                   fileType = tmp.contentType,
+                  fileSize = Try(Files.size(tmp.ref.path)).toOption.map(_.toString),
                   stream = Option(FileIO.fromPath(tmp.ref.path))
                 )
               }.map { ad =>
@@ -233,8 +237,11 @@ class DocumentArchiveController @Inject()(
       docService.getArchiveDocument(fileId).map { r =>
         respond(r) { doc =>
           doc.stream.map { source =>
-            Ok.chunked(source)
-              .withHeaders(CONTENT_DISPOSITION -> ContentDisposition(doc.title))
+            val headers = Seq.newBuilder[(String, String)]
+            headers += CONTENT_DISPOSITION -> ContentDisposition(doc.title)
+            doc.size.foreach(s => headers += CONTENT_LENGTH -> s)
+
+            Ok.chunked(source).withHeaders(headers.result(): _*)
           }.getOrElse {
             NotFound(Json.obj("message" -> s"Could not find physical file for $fileId"))
           }

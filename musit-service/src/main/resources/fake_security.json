@@ -466,7 +466,7 @@
       "userid": "ddb4dc62-8c14-4bac-aafd-0401f619b0ac",
       "name": "Fake Musit Test User NHM Read",
       "email": "foo@bar.bas",
-      "groups": ["92e3b487-c962-43d9-a2ea-b8a7bed1b67a"],
+      "groups": ["92e3b487-c962-43d9-a2ea-b8a7bed1b67a", "64495b87-e746-4356-954d-c23e28043746"],
       "accessToken": "54aa85c8-6212-4381-8d22-1d342cd8a26e"
     },
     {

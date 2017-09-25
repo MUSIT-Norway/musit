@@ -1,17 +1,8 @@
 package utils.testdata
 
-import java.io.{File => JFile}
-import java.nio.file.{Files => JFiles}
-
-import akka.stream.scaladsl.FileIO
 import models.document._
 
-trait ArchiveableGenerators {
-
-  val fileUri    = getClass.getClassLoader.getResource("test_files/clean.pdf").toURI
-  val jfile      = new JFile(fileUri)
-  val jfilePath  = jfile.toPath
-  val fileSource = FileIO.fromPath(jfilePath)
+trait ArchiveableGenerators { self: BaseDummyData =>
 
   def generateArchive(
       title: String,
