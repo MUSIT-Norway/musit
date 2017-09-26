@@ -594,7 +594,7 @@ class DocumentArchiveServiceSpec
       res.path mustBe orig.path
     }
 
-    "not update immutable fields on an ArchiveDocument" taggedAs PG in {
+    "update an ArchiveDocument except immutable fields" taggedAs PG in {
       val fid = getArchiveDocumentId(defaultMuseumId, 3)
 
       val orig = service.getArchiveDocument(fid).futureValue.successValue
@@ -609,7 +609,7 @@ class DocumentArchiveServiceSpec
 
       res.fid mustBe orig.fid
       res.title mustBe orig.title
-      res.version mustBe orig.version
+      res.version mustBe orig.version + 1
       res.fileType mustBe orig.fileType
     }
 

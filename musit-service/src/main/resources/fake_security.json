@@ -116,6 +116,43 @@
       ]
     },
     {
+      "id": "3b9816a0-0601-4b0d-b8f0-178c9ea36539",
+      "name": "TestCmAdmin",
+      "module": 2,
+      "permission": 30,
+      "museumId": 99,
+      "description": "Admin access to collection management for TEST",
+      "collections": [
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
+        "88b35138-24b5-4e62-bae4-de80fae7df82"
+      ]
+    },
+    {
+      "id": "4633e8f5-4a7b-45d4-8f7b-b6ee4c6fd66c",
+      "name": "TestCmWrite",
+      "module": 2,
+      "permission": 20,
+      "museumId": 99,
+      "description": "Write access to collection management for TEST",
+      "collections": [
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613"
+      ]
+    },
+    {
+      "id": "42bc27ea-3e16-4958-a123-3be4fe0dd731",
+      "name": "TestCmRead",
+      "module": 2,
+      "permission": 10,
+      "museumId": 99,
+      "description": "Read access to collection management for TEST",
+      "collections": [
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
+        "88b35138-24b5-4e62-bae4-de80fae7df82"
+      ]
+    },
+    {
       "id": "91a404cf-b9e7-45cd-bc6c-1cf1eab52018",
       "name": "TestDmAdmin",
       "module": 3,
@@ -222,6 +259,19 @@
       "description": "Admin access to storage facility for NHM",
       "collections": [
         "ba3d4d30-810b-4c07-81b3-37751f2196f0"
+      ]
+    },
+    {
+      "id": "dc8f342f-4d3b-4dcb-9d33-9870f7a795de",
+      "name": "NhmDmRead",
+      "module": 3,
+      "permission": 10,
+      "museumId": 4,
+      "description": "Read access to document management for TEST",
+      "collections": [
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613",
+        "8bbdf9b3-56d1-479a-9509-2ea82842e8f8",
+        "88b35138-24b5-4e62-bae4-de80fae7df82"
       ]
     },
     {
@@ -445,28 +495,28 @@
       "userid": "caef058a-16d7-400f-9f73-3736477c6b44",
       "name": "Fake Musit Test User TEST Read",
       "email": "foo@bar.bas",
-      "groups": ["2d503a2e-2211-45dd-a99f-fe1a38b5f2a2", "64495b87-e746-4356-954d-c23e28043746"],
+      "groups": ["2d503a2e-2211-45dd-a99f-fe1a38b5f2a2","42bc27ea-3e16-4958-a123-3be4fe0dd731", "64495b87-e746-4356-954d-c23e28043746"],
       "accessToken": "710c30ed-8777-4778-b3a3-873f7a8c5d81"
     },
     {
       "userid": "a5d2a21b-ea1a-4123-bc37-6d31b81d1b2a",
       "name": "Fake Musit Test User TEST Write",
       "email": "foo@bar.bas",
-      "groups": ["c81c314c-0675-4cd1-8956-c96a7163825b", "bff12eca-7dbd-4946-924c-3fdedc8a569a"],
+      "groups": ["c81c314c-0675-4cd1-8956-c96a7163825b","4633e8f5-4a7b-45d4-8f7b-b6ee4c6fd66c", "bff12eca-7dbd-4946-924c-3fdedc8a569a"],
       "accessToken": "239d84b2-07f7-4594-b42c-f2fc23cf55d3"
     },
     {
       "userid": "d63ab290-2fab-42d2-9b57-2475dfbd0b3c",
       "name": "Fake Musit Test User TEST Admin",
       "email": "foo@bar.bas",
-      "groups": ["bc4b4d44-9470-4622-8e29-03f0bfaf5149", "91a404cf-b9e7-45cd-bc6c-1cf1eab52018"],
+      "groups": ["bc4b4d44-9470-4622-8e29-03f0bfaf5149", "3b9816a0-0601-4b0d-b8f0-178c9ea36539", "91a404cf-b9e7-45cd-bc6c-1cf1eab52018"],
       "accessToken": "5fb13ef2-4e81-4600-892b-6579cb17508c"
     },
     {
       "userid": "ddb4dc62-8c14-4bac-aafd-0401f619b0ac",
       "name": "Fake Musit Test User NHM Read",
       "email": "foo@bar.bas",
-      "groups": ["92e3b487-c962-43d9-a2ea-b8a7bed1b67a", "64495b87-e746-4356-954d-c23e28043746"],
+      "groups": ["92e3b487-c962-43d9-a2ea-b8a7bed1b67a", "dc8f342f-4d3b-4dcb-9d33-9870f7a795de"],
       "accessToken": "54aa85c8-6212-4381-8d22-1d342cd8a26e"
     },
     {

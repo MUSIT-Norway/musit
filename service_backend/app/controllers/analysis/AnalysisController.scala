@@ -7,7 +7,7 @@ import models.analysis.events.SaveCommands._
 import models.analysis.events._
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess, MusitValidationError}
 import no.uio.musit.models.{CollectionUUID, EventId, MuseumId, ObjectUUID}
-import no.uio.musit.security.Authenticator
+import no.uio.musit.security.{AccessAll, Authenticator}
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.json._
@@ -148,7 +148,7 @@ class AnalysisController @Inject()(
 
       parseCollectionIdsParam(
         mid,
-        CollectionManagement,
+        AccessAll, //CollectionManagement,
         collectionIds
       )(request.user) match {
         case Left(res) =>

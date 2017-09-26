@@ -5,7 +5,7 @@ import controllers._
 import models.analysis.{SampleObject, SaveSampleObject}
 import no.uio.musit.MusitResults._
 import no.uio.musit.models.{MuseumId, ObjectUUID, StorageNodeId}
-import no.uio.musit.security.Authenticator
+import no.uio.musit.security.{AccessAll, Authenticator}
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import play.api.Logger

@@ -7,12 +7,13 @@ import net.scalytica.symbiotic.api.types._
 import net.scalytica.symbiotic.core.DocManagementService
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
-import no.uio.musit.functional.MonadTransformers.OptionT
+import no.uio.musit.functional.MonadTransformers.{MusitResultT, OptionT}
 import no.uio.musit.models.MuseumId
 import play.api.Logger
 
 import scala.concurrent.Future.{successful => evaluated}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
 @Singleton
 class DocumentArchiveService @Inject()(
@@ -496,16 +497,74 @@ class DocumentArchiveService @Inject()(
       ad: ArchiveDocument
   )(implicit ac: ArchiveContext): Future[MusitResult[ArchiveDocument]] = {
     dmService.file(fileId).flatMap { maybeFile =>
-      maybeFile.map { _ =>
-        dmService.updateFile(ad.copy(fid = Some(fileId))).flatMap {
-          case Some(_) => getArchiveDocument(fileId)
-          case None    => generalErrorF(s"File $fileId could not be updated.")
+      maybeFile.map { orig =>
+        val updFile = for {
+          // Place a lock on the file so the user can perform an update.
+          locked <- MusitResultT(lockArchiveDocument(fileId))
+          // Do the actual update
+          updFid <- MusitResultT(updateDoc(orig, ad))
+          // Remove the lock
+          _ <- MusitResultT(unlockArchiveDocument(fileId))
+          // Fetch the updated file
+          updated <- MusitResultT(getArchiveDocument(fileId))
+        } yield updated
+
+        updFile.value.map { res =>
+          // Make sure the lock is removed if the result is a MusitError
+          if (res.isFailure) removeLock(fileId)
+          res
+        }.recover {
+          case NonFatal(ex) =>
+            log.error(
+              s"There was a problem updating the file $fileId. Attempting to" +
+                s"remove any locks that may have been placed by the operation.",
+              ex
+            )
+            removeLock(fileId)
+            MusitGeneralError(s"Could not be updated")
         }
       }.getOrElse {
         notFoundF(
           s"Unable to update ArchiveDocument $fileId because it doesn't exist"
         )
       }
+    }
+  }
+
+  private[this] def updateDoc(
+      origFile: ArchiveDocument,
+      upd: ArchiveDocument
+  )(implicit ac: ArchiveContext): Future[MusitResult[FileId]] = {
+    val enriched = origFile.copy(
+      description = upd.description,
+      author = upd.author,
+      collection = upd.collection,
+      documentMedium = upd.documentMedium,
+      documentDetails = upd.documentDetails,
+      published = upd.published
+    )
+    dmService.updateFile(enriched).map {
+      case Some(fid) =>
+        MusitSuccess(fid)
+
+      case None =>
+        MusitGeneralError(
+          s"Update of ${origFile.title} (${origFile.fid}) was unsuccessful"
+        )
+    }
+  }
+
+  private[this] def removeLock(
+      fileId: FileId
+  )(implicit ac: ArchiveContext): Unit = {
+    dmService.unlockFile(fileId).onComplete {
+      case scala.util.Success(unlocked) =>
+        if (unlocked) log.debug(s"Successfully removed lock on $fileId after update.")
+        else log.warn(s"Unable to remove lock from file $fileId after update.")
+
+      case scala.util.Failure(msg) =>
+        log.error(s"Unable to remove lock from file $fileId after update. Reason: $msg")
+
     }
   }
 

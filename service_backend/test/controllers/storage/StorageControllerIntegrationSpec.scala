@@ -910,8 +910,6 @@ class StorageControllerIntegrationSpec extends MusitSpecWithServerPerSuite {
         .get()
         .futureValue
 
-      println(Json.prettyPrint(currentLocation.json))
-
       currentLocation.status mustBe OK
 
       val js = currentLocation.json
