@@ -72,7 +72,7 @@ class DocumentArchiveControllerIntegrationSpec
 
         val resArr = res.json.as[JsArray].value
 
-        resArr.size mustBe 6
+        resArr.size mustBe 7
 
         forAll(resArr) { js =>
           (js \ "owner" \ "ownerId").as[String] mustBe defaultMuseumId.underlying.toString
@@ -87,8 +87,10 @@ class DocumentArchiveControllerIntegrationSpec
 
         val expectedPaths = Seq(
           Path.root,
-          BaseFolders.ModulesFolderPath
-        ) ++ BaseFolders.ModuleFolders.map(_.path(defaultMuseumId))
+          BaseFolders.ModulesFolderPath,
+          Path.root.append(Museums.Test.shortName)
+        ) ++
+          BaseFolders.ModuleFolders.map(_.path(defaultMuseumId))
 
         paths must contain allElementsOf expectedPaths
       }
@@ -105,7 +107,7 @@ class DocumentArchiveControllerIntegrationSpec
 
         val resArr = res.json.as[JsArray].value
 
-        resArr.size mustBe 6
+        resArr.size mustBe 7
 
         forAll(resArr) { js =>
           (js \ "owner" \ "ownerId").as[String] mustBe Museums.Nhm.id.underlying.toString
@@ -115,6 +117,17 @@ class DocumentArchiveControllerIntegrationSpec
           val tpe = (js \ "type").as[String]
           addFolder(Museums.Nhm.id, fid, tpe)
         }
+
+        val paths = resArr.map(js => (js \ "path").as[String]).map(Path.apply)
+
+        val expectedPaths = Seq(
+          Path.root,
+          BaseFolders.ModulesFolderPath,
+          Path.root.append(Museums.Nhm.shortName)
+        ) ++
+          BaseFolders.ModuleFolders.map(_.path(defaultMuseumId))
+
+        paths must contain allElementsOf expectedPaths
       }
 
       "prevent adding an Archive without correct authorization" taggedAs PG in {

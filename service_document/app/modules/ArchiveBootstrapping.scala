@@ -2,14 +2,15 @@ package modules
 
 import com.google.inject.{Inject, Singleton}
 import models.document.ArchiveIdentifiers.{ArchiveOwnerId, ArchiveUserId}
-import models.document.{ArchiveAddContext, BaseFolders, GenericFolder}
+import models.document.{Archive, ArchiveAddContext, BaseFolders, GenericFolder}
 import net.codingwell.scalaguice.ScalaModule
-import net.scalytica.symbiotic.api.types.FolderId
+import net.scalytica.symbiotic.api.types.{FolderId, Path}
 import net.scalytica.symbiotic.api.types.ResourceParties.Owner
 import net.scalytica.symbiotic.core.DocManagementService
 import no.uio.musit.MusitResults.{MusitGeneralError, MusitResult, MusitSuccess}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.OptionT
+import no.uio.musit.models.Museums.Museum
 import no.uio.musit.models.{MuseumId, Museums}
 import play.api.Logger
 
@@ -38,6 +39,7 @@ trait ArchiveBootstrapper {
 
     val res = for {
       root  <- OptionT(dmService.createRootFolder)
+      arch  <- OptionT(initArchive(mid))
       mbase <- OptionT(initModuleFolder(mid))
       mods  <- OptionT(initModules(mid))
     } yield root
@@ -81,6 +83,26 @@ trait ArchiveBootstrapper {
         Some(mfids.size)
       }
     }
+
+  private def initArchive(mid: MuseumId)(implicit ad: ArchiveAddContext) = {
+    Museum
+      .fromMuseumId(mid)
+      .map { museum =>
+        val p       = Path.root.append(museum.shortName)
+        val archive = Archive(museum.shortName).copy(path = Some(p)).enrich()
+
+        dmService.createFolder(archive).map {
+          case Some(id) =>
+            log.info(s"Created Archive $id for $mid")
+            Some(id)
+
+          case None =>
+            log.error(s"Archive was not created for $mid")
+            None
+        }
+      }
+      .getOrElse(Future.successful(None))
+  }
 }
 
 @Singleton

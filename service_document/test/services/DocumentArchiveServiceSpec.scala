@@ -126,16 +126,25 @@ class DocumentArchiveServiceSpec
       folderAdded(defaultMuseumId, res.metadata.fid.value, ArchiveRoot.FolderType)
     }
 
-    "add an Archive folder to the root" taggedAs PG in {
-      val root = getRootId(defaultMuseumId)
-      val archive = generateArchive(
-        title = "archive 1",
-        desc = Some("test archive 1")
-      )
+    "get the direct children for the root for Test museum" taggedAs PG in {
+      val root     = getRootId(defaultMuseumId)
+      val res      = service.getChildrenFor(root).futureValue.successValue
+      val expected = Seq(BaseFolders.ModulesFolderName, Museums.Test.shortName)
 
-      val res = service.addArchiveFolderItem(root, archive).futureValue.successValue
+      res.size mustBe 2
 
-      folderAdded(defaultMuseumId, res.fid.value, Archive.FolderType)
+      res.map(_.title) must contain allElementsOf expected
+
+      res.foreach {
+        case a: Archive =>
+          folderAdded(defaultMuseumId, a.fid.value, Archive.FolderType)
+
+        case g: GenericFolder =>
+          folderAdded(defaultMuseumId, g.fid.value, GenericFolder.FolderType)
+
+        case err =>
+          fail(s"Unexpected folder type")
+      }
     }
 
     "not allow adding an Archive to an Archive" taggedAs PG in {
@@ -272,7 +281,7 @@ class DocumentArchiveServiceSpec
       val res = service.getArchiveFolderItem(archiveId).futureValue.successValue
 
       res mustBe an[Archive]
-      res.title mustBe "archive 1"
+      res.title mustBe Museums.Test.shortName
       res.fid mustBe Some(archiveId)
       res.owner.value.id mustBe ArchiveOwnerId(defaultMuseumId)
     }
@@ -357,7 +366,7 @@ class DocumentArchiveServiceSpec
         desc = Some("test archive 3")
       )
 
-      failRenameFolderTest(root, archive, "archive 1")
+      failRenameFolderTest(root, archive, Museums.Test.shortName)
     }
 
     "rename an Archive" taggedAs PG in {
@@ -649,7 +658,7 @@ class DocumentArchiveServiceSpec
       folders.size mustBe 5
       docs.size mustBe 4
 
-      forAll(archives)(a => a.title must startWith("archive "))
+      forAll(archives)(a => a.title mustBe Museums.Test.shortName)
       forAll(parts)(p => p.title must startWith("archive part "))
       forAll(folders)(f => f.title must startWith("archive folder "))
       forAll(docs)(doc => doc.title must startWith("archive document "))
