@@ -14,12 +14,14 @@ package object controllers {
     s"""attachment; filename="$filename"; filename*=UTF-8''""" +
       encode(filename, "UTF-8").replace("+", "%20")
 
+  val errJs = (msg: String) => Json.obj("message" -> msg)
+
   def respond[A](res: MusitResult[A])(success: A => Result): Result = {
     res match {
       case MusitSuccess(s)        => success(s)
-      case MusitNotFound(msg)     => NotFound(Json.obj("msg" -> msg))
-      case MusitGeneralError(msg) => BadRequest(Json.obj("msg" -> msg))
-      case err: MusitError        => InternalServerError(Json.obj("msg" -> err.message))
+      case MusitNotFound(msg)     => NotFound(errJs(msg))
+      case MusitGeneralError(msg) => BadRequest(errJs(msg))
+      case err: MusitError        => InternalServerError(errJs(err.message))
     }
   }
 

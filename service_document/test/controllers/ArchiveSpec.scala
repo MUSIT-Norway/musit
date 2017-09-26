@@ -10,7 +10,7 @@ import net.scalytica.symbiotic.test.specs.PostgresSpec
 import no.uio.musit.models.{CollectionUUID, MuseumId}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.{FakeUsers, MusitSpecWithApp}
-import play.api.libs.json.JsValue
+import play.api.libs.json._
 import play.api.mvc.MultipartFormData.FilePart
 import services.DocumentArchiveService
 
@@ -36,13 +36,21 @@ trait ArchiveSpec extends PostgresSpec {
     res
   }
 
-  case class AddedFolder(mid: Int, fid: String, tpe: String)
+  case class AddedFolder(mid: Int, fid: String, path: String, tpe: String)
 
   val addedFiles   = Seq.newBuilder[String]
   val addedFolders = List.newBuilder[AddedFolder]
 
-  def addFolder(mid: Int, fid: String, tpe: String): Unit = {
-    addedFolders += AddedFolder(mid, fid, tpe)
+  def addFolder(mid: Int, fid: String, path: String, tpe: String): Unit = {
+    addedFolders += AddedFolder(mid, fid, path, tpe)
+  }
+
+  def addFolder(mid: Int, js: JsValue): Unit = {
+    val fid  = (js \ "fid").as[String]
+    val tpe  = (js \ "type").as[String]
+    val path = (js \ "path").as[String]
+
+    addedFolders += AddedFolder(mid, fid, path, tpe)
   }
 
   def findFolder(mid: Int, fid: String, tpe: String): Option[AddedFolder] =
