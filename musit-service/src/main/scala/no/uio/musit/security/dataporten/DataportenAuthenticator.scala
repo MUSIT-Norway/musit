@@ -182,7 +182,7 @@ class DataportenAuthenticator @Inject()(
                }.getOrElse {
                  val msg = "Session is not valid."
                  logger.error(msg)
-                 invalidateWithError[UserSession](token)(MusitInternalError(msg))
+                 invalidateWithError[UserSession](token)(MusitNotAuthenticated(msg))
                }
              })
       } yield us
