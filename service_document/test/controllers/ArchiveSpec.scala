@@ -20,7 +20,7 @@ import scala.concurrent.{Await, Future}
 trait ArchiveSpec extends PostgresSpec {
   self: MusitSpecWithApp =>
 
-  val token         = BearerToken(FakeUsers.testAdminToken)
+  val tokenAdmin    = BearerToken(FakeUsers.testAdminToken)
   val tokenWrite    = BearerToken(FakeUsers.testWriteToken)
   val tokenRead     = BearerToken(FakeUsers.testReadToken)
   val noAccessToken = BearerToken(FakeUsers.testUserToken)

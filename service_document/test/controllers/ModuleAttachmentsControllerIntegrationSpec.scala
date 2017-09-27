@@ -56,7 +56,8 @@ class ModuleAttachmentsControllerIntegrationSpec
     "working with analysis results" should {
 
       "upload a file" taggedAs PG in {
-        val res = testUploadFile("testfile1.pdf", 1L, MuseumCollections.Archeology, token)
+        val res =
+          testUploadFile("testfile1.pdf", 1L, MuseumCollections.Archeology, tokenAdmin)
 
         res.status mustBe CREATED
         res.contentType mustBe JSON
@@ -73,7 +74,8 @@ class ModuleAttachmentsControllerIntegrationSpec
       }
 
       "upload a second file" taggedAs PG in {
-        val res = testUploadFile("testfile2.pdf", 1L, MuseumCollections.Archeology, token)
+        val res =
+          testUploadFile("testfile2.pdf", 1L, MuseumCollections.Archeology, tokenAdmin)
 
         res.status mustBe CREATED
         res.contentType mustBe JSON
@@ -90,7 +92,8 @@ class ModuleAttachmentsControllerIntegrationSpec
       }
 
       "upload a third file" taggedAs PG in {
-        val res = testUploadFile("testfile3.pdf", 1L, MuseumCollections.Archeology, token)
+        val res =
+          testUploadFile("testfile3.pdf", 1L, MuseumCollections.Archeology, tokenAdmin)
 
         res.status mustBe CREATED
         res.contentType mustBe JSON
@@ -107,7 +110,8 @@ class ModuleAttachmentsControllerIntegrationSpec
       }
 
       "upload a file with an existing name for a different analysis" taggedAs PG in {
-        val res = testUploadFile("testfile1.pdf", 4L, MuseumCollections.Archeology, token)
+        val res =
+          testUploadFile("testfile1.pdf", 4L, MuseumCollections.Archeology, tokenAdmin)
 
         res.status mustBe CREATED
         res.contentType mustBe JSON
@@ -133,7 +137,8 @@ class ModuleAttachmentsControllerIntegrationSpec
       }
 
       "prevent uploading when file already exists for given analysis" taggedAs PG in {
-        val res = testUploadFile("testfile1.pdf", 4L, MuseumCollections.Archeology, token)
+        val res =
+          testUploadFile("testfile1.pdf", 4L, MuseumCollections.Archeology, tokenAdmin)
 
         res.status mustBe BAD_REQUEST
         res.contentType mustBe JSON
@@ -141,7 +146,7 @@ class ModuleAttachmentsControllerIntegrationSpec
 
       "fetch metadata for a list of file ids" taggedAs PG in {
         val res = wsUrl(analysesAttachmentsUrl(defaultMuseumId))
-          .withHttpHeaders(token.asHeader)
+          .withHttpHeaders(tokenAdmin.asHeader)
           .withQueryStringParameters("fileIds" -> addedFiles.result().mkString(","))
           .get()
           .futureValue
@@ -184,7 +189,7 @@ class ModuleAttachmentsControllerIntegrationSpec
       "download a file" taggedAs PG in {
         val fid = addedFiles.result()(1)
         val res = wsUrl(downloadAnalysisAttachmentUrl(defaultMuseumId, fid))
-          .withHttpHeaders(token.asHeader)
+          .withHttpHeaders(tokenAdmin.asHeader)
           .get()
           .futureValue
 

@@ -9,7 +9,7 @@ import net.scalytica.symbiotic.json.Implicits.{PathFormatters, lockFormat}
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
-import no.uio.musit.security.Permissions.{Read, Write}
+import no.uio.musit.security.Permissions.{Admin, Read, Write}
 import no.uio.musit.security.{Authenticator, DocumentArchive}
 import no.uio.musit.service.MusitController
 import play.api.Logger
@@ -71,6 +71,17 @@ class DocumentArchiveController @Inject()(
 
     }
 
+  def getFolder(mid: Int, folderId: String) =
+    MusitSecureAction(mid, DocumentArchive, Read).async { implicit request =>
+      implicit val ctx = ArchiveContext(request.user, mid)
+
+      docService.getArchiveFolderItem(folderId).map { r =>
+        respond(r) { afi =>
+          Ok(Json.toJson[ArchiveFolderItem](afi))
+        }
+      }
+    }
+
   def updateFolder(mid: Int, folderId: String) =
     MusitSecureAction(mid, DocumentArchive, Write).async(parse.json) { implicit request =>
       implicit val ctx = ArchiveContext(request.user, mid)
@@ -114,7 +125,7 @@ class DocumentArchiveController @Inject()(
     MusitSecureAction(mid, DocumentArchive, Read).async { implicit request =>
       implicit val ctx = ArchiveContext(request.user, mid)
 
-      docService.isArchiveDocumentLocked(folderId).map { r =>
+      docService.isArchiveFolderItemClosed(folderId).map { r =>
         respond(r) { locked =>
           Ok(Json.obj("isLocked" -> locked))
         }
@@ -122,7 +133,7 @@ class DocumentArchiveController @Inject()(
     }
 
   def closeFolder(mid: Int, folderId: String) =
-    MusitSecureAction(mid, DocumentArchive, Write).async { implicit request =>
+    MusitSecureAction(mid, DocumentArchive, Admin).async { implicit request =>
       implicit val ctx = ArchiveContext(request.user, mid)
 
       docService.closeArchiveFolderItem(folderId).map { r =>
@@ -131,7 +142,7 @@ class DocumentArchiveController @Inject()(
     }
 
   def openFolder(mid: Int, folderId: String) =
-    MusitSecureAction(mid, DocumentArchive, Write).async { implicit request =>
+    MusitSecureAction(mid, DocumentArchive, Admin).async { implicit request =>
       implicit val ctx = ArchiveContext(request.user, mid)
 
       docService.openArchiveFolderItem(folderId).map { r =>

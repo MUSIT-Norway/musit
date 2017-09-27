@@ -6,7 +6,7 @@ import net.scalytica.symbiotic.api.types.ResourceParties.Org
 import no.uio.musit.models.Museums.Museum
 import no.uio.musit.models.{CollectionUUID, MuseumCollections, MuseumId, Museums}
 import no.uio.musit.security.BearerToken
-import no.uio.musit.test.{MusitSpecWithServerPerSuite, PostgresContainer => PG}
+import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite, PostgresContainer => PG}
 import org.scalatest.Inspectors.forAll
 import org.scalatest.time.{Millis, Span}
 import play.api.libs.json._
@@ -21,6 +21,7 @@ trait DocArchUrls {
 
   val foldersBaseUrl    = (mid: Int) => s"${baseUrl(mid)}/folders"
   val folderUrl         = (mid: Int, fid: String) => s"${foldersBaseUrl(mid)}/$fid"
+  val folderChildrenUrl = (mid: Int, fid: String) => s"${folderUrl(mid, fid)}/children"
   val folderMoveUrl     = (mid: Int, fid: String) => s"${folderUrl(mid, fid)}/move"
   val folderRenameUrl   = (mid: Int, fid: String) => s"${folderUrl(mid, fid)}/rename"
   val folderIsClosedUrl = (mid: Int, fid: String) => s"${folderUrl(mid, fid)}/isclosed"
@@ -116,7 +117,7 @@ class DocumentArchiveControllerIntegrationSpec
     paths must contain allElementsOf expectedPaths
   }
 
-  def addArchiveFolderItemTest(
+  def httpPostFolderTest(
       tok: BearerToken,
       mid: MuseumId,
       destId: String,
@@ -143,12 +144,47 @@ class DocumentArchiveControllerIntegrationSpec
     res
   }
 
+  def httpPutFolderTest(
+      tok: BearerToken,
+      url: String,
+      mid: MuseumId = defaultMuseumId,
+      maybeJson: Option[String] = None,
+      queryParams: Seq[(String, String)] = Seq.empty,
+      contentType: String = JSON
+  ) = {
+    val req = wsUrl(url)
+      .withHttpHeaders(
+        CONTENT_TYPE -> contentType,
+        tok.asHeader
+      )
+      .withQueryStringParameters(queryParams: _*)
+
+    maybeJson.map(js => req.put(js)).getOrElse(req.execute(PUT)).futureValue
+  }
+
+  def httpGetTest(
+      tok: BearerToken,
+      url: String,
+      mid: MuseumId = defaultMuseumId,
+      queryParams: Seq[(String, String)] = Seq.empty,
+      contentType: String = JSON
+  ) = {
+    wsUrl(url)
+      .withHttpHeaders(
+        CONTENT_TYPE -> contentType,
+        tok.asHeader
+      )
+      .withQueryStringParameters(queryParams: _*)
+      .get()
+      .futureValue
+  }
+
   "The DocumentArchiveController" when {
 
     "adding ArchiveFolderItems" should {
 
       "return the folder tree from the ArchiveRoot for the Test museum" taggedAs PG in {
-        testTreeFromRootNoFiles(token, defaultMuseumId)
+        testTreeFromRootNoFiles(tokenAdmin, defaultMuseumId)
       }
 
       "return the folder tree from the ArchiveRoot for NHM" taggedAs PG in {
@@ -159,7 +195,7 @@ class DocumentArchiveControllerIntegrationSpec
         val a      = addArchiveJsonStr("fail", Some("failed archive"))
         val rootId = getArchiveRoot(Museums.Nhm.id).fid
 
-        addArchiveFolderItemTest(
+        httpPostFolderTest(
           tokenWrite,
           Museums.Nhm.id,
           rootId,
@@ -174,7 +210,7 @@ class DocumentArchiveControllerIntegrationSpec
         val a     = addArchiveJsonStr(title, desc)
         val root  = getArchiveRoot(defaultMuseumId)
 
-        val res = addArchiveFolderItemTest(tokenWrite, defaultMuseumId, root.fid, None, a)
+        val res = httpPostFolderTest(tokenWrite, defaultMuseumId, root.fid, None, a)
 
         res.status mustBe CREATED
         res.contentType mustBe JSON
@@ -198,7 +234,7 @@ class DocumentArchiveControllerIntegrationSpec
         val dest  = getArchive(defaultMuseumId)
 
         val res =
-          addArchiveFolderItemTest(tokenWrite, defaultMuseumId, dest.fid, Some(colId), ap)
+          httpPostFolderTest(tokenWrite, defaultMuseumId, dest.fid, Some(colId), ap)
 
         res.status mustBe CREATED
         res.contentType mustBe JSON
@@ -222,7 +258,7 @@ class DocumentArchiveControllerIntegrationSpec
         val dest  = getArchive(defaultMuseumId)
 
         val res =
-          addArchiveFolderItemTest(tokenWrite, defaultMuseumId, dest.fid, Some(colId), ap)
+          httpPostFolderTest(tokenWrite, defaultMuseumId, dest.fid, Some(colId), ap)
 
         res.status mustBe CREATED
         res.contentType mustBe JSON
@@ -245,7 +281,7 @@ class DocumentArchiveControllerIntegrationSpec
         val ap     = addArchivePartJsonStr(title, desc)
         val destId = getArchive(defaultMuseumId).fid
 
-        addArchiveFolderItemTest(
+        httpPostFolderTest(
           nhmReadToken,
           defaultMuseumId,
           destId,
@@ -261,7 +297,7 @@ class DocumentArchiveControllerIntegrationSpec
         val ap     = addArchivePartJsonStr(title, desc)
         val destId = getArchiveRoot(defaultMuseumId).fid
 
-        val res = addArchiveFolderItemTest(
+        val res = httpPostFolderTest(
           tokenWrite,
           defaultMuseumId,
           destId,
@@ -281,7 +317,7 @@ class DocumentArchiveControllerIntegrationSpec
         val dest  = getArchiveParts(defaultMuseumId).headOption.value
 
         val res =
-          addArchiveFolderItemTest(tokenWrite, defaultMuseumId, dest.fid, Some(colId), af)
+          httpPostFolderTest(tokenWrite, defaultMuseumId, dest.fid, Some(colId), af)
 
         res.status mustBe CREATED
         res.contentType mustBe JSON
@@ -305,7 +341,7 @@ class DocumentArchiveControllerIntegrationSpec
         val dest  = getArchiveParts(defaultMuseumId).headOption.value
 
         val res =
-          addArchiveFolderItemTest(tokenWrite, defaultMuseumId, dest.fid, Some(colId), af)
+          httpPostFolderTest(tokenWrite, defaultMuseumId, dest.fid, Some(colId), af)
 
         res.status mustBe CREATED
         res.contentType mustBe JSON
@@ -328,7 +364,7 @@ class DocumentArchiveControllerIntegrationSpec
         val ap     = addArchiveFolderJsonStr(title, desc)
         val destId = getArchiveFolders(defaultMuseumId).lastOption.value.fid
 
-        addArchiveFolderItemTest(
+        httpPostFolderTest(
           nhmReadToken,
           defaultMuseumId,
           destId,
@@ -344,7 +380,7 @@ class DocumentArchiveControllerIntegrationSpec
         val ap     = addArchiveFolderJsonStr(title, desc)
         val destId = getArchiveRoot(defaultMuseumId).fid
 
-        val res = addArchiveFolderItemTest(
+        val res = httpPostFolderTest(
           tokenWrite,
           defaultMuseumId,
           destId,
@@ -364,7 +400,31 @@ class DocumentArchiveControllerIntegrationSpec
         val dest  = getArchiveFolders(defaultMuseumId).lastOption.value
 
         val res =
-          addArchiveFolderItemTest(tokenWrite, defaultMuseumId, dest.fid, Some(colId), af)
+          httpPostFolderTest(tokenWrite, defaultMuseumId, dest.fid, Some(colId), af)
+
+        res.status mustBe CREATED
+        res.contentType mustBe JSON
+
+        validateArchiveFolderItem(
+          title,
+          desc,
+          defaultMuseumId,
+          Some(colId),
+          s"${dest.path}/$title",
+          ArchiveFolder.FolderType,
+          res.json
+        )
+      }
+
+      "add yet another ArchiveFolder to the second ArchivePart" taggedAs PG in {
+        val title = "Snorre"
+        val desc  = Some("Manuskript fra Snorre")
+        val colId = MuseumCollections.Archeology.uuid
+        val af    = addArchiveFolderJsonStr(title, desc)
+        val dest  = getArchiveParts(defaultMuseumId).lastOption.value
+
+        val res =
+          httpPostFolderTest(tokenWrite, defaultMuseumId, dest.fid, Some(colId), af)
 
         res.status mustBe CREATED
         res.contentType mustBe JSON
@@ -382,36 +442,302 @@ class DocumentArchiveControllerIntegrationSpec
     }
 
     "working with existing ArchiveFolderItems" should {
-      "update metadata" taggedAs PG in {
-        pending
+
+      "confirm that an ArchiveFolderItem isn't closed" taggedAs PG in {
+        val fid = getArchiveFolders(defaultMuseumId).headOption.value.fid
+        val res = httpGetTest(
+          tokenAdmin,
+          folderIsClosedUrl(defaultMuseumId, fid)
+        )
+
+        res.status mustBe OK
+        res.contentType mustBe JSON
+        (res.json \ "isLocked").as[Boolean] mustBe false
+      }
+
+      "prevent unauthorized closing of an ArchiveFolderItem" taggedAs PG in {
+        val fid = getArchiveParts(defaultMuseumId).lastOption.value.fid
+
+        httpPutFolderTest(
+          nhmReadToken,
+          folderCloseUrl(defaultMuseumId, fid)
+        ).status mustBe FORBIDDEN
+      }
+
+      "close an ArchiveFolderItem" taggedAs PG in {
+        val fid = getArchiveParts(defaultMuseumId).lastOption.value.fid
+        val res = httpPutFolderTest(
+          tokenAdmin,
+          folderCloseUrl(defaultMuseumId, fid)
+        )
+
+        res.status mustBe OK
+        res.contentType mustBe JSON
+
+        (res.json \ "by").as[String] mustBe FakeUsers.testAdminId
+        (res.json \ "date").asOpt[String] must not be empty
+      }
+
+      "confirm that an ArchiveFolderItem is closed" taggedAs PG in {
+        val fid = getArchiveParts(defaultMuseumId).lastOption.value.fid
+        val res = httpGetTest(
+          tokenAdmin,
+          folderIsClosedUrl(defaultMuseumId, fid)
+        )
+
+        res.status mustBe OK
+        res.contentType mustBe JSON
+        (res.json \ "isLocked").as[Boolean] mustBe true
+      }
+
+      "prevent unauthorized update of metadata on an ArchiveFolderItem" taggedAs PG in {
+        val fid = getArchiveFolders(defaultMuseumId).headOption.value.fid
+
+        val orig = httpGetTest(
+          tokenRead,
+          folderUrl(defaultMuseumId, fid)
+        )
+        orig.status mustBe OK
+        orig.contentType mustBe JSON
+
+        val updateJs = orig.json.as[JsObject] ++ Json.obj(
+          "description"    -> s"${(orig.json \ "description").as[String]} updated",
+          "documentMedium" -> s"skuff"
+        )
+
+        httpPutFolderTest(
+          tok = nhmReadToken,
+          url = folderUrl(defaultMuseumId, fid),
+          maybeJson = Some(Json.stringify(updateJs))
+        ).status mustBe FORBIDDEN
+      }
+
+      "update metadata values on an ArchiveFolderItem" taggedAs PG in {
+        val fid = getArchiveFolders(defaultMuseumId).headOption.value.fid
+
+        val orig = httpGetTest(
+          tokenAdmin,
+          folderUrl(defaultMuseumId, fid)
+        )
+        orig.status mustBe OK
+        orig.contentType mustBe JSON
+
+        val updateJs = orig.json.as[JsObject] ++ Json.obj(
+          "description"    -> s"${(orig.json \ "description").as[String]} updated",
+          "documentMedium" -> s"skuff"
+        )
+
+        val updRes = httpPutFolderTest(
+          tok = tokenWrite,
+          url = folderUrl(defaultMuseumId, fid),
+          maybeJson = Some(Json.stringify(updateJs))
+        )
+
+        updRes.status mustBe OK
+        updRes.contentType mustBe JSON
+
+        (updRes.json \ "fid").as[String] mustBe fid
+        (updRes.json \ "title").as[String] mustBe (orig.json \ "title").as[String]
+        (updRes.json \ "description").as[String] must include("updated")
+        (updRes.json \ "documentMedium").as[String] mustBe "skuff"
+      }
+
+      "prevent unauthorized renaming of an ArchiveFolderItem" taggedAs PG in {
+        val fid = getArchiveFolders(defaultMuseumId).headOption.value.fid
+
+        httpPutFolderTest(
+          tok = nhmReadToken,
+          url = folderRenameUrl(defaultMuseumId, fid),
+          queryParams = Seq("name" -> "should fail")
+        ).status mustBe FORBIDDEN
+      }
+
+      "prevent renaming an ArchiveFolder where a parent is closed" taggedAs PG in {
+        val fid = getArchiveParts(defaultMuseumId).lastOption.value.fid
+
+        httpPutFolderTest(
+          nhmReadToken,
+          folderRenameUrl(defaultMuseumId, fid),
+          queryParams = Seq("name" -> "should fail")
+        ).status mustBe FORBIDDEN
       }
 
       "rename an ArchiveFolderItem" taggedAs PG in {
-        pending
+        val fid      = getArchiveFolders(defaultMuseumId).headOption.value.fid
+        val newTitle = "Reisebrev fra historiske personer"
+
+        val res = httpPutFolderTest(
+          tok = tokenWrite,
+          url = folderRenameUrl(defaultMuseumId, fid),
+          queryParams = Seq("name" -> newTitle)
+        )
+
+        res.status mustBe OK
+        res.contentType mustBe JSON
+
+        val jsArr = res.json.as[JsArray].value
+        jsArr.size mustBe 1
+        jsArr.headOption.value.as[String] mustBe s"/root/Test/brev/$newTitle"
       }
 
-      "moving ..." taggedAs PG in {
-        pending
+      "prevent moving an ArchiveFolder where a parent is closed" taggedAs PG in {
+        val srcFid = getArchiveFolders(defaultMuseumId).lastOption.value.fid
+        val dstFid = getArchiveParts(defaultMuseumId).headOption.value.fid
+
+        val res = httpPutFolderTest(
+          tokenWrite,
+          folderMoveUrl(defaultMuseumId, srcFid),
+          queryParams = Seq("to" -> dstFid)
+        )
+
+        res.status mustBe BAD_REQUEST
+        res.contentType mustBe JSON
+
+        (res.json \ "message").as[String] must include("was not moved")
       }
 
-      "isclosed" taggedAs PG in {
-        pending
+      "prevent unauthorized move of an ArchiveFolder" taggedAs PG in {
+        val srcFid = getArchiveFolders(defaultMuseumId).lastOption.value.fid
+        val dstFid = getArchiveParts(defaultMuseumId).headOption.value.fid
+
+        httpPutFolderTest(
+          tokenRead,
+          folderMoveUrl(defaultMuseumId, srcFid),
+          queryParams = Seq("to" -> dstFid)
+        ).status mustBe FORBIDDEN
       }
 
-      "close folder" taggedAs PG in {
-        pending
+      "move an ArchiveFolder to another ArchivePart" taggedAs PG in {
+        val src      = getArchiveFolders(defaultMuseumId)(2)
+        val dst      = getArchiveParts(defaultMuseumId).headOption.value
+        val expTitle = "29 september 1789"
+
+        val res = httpPutFolderTest(
+          tokenWrite,
+          folderMoveUrl(defaultMuseumId, src.fid),
+          queryParams = Seq("to" -> dst.fid)
+        )
+
+        res.status mustBe OK
+        res.contentType mustBe JSON
+
+        val jsArr = res.json.as[JsArray].value
+        jsArr.size mustBe 1
+        jsArr.headOption.value.as[String] mustBe s"${dst.path}/$expTitle"
       }
 
-      "open folder" taggedAs PG in {
-        pending
+      "move an ArchiveFolder to another ArchiveFolder" taggedAs PG in {
+        // Basically moving back to its original destination, so expected
+        // path is the same as the original for src
+        val src      = getArchiveFolders(defaultMuseumId)(2)
+        val dst      = getArchiveFolders(defaultMuseumId)(1)
+        val expTitle = "29 september 1789"
+
+        val res = httpPutFolderTest(
+          tokenWrite,
+          folderMoveUrl(defaultMuseumId, src.fid),
+          queryParams = Seq("to" -> dst.fid)
+        )
+
+        res.status mustBe OK
+        res.contentType mustBe JSON
+
+        val jsArr = res.json.as[JsArray].value
+        jsArr.size mustBe 1
+        jsArr.headOption.value.as[String] mustBe src.path
       }
 
-      "children" taggedAs PG in {
-        pending
+      "prevent unauthorized opening a closed ArchiveFolderItem" taggedAs PG in {
+        val fid = getArchiveParts(defaultMuseumId).lastOption.value.fid
+        httpPutFolderTest(
+          tokenRead,
+          folderOpenUrl(defaultMuseumId, fid)
+        ).status mustBe FORBIDDEN
       }
 
-      "tree" taggedAs PG in {
-        pending
+      "open a previously closed ArchiveFolderItem" taggedAs PG in {
+        val fid = getArchiveParts(defaultMuseumId).lastOption.value.fid
+        val res = httpPutFolderTest(
+          tokenAdmin,
+          folderOpenUrl(defaultMuseumId, fid)
+        )
+
+        res.status mustBe OK
+      }
+
+      "return a list with the direct children for an ArchiveFolderItem" taggedAs PG in {
+        val folder = getArchiveParts(defaultMuseumId).headOption.value
+        val expTitles = Seq(
+          "Kong Haakons korrespondanse",
+          "Reisebrev fra historiske personer"
+        )
+
+        val res = httpGetTest(
+          tokenRead,
+          folderChildrenUrl(defaultMuseumId, folder.fid)
+        )
+
+        res.status mustBe OK
+        res.contentType mustBe JSON
+
+        val jsArr = res.json.as[JsArray].value
+        jsArr.size mustBe 2
+        jsArr.map(js => (js \ "title").as[String]) must contain allElementsOf expTitles
+
+        forAll(jsArr) { js =>
+          (js \ "type").as[String] mustBe ArchiveFolder.FolderType
+          (js \ "path").as[String] must startWith(folder.path)
+          (js \ "owner" \ "ownerId").as[String] mustBe s"${Museums.Test.id.underlying}"
+          (js \ "createdStamp" \ "by").as[String] mustBe FakeUsers.testWriteId
+          (js \ "collection").as[String] mustBe MuseumCollections.Archeology.uuid.asString
+        }
+      }
+
+      "prevent unauthorized access when listing children for a folder" taggedAs PG in {
+        val fid = getArchiveParts(defaultMuseumId).headOption.value.fid
+        httpGetTest(
+          nhmReadToken,
+          folderChildrenUrl(defaultMuseumId, fid)
+        ).status mustBe FORBIDDEN
+      }
+
+      "return the entire sub-folder tree for an ArchiveFolderItem" taggedAs PG in {
+        val folder = getArchiveParts(defaultMuseumId).headOption.value
+
+        val expPaths = Seq(
+          folder.path,
+          s"${folder.path}/Kong Haakons korrespondanse",
+          s"${folder.path}/Kong Haakons korrespondanse/29 september 1789",
+          s"${folder.path}/Reisebrev fra historiske personer"
+        )
+
+        val res = httpGetTest(
+          tokenRead,
+          folderTreeUrl(defaultMuseumId, folder.fid)
+        )
+
+        res.status mustBe OK
+        res.contentType mustBe JSON
+
+        val jsArr = res.json.as[JsArray].value
+        jsArr.size mustBe 4
+        jsArr.map(js => (js \ "path").as[String]) must contain inOrderElementsOf expPaths
+        jsArr.headOption
+          .map(js => (js \ "type").as[String])
+          .value mustBe ArchivePart.FolderType
+
+        forAll(jsArr.tail) { js =>
+          (js \ "type").as[String] mustBe ArchiveFolder.FolderType
+        }
+      }
+
+      "prevent unauthorized listing of sub-tree for an ArchiveFolderItem" taggedAs PG in {
+        val fid = getArchiveParts(defaultMuseumId).headOption.value.fid
+
+        httpGetTest(
+          noAccessToken,
+          folderTreeUrl(defaultMuseumId, fid)
+        ).status mustBe FORBIDDEN
       }
 
     }
