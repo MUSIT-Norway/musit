@@ -185,7 +185,7 @@ class AnalysisController @Inject()(
       from: Int,
       limit: Int
   ) =
-    MusitSecureAction(mid, Read).async { implicit request =>
+    MusitSecureAction().async { implicit request =>
       implicit val currUser: AuthenticatedUser = request.user
 
       parseCollectionIdsParam(mid, collectionIds) match {
