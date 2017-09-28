@@ -181,6 +181,7 @@ class AnalysisController @Inject()(
       mid: Int,
       collectionIds: String,
       q: Option[String],
+      types: Seq[String],
       from: Int,
       limit: Int
   ) =
@@ -192,11 +193,12 @@ class AnalysisController @Inject()(
         case Right(cids) =>
           analysisSearchService
             .restrictedAnalysisSearch(
-              MuseumId(mid),
-              cids,
-              from,
-              calcLimit(limit),
-              q
+              mid = MuseumId(mid),
+              collectionIds = cids,
+              from = from,
+              limit = calcLimit(limit),
+              queryStr = q,
+              types = types
             )
             .map {
               case MusitSuccess(res) =>

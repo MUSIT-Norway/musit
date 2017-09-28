@@ -24,23 +24,30 @@ import scala.util.control.NonFatal
 
 class AnalysisSearchService @Inject()(implicit client: HttpClient, ex: ExecutionContext) {
 
-  private[this] val logger = Logger(classOf[AnalysisSearchService])
+  private[this] val logger  = Logger(classOf[AnalysisSearchService])
+  val allTypes: Seq[String] = Seq(analysisType, analysisCollectionType, sampleType)
 
   def restrictedAnalysisSearch(
       mid: MuseumId,
       collectionIds: Seq[MuseumCollection],
       from: Int,
       limit: Int,
-      queryStr: Option[String]
+      queryStr: Option[String],
+      types: Seq[String] = allTypes
   )(
       implicit currUsr: AuthenticatedUser
   ): Future[MusitResult[MusitESResponse[SearchResponse]]] = {
     val qry: QueryDefinition = createQuery(mid, collectionIds, queryStr.getOrElse("*"))
 
+    val searchInTypes = types.intersect(allTypes)
     client
       .execute(
         search(
-          IndexAndTypes(indexAlias, Seq(analysisType, analysisCollectionType, sampleType))
+          IndexAndTypes(
+            indexAlias,
+            if (searchInTypes.isEmpty) allTypes
+            else searchInTypes
+          )
         ) query qry from from limit limit
       )(MusitSearchHttpExecutable.musitSearchHttpExecutable)
       .map(MusitSuccess.apply)

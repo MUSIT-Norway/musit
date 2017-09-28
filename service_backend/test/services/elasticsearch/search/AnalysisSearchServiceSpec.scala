@@ -145,6 +145,24 @@ class AnalysisSearchServiceSpec
 
       innerHits must not be empty
     }
+
+    "analysis should filter on valid types" taggedAs ElasticsearchContainer in {
+      val res = service
+        .restrictedAnalysisSearch(
+          mid = museum1,
+          collectionIds = Seq(MuseumCollection(collection1.uuid, None, Seq())),
+          from = 0,
+          limit = 10,
+          queryStr = None,
+          types = Seq("analysis", "foo")
+        )
+        .futureValue
+        .successValue
+        .response
+
+      res.hits.hits.map(toEventId) must contain only evtId_11
+    }
+
   }
 
   private def findInnerHit(res: SearchResponse, id: EventId, innerHitKey: String) = {
