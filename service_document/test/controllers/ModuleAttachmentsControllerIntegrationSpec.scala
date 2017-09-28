@@ -19,7 +19,7 @@ class ModuleAttachmentsControllerIntegrationSpec
     with ArchiveableGenerators {
 
   override val timeout =
-    envOrNone("MUSIT_FUTURE_TIMEOUT").map(_.toDouble).getOrElse(5 * 1000d)
+    envOrNone("MUSIT_FUTURE_TIMEOUT").map(_.toDouble).getOrElse(8 * 1000d)
   override val interval =
     envOrNone("MUSIT_FUTURE_INTERVAL").map(_.toDouble).getOrElse(15d)
 
