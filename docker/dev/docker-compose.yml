@@ -18,7 +18,12 @@ services:
       - "1521:1521"
 
   postgres_db:
-    image: postgres:9.6
+    build: postgres/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+
     ports:
       - "5432:5432"
 
@@ -86,7 +91,7 @@ services:
   document:
     image: service_document:0.1-SNAPSHOT
     ports:
-      - "7072:7070"
+      - "7078:7070"
     environment:
       - MUSIT_ENV
       - MUSIT_BASE_URL

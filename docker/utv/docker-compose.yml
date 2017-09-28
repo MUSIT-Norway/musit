@@ -68,8 +68,6 @@ services:
 
   document:
     image: service_document:0.1-SNAPSHOT
-    ports:
-      - "7072:7070"
     environment:
       - MUSIT_ENV
       - MUSIT_BASE_URL

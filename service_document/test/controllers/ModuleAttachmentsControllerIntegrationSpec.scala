@@ -36,17 +36,13 @@ class ModuleAttachmentsControllerIntegrationSpec
   def testUploadFile(
       filename: String,
       analysisId: EventId,
-      collection: MuseumCollections.Collection,
       tok: BearerToken
   ): WSResponse = {
     val fp = createFilePart(filename, fileSource)
 
     wsUrl(analysesAttachmentsUrl(defaultMuseumId))
       .withHttpHeaders(tok.asHeader)
-      .withQueryStringParameters(
-        "analysisId"   -> s"${analysisId.underlying}",
-        "collectionId" -> collection.uuid.asString
-      )
+      .withQueryStringParameters("analysisId" -> s"${analysisId.underlying}")
       .post(fp)
       .futureValue
   }
@@ -56,8 +52,7 @@ class ModuleAttachmentsControllerIntegrationSpec
     "working with analysis results" should {
 
       "upload a file" taggedAs PG in {
-        val res =
-          testUploadFile("testfile1.pdf", 1L, MuseumCollections.Archeology, tokenAdmin)
+        val res = testUploadFile("testfile1.pdf", 1L, tokenAdmin)
 
         res.status mustBe CREATED
         res.contentType mustBe JSON
@@ -74,8 +69,7 @@ class ModuleAttachmentsControllerIntegrationSpec
       }
 
       "upload a second file" taggedAs PG in {
-        val res =
-          testUploadFile("testfile2.pdf", 1L, MuseumCollections.Archeology, tokenAdmin)
+        val res = testUploadFile("testfile2.pdf", 1L, tokenAdmin)
 
         res.status mustBe CREATED
         res.contentType mustBe JSON
@@ -92,8 +86,7 @@ class ModuleAttachmentsControllerIntegrationSpec
       }
 
       "upload a third file" taggedAs PG in {
-        val res =
-          testUploadFile("testfile3.pdf", 1L, MuseumCollections.Archeology, tokenAdmin)
+        val res = testUploadFile("testfile3.pdf", 1L, tokenAdmin)
 
         res.status mustBe CREATED
         res.contentType mustBe JSON
@@ -110,8 +103,7 @@ class ModuleAttachmentsControllerIntegrationSpec
       }
 
       "upload a file with an existing name for a different analysis" taggedAs PG in {
-        val res =
-          testUploadFile("testfile1.pdf", 4L, MuseumCollections.Archeology, tokenAdmin)
+        val res = testUploadFile("testfile1.pdf", 4L, tokenAdmin)
 
         res.status mustBe CREATED
         res.contentType mustBe JSON
@@ -128,17 +120,11 @@ class ModuleAttachmentsControllerIntegrationSpec
       }
 
       "prevent file upload without Write access to Collection Management" taggedAs PG in {
-        testUploadFile(
-          "testfile_fail.pdf",
-          5L,
-          MuseumCollections.Archeology,
-          tokenRead
-        ).status mustBe FORBIDDEN
+        testUploadFile("testfile_fail.pdf", 5L, tokenRead).status mustBe FORBIDDEN
       }
 
       "prevent uploading when file already exists for given analysis" taggedAs PG in {
-        val res =
-          testUploadFile("testfile1.pdf", 4L, MuseumCollections.Archeology, tokenAdmin)
+        val res = testUploadFile("testfile1.pdf", 4L, tokenAdmin)
 
         res.status mustBe BAD_REQUEST
         res.contentType mustBe JSON

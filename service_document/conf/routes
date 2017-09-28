@@ -38,6 +38,6 @@ PUT         /museum/:mid/files/:fileId/move                  controllers.Documen
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Analysis Module endpoints
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-POST        /museum/:mid/analyses/attachments                controllers.ModuleAttachmentsController.uploadAnalysisResult(mid: Int, analysisId: String, collectionId: String)
+POST        /museum/:mid/analyses/attachments                controllers.ModuleAttachmentsController.uploadAnalysisResult(mid: Int, analysisId: String)
 GET         /museum/:mid/analyses/attachments                controllers.ModuleAttachmentsController.getFilesForAnalysisResult(mid: Int, fileIds: String)
 GET         /museum/:mid/analyses/attachments/:fileId        controllers.ModuleAttachmentsController.downloadAnalysisResult(mid: Int, fileId: String)

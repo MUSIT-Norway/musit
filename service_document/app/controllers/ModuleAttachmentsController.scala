@@ -53,12 +53,11 @@ class ModuleAttachmentsController @Inject()(
   private def uploadFile(
       mid: MuseumId,
       dataIdentifier: String,
-      colId: CollectionUUID,
       module: ModuleConstraint,
       modulePath: Path
   )(implicit request: MusitRequest[MultipartFormData[Files.TemporaryFile]]) = {
-    if (request.user.canAccess(mid, module, Some(colId))) {
-      implicit val ctx = ArchiveAddContext(request.user, mid, colId)
+    if (request.user.canAccess(mid, module, None)) {
+      implicit val ctx = ArchiveAddContext(request.user, mid, None)
 
       request.body.files.headOption.map { tmp =>
         ArchiveDocument(
@@ -130,22 +129,15 @@ class ModuleAttachmentsController @Inject()(
   // Attachments for Analysis
   // ---------------------------------------------------------------------------
 
-  def uploadAnalysisResult(mid: Int, analysisId: String, collectionId: String) =
+  def uploadAnalysisResult(mid: Int, analysisId: String) =
     MusitSecureAction(mid, CollectionManagement, Write).async(parse.multipartFormData) {
       implicit request =>
-        parseCollectionIdParam(collectionId) match {
-          case Right(colId) =>
-            uploadFile(
-              mid = mid,
-              dataIdentifier = analysisId,
-              colId = colId,
-              module = CollectionManagement,
-              modulePath = BaseFolders.AnalysisFolder.path(mid)
-            )
-
-          case Left(err) => evaluated(err)
-        }
-
+        uploadFile(
+          mid = mid,
+          dataIdentifier = analysisId,
+          module = CollectionManagement,
+          modulePath = BaseFolders.AnalysisFolder.path(mid)
+        )
     }
 
   def getFilesForAnalysisResult(mid: Int, fileIds: String) =
