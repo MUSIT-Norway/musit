@@ -1,6 +1,5 @@
 package services.elasticsearch.search
 
-import com.sksamuel.elastic4s.DocumentRef
 import com.sksamuel.elastic4s.http.ElasticDsl.{bulk, deleteIndex, _}
 import com.sksamuel.elastic4s.http.HttpClient
 import com.sksamuel.elastic4s.http.search.{SearchHit, SearchResponse}
