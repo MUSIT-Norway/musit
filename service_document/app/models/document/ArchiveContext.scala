@@ -7,6 +7,33 @@ import net.scalytica.symbiotic.api.types.SymbioticContext
 import no.uio.musit.models.{ActorId, CollectionUUID, MuseumId}
 import no.uio.musit.security.{AuthenticatedUser, DocumentArchive}
 
+/**
+ * All operations towards the underlying symbiotic library require that a
+ * context is passed with each API call. The context is used primarily to
+ * calculate authorisations to data in a specific folder tree.
+ *
+ * Current user informs the library _who_ is interacting with the folder tree.
+ *
+ * The Owner attribute tells the library who owns the root of the folder tree
+ * (and down).
+ *
+ * Accessible Parties is used to provide information about what the current user
+ * can access. Basically, the current user can access all the folders where the
+ * parties in this list are granted access.
+ *
+ * In this system we operate with 2 different contexts. Where one of them is
+ * exclusively used for adding _new_ data. Either a new folder, or a new version
+ * of a file. Passing in the wrong context to a method requiring an
+ * [[ArchiveAddContext]] is not allowed.
+ *
+ * Since these two contexts are used for different use-cases, they are also
+ * populated slightly different. For the [[ArchiveContext]] the accessible
+ * parties attribute works exactly as explained above. But for the
+ * [[ArchiveAddContext]], accessible parties is used to tell the system which
+ * other parties should be granted access to the resource upon saving it.
+ *
+ *
+ */
 sealed trait BaseArchiveContext extends SymbioticContext {
 
   val collections: Seq[CollectionUUID]
@@ -49,8 +76,6 @@ object ArchiveContext {
   }
 
 }
-
-// TODO: Document the differences between ArchiveContext and ArchiveAddContext
 
 case class ArchiveAddContext(
     currentUser: ArchiveUserId,
