@@ -1,4 +1,4 @@
-package services.elasticsearch.index.events
+package services.elasticsearch.index.analysis
 
 import akka.NotUsed
 import akka.actor.ActorSystem
@@ -26,7 +26,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
  * Index documents into the events index
  */
-class IndexEvents @Inject()(
+class IndexAnalysis @Inject()(
     elasticsearchEventDao: ElasticsearchEventDao,
     elasticsearchObjectsDao: ElasticsearchObjectsDao,
     indexStatusDao: IndexStatusDao,
@@ -36,13 +36,13 @@ class IndexEvents @Inject()(
     override val indexMaintainer: IndexMaintainer
 ) extends Indexer {
 
-  val logger = Logger(classOf[IndexEvents])
+  val logger = Logger(classOf[IndexAnalysis])
 
   override val indexAliasName: String = indexAlias
 
   override def createIndex()(implicit ec: ExecutionContext): Future[IndexConfig] = {
     val config = createIndexConfig()
-    client.execute(EventIndexConfig.config(config.name)).flatMap { res =>
+    client.execute(AnalysisIndexConfig.config(config.name)).flatMap { res =>
       if (res.acknowledged) Future.successful(config)
       else Future.failed(new IllegalStateException("Unable to setup index"))
     }

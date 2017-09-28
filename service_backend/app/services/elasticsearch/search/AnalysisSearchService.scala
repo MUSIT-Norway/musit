@@ -12,7 +12,7 @@ import no.uio.musit.security.AuthenticatedUser
 import org.apache.lucene.search.join.ScoreMode
 import play.api.Logger
 import services.elasticsearch.elastic4s.{MusitESResponse, MusitSearchHttpExecutable}
-import services.elasticsearch.index.events.{
+import services.elasticsearch.index.analysis.{
   analysisCollectionType,
   analysisType,
   indexAlias,
@@ -22,11 +22,11 @@ import services.elasticsearch.index.events.{
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
-class EventSearchService @Inject()(implicit client: HttpClient, ex: ExecutionContext) {
+class AnalysisSearchService @Inject()(implicit client: HttpClient, ex: ExecutionContext) {
 
-  private[this] val logger = Logger(classOf[EventSearchService])
+  private[this] val logger = Logger(classOf[AnalysisSearchService])
 
-  def restrictedEventsSearch(
+  def restrictedAnalysisSearch(
       mid: MuseumId,
       collectionIds: Seq[MuseumCollection],
       from: Int,
@@ -65,7 +65,7 @@ class EventSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCon
     val onlyAllowedAnalysisQuery = must(
       restrictToCollectionAndMuseumQuery(mid, collectionIds),
       hasParentQuery(analysisCollectionType, matchAllQuery(), score = false) innerHit innerHits(
-        EventSearchService.analyseInnerHitName
+        AnalysisSearchService.analyseInnerHitName
       ),
       termQuery("_type" -> analysisType)
     )
@@ -78,7 +78,7 @@ class EventSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCon
         analysisType,
         restrictToCollectionAndMuseumQuery(mid, collectionIds),
         ScoreMode.None
-      ) innerHit innerHits(EventSearchService.analysisCollectionInnerHitName),
+      ) innerHit innerHits(AnalysisSearchService.analysisCollectionInnerHitName),
       termQuery("_type" -> analysisCollectionType)
     )
 
@@ -97,7 +97,7 @@ class EventSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCon
 
 }
 
-object EventSearchService {
+object AnalysisSearchService {
 
   val analyseInnerHitName            = "analysisCollection"
   val analysisCollectionInnerHitName = "analysis"

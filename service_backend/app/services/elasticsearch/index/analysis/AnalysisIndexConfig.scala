@@ -1,10 +1,10 @@
-package services.elasticsearch.index.events
+package services.elasticsearch.index.analysis
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.indexes.CreateIndexDefinition
 import services.elasticsearch.index.shared.FieldConfig._
 
-object EventIndexConfig {
+object AnalysisIndexConfig {
 
   def config(indexName: String): CreateIndexDefinition =
     createIndex(indexName) mappings (

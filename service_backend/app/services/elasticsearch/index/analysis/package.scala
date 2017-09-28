@@ -1,8 +1,8 @@
 package services.elasticsearch.index
 
-package object events {
+package object analysis {
 
-  val indexAlias = "events"
+  val indexAlias = "analysis"
 
   val analysisType           = "analysis"
   val analysisCollectionType = "analysisCollection"

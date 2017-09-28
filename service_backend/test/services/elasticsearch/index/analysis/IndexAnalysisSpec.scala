@@ -1,4 +1,4 @@
-package services.elasticsearch.index.events
+package services.elasticsearch.index.analysis
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
@@ -15,12 +15,12 @@ import org.scalatest.time.{Seconds, Span}
 import repositories.core.dao.IndexStatusDao
 import services.analysis.AnalysisService
 import services.elasticsearch.DocumentCount.count
-import services.elasticsearch.index.events
+import services.elasticsearch.index.analysis
 import utils.testdata.{AnalysisGenerators, BaseDummyData}
 
 import scala.concurrent.{ExecutionContext, Promise}
 
-class IndexEventsSpec
+class IndexAnalysisSpec
     extends MusitSpecWithAppPerSuite
     with MusitResultValues
     with Inside
@@ -29,7 +29,7 @@ class IndexEventsSpec
     with Eventually {
 
   val esClient        = fromInstanceCache[HttpClient]
-  val esIndexer       = fromInstanceCache[IndexEvents]
+  val esIndexer       = fromInstanceCache[IndexAnalysis]
   val indexStatusDao  = fromInstanceCache[IndexStatusDao]
   val analysisService = fromInstanceCache[AnalysisService]
   implicit val as     = fromInstanceCache[ActorSystem]
@@ -54,17 +54,17 @@ class IndexEventsSpec
       futureIndex.value mustBe a[IndexConfig]
 
       val mbyStatus =
-        indexStatusDao.findLastIndexed(events.indexAlias).futureValue.successValue
+        indexStatusDao.findLastIndexed(analysis.indexAlias).futureValue.successValue
       inside(mbyStatus) {
         case Some(status) =>
           status.updated mustBe None
       }
 
       eventually {
-        val a = esClient.execute(count(events.indexAlias, events.analysisType))
+        val a = esClient.execute(count(analysis.indexAlias, analysis.analysisType))
         val ac =
-          esClient.execute(count(events.indexAlias, events.analysisCollectionType))
-        val s = esClient.execute(count(events.indexAlias, events.sampleType))
+          esClient.execute(count(analysis.indexAlias, analysis.analysisCollectionType))
+        val s = esClient.execute(count(analysis.indexAlias, analysis.sampleType))
 
         a.futureValue.count mustBe 1
         ac.futureValue.count mustBe 1
@@ -97,7 +97,7 @@ class IndexEventsSpec
       )
       promiseUpdate.future.futureValue(timeout)
       val mbyStatus =
-        indexStatusDao.findLastIndexed(events.indexAlias).futureValue.successValue
+        indexStatusDao.findLastIndexed(analysis.indexAlias).futureValue.successValue
 
       inside(mbyStatus) {
         case Some(status) =>

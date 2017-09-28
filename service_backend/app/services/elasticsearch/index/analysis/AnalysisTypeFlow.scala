@@ -1,4 +1,4 @@
-package services.elasticsearch.index.events
+package services.elasticsearch.index.analysis
 
 import akka.stream.scaladsl.Flow
 import com.sksamuel.elastic4s.http.ElasticDsl.indexInto

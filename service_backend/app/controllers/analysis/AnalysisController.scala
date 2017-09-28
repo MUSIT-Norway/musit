@@ -14,7 +14,7 @@ import play.api.{Configuration, Logger}
 import play.api.libs.json._
 import play.api.mvc.ControllerComponents
 import services.analysis.AnalysisService
-import services.elasticsearch.search.EventSearchService
+import services.elasticsearch.search.AnalysisSearchService
 
 import scala.concurrent.Future
 
@@ -24,7 +24,7 @@ class AnalysisController @Inject()(
     val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val analysisService: AnalysisService,
-    val eventSearchService: EventSearchService
+    val analysisSearchService: AnalysisSearchService
 ) extends MusitController {
 
   val logger = Logger(classOf[AnalysisController])
@@ -190,8 +190,8 @@ class AnalysisController @Inject()(
       parseCollectionIdsParam(mid, collectionIds) match {
         case Left(res) => Future.successful(res)
         case Right(cids) =>
-          eventSearchService
-            .restrictedEventsSearch(
+          analysisSearchService
+            .restrictedAnalysisSearch(
               MuseumId(mid),
               cids,
               from,

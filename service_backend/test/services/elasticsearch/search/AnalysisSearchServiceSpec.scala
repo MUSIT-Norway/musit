@@ -13,14 +13,14 @@ import no.uio.musit.test.{ElasticsearchContainer, MusitSpecWithAppPerSuite}
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.Eventually
-import services.elasticsearch.index.events.EventIndexConfig
-import services.elasticsearch.index.{IndexMaintainer, events}
+import services.elasticsearch.index.analysis.AnalysisIndexConfig
+import services.elasticsearch.index.{IndexMaintainer, analysis}
 import utils.testdata.BaseDummyData
 
 import scala.concurrent.ExecutionContext
 import scala.util.Random
 
-class EventSearchServiceSpec
+class AnalysisSearchServiceSpec
     extends MusitSpecWithAppPerSuite
     with Eventually
     with BeforeAndAfterAll
@@ -29,11 +29,11 @@ class EventSearchServiceSpec
 
   private[this] val client          = fromInstanceCache[HttpClient]
   private[this] val indexMaintainer = fromInstanceCache[IndexMaintainer]
-  private[this] val service         = fromInstanceCache[EventSearchService]
+  private[this] val service         = fromInstanceCache[AnalysisSearchService]
 
   private[this] implicit val ec = fromInstanceCache[ExecutionContext]
 
-  private[this] val indexName = events.indexAlias + Random.nextInt(Int.MaxValue)
+  private[this] val indexName = analysis.indexAlias + Random.nextInt(Int.MaxValue)
 
   val evtId_10 = EventId(10)
   val evtId_11 = EventId(11)
@@ -57,7 +57,7 @@ class EventSearchServiceSpec
 
     "only return documents to the with the right museums id and collection" taggedAs ElasticsearchContainer in {
       val res = service
-        .restrictedEventsSearch(
+        .restrictedAnalysisSearch(
           mid = museum1,
           collectionIds = Seq(MuseumCollection(collection1.uuid, None, Seq())),
           from = 0,
@@ -73,7 +73,7 @@ class EventSearchServiceSpec
 
     "search should return a subset" taggedAs ElasticsearchContainer in {
       val res = service
-        .restrictedEventsSearch(
+        .restrictedAnalysisSearch(
           mid = museum1,
           collectionIds = Seq(MuseumCollection(collection1.uuid, None, Seq())),
           from = 0,
@@ -91,7 +91,7 @@ class EventSearchServiceSpec
 
     "not by pass the authorization in `q`" taggedAs ElasticsearchContainer in {
       val res = service
-        .restrictedEventsSearch(
+        .restrictedAnalysisSearch(
           mid = museum1,
           collectionIds = Seq(MuseumCollection(collection1.uuid, None, Seq())),
           from = 0,
@@ -110,7 +110,7 @@ class EventSearchServiceSpec
 
     "analysisCollection should include `inner-hits` from `analysis`" taggedAs ElasticsearchContainer in {
       val res = service
-        .restrictedEventsSearch(
+        .restrictedAnalysisSearch(
           mid = museum1,
           collectionIds = Seq(MuseumCollection(collection1.uuid, None, Seq())),
           from = 0,
@@ -122,14 +122,14 @@ class EventSearchServiceSpec
         .response
 
       val innerHits =
-        findInnerHit(res, evtId_11, EventSearchService.analysisCollectionInnerHitName)
+        findInnerHit(res, evtId_11, AnalysisSearchService.analysisCollectionInnerHitName)
 
       innerHits must not be empty
     }
 
     "analysis should include `inner-hits` from `analysis collection`" taggedAs ElasticsearchContainer in {
       val res = service
-        .restrictedEventsSearch(
+        .restrictedAnalysisSearch(
           mid = museum1,
           collectionIds = Seq(MuseumCollection(collection1.uuid, None, Seq())),
           from = 0,
@@ -141,7 +141,7 @@ class EventSearchServiceSpec
         .response
 
       val innerHits =
-        findInnerHit(res, evtId_10, EventSearchService.analyseInnerHitName)
+        findInnerHit(res, evtId_10, AnalysisSearchService.analyseInnerHitName)
 
       innerHits must not be empty
     }
@@ -160,7 +160,7 @@ class EventSearchServiceSpec
 
   override def beforeAll(): Unit = {
     val setup = for {
-      m <- client.execute(EventIndexConfig.config(indexName))
+      m <- client.execute(AnalysisIndexConfig.config(indexName))
       if m.acknowledged
       res <- client.execute(
               bulk(
@@ -178,7 +178,7 @@ class EventSearchServiceSpec
                 indexSampleCreatedDoc(evtId_32, museum1, collection2)
               ).refresh(RefreshPolicy.IMMEDIATE)
             )
-      _ <- indexMaintainer.activateIndex(indexName, events.indexAlias)
+      _ <- indexMaintainer.activateIndex(indexName, analysis.indexAlias)
     } yield res
 
     setup.futureValue
@@ -208,7 +208,7 @@ class EventSearchServiceSpec
       orgId = None
     )
     val dId = id.underlying.toString
-    indexInto(indexName, events.analysisCollectionType) id dId doc d
+    indexInto(indexName, analysis.analysisCollectionType) id dId doc d
   }
 
   private def indexAnalysisDoc(
@@ -238,7 +238,7 @@ class EventSearchServiceSpec
 
     val dId = id.underlying.toString
     val pId = partOf.underlying.toString
-    indexInto(indexName, events.analysisType) id dId doc d parent pId
+    indexInto(indexName, analysis.analysisType) id dId doc d parent pId
   }
 
   private def indexSampleCreatedDoc(id: EventId, mid: MuseumId, col: Collection) = {
@@ -253,7 +253,7 @@ class EventSearchServiceSpec
       externalLinks = None
     )
     val dId = id.underlying.toString
-    indexInto(indexName, events.sampleType) id dId doc d
+    indexInto(indexName, analysis.sampleType) id dId doc d
   }
 
 }

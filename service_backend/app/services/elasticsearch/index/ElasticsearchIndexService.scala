@@ -9,7 +9,7 @@ import no.uio.musit.MusitResults.{MusitGeneralError, MusitResult, MusitSuccess}
 import play.api.Configuration
 import play.api.inject.ApplicationLifecycle
 import services.elasticsearch.index.IndexProcessor.Protocol._
-import services.elasticsearch.index.events.IndexEvents
+import services.elasticsearch.index.analysis.IndexAnalysis
 import services.elasticsearch.index.objects.IndexObjects
 
 import scala.concurrent.Future
@@ -23,7 +23,7 @@ import scala.concurrent.duration.DurationDouble
  */
 @Singleton
 class ElasticsearchIndexService @Inject()(
-    indexAnalysisEvents: IndexEvents,
+    indexAnalysis: IndexAnalysis,
     indexMusitObjects: IndexObjects,
     indexMaintainer: IndexMaintainer,
     lifecycle: ApplicationLifecycle,
@@ -43,8 +43,8 @@ class ElasticsearchIndexService @Inject()(
 
   private val updateInterval = Some(5 minute)
   private val eventActor = as.actorOf(
-    IndexProcessor(indexAnalysisEvents, indexMaintainer, updateInterval),
-    "IndexProcessor-Event"
+    IndexProcessor(indexAnalysis, indexMaintainer, updateInterval),
+    "IndexProcessor-Analysis"
   )
   private val objectsActor = as.actorOf(
     IndexProcessor(indexMusitObjects, indexMaintainer, updateInterval),
