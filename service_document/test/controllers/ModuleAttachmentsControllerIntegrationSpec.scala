@@ -1,6 +1,6 @@
 package controllers
 
-import no.uio.musit.models.{EventId, MuseumCollections}
+import no.uio.musit.models.{EventId, MuseumCollections, MuseumId}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite, PostgresContainer => PG}
 import org.scalatest.Inspectors.forAll
@@ -33,6 +33,30 @@ class ModuleAttachmentsControllerIntegrationSpec
   val downloadAnalysisAttachmentUrl = (mid: Int, fid: String) =>
     s"${analysesAttachmentsUrl(mid)}/$fid"
 
+  def validateJsonRes(
+      mid: MuseumId,
+      filename: String,
+      version: Int,
+      path: String,
+      createdBy: String,
+      js: JsValue
+  ): Unit = {
+    (js \ "id").asOpt[String] must not be empty
+    (js \ "fid").asOpt[String] must not be empty
+    (js \ "title").as[String] mustBe filename
+    (js \ "fileType").as[String] mustBe "application/pdf"
+    (js \ "owner" \ "ownerId").as[String] mustBe s"${mid.underlying}"
+    (js \ "owner" \ "ownerType").as[String] mustBe "org"
+    (js \ "path").as[String] mustBe path
+    (js \ "version").as[Int] mustBe version
+    (js \ "published").as[Boolean] mustBe false
+    (js \ "createdStamp" \ "by").as[String] mustBe createdBy
+    (js \ "createdStamp" \ "date").asOpt[String] must not be empty
+    (js \ "documentDetails" \ "number").as[Int] mustBe 1
+
+    addFile(mid, js)
+  }
+
   def testUploadFile(
       filename: String,
       analysisId: EventId,
@@ -59,7 +83,6 @@ class ModuleAttachmentsControllerIntegrationSpec
 
         validateJsonRes(
           defaultMuseumId,
-          MuseumCollections.Archeology.uuid,
           "testfile1.pdf",
           1,
           "/root/Modules/Analysis/1",
@@ -76,7 +99,6 @@ class ModuleAttachmentsControllerIntegrationSpec
 
         validateJsonRes(
           defaultMuseumId,
-          MuseumCollections.Archeology.uuid,
           "testfile2.pdf",
           1,
           "/root/Modules/Analysis/1",
@@ -93,7 +115,6 @@ class ModuleAttachmentsControllerIntegrationSpec
 
         validateJsonRes(
           defaultMuseumId,
-          MuseumCollections.Archeology.uuid,
           "testfile3.pdf",
           1,
           "/root/Modules/Analysis/1",
@@ -110,7 +131,6 @@ class ModuleAttachmentsControllerIntegrationSpec
 
         validateJsonRes(
           defaultMuseumId,
-          MuseumCollections.Archeology.uuid,
           "testfile1.pdf",
           1,
           "/root/Modules/Analysis/4",
@@ -154,7 +174,6 @@ class ModuleAttachmentsControllerIntegrationSpec
         forAll(resArr.zip(expectedValues).zipWithIndex) { jsAndIndex =>
           validateJsonRes(
             defaultMuseumId,
-            MuseumCollections.Archeology.uuid,
             jsAndIndex._1._2._1,
             1,
             s"/root/Modules/Analysis/${jsAndIndex._1._2._2}",

@@ -7,7 +7,6 @@ import akka.util.ByteString
 import models.document._
 import modules.Bootstrapper
 import net.scalytica.symbiotic.test.specs.PostgresSpec
-import no.uio.musit.models.{CollectionUUID, MuseumId}
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.{FakeUsers, MusitSpecWithApp}
 import play.api.libs.json._
@@ -102,32 +101,6 @@ trait ArchiveSpec extends PostgresSpec {
         ref = fileSource
       )
     )
-  }
-
-  def validateJsonRes(
-      mid: MuseumId,
-      colId: CollectionUUID,
-      filename: String,
-      version: Int,
-      path: String,
-      createdBy: String,
-      js: JsValue
-  ): Unit = {
-    (js \ "id").asOpt[String] must not be empty
-    (js \ "fid").asOpt[String] must not be empty
-    (js \ "title").as[String] mustBe filename
-    (js \ "fileType").as[String] mustBe "application/pdf"
-    (js \ "owner" \ "ownerId").as[String] mustBe s"${mid.underlying}"
-    (js \ "owner" \ "ownerType").as[String] mustBe "org"
-    (js \ "collection").as[String] mustBe colId.asString
-    (js \ "path").as[String] mustBe path
-    (js \ "version").as[Int] mustBe version
-    (js \ "published").as[Boolean] mustBe false
-    (js \ "createdStamp" \ "by").as[String] mustBe createdBy
-    (js \ "createdStamp" \ "date").asOpt[String] must not be empty
-    (js \ "documentDetails" \ "number").as[Int] mustBe 1
-
-    addFile(mid, js)
   }
 
 }
