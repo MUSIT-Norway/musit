@@ -71,7 +71,7 @@ trait Indexer {
       as: ActorSystem
   ): Unit = {
     createIndex().map(reindexDocuments(indexCallback, _)).recover {
-      case NonFatal(t) => indexCallback.failure(t)
+      case NonFatal(t) => indexCallback.onFailure(t)
     }
   }
 

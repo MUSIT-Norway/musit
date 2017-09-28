@@ -152,12 +152,12 @@ class IndexProcessorSpec
     }
 
     def triggerReindexSuccess(): Unit = {
-      indexCallbackOpt.foreach(_.success(IndexConfig("dummy_index", indexAliasName)))
+      indexCallbackOpt.foreach(_.onSuccess(IndexConfig("dummy_index", indexAliasName)))
       indexCallbackOpt = None
     }
 
     def triggerUpdateIndexSuccess(): Unit = {
-      updateCallbackOpt.foreach(_.success(IndexConfig("dummy_index", indexAliasName)))
+      updateCallbackOpt.foreach(_.onSuccess(IndexConfig("dummy_index", indexAliasName)))
       updateCallbackOpt = None
     }
   }

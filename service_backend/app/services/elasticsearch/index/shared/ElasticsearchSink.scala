@@ -67,15 +67,19 @@ class DatabaseMaintainedElasticSearchIndexSink(
   val startTime: DateTime = time.dateTimeNow
 
   override def onComplete: () => Unit = () => {
-    indexMaintainer.activateIndex(indexConfig.name, indexConfig.alias)
-    indexStatusDao.indexed(indexConfig.alias, startTime)
-    indexCallback.success(indexConfig)
-    logger.info(s"Indexing done for alias ${indexConfig.alias}")
+    if (indexCallback.notUsed) {
+      logger.info(s"Indexing done for alias ${indexConfig.alias}")
+      indexMaintainer.activateIndex(indexConfig.name, indexConfig.alias)
+      indexStatusDao.indexed(indexConfig.alias, startTime)
+      indexCallback.onSuccess(indexConfig)
+    } else {
+      logger.info(s"Indexing done with errors for alias ${indexConfig.alias}, s")
+    }
   }
 
   override def onError: (Throwable) => Unit = { t =>
-    indexCallback.failure(t)
     logger.error(s"Indexing failed for alias ${indexConfig.alias}", t)
+    indexCallback.onFailure(t)
   }
 
   override def responseListener = this
@@ -100,13 +104,16 @@ class DatabaseMaintainedElasticSearchUpdateIndexSink(
 
   override def onComplete: () => Unit =
     () => {
-      indexMaintainer.indexNameForAlias(indexConfig.alias)
-      indexStatusDao.update(indexConfig.alias, startTime)
-      indexCallback.success(indexConfig)
+      if (!indexCallback.used) {
+        indexMaintainer.indexNameForAlias(indexConfig.alias)
+        indexStatusDao.update(indexConfig.alias, startTime)
+        indexCallback.onSuccess(indexConfig)
+      }
+
     }
 
   override def onError: (Throwable) => Unit =
-    t => indexCallback.failure(t)
+    t => indexCallback.onFailure(t)
 
   override def responseListener = this
 }
