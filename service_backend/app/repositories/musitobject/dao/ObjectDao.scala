@@ -195,43 +195,6 @@ class ObjectDao @Inject()(
   }
 
   /**
-   * Searches the DB for objects based on 3 different criteria.
-   *
-   * @param mid
-   * @param page
-   * @param limit
-   * @param museumNo
-   * @param subNo
-   * @param term
-   * @param collections
-   * @return
-   */
-  def search(
-      mid: MuseumId,
-      page: Int,
-      limit: Int,
-      museumNo: Option[MuseumNo],
-      subNo: Option[SubNo],
-      term: Option[String],
-      collections: Seq[MuseumCollection]
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[ObjectSearchResult]] = {
-    val offset = (page - 1) * limit
-    val query  = searchQuery(mid, museumNo, subNo, term, collections)
-
-    val totalMatches   = db.run(query.length.result)
-    val matchedResults = db.run(query.drop(offset).take(limit).result)
-
-    (for {
-      total   <- totalMatches
-      matches <- matchedResults
-    } yield {
-      MusitSuccess(
-        ObjectSearchResult(total, matches.map(MusitObject.fromSearchTuple))
-      )
-    }).recover(nonFatal(s"Error while retrieving search result"))
-  }
-
-  /**
    *
    * @param mid
    * @param mainObjectId
