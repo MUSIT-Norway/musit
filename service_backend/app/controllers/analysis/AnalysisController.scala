@@ -181,7 +181,7 @@ class AnalysisController @Inject()(
       mid: Int,
       collectionIds: String,
       q: Option[String],
-      types: Seq[String],
+      types: String = "",
       from: Int,
       limit: Int
   ) =
@@ -198,7 +198,7 @@ class AnalysisController @Inject()(
               from = from,
               limit = calcLimit(limit),
               queryStr = q,
-              types = types
+              types = types.split(",")
             )
             .map {
               case MusitSuccess(res) =>
