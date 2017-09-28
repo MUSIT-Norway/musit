@@ -88,7 +88,7 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
           )
         else None
 
-      Some(should(List(obj, freeQuery).flatten))
+      Some(must(List(obj, freeQuery).flatten))
     } else {
       None
     }

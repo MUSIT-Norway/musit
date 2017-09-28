@@ -234,6 +234,25 @@ class ObjectSearchServiceSpec
       res.hits.hits.map(toObjectUUID) must contain only obj3inCol2
     }
 
+    "search with q and other parameters" taggedAs ElasticsearchContainer in {
+      val res = service
+        .restrictedObjectSearch(
+          mid = MuseumId(2),
+          collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
+          limit = 10,
+          from = 0,
+          museumNo = None,
+          subNo = Some(SubNo("b")),
+          term = None,
+          queryStr = Some("C1610")
+        )(dummyUser)
+        .futureValue
+        .successValue
+        .response
+
+      res.hits.hits.map(toObjectUUID) must contain only obj3inCol2
+    }
+
   }
 
   def toObjectUUID(s: SearchHit) = ObjectUUID(UUID.fromString(s.id))
