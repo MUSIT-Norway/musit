@@ -32,6 +32,7 @@ services:
       - SLICK_DB_URL
       - SLICK_DB_USER
       - SLICK_DB_PASSWORD
+      - ELASTICSEARCH_HOST
 
   auth:
     image: service_auth:0.1-SNAPSHOT
