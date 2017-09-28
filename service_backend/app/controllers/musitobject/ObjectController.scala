@@ -68,30 +68,20 @@ class ObjectController @Inject()(
     parseCollectionIdsParam(mid, collectionIds) match {
       case Left(res) => Future.successful(res)
       case Right(cids) =>
-        if (museumNo.isEmpty && subNo.isEmpty && term.isEmpty) {
-          Future.successful(
-            BadRequest(
-              Json.obj(
-                "messages" -> "at least one of museumNo, subNo or term must be specified."
-              )
-            )
-          )
-        } else {
-          val mno = museumNo.map(MuseumNo.apply)
-          val sno = subNo.map(SubNo.apply)
-          val lim = calcLimit(limit)
+        val mno = museumNo.map(MuseumNo.apply)
+        val sno = subNo.map(SubNo.apply)
+        val lim = calcLimit(limit)
 
-          objectSearchService
-            .restrictedObjectSearch(mid, cids, from, lim, mno, sno, term, q)
-            .map {
-              case MusitSuccess(res) =>
-                Ok(res.raw)
+        objectSearchService
+          .restrictedObjectSearch(mid, cids, from, lim, mno, sno, term, q)
+          .map {
+            case MusitSuccess(res) =>
+              Ok(res.raw)
 
-              case err: MusitError =>
-                logger.error(err.message)
-                internalErr(err)
-            }
-        }
+            case err: MusitError =>
+              logger.error(err.message)
+              internalErr(err)
+          }
     }
   }
 
