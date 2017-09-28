@@ -108,6 +108,7 @@ services:
       # Props for the document management library to connect to postgres
       - SYMBIOTIC_POSTGRES_HOST
       - SYMBIOTIC_POSTGRES_PORT
+      - SYMBIOTIC_POSTGRES_USE_SSL
       - SYMBIOTIC_DB_USER
       - SYMBIOTIC_DB_PASSWORD
       - SYMBIOTIC_DB_NAME

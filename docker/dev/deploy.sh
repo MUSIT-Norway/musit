@@ -25,6 +25,7 @@ export SLICK_DB_PASSWORD=musit
 # ------------------------------------------------------------------------
 export SYMBIOTIC_POSTGRES_HOST=postgres_db
 export SYMBIOTIC_POSTGRES_PORT=5432
+export SYMBIOTIC_POSTGRES_USE_SSL=false
 export SYMBIOTIC_DB_USER=postgres
 export SYMBIOTIC_DB_PASSWORD=postgres
 export SYMBIOTIC_DB_NAME=postgres

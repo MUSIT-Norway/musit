@@ -46,12 +46,13 @@ trait ArchiveBootstrapper {
 
     res.value.map {
       case Some(root) =>
+        log.info(s"Successfully bootstrapped folder hierarchy for $mid")
         MusitSuccess(root)
 
       case None =>
-        MusitGeneralError(
-          s"There was a problem initialising the base folder structure for $mid"
-        )
+        val msg = s"There was a problem initialising the base folder structure for $mid"
+        log.warn(msg)
+        MusitGeneralError(msg)
     }
   }
 

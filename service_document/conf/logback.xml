@@ -30,7 +30,7 @@
   </appender>
 
   <appender name="ASYNCFILE" class="ch.qos.logback.classic.AsyncAppender">
-    <appender-ref ref="FILE" />
+    <appender-ref ref="FILE"/>
   </appender>
 
   <logger name="ch.qos.logback" level="ERROR"/>
@@ -38,16 +38,19 @@
   <logger name="slick.jdbc" level="WARN"/>
   <logger name="accesslog" level="INFO"/>
 
+  <!-- The underlying documentation management engine -->
+  <logger name="net.scalytica.symbiotic" level="INFO"/>
+
   <!-- musit play packages -->
-  <logger name="controllers" level="DEBUG"/>
+  <logger name="controllers" level="INFO"/>
   <logger name="models" level="INFO"/>
   <logger name="modules" level="INFO"/>
-  <logger name="services" level="DEBUG"/>
+  <logger name="services" level="INFO"/>
 
   <!-- musit packages-->
   <logger name="no.uio.musit" level="INFO"/>
 
-  <root level="ERROR">
+  <root level="WARN">
     <appender-ref ref="ASYNCSTDOUT"/>
     <appender-ref ref="ASYNCFILE"/>
   </root>
