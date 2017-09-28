@@ -147,7 +147,9 @@ class ModuleAttachmentsControllerIntegrationSpec
       "fetch metadata for a list of file ids" taggedAs PG in {
         val res = wsUrl(analysesAttachmentsUrl(defaultMuseumId))
           .withHttpHeaders(tokenAdmin.asHeader)
-          .withQueryStringParameters("fileIds" -> addedFiles.result().mkString(","))
+          .withQueryStringParameters(
+            "fileIds" -> addedFiles.result().map(_.fid).mkString(",")
+          )
           .get()
           .futureValue
 
@@ -174,7 +176,6 @@ class ModuleAttachmentsControllerIntegrationSpec
             jsAndIndex._1._1
           )
         }
-        // TODO: Parse JSON array
       }
 
       "prevent listing files without Read access to Collection Mngmt" taggedAs PG in {
@@ -187,7 +188,7 @@ class ModuleAttachmentsControllerIntegrationSpec
       }
 
       "download a file" taggedAs PG in {
-        val fid = addedFiles.result()(1)
+        val fid = addedFiles.result()(1).fid
         val res = wsUrl(downloadAnalysisAttachmentUrl(defaultMuseumId, fid))
           .withHttpHeaders(tokenAdmin.asHeader)
           .get()
@@ -198,7 +199,7 @@ class ModuleAttachmentsControllerIntegrationSpec
       }
 
       "prevent file download without Read access to Collection Mngmt" taggedAs PG in {
-        val fid = addedFiles.result()(1)
+        val fid = addedFiles.result()(1).fid
         wsUrl(downloadAnalysisAttachmentUrl(defaultMuseumId, fid))
           .withHttpHeaders(noAccessToken.asHeader)
           .get()

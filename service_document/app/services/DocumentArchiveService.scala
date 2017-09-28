@@ -459,24 +459,54 @@ class DocumentArchiveService @Inject()(
       ad: ArchiveDocument
   )(implicit ac: ArchiveAddContext): Future[MusitResult[FileId]] = {
     val enriched = ad.enrich().updatePath(folder.flattenPath)
-    dmService.latestFile(enriched.title, enriched.path).flatMap {
-      case None =>
-        dmService.saveFile(enriched).map {
-          case Some(fid) => MusitSuccess(fid)
-          case None      => MusitGeneralError(s"File ${ad.title} was not saved.")
-        }
+    dmService.saveFile(enriched).map {
+      case Some(fid) =>
+        MusitSuccess(fid)
 
-      case Some(exists) =>
-        evaluated(
-          MusitValidationError(
-            s"Can't add file because a file with the name ${ad.title} already" +
-              s" exists in ${ad.path}"
-          )
+      case None =>
+        MusitGeneralError(
+          s"File ${ad.title} was not saved. Is the destination folder closed?"
         )
     }
-
   }
 
+  /**
+   * Convenience method that will produce a {{{MusitValidationError}}} if a file
+   * with name {{{filename}}} exists at the given {{{Path}}}. Otherwise it will
+   * return a {{{MusitSuccess[Unit]}}}
+   *
+   * @param filename the filename to check for
+   * @param path the Path to look for the filename in
+   * @return eventually a MusitSuccess[Unit] if not exists else a MusitValidationError
+   */
+  def failIfArchiveDocumentExists(filename: String, path: Path)(
+      implicit ac: ArchiveContext
+  ): Future[MusitResult[Unit]] = {
+    dmService.latestFile(filename, Some(path)).map {
+      case Some(_) => MusitValidationError(s"File $filename already exists at path $path")
+      case None    => MusitSuccess(())
+    }
+  }
+
+  /**
+   * Helper method that will attempt to remove a lock in the background.
+   * Should _only_ be used in context of the [[updateArchiveDocument]] method.
+   */
+  private[this] def removeLock(
+      fileId: FileId
+  )(implicit ac: ArchiveContext): Unit = {
+    dmService.unlockFile(fileId).onComplete {
+      case scala.util.Success(unlocked) =>
+        if (unlocked) log.debug(s"Successfully removed lock on $fileId after update.")
+        else log.warn(s"Unable to remove lock from file $fileId after update.")
+
+      case scala.util.Failure(msg) =>
+        log.error(s"Unable to remove lock from file $fileId after update. Reason: $msg")
+
+    }
+  }
+
+  // scalastyle:off method.length
   /**
    * Updates the metadata for the given FileId with the content of the values
    * defined in the ArchiveDocument argument. It is possible to modify the
@@ -496,24 +526,55 @@ class DocumentArchiveService @Inject()(
       fileId: FileId,
       ad: ArchiveDocument
   )(implicit ac: ArchiveContext): Future[MusitResult[ArchiveDocument]] = {
+
+    // This function is defined as a local function because it handles failure
+    // in a very specific way. How it handles lock removal should not be copied
+    // to functions outside of this scope.
+    def updateDoc(
+        origFile: ArchiveDocument
+    )(implicit ac: ArchiveContext): Future[MusitResult[File]] = {
+      dmService.updateFile(origFile.updateMetadata(ad)).map { maybeFile =>
+        maybeFile.map(MusitSuccess.apply).getOrElse {
+          // Ensure that any lock is removed after the operation completes
+          origFile.fid.foreach(removeLock)
+          MusitGeneralError(
+            s"Update of ${origFile.title} (${origFile.fid}) was unsuccessful"
+          )
+        }
+      }
+    }
+
     dmService.file(fileId).flatMap { maybeFile =>
       maybeFile.map { orig =>
         val updFile = for {
-          // Place a lock on the file so the user can perform an update.
-          locked <- MusitResultT(lockArchiveDocument(fileId))
-          // Do the actual update
-          updFid <- MusitResultT(updateDoc(orig, ad))
+          // Try to place a lock on the file so the user can perform an update.
+          locked <- MusitResultT(lockArchiveDocument(fileId).map {
+                     case mge: MusitGeneralError =>
+                       MusitGeneralError(
+                         s"Can't update $fileId because unable to acquire lock." +
+                           " This may be because the file itself is locked or" +
+                           " the file is in a closed folder sub-tree."
+                       )
+
+                     case other => other
+                   })
+          // Perform the update
+          _ <- MusitResultT(updateDoc(orig))
           // Remove the lock
-          _ <- MusitResultT(unlockArchiveDocument(fileId))
-          // Fetch the updated file
+          _ <- MusitResultT(unlockArchiveDocument(fileId).map {
+                case MusitSuccess(lockRemoved) =>
+                  if (lockRemoved) MusitSuccess(lockRemoved)
+                  else {
+                    removeLock(fileId)
+                    MusitSuccess(lockRemoved)
+                  }
+
+                case err => removeLock(fileId); err
+              })
           updated <- MusitResultT(getArchiveDocument(fileId))
         } yield updated
 
-        updFile.value.map { res =>
-          // Make sure the lock is removed if the result is a MusitError
-          if (res.isFailure) removeLock(fileId)
-          res
-        }.recover {
+        updFile.value.recover {
           case NonFatal(ex) =>
             log.error(
               s"There was a problem updating the file $fileId. Attempting to" +
@@ -530,43 +591,7 @@ class DocumentArchiveService @Inject()(
       }
     }
   }
-
-  private[this] def updateDoc(
-      origFile: ArchiveDocument,
-      upd: ArchiveDocument
-  )(implicit ac: ArchiveContext): Future[MusitResult[FileId]] = {
-    val enriched = origFile.copy(
-      description = upd.description,
-      author = upd.author,
-      collection = upd.collection,
-      documentMedium = upd.documentMedium,
-      documentDetails = upd.documentDetails,
-      published = upd.published
-    )
-    dmService.updateFile(enriched).map {
-      case Some(fid) =>
-        MusitSuccess(fid)
-
-      case None =>
-        MusitGeneralError(
-          s"Update of ${origFile.title} (${origFile.fid}) was unsuccessful"
-        )
-    }
-  }
-
-  private[this] def removeLock(
-      fileId: FileId
-  )(implicit ac: ArchiveContext): Unit = {
-    dmService.unlockFile(fileId).onComplete {
-      case scala.util.Success(unlocked) =>
-        if (unlocked) log.debug(s"Successfully removed lock on $fileId after update.")
-        else log.warn(s"Unable to remove lock from file $fileId after update.")
-
-      case scala.util.Failure(msg) =>
-        log.error(s"Unable to remove lock from file $fileId after update. Reason: $msg")
-
-    }
-  }
+  // scalastyle:om method.length
 
   /**
    * Tries to locate and return the ArchiveDocument with the specified FileId.

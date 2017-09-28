@@ -37,8 +37,9 @@ trait ArchiveSpec extends PostgresSpec {
   }
 
   case class AddedFolder(mid: Int, fid: String, path: String, tpe: String)
+  case class AddedFile(mid: Int, fid: String, path: String)
 
-  val addedFiles   = Seq.newBuilder[String]
+  val addedFiles   = Seq.newBuilder[AddedFile]
   val addedFolders = List.newBuilder[AddedFolder]
 
   def addFolder(mid: Int, fid: String, path: String, tpe: String): Unit = {
@@ -50,7 +51,19 @@ trait ArchiveSpec extends PostgresSpec {
     val tpe  = (js \ "type").as[String]
     val path = (js \ "path").as[String]
 
-    addedFolders += AddedFolder(mid, fid, path, tpe)
+    addFolder(mid, fid, path, tpe)
+  }
+
+  def addFile(mid: Int, js: JsValue): Unit = {
+    val fid  = (js \ "fid").as[String]
+    val tpe  = (js \ "type").as[String]
+    val path = (js \ "path").as[String]
+
+    addFile(mid, fid, path)
+  }
+
+  def addFile(mid: Int, fid: String, path: String): Unit = {
+    addedFiles += AddedFile(mid, fid, path)
   }
 
   def findFolder(mid: Int, fid: String, tpe: String): Option[AddedFolder] =
@@ -74,6 +87,9 @@ trait ArchiveSpec extends PostgresSpec {
   def getGenericFolders(mid: Int): Seq[AddedFolder] =
     addedFolders.result().filter(f => f.mid == mid && f.tpe == GenericFolder.FolderType)
 
+  def getArchiveDocuments(mid: Int): Seq[AddedFile] =
+    addedFiles.result().filter(_.mid == mid)
+
   def createFilePart(
       filename: String,
       fileSource: Source[ByteString, Future[IOResult]]
@@ -96,7 +112,7 @@ trait ArchiveSpec extends PostgresSpec {
       path: String,
       createdBy: String,
       js: JsValue
-  ) = {
+  ): Unit = {
     (js \ "id").asOpt[String] must not be empty
     (js \ "fid").asOpt[String] must not be empty
     (js \ "title").as[String] mustBe filename
@@ -111,7 +127,7 @@ trait ArchiveSpec extends PostgresSpec {
     (js \ "createdStamp" \ "date").asOpt[String] must not be empty
     (js \ "documentDetails" \ "number").as[Int] mustBe 1
 
-    addedFiles += (js \ "fid").as[String]
+    addFile(mid, js)
   }
 
 }

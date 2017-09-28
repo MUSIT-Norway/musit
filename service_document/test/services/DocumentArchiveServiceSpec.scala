@@ -611,15 +611,17 @@ class DocumentArchiveServiceSpec
       val mod = orig.copy(
         title = "foo",
         version = orig.version + 10,
-        fileType = Some("blæh!")
+        fileType = Some("blæh!"),
+        description = Some("I will be updated")
       )
 
       val res = service.updateArchiveDocument(fid, mod).futureValue.successValue
 
       res.fid mustBe orig.fid
       res.title mustBe orig.title
-      res.version mustBe orig.version + 1
+      res.version mustBe orig.version
       res.fileType mustBe orig.fileType
+      res.description mustBe Some("I will be updated")
     }
 
     /*

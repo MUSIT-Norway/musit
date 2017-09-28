@@ -42,6 +42,17 @@ case class ArchiveDocument(
     createdStamp = Some(UserStamp(by = ctx.currentUser, date = dateTimeNow))
   )
 
+  def updateMetadata(ad: ArchiveDocument): ArchiveDocument = {
+    this.copy(
+      description = ad.description,
+      author = ad.author,
+      collection = ad.collection,
+      documentMedium = ad.documentMedium,
+      documentDetails = ad.documentDetails,
+      published = ad.published
+    )
+  }
+
   def updatePath(p: Path) = this.copy(path = Some(p))
 
 }
@@ -79,7 +90,7 @@ object ArchiveDocument {
 
   implicit def readsToIgnoreReads[T](r: JsPath): IgnoreJsPath = IgnoreJsPath(r)
 
-  implicit val format: Format[ArchiveDocument] = (
+  val format: Format[ArchiveDocument] = (
     (__ \ "id").formatNullable[ArchiveId] and
       (__ \ "fid").formatNullable[FileId] and
       (__ \ "title").format[String] and
@@ -98,6 +109,23 @@ object ArchiveDocument {
       (__ \ "documentDetails").format[DocumentDetails] and
       (__ \ "stream").formatIgnore[FileStream]
   )(ArchiveDocument.apply, unlift(ArchiveDocument.unapply))
+
+  implicit val reads: Reads[ArchiveDocument] = Reads { jsv =>
+    (jsv \ ArchiveItem.tpe)
+      .asOpt[String]
+      .map {
+        case ArchiveDocument.DocType =>
+          format.reads(jsv)
+
+        case wrong =>
+          JsError(s"type $wrong is not valid for ArchiveDocument")
+      }
+      .getOrElse {
+        JsError(
+          s"Expected to find key ${ArchiveItem.tpe} with for ArchiveDocument"
+        )
+      }
+  }
 
   implicit def archiveDoc2SymbioticFile(ad: ArchiveDocument): File = {
     File(

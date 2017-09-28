@@ -202,7 +202,11 @@ class DocumentArchiveController @Inject()(
 
                 res.value.map {
                   case MusitSuccess(added) =>
-                    Created(Json.toJson(added))
+                    // Using the less specific type ArchiveItem for JSON parsing
+                    Created(Json.toJson[ArchiveItem](added))
+
+                  case MusitGeneralError(msg) =>
+                    BadRequest(Json.obj("message" -> msg))
 
                   case err: MusitError =>
                     InternalServerError(Json.obj("message" -> s"${err.message}"))
@@ -226,7 +230,7 @@ class DocumentArchiveController @Inject()(
       request.body.validate[ArchiveDocument] match {
         case JsSuccess(ad, _) =>
           docService.updateArchiveDocument(fileId, ad).map { r =>
-            respond(r)(d => Ok(Json.toJson[ArchiveDocumentItem](d)))
+            respond(r)(d => Ok(Json.toJson[ArchiveItem](d)))
           }
 
         case err: JsError =>
@@ -238,7 +242,7 @@ class DocumentArchiveController @Inject()(
     MusitSecureAction(mid, DocumentArchive, Read).async { implicit request =>
       implicit val ctx = ArchiveContext(request.user, mid)
       docService.getArchiveDocument(fileId).map { r =>
-        respond(r)(d => Ok(Json.toJson[ArchiveDocumentItem](d)))
+        respond(r)(d => Ok(Json.toJson[ArchiveItem](d)))
       }
     }
 
@@ -292,7 +296,7 @@ class DocumentArchiveController @Inject()(
       implicit val ctx = ArchiveContext(request.user, mid)
 
       docService.moveArchiveDocument(fileId, to).map { r =>
-        respond(r)(d => Ok(Json.toJson(d)))
+        respond(r)(d => Ok(Json.toJson[ArchiveItem](d)))
       }
     }
 

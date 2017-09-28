@@ -33,7 +33,7 @@ GET         /museum/:mid/files/:fileId/download              controllers.Documen
 GET         /museum/:mid/files/:fileId/islocked              controllers.DocumentArchiveController.isLockedFile(mid: Int, fileId: String)
 PUT         /museum/:mid/files/:fileId/lock                  controllers.DocumentArchiveController.lockFile(mid: Int, fileId: String)
 PUT         /museum/:mid/files/:fileId/unlock                controllers.DocumentArchiveController.unlockFile(mid: Int, fileId: String)
-PUT         /museum/:mid/files/:fileId/move                  controllers.DocumentArchiveController.moveFileTo(mid: Int, fileId: String, folderId: String)
+PUT         /museum/:mid/files/:fileId/move                  controllers.DocumentArchiveController.moveFileTo(mid: Int, fileId: String, to: String)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Analysis Module endpoints

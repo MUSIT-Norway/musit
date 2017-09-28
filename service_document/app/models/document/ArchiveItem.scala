@@ -68,8 +68,10 @@ trait ArchiveItem {
 
 object ArchiveItem {
 
+  // JSON key for type disambiguation
+  val tpe = "type"
+
   implicit object ArchiveItemFormat extends Format[ArchiveItem] {
-    private[this] val tpe = "type"
 
     override def reads(json: JsValue): JsResult[ArchiveItem] = {
       (json \ tpe)

@@ -6,12 +6,7 @@ import akka.stream.scaladsl.FileIO
 import com.google.inject.{Inject, Singleton}
 import models.document._
 import net.scalytica.symbiotic.api.types.{FileId, FolderId, Path}
-import no.uio.musit.MusitResults.{
-  MusitError,
-  MusitResult,
-  MusitSuccess,
-  MusitValidationError
-}
+import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.{CollectionUUID, MuseumId}
@@ -76,6 +71,9 @@ class ModuleAttachmentsController @Inject()(
         val destPath = modulePath.append(dataIdentifier)
         val res = for {
           _ <- MusitResultT(createIfNotExists(destPath))
+          _ <- MusitResultT(
+                docService.failIfArchiveDocumentExists(ad.title, destPath)(ctx)
+              )
           a <- MusitResultT(docService.saveArchiveDocument(destPath, ad))
           b <- MusitResultT(docService.getArchiveDocument(a)(ctx))
         } yield b

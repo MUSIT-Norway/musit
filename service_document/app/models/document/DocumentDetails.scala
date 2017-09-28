@@ -2,7 +2,8 @@ package models.document
 
 import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.Implicits._
 import net.scalytica.symbiotic.api.types.CustomMetadataAttributes.MetadataMap
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
 /**
  * Type for grouping together attributes that specifically describe an
@@ -21,7 +22,11 @@ object DocumentDetails {
   val DocumentTypeKey    = "documentType"
   val DocumentSubTypeKey = "documentSubType"
 
-  implicit val format: Format[DocumentDetails] = Json.format[DocumentDetails]
+  implicit val format: Format[DocumentDetails] = (
+    (__ \ "number").formatNullable[Int].inmap[Int](_.getOrElse(1), Option.apply) and
+      (__ \ "docType").formatNullable[String] and
+      (__ \ "docSubType").formatNullable[String]
+  )(DocumentDetails.apply, unlift(DocumentDetails.unapply))
 
   implicit def fromMetadataMap(mdm: MetadataMap): DocumentDetails = DocumentDetails(
     mdm.getAs[Int](DocumentNumberKey).getOrElse(1),
