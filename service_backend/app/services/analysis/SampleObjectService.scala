@@ -84,7 +84,7 @@ class SampleObjectService @Inject()(
     }
 
     val updatedRes = for {
-      orig <- MusitResultT(findById(oid, MusitEmpty))
+      orig <- MusitResultT(findById(oid, MusitNotFound(s"Couldn't find sample $oid")))
       _    <- MusitResultT(soDao.update(enrich(orig)))
       upd <- MusitResultT(
               findById(
@@ -150,7 +150,7 @@ class SampleObjectService @Inject()(
     }
 
     val updatedRes = for {
-      orig <- MusitResultT(findById(oid, MusitEmpty))
+      orig <- MusitResultT(findById(oid, MusitNotFound(s"Couldn't find sample $oid")))
       del  <- MusitResultT(soDao.update(enrich(orig)))
     } yield del
 

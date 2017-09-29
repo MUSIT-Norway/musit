@@ -9,7 +9,8 @@ object Dependencies {
   val resolvers = DefaultOptions.resolvers(snapshot = true) ++ Seq(
     Resolver.bintrayRepo("scalaz", "releases"),
     Resolver.typesafeRepo("releases"),
-    Resolver.jcenterRepo
+    Resolver.jcenterRepo,
+    Resolver.defaultLocal
   )
 
   object PlayFrameWork {
@@ -105,7 +106,8 @@ object Dependencies {
   val zxingClient = "com.google.zxing" % "javase"       % "3.3.0" % Test
 
   // Oracle specifics
-  def dir    = new java.io.File(".").getCanonicalPath
+  def dir = new java.io.File(".").getCanonicalPath
+
   val oracle = "com.oracle" % "ojdbc7" % "my" from s"file://$dir/libs/ojdbc7.jar"
 
   val enumeratumDeps: Seq[ModuleID] = {
@@ -123,6 +125,23 @@ object Dependencies {
     "com.sksamuel.elastic4s" %% "elastic4s-play-json"    % elastic4sVersion
       excludeAll ExclusionRule(organization = "com.typesafe.play")
   )
+
+  // Symbiotic dependencies
+  object Symbiotic {
+    val symbioticVersion = "0.1.14"
+    val artifacts = Seq(
+      "symbiotic-play",
+      "symbiotic-json",
+      "symbiotic-core",
+      "symbiotic-postgres",
+      "symbiotic-elasticsearch"
+    )
+
+    val libs: Seq[ModuleID] = artifacts.map("net.scalytica" %% _ % symbioticVersion)
+
+    val testkit = "net.scalytica" %% "symbiotic-testkit" % symbioticVersion % Test
+  }
+
   val playDependencies: Seq[ModuleID] = Seq(
     PlayFrameWork.cache,
     PlayFrameWork.ws,

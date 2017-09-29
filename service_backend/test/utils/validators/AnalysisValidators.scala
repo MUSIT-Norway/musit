@@ -13,7 +13,7 @@ trait AnalysisValidators extends DateTimeMatchers with MustMatchers {
       expected: A,
       expRegBy: Option[ActorId] = None,
       expRegDate: Option[DateTime] = None
-  ) = {
+  ): Unit = {
     actual match {
       case gr: GenericResult =>
         validateGenericResult(
@@ -38,7 +38,7 @@ trait AnalysisValidators extends DateTimeMatchers with MustMatchers {
       expected: GenericResult,
       expRegBy: Option[ActorId] = None,
       expRegDate: Option[DateTime] = None
-  ) = {
+  ): Unit = {
     actual.comment mustBe expected.comment
     actual.extRef mustBe expected.extRef
     actual.registeredBy mustBe expRegBy
@@ -50,7 +50,7 @@ trait AnalysisValidators extends DateTimeMatchers with MustMatchers {
       expected: AgeResult,
       expRegBy: Option[ActorId] = None,
       expRegDate: Option[DateTime] = None
-  ) = {
+  ): Unit = {
     actual.comment mustBe expected.comment
     actual.extRef mustBe expected.extRef
     actual.age mustBe expected.age

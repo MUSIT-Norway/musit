@@ -12,7 +12,7 @@ echo "## If you are seeing this message in PRODUCTION, something has gone terrib
 echo "################################################################################"
 
 # ------------------------------------------------------------------------
-# Slick Database configuration
+# Slick MUSIT DB configuration
 # ------------------------------------------------------------------------
 export EVOLUTION_ENABLED=false
 export APPLICATION_SECRET=dummyAppSecret
@@ -24,6 +24,17 @@ export SLICK_DB_PASSWORD=musit
 # Elasticsearch configuration
 # ------------------------------------------------------------------------
 export ELASTICSEARCH_HOST="elasticsearch"
+
+# ------------------------------------------------------------------------
+# Document module specific configuration (including postgres)
+# ------------------------------------------------------------------------
+export SYMBIOTIC_POSTGRES_HOST=postgres_db
+export SYMBIOTIC_POSTGRES_PORT=5432
+export SYMBIOTIC_POSTGRES_USE_SSL=false
+export SYMBIOTIC_DB_USER=postgres
+export SYMBIOTIC_DB_PASSWORD=postgres
+export SYMBIOTIC_DB_NAME=postgres
+export SYMBIOTIC_FS_ROOT_DIR="dman/files"
 
 # ------------------------------------------------------------------------
 # The application defaults to use the fake security module (no.uio.musit.security.fake.FakeModule)

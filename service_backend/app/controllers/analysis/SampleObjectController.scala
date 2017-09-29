@@ -3,9 +3,9 @@ package controllers.analysis
 import com.google.inject.{Inject, Singleton}
 import controllers._
 import models.analysis.{SampleObject, SaveSampleObject}
-import no.uio.musit.MusitResults.{MusitEmpty, MusitError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults._
 import no.uio.musit.models.{MuseumId, ObjectUUID, StorageNodeId}
-import no.uio.musit.security.Authenticator
+import no.uio.musit.security.{AccessAll, Authenticator}
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.service.MusitController
 import play.api.Logger
@@ -98,7 +98,7 @@ class SampleObjectController @Inject()(
     StorageNodeId
       .fromString(nodeId)
       .map { nid =>
-        parseCollectionIdsParam(mid, collectionIds) match {
+        parseCollectionIdsParam(mid, AccessAll, collectionIds) match {
           case Left(res) => Future.successful(res)
           case Right(cids) =>
             nodeService.exists(mid, nid).flatMap {
@@ -167,9 +167,9 @@ class SampleObjectController @Inject()(
         .fromString(uuid)
         .map { oid =>
           soService.delete(oid).map {
-            case MusitSuccess(_) => Ok
-            case MusitEmpty      => NotFound
-            case err: MusitError => internalErr(err)
+            case MusitSuccess(_)  => Ok
+            case MusitNotFound(_) => NotFound
+            case err: MusitError  => internalErr(err)
           }
         }
         .getOrElse(invaludUuidResponse(uuid))

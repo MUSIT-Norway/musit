@@ -9,7 +9,7 @@ resolvers += Resolver.sonatypeRepo("releases")
 addSbtPlugin("io.get-coursier" % "sbt-coursier" % "1.0.0-RC10")
 
 // The Play plugin
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.3")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.5")
 
 // Formatting and style checking
 libraryDependencies += "com.geirsson" %% "scalafmt-bootstrap" % "0.6.6"

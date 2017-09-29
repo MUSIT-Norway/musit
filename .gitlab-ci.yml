@@ -29,7 +29,14 @@ test:
 
   coverage: '/\[info]\sAll\sdone\.\sCoverage\swas\s\[(.*)%\]/'
 
+  variables:
+    POSTGRES_DB: postgres
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    SYMBIOTIC_POSTGRES_HOST: "postgres"
+
   services:
+    - name: postgres:latest
     - name: registry.gitlab.com/musit-norway/docker-elasticsearch:latest
       alias: elasticsearch
 

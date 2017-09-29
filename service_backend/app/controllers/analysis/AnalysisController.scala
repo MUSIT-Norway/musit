@@ -7,12 +7,11 @@ import models.analysis.events.SaveCommands._
 import models.analysis.events._
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess, MusitValidationError}
 import no.uio.musit.models.{CollectionUUID, EventId, MuseumId, ObjectUUID}
-import no.uio.musit.security.{AuthenticatedUser, Authenticator}
-import no.uio.musit.security.Permissions.Read
+import no.uio.musit.security.{AccessAll, AuthenticatedUser, Authenticator}
 import no.uio.musit.service.MusitController
-import play.api.{Configuration, Logger}
 import play.api.libs.json._
 import play.api.mvc.ControllerComponents
+import play.api.{Configuration, Logger}
 import services.analysis.AnalysisService
 import services.elasticsearch.search.AnalysisSearchService
 
@@ -162,7 +161,11 @@ class AnalysisController @Inject()(
     MusitSecureAction().async { implicit request =>
       implicit val currUser: AuthenticatedUser = request.user
 
-      parseCollectionIdsParam(mid, collectionIds)(request.user) match {
+      parseCollectionIdsParam(
+        mid,
+        AccessAll, //CollectionManagement,
+        collectionIds
+      )(request.user) match {
         case Left(res) =>
           Future.successful(res)
 
@@ -188,7 +191,7 @@ class AnalysisController @Inject()(
     MusitSecureAction().async { implicit request =>
       implicit val currUser: AuthenticatedUser = request.user
 
-      parseCollectionIdsParam(mid, collectionIds) match {
+      parseCollectionIdsParam(mid, AccessAll, collectionIds) match {
         case Left(res) => Future.successful(res)
         case Right(cids) =>
           analysisSearchService

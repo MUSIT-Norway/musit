@@ -28,7 +28,8 @@ lazy val root = project in file(".") settings noPublish aggregate (
   musitService,
   serviceAuth,
   serviceBarcode,
-  serviceBackend
+  serviceBackend,
+  serviceDocument
 )
 
 // ======================================================================
@@ -104,4 +105,13 @@ lazy val serviceBackend = (
     settings (libraryDependencies ++= enumeratumDeps ++ elastic4s)
     settings (routesGenerator := InjectedRoutesGenerator)
     settings (packageName in Docker := "musit_service_backend")
+) dependsOn (musitService, musitTest % Test)
+
+lazy val serviceDocument = (
+  PlayProject("service_document")
+    settings (libraryDependencies ++= testablePlayWithPersistenceDependencies)
+    settings (libraryDependencies ++= Symbiotic.libs)
+    settings (libraryDependencies += Symbiotic.testkit)
+    settings (routesGenerator := InjectedRoutesGenerator)
+    settings (packageName in Docker := "musit_service_document")
 ) dependsOn (musitService, musitTest % Test)
