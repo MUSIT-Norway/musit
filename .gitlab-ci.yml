@@ -24,14 +24,12 @@ test:
   variables:
     MUSIT_FUTURE_TIMEOUT: "15000"
     MUSIT_FUTURE_INTERVAL: "50"
-
-  coverage: '/\[info]\sAll\sdone\.\sCoverage\swas\s\[(.*)%\]/'
-
-  variables:
     POSTGRES_DB: postgres
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: postgres
     SYMBIOTIC_POSTGRES_HOST: "postgres"
+
+  coverage: '/\[info]\sAll\sdone\.\sCoverage\swas\s\[(.*)%\]/'
 
   services:
     - name: postgres:latest
