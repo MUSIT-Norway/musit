@@ -42,7 +42,7 @@ class ElasticsearchIndexService @Inject()(
   private implicit val to  = Timeout(10 seconds)
 
   private val updateInterval = Some(5 minute)
-  private val eventActor = as.actorOf(
+  private val analysisActor = as.actorOf(
     IndexProcessor(indexAnalysis, indexMaintainer, updateInterval),
     "IndexProcessor-Analysis"
   )
@@ -56,11 +56,11 @@ class ElasticsearchIndexService @Inject()(
     as.terminate()
   }
 
-  def reIndexEvents(): Future[MusitResult[Unit]] =
-    sendToActor(eventActor, RequestReindex)
+  def reIndexAnalysis(): Future[MusitResult[Unit]] =
+    sendToActor(analysisActor, RequestReindex)
 
-  def updateIndexEvents(): Future[MusitResult[Unit]] =
-    sendToActor(eventActor, RequestUpdateIndex)
+  def updateIndexAnalysis(): Future[MusitResult[Unit]] =
+    sendToActor(analysisActor, RequestUpdateIndex)
 
   def reindexObjects(): Future[MusitResult[Unit]] =
     sendToActor(objectsActor, RequestReindex)
@@ -69,10 +69,10 @@ class ElasticsearchIndexService @Inject()(
     sendToActor(objectsActor, RequestUpdateIndex)
 
   def reindexAll(): Future[Seq[MusitResult[Unit]]] =
-    Future.sequence(List(reIndexEvents(), reindexObjects()))
+    Future.sequence(List(reIndexAnalysis(), reindexObjects()))
 
   def updateAllIndices(): Future[Seq[MusitResult[Unit]]] =
-    Future.sequence(List(updateIndexEvents(), updateIndexObjects()))
+    Future.sequence(List(updateIndexAnalysis(), updateIndexObjects()))
 
   private def sendToActor(actor: ActorRef, cmd: IndexActorCommand) =
     (actor ? cmd).map {
