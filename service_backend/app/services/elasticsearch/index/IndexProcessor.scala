@@ -159,7 +159,7 @@ object IndexProcessor {
       indexer: Indexer,
       indexMaintainer: IndexMaintainer,
       updateInterval: Option[FiniteDuration],
-      initDelay: FiniteDuration = 60 seconds
+      initDelay: FiniteDuration = 10 seconds
   )(
       implicit mat: ActorMaterializer
   ) =
