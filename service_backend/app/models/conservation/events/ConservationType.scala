@@ -1,6 +1,6 @@
 package models.conservation.events
 
-import no.uio.musit.models.CollectionUUID
+import no.uio.musit.models.{CollectionUUID, EventTypeId}
 import play.api.libs.json._
 
 /**
@@ -25,7 +25,7 @@ import play.api.libs.json._
  * @see [[models.conservation.events.ConservationExtras.ExtraAttributes]]
  */
 case class ConservationType(
-    id: ConservationTypeId,
+    id: EventTypeId,
     noName: String,
     enName: String,
     collections: Seq[CollectionUUID] = Seq.empty,

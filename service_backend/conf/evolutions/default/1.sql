@@ -600,7 +600,7 @@ CREATE TABLE MUSARK_CONSERVATION.EVENT (
   part_of         NUMBER(20),
   affected_uuid   VARCHAR2(36),
   note            VARCHAR2(500),
-  case_numbers    VARCHAR2(1000),
+  case_number    VARCHAR2(1000),
   event_json      CLOB,
   PRIMARY KEY (event_id),
   CONSTRAINT ensure_event_json CHECK (event_json IS JSON)

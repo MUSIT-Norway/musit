@@ -1,7 +1,7 @@
 package repositories.conservation.dao
 
-import models.conservation.events.{ConservationType, ConservationTypeId}
-import no.uio.musit.models.CollectionUUID
+import models.conservation.events.ConservationType
+import no.uio.musit.models.{CollectionUUID, EventTypeId}
 import play.api.db.slick.HasDatabaseConfigProvider
 import play.api.libs.json.{JsValue, Json}
 import repositories.shared.dao.ColumnTypeMappers
@@ -22,7 +22,7 @@ trait ConservationTables
   // scalastyle:off line.size.limit
   type ConservationTypeRow =
     (
-        ConservationTypeId,
+        EventTypeId,
         String,
         String,
         Option[String],
@@ -41,7 +41,7 @@ trait ConservationTables
         ConservationEventTypeTableName
       ) {
 
-    val typeId       = column[ConservationTypeId]("TYPE_ID", O.PrimaryKey, O.AutoInc)
+    val typeId       = column[EventTypeId]("TYPE_ID", O.PrimaryKey, O.AutoInc)
     val noName       = column[String]("NO_NAME")
     val enName       = column[String]("EN_NAME")
     val collections  = column[Option[String]]("COLLECTIONS")

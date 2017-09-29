@@ -149,3 +149,9 @@ GET           /:mid/loans/active                                             con
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ConservationType endpoint
 GET           /:mid/conservations/types                                           controllers.conservation.ConservationController.getConservationTypes(mid: Int, collectionIds: Option[String])
+
+# ConservationProcess endpoints
+POST          /:mid/conservations/conservationProcess                     controllers.conservation.ConservationProcessController.addConservationProcess(mid: Int)
+PUT           /:mid/conservations/conservationProcess/:id                 controllers.conservation.ConservationProcessController.updateConservationProcess(mid: Int, id: Long)
+#GET           /:mid/conservations/conservationPrcess
+GET           /:mid/conservations/conservationProcess/:id                 controllers.conservation.ConservationProcessController.getConservationProcessById(mid: Int, id: Long)

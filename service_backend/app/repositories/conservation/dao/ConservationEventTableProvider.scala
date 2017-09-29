@@ -1,7 +1,6 @@
 package repositories.conservation.dao
 
-import models.conservation.events.ConservationTypeId
-import no.uio.musit.models.{ActorId, CaseNumbers, EventId, MuseumId}
+import no.uio.musit.models._
 import no.uio.musit.repositories.events.BaseEventTableProvider
 import org.joda.time.DateTime
 import play.api.Logger
@@ -22,7 +21,7 @@ private[dao] trait ConservationEventTableProvider
 
   override type EventRow = (
       Option[EventId],
-      ConservationTypeId,
+      EventTypeId,
       MuseumId,
       ActorId,
       DateTime,
@@ -32,7 +31,7 @@ private[dao] trait ConservationEventTableProvider
       Option[EventId],
       Option[String], // MusitUUID
       Option[String],
-      Option[CaseNumbers],
+      Option[String],
       JsValue
   )
 
@@ -42,7 +41,7 @@ private[dao] trait ConservationEventTableProvider
    * Representation of the MUSARK_CONSERVATION.EVENT table
    */
   class ConservationEventTable(val t: Tag) extends BaseEventTable[EventRow](t) {
-    val caseNumbers = column[Option[CaseNumbers]]("CASE_NUMBERS")
+    val caseNumber = column[Option[String]]("CASE_NUMBER")
 
     // scalastyle:off method.name
     def * : ProvenShape[EventRow] =
@@ -58,7 +57,7 @@ private[dao] trait ConservationEventTableProvider
         partOf,
         affectedUuid,
         note,
-        caseNumbers,
+        caseNumber,
         eventJson
       )
 
