@@ -4,6 +4,7 @@ import java.util.UUID
 
 import models.musitobject.MusitObject
 import no.uio.musit.models.MuseumCollections.Collection
+import no.uio.musit.models.ObjectTypes.CollectionObjectType
 import no.uio.musit.models.{MuseumId, MuseumNo, ObjectUUID, SubNo}
 import play.api.libs.json.{Json, Writes}
 
@@ -35,7 +36,11 @@ object CollectionSearch {
 }
 
 object MusitObjectSearch {
-  implicit val writes: Writes[MusitObjectSearch] = Json.writes[MusitObjectSearch]
+  private val baseWrites = Json.writes[MusitObjectSearch]
+
+  implicit val writes = Writes[MusitObjectSearch] { mo =>
+    baseWrites.writes(mo) ++ Json.obj("objectType" -> CollectionObjectType.name)
+  }
 
   def apply(mo: MusitObject): MusitObjectSearch = MusitObjectSearch(
     mo.uuid.get,
