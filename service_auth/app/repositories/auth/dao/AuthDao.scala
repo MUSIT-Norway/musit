@@ -191,6 +191,29 @@ class AuthDao @Inject()(
     }
   }
 
+  def revokeGroup(
+      feideEmail: Email,
+      groupId: GroupId
+  ): Future[MusitResult[Int]] = {
+    val q = usrGrpTable.filter { ug =>
+      ug.feideEmail.toLowerCase === feideEmail &&
+      ug.groupId === groupId
+    }.delete
+
+    db.run(q).map {
+      case res: Int if res == 1 =>
+        MusitSuccess(res)
+
+      case res: Int if res == 0 =>
+        MusitSuccess(res)
+
+      case res =>
+        val msg = s"An unexpected number of groups ($res) where revoked from $feideEmail"
+        logger.warn(msg)
+        MusitDbError(msg)
+    }
+  }
+
   def revokeCollectionFor(
       feideEmail: Email,
       groupId: GroupId,
@@ -219,7 +242,7 @@ class AuthDao @Inject()(
           MusitSuccess(res)
 
         case res: Int =>
-          val msg = s"An unexpected amount of collections where removed from " +
+          val msg = s"An unexpected number of collections where removed from " +
             s"GroupId $groupId for $feideEmail"
           logger.warn(msg)
           MusitDbError(msg)
@@ -280,7 +303,7 @@ class AuthDao @Inject()(
         case res: Int if res == 1 => MusitSuccess(Some(grp))
         case res: Int if res == 0 => MusitSuccess(None)
         case res: Int =>
-          val msg = s"Wrong amount of rows ($res) updated for group ${grp.id}"
+          val msg = s"Wrong number of rows ($res) updated for group ${grp.id}"
           logger.warn(msg)
           MusitDbError(msg)
       }
@@ -309,7 +332,7 @@ class AuthDao @Inject()(
           MusitSuccess(res)
 
         case res: Int =>
-          val msg = s"An unexpected amount of groups where removed using GroupId $grpId"
+          val msg = s"An unexpected number of groups where removed using GroupId $grpId"
           logger.warn(msg)
           MusitDbError(msg)
 

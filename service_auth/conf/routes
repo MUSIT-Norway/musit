@@ -2,39 +2,41 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET         /service/auth/buildinfo                                     controllers.Application.buildInfo
-GET         /service/auth/healthcheck                                   controllers.HealthCheckController.healthCheck
+GET         /service/auth/buildinfo                controllers.Application.buildInfo
+GET         /service/auth/healthcheck              controllers.HealthCheckController.healthCheck
 
 
 # WEB endpoints
-POST        /web                                                        controllers.web.Init.init
-GET         /web/users                                                  controllers.web.UserController.users
-GET         /web/users/:email                                           controllers.web.UserController.userView(email: String, mid: Option[Int] ?= None)
-GET         /web/users/:email/edit                                      controllers.web.UserController.userEditView(email: String, mid: Option[Int] ?= None)
-POST        /web/users/:email/grant                                     controllers.web.UserController.grant(email: String, groupId: String, colId: String, mid: Option[Int] ?= None)
-POST        /web/users/:email/revoke                                    controllers.web.UserController.revoke(email: String, groupId: String, colId: String, mid: Option[Int] ?= None)
+POST        /web                                   controllers.web.Init.init
+GET         /web/users                             controllers.web.UserController.users
+GET         /web/users/:email                      controllers.web.UserController.userView(email: String, mid: Option[Int] ?= None)
+GET         /web/users/:email/edit                 controllers.web.UserController.userEditView(email: String, mid: Option[Int] ?= None)
+POST        /web/users/:email/grant                controllers.web.UserController.grant(email: String, groupId: String, colId: String, mid: Option[Int] ?= None)
+POST        /web/users/:email/revoke               controllers.web.UserController.revoke(email: String, groupId: String, colId: String, mid: Option[Int] ?= None)
+POST        /web/users/:email/grantDbCoord         controllers.web.UserController.grantDbCoord(email: String, groupId: String, mid: Option[Int] ?= None)
+POST        /web/users/:email/revokeDbCoord        controllers.web.UserController.revokeDbCoord(email: String, groupId: String, mid: Option[Int] ?= None)
 
 
-GET         /web/museums                                                controllers.web.MuseumController.listMuseums
-GET         /web/museums/:mid/users                                     controllers.web.UserController.usersPerModule(mid: Int)
-GET         /web/museums/:mid/users/add                                 controllers.web.UserController.userAddView(mid: Int)
-POST        /web/museums/:mid/users/add                                 controllers.web.UserController.userAddPost(mid: Int)
+GET         /web/museums                           controllers.web.MuseumController.listMuseums
+GET         /web/museums/:mid/users                controllers.web.UserController.usersPerModule(mid: Int)
+GET         /web/museums/:mid/users/add            controllers.web.UserController.userAddView(mid: Int)
+POST        /web/museums/:mid/users/add            controllers.web.UserController.userAddPost(mid: Int)
 
-GET         /web/collections                                            controllers.web.MuseumCollectionController.listCollections
+GET         /web/collections                       controllers.web.MuseumCollectionController.listCollections
 
-GET         /web/groups                                                 controllers.web.GroupController.groupList
-GET         /web/groups/add                                             controllers.web.GroupController.groupAddGet
-POST        /web/groups/add                                             controllers.web.GroupController.groupAddPost
-POST        /web/groups/:groupId                                        controllers.web.GroupController.deleteGroup(groupId: String)
+GET         /web/groups                            controllers.web.GroupController.groupList
+GET         /web/groups/add                        controllers.web.GroupController.groupAddGet
+POST        /web/groups/add                        controllers.web.GroupController.groupAddPost
+POST        /web/groups/:groupId                   controllers.web.GroupController.deleteGroup(groupId: String)
 
 
 # REST endpoints
-GET         /rest/authenticate                                          controllers.rest.AuthenticationController.authenticate(client: Option[String])
-GET         /rest/logout                                                controllers.rest.AuthenticationController.logout
-GET         /rest/museums                                               controllers.rest.MuseumController.listMuseums
-GET         /rest/groups/:feideEmail                                    controllers.rest.GroupController.groupsForUser(feideEmail: String)
+GET         /rest/authenticate                     controllers.rest.AuthenticationController.authenticate(client: Option[String])
+GET         /rest/logout                           controllers.rest.AuthenticationController.logout
+GET         /rest/museums                          controllers.rest.MuseumController.listMuseums
+GET         /rest/groups/:feideEmail               controllers.rest.GroupController.groupsForUser(feideEmail: String)
 # TODO: Add the remaining REST endpoings
 
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file                                               controllers.Assets.at(path="/public", file)
+GET         /assets/*file                          controllers.Assets.at(path="/public", file)

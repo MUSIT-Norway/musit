@@ -8,7 +8,7 @@ import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.Museums.Museum
 import no.uio.musit.models._
-import no.uio.musit.security.Permissions.Permission
+import no.uio.musit.security.Permissions.{MusitAdmin, Permission}
 import no.uio.musit.security.crypto.MusitCrypto
 import no.uio.musit.security.{AuthenticatedUser, Authenticator, EncryptedToken, GroupInfo}
 import no.uio.musit.service.{MusitAdminController, MusitRequest}
@@ -97,17 +97,7 @@ class UserController @Inject()(
       token: EncryptedToken,
       currUser: AuthenticatedUser
   ) = {
-    val currAccesses = UserAdd(
-      email = feideEmail,
-      accesses = userGroups.groupBy(_.module).toList.map { a =>
-        ModuleAddAccess(
-          module = a._1.id,
-          aa = a._2.toList.map { ugm =>
-            AddAccess(ugm.id, Option(ugm.collections.toList.map(_.uuid)))
-          }
-        )
-      }
-    )
+    val maybeDbCoord = groups.find(_.permission == MusitAdmin).map(_.id)
 
     userPermissions.map { userPermissions =>
       Ok(
@@ -117,7 +107,8 @@ class UserController @Inject()(
           selectedUser = userPermissions,
           museum = mid.flatMap(i => Museum.fromMuseumId(i)),
           collections = collections,
-          groups = groups
+          groups = groups,
+          maybeDbCoord = maybeDbCoord
         )
       )
     }.getOrElse {
@@ -219,10 +210,13 @@ class UserController @Inject()(
             userAdd => {
               val response = for {
                 grps <- MusitResultT(dao.allGroups)
-                acessesToAdd <- MusitResultT
-                                 .successful(cleanAddAccessList(userAdd.accesses, grps))
+                accessesToAdd <- MusitResultT
+                                  .successful(cleanAddAccessList(userAdd.accesses, grps))
                 added <- MusitResultT(
-                          dao.addUserToGroups(userAdd.email, acessesToAdd)
+                          dao.addUserToGroups(userAdd.email, userAdd.maybeDbCoord.map {
+                            gid =>
+                              AddAccess(gid, None)
+                          }.toSeq ++ accessesToAdd)
                         )
               } yield {
                 Redirect(
@@ -260,6 +254,36 @@ class UserController @Inject()(
     }
   }
 
+  def revokeDbCoord(
+      email: String,
+      gid: String,
+      mid: Option[Int]
+  ) = MusitAdminAction().async { implicit request =>
+    val encTok = EncryptedToken.fromBearerToken(request.token)
+
+    Email
+      .validate(email)
+      .map { feideEmail =>
+        GroupId
+          .validate(gid)
+          .toOption
+          .map(GroupId.apply)
+          .map { groupId =>
+            dao.revokeGroup(feideEmail, groupId).map {
+              case MusitSuccess(res) =>
+                Redirect(
+                  url = web.routes.UserController.userEditView(email, mid).url,
+                  queryString = Map("_at" -> Seq(encTok.asString))
+                ).flashing("success" -> "Group access revoked")
+              case err: MusitError =>
+                serverErr(request.user, encTok, err.message)
+            }
+          }
+          .getOrElse(notFoundF(request.user, encTok, s"Wrong uuid format: $gid"))
+      }
+      .getOrElse(notFoundF(request.user, encTok, s"Not a valid email: $email"))
+  }
+
   def revoke(
       email: String,
       gid: String,
@@ -292,6 +316,37 @@ class UserController @Inject()(
                 }
               }
               .getOrElse(notFoundF(request.user, encTok, s"Wrong uuid format: $cid"))
+          }
+          .getOrElse(notFoundF(request.user, encTok, s"Wrong uuid format: $gid"))
+      }
+      .getOrElse(notFoundF(request.user, encTok, s"Not a valid email: $email"))
+  }
+
+  def grantDbCoord(
+      email: String,
+      gid: String,
+      mid: Option[Int]
+  ) = MusitAdminAction().async { implicit request =>
+    val encTok = EncryptedToken.fromBearerToken(request.token)
+
+    Email
+      .validate(email)
+      .map { feideEmail =>
+        GroupId
+          .validate(gid)
+          .toOption
+          .map(GroupId.apply)
+          .map { groupId =>
+            dao.addUserToGroup(feideEmail, groupId, None).map {
+              case MusitSuccess(res) =>
+                Redirect(
+                  url = web.routes.UserController.userEditView(email, mid).url,
+                  queryString = Map("_at" -> Seq(encTok.asString))
+                )
+
+              case err: MusitError =>
+                serverErr(request.user, encTok, err.message)
+            }
           }
           .getOrElse(notFoundF(request.user, encTok, s"Wrong uuid format: $gid"))
       }

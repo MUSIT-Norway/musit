@@ -25,6 +25,10 @@
   background-color: rgb(255, 205, 192) !important;
 }
 
+.table-row-clickable {
+  cursor: pointer;
+}
+
 dl > .info {
   visibility: collapse;
 }

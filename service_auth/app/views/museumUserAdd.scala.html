@@ -7,6 +7,7 @@
 @import no.uio.musit.security.{AuthenticatedUser, EncryptedToken}
 @import play.api.i18n.Messages
 @import no.uio.musit.security.ModuleConstraint
+@import no.uio.musit.security.Permissions.MusitAdmin
 @(
         user: AuthenticatedUser,
         etok: EncryptedToken,
@@ -44,6 +45,20 @@
               }
               </div>
             </div>
+            @groups.find(g => g.permission == MusitAdmin && g.museumId == museum.id).map { dbCoordGrp =>
+            <div class="row">
+              <div class="col-md-offset-1 col-md-5">
+                <label for="db_coord_">Database Coordinator</label>
+                <input
+                  class="checkbox-inline"
+                  type="checkbox"
+                  id="db_coord"
+                  name="db_coord"
+                  value="@dbCoordGrp.id.asString"
+                >
+              </div>
+            </div>
+            }
           </div>
         </div>
       </div>

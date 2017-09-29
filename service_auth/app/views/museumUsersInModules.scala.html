@@ -8,6 +8,7 @@
 @import play.api.mvc.Flash
 @import no.uio.musit.security.ModuleConstraint
 
+@import no.uio.musit.security.AccessAll
 @(
         user: AuthenticatedUser,
         etok: EncryptedToken,
@@ -27,7 +28,14 @@
   @moduleUsers.toSeq.sortBy(_._1.name).map { mu =>
     <div class="card">
       <div class="header">
-        <h4 class="title">@mu._1.name</h4>
+        @defining(
+          mu._1 match {
+            case AccessAll => "Database Coordinators"
+            case mod => mod.name
+          }
+        ) { moduleName =>
+          <h4 class="title">@moduleName</h4>
+        }
       </div>
       @if(mu._2.isEmpty) {
         <div class="content">
@@ -48,21 +56,20 @@
             </thead>
             <tbody>
             @mu._2.map { usr =>
-              <tr>
-                <td>
-                  <a href="@UserController.userView(usr.feideEmail.value, Some(museum.id.underlying))&_at=@etok.urlEncoded">
-                    @usr.feideEmail.value
-                  </a>
-                </td>
-                <td>@usr.name.isDefined</td>
-                <td>@usr.name.getOrElse("-")</td>
-                <td>@usr.email.map(_.value).getOrElse("-")</td>
-                <td>
+              @defining(
+                s"${UserController.userView(usr.feideEmail.value, Some(museum.id.underlying))}&_at=${etok.urlEncoded}"
+              ) { userViewLink =>
+                <tr class="table-row-clickable" onclick="document.location='@userViewLink'">
+                  <td><a href="#">@usr.feideEmail.value</a></td>
+                  <td>@usr.name.isDefined</td>
+                  <td>@usr.name.getOrElse("-")</td>
+                  <td>@usr.email.map(_.value).getOrElse("-")</td>
+                  <td>
                   @defining(
                     usr.access
-                      .filter(ma => ma.mid == museum.id)
-                      .flatMap(ma => ma.permissions)
-                      .groupBy(_._1)
+                            .filter(ma => ma.mid == museum.id)
+                            .flatMap(ma => ma.permissions)
+                            .groupBy(_._1)
                   ) { perms =>
                     @for(perm <- perms) {
                       <div>
@@ -71,9 +78,10 @@
                       </div>
                     }
                   }
-                </td>
-                <td>@usr.userId.map(_.asString).getOrElse("-")</td>
-              </tr>
+                  </td>
+                  <td>@usr.userId.map(_.asString).getOrElse("-")</td>
+                </tr>
+              }
             }
             </tbody>
           </table>
