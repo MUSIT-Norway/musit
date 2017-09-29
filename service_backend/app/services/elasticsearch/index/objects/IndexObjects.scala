@@ -1,5 +1,6 @@
 package services.elasticsearch.index.objects
 
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{GraphDSL, Merge, Source}
 import akka.stream.{Materializer, SourceShape}
@@ -7,7 +8,9 @@ import com.google.inject.Inject
 import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.HttpClient
+import models.analysis.SampleObject
 import models.elasticsearch.{IndexCallback, IndexConfig}
+import models.musitobject.MusitObject
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import org.joda.time.DateTime
 import play.api.Configuration
@@ -82,21 +85,7 @@ class IndexObjects @Inject()(
           indexCallback
         ).toElasticsearchSink
 
-        val musitObjectFlow  = new MusitObjectTypeFlow().flow(config)
-        val sampleObjectFlow = new SampleTypeFlow(actorService).flow(config)
-
-        val esBulkSource = Source.fromGraph(GraphDSL.create() { implicit builder =>
-          import GraphDSL.Implicits._
-
-          val mergeToEs =
-            builder.add(Merge[BulkCompatibleDefinition](objSources.size + 1))
-
-          objSources.map(_.via(musitObjectFlow)).foreach(_ ~> mergeToEs)
-          sampleSource.via(sampleObjectFlow) ~> mergeToEs
-
-          SourceShape.of(mergeToEs.out)
-        })
-
+        val esBulkSource = createFlow(config, objSources, sampleSource)
         esBulkSource.runWith(es)
     }
   }
@@ -111,18 +100,45 @@ class IndexObjects @Inject()(
   ): Unit = {
     findLastIndexDateTime().map { mdt =>
       mdt.map { dt =>
-        elasticsearchObjectsDao.objectsChangedAfterTimestampStream(fetchSize, dt)
-      }.getOrElse(Source.empty)
-    }.map(source => {
-      val es = new DatabaseMaintainedElasticSearchUpdateIndexSink(
-        client,
-        indexMaintainer,
-        indexStatusDao,
-        indexConfig,
-        indexCallback
-      ).toElasticsearchSink
-      val musitObjectFlow = new MusitObjectTypeFlow().flow(indexConfig)
-      source.via(musitObjectFlow).runWith(es)
+        val objectSource =
+          elasticsearchObjectsDao.objectsChangedAfterTimestampStream(fetchSize, dt)
+        val sampleSource = elasticsearchObjectsDao.sampleStream(fetchSize, Some(dt))
+        (objectSource, sampleSource)
+      }.getOrElse((Source.empty, Source.empty))
+    }.map {
+      case (objectSource, sampleSource) => {
+        val es = new DatabaseMaintainedElasticSearchUpdateIndexSink(
+          client,
+          indexMaintainer,
+          indexStatusDao,
+          indexConfig,
+          indexCallback
+        ).toElasticsearchSink
+
+        val esBulkSource = createFlow(indexConfig, Seq(objectSource), sampleSource)
+        esBulkSource.runWith(es)
+      }
+    }
+  }
+
+  private def createFlow(
+      config: IndexConfig,
+      objSources: Seq[Source[MusitObject, NotUsed]],
+      sampleSource: Source[SampleObject, NotUsed]
+  ) = {
+    val musitObjectFlow  = new MusitObjectTypeFlow().flow(config)
+    val sampleObjectFlow = new SampleTypeFlow(actorService).flow(config)
+
+    Source.fromGraph(GraphDSL.create() { implicit builder =>
+      import GraphDSL.Implicits._
+
+      val mergeToEs =
+        builder.add(Merge[BulkCompatibleDefinition](objSources.size + 1))
+
+      objSources.map(_.via(musitObjectFlow)).foreach(_ ~> mergeToEs)
+      sampleSource.via(sampleObjectFlow) ~> mergeToEs
+
+      SourceShape.of(mergeToEs.out)
     })
   }
 
