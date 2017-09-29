@@ -109,6 +109,7 @@ lazy val serviceBackend = (
 
 lazy val serviceDocument = (
   PlayProject("service_document")
+    settings (dockerExposedVolumes := Seq("/opt/docker/logs", "/opt/docker/dman"))
     settings (libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings (libraryDependencies ++= Symbiotic.libs)
     settings (libraryDependencies += Symbiotic.testkit)

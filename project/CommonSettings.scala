@@ -103,7 +103,8 @@ object CommonSettings {
         inConfig(AllTests)(Defaults.testTasks),
         testOptions in Test := Seq(
           // exclude
-          testArg("-l", "musit.ElasticsearchContainer")
+          testArg("-l", "musit.ElasticsearchContainer"),
+          testArg("-l", "musit.PostgresContainer")
         ),
         testOptions in ContainerTests := Seq(
           // include

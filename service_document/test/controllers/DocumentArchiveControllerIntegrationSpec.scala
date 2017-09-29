@@ -1069,7 +1069,7 @@ class DocumentArchiveControllerIntegrationSpec
         (res.json \ "path").as[String] mustBe dest.path
       }
 
-      "open the previously closed ArchiveFolderItem" in {
+      "open the previously closed ArchiveFolderItem" taggedAs PG in {
         val fid = getArchiveParts(defaultMuseumId).lastOption.value.fid
 
         httpPutTest(
@@ -1078,7 +1078,7 @@ class DocumentArchiveControllerIntegrationSpec
         ).status mustBe OK
       }
 
-      "upload a file to an opened ArchiveFolderItem" in {
+      "upload a file to an opened ArchiveFolderItem" taggedAs PG in {
         val title = "test_doc_2.pdf"
         val dest  = getArchiveParts(defaultMuseumId).lastOption.value.fid
 
@@ -1095,7 +1095,7 @@ class DocumentArchiveControllerIntegrationSpec
         addFile(defaultMuseumId, res.json)
       }
 
-      "close the ArchiveFolderItem again" in {
+      "close the ArchiveFolderItem again" taggedAs PG in {
         val fid = getArchiveParts(defaultMuseumId).lastOption.value.fid
 
         httpPutTest(
