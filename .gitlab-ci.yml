@@ -26,14 +26,12 @@ test:
     MUSIT_FUTURE_INTERVAL: "50"
     ELASTICSEARCH_HOST: "elasticsearch"
     ELASTICSEARCH_PORT: 9200
-
-  coverage: '/\[info]\sAll\sdone\.\sCoverage\swas\s\[(.*)%\]/'
-
-  variables:
     POSTGRES_DB: postgres
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: postgres
     SYMBIOTIC_POSTGRES_HOST: "postgres"
+
+  coverage: '/\[info]\sAll\sdone\.\sCoverage\swas\s\[(.*)%\]/'
 
   services:
     - name: postgres:latest
