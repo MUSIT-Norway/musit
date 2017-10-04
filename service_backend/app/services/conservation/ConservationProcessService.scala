@@ -2,7 +2,7 @@ package services.conservation
 
 import com.google.inject.Inject
 import models.conservation.events._
-import no.uio.musit.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.{CollectionUUID, EventId, MuseumId}
@@ -88,8 +88,9 @@ class ConservationProcessService @Inject()(
           caseNumber = cp.caseNumber,
           doneByActors = cp.doneByActors
         )
-      case pres: Preservation => ???
-      case prep: Preparation  => ???
+      case pres: Preservation         => ???
+      case prep: Preparation          => ???
+      case tech: TechnicalDescription => ???
 
     }
   }

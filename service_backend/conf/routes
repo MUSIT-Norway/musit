@@ -155,3 +155,6 @@ POST          /:mid/conservations/conservationProcess                     contro
 PUT           /:mid/conservations/conservationProcess/:id                 controllers.conservation.ConservationProcessController.updateConservationProcess(mid: Int, id: Long)
 #GET           /:mid/conservations/conservationPrcess
 GET           /:mid/conservations/conservationProcess/:id                 controllers.conservation.ConservationProcessController.getConservationProcessById(mid: Int, id: Long)
+
+# TechnicalDescription endpoints
+POST          /:mid/conservations/technicalDescription                     controllers.conservation.TechnicalDescriptionController.addTechnicalDescription(mid: Int)

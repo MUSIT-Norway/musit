@@ -36,6 +36,8 @@ object ConservationModuleEvent extends TypedConservationEvent {
             Preservation.reads.reads(jsv)*/
           case ConservationProcess.eventTypeId =>
             ConservationProcess.reads.reads(jsv)
+          case TechnicalDescription.eventTypeId =>
+            TechnicalDescription.reads.reads(jsv)
           case _ =>
             ConservationEvent.reads.reads(jsv)
 
@@ -60,6 +62,11 @@ object ConservationModuleEvent extends TypedConservationEvent {
       //ConservationProcess.writes.writes(cpe)
       ConservationProcess.writes.writes(cpe).as[JsObject] ++ Json.obj(
         discriminatorAttributeName -> ConservationProcess.eventTypeId
+      )
+    case tde: TechnicalDescription =>
+      //ConservationProcess.writes.writes(cpe)
+      TechnicalDescription.writes.writes(tde).as[JsObject] ++ Json.obj(
+        discriminatorAttributeName -> TechnicalDescription.eventTypeId
       )
   }
 }
@@ -247,5 +254,52 @@ object Preparation extends WithDateTimeFormatters {
 
   implicit val reads: Reads[Preparation]   = Json.reads[Preparation]
   implicit val writes: Writes[Preparation] = Json.writes[Preparation]
+
+}
+
+/**
+ * Representation of typical events related to the analysis of museum objects.
+ * The specific event types are encoded as {{{EventTypeId}}}.
+ */
+case class TechnicalDescription(
+    id: Option[EventId],
+    eventTypeId: EventTypeId,
+    caseNumber: Option[String],
+    doneBy: Option[ActorId],
+    doneDate: Option[DateTime],
+    registeredBy: Option[ActorId],
+    registeredDate: Option[DateTime],
+    //responsible: Option[ActorId],
+    //administrator: Option[ActorId],
+    updatedBy: Option[ActorId],
+    updatedDate: Option[DateTime],
+    completedBy: Option[ActorId],
+    completedDate: Option[DateTime],
+    affectedThing: Option[ObjectUUID],
+    partOf: Option[EventId],
+    note: Option[String],
+    doneByActors: Option[Seq[ActorId]],
+    affectedThings: Option[Seq[ObjectUUID]]
+    // todo extraAttributes: Option[ExtraAttributes]
+) extends ConservationModuleEvent {
+  // These fields are not relevant for the ConservationProcess type
+  //override val affectedThing: Option[ObjectUUID] = None
+
+  override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withAffectedThing(at: Option[MusitUUID]) = at.fold(this) {
+    case oid: ObjectUUID => copy(affectedThing = Some(oid))
+    case _               => this
+  }
+
+  override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
+
+}
+
+object TechnicalDescription extends WithDateTimeFormatters {
+  val eventTypeId = 4
+  // The below formatters cannot be implicit due to undesirable implicit ambiguities
+  implicit val reads: Reads[TechnicalDescription]   = Json.reads[TechnicalDescription]
+  implicit val writes: Writes[TechnicalDescription] = Json.writes[TechnicalDescription]
 
 }
