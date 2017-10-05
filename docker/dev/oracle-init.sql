@@ -9,6 +9,7 @@ CREATE USER musark_actor IDENTIFIED BY musit DEFAULT TABLESPACE USERS PROFILE DE
 CREATE USER musark_analysis IDENTIFIED BY musit DEFAULT TABLESPACE USERS PROFILE DEFAULT ACCOUNT UNLOCK;
 CREATE USER musark_loan IDENTIFIED BY musit DEFAULT TABLESPACE USERS PROFILE DEFAULT ACCOUNT UNLOCK;
 CREATE USER musit_mapping IDENTIFIED BY musit DEFAULT TABLESPACE USERS PROFILE DEFAULT ACCOUNT UNLOCK;
+CREATE USER musark_conservation IDENTIFIED BY musit DEFAULT TABLESPACE USERS PROFILE DEFAULT ACCOUNT UNLOCK;
 
 ALTER USER musark_auth QUOTA UNLIMITED ON USERS;
 ALTER USER musark_storage QUOTA UNLIMITED ON USERS;
@@ -16,6 +17,7 @@ ALTER USER musark_actor QUOTA UNLIMITED ON USERS;
 ALTER USER musark_analysis QUOTA UNLIMITED ON USERS;
 ALTER USER musark_loan QUOTA UNLIMITED ON USERS;
 ALTER USER musit_mapping QUOTA UNLIMITED ON USERS;
+ALTER USER musark_conservation QUOTA UNLIMITED ON USERS;
 
 -- Create Auth tables
 CREATE TABLE MUSARK_AUTH.AUTH_GROUP (
@@ -271,6 +273,7 @@ create table MUSIT_MAPPING.THING_LOCATION
   ark_gardsnavn      VARCHAR2(100),
   ark_gardsnr        INTEGER,
   ark_bruksnr        VARCHAR2(100),
+
   ark_stedid         INTEGER,
   nat_country        VARCHAR2(100),
   nat_state_province VARCHAR2(100),
@@ -991,5 +994,5 @@ CREATE TABLE MUSARK_CONSERVATION.EVENT_TYPE (
 
 -- INSERTING EVENT TYPES / CONSERVATION TYPES
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('konserveringsprosess', 'conservation process',NULL, NULL, NULL);
-INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('preparering','preparation', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
-INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('bevaring', 'preservation','ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
+INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('behandling','treatment', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
+INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('teknisk beskrivelse', 'technical description',NULL, NULL, NULL);

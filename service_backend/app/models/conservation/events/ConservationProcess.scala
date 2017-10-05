@@ -56,15 +56,16 @@ object ConservationModuleEvent extends TypedConservationEvent {
    * JSON message is readable on the other end.
    */
   implicit val writes: Writes[ConservationModuleEvent] = Writes {
-    case ce: ConservationEvent =>
-      ConservationEvent.writes.writes(ce)
     case cpe: ConservationProcess =>
-      //ConservationProcess.writes.writes(cpe)
       ConservationProcess.writes.writes(cpe).as[JsObject] ++ Json.obj(
         discriminatorAttributeName -> ConservationProcess.eventTypeId
       )
+    case te: Treatment =>
+      Treatment.writes.writes(te).as[JsObject] ++ Json.obj(
+        discriminatorAttributeName -> Treatment.eventTypeId
+      )
+
     case tde: TechnicalDescription =>
-      //ConservationProcess.writes.writes(cpe)
       TechnicalDescription.writes.writes(tde).as[JsObject] ++ Json.obj(
         discriminatorAttributeName -> TechnicalDescription.eventTypeId
       )
@@ -98,11 +99,12 @@ object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatt
     (jsv \ discriminatorAttributeName).validateOpt[Int] match {
       case JsSuccess(maybeType, path) =>
         maybeType.map {
-          case Preservation.eventTypeId =>
-            jsv.validate[Preservation]
+          case Treatment.eventTypeId =>
+            jsv.validate[Treatment]
 
-          case Preparation.eventTypeId =>
-            jsv.validate[Preparation]
+          case TechnicalDescription.eventTypeId =>
+            jsv.validate[TechnicalDescription]
+
           case unknown =>
             JsError(path, s"$unknown is not a valid type. $missingEventTypeMsg")
 
@@ -116,12 +118,12 @@ object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatt
   }
 
   val writes: Writes[ConservationEvent] = Writes {
-    case pres: Preservation =>
+    case pres: Treatment =>
       ConservationEvent.writes.writes(pres).as[JsObject] ++
-        Json.obj(discriminatorAttributeName -> Preservation.eventTypeId)
-    case prep: Preparation =>
+        Json.obj(discriminatorAttributeName -> Treatment.eventTypeId)
+    case prep: TechnicalDescription =>
       ConservationEvent.writes.writes(prep).as[JsObject] ++
-        Json.obj(discriminatorAttributeName -> Preparation.eventTypeId)
+        Json.obj(discriminatorAttributeName -> TechnicalDescription.eventTypeId)
 
   }
 }
@@ -149,7 +151,6 @@ case class ConservationProcess(
     note: Option[String],
     doneByActors: Option[Seq[ActorId]],
     affectedThings: Option[Seq[ObjectUUID]]
-    // todo extraAttributes: Option[ExtraAttributes]
 ) extends ConservationModuleEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
@@ -173,7 +174,7 @@ object ConservationProcess extends WithDateTimeFormatters {
 
 }
 
-case class Preservation(
+case class Treatment(
     id: Option[EventId],
     eventTypeId: EventTypeId,
     caseNumber: Option[String],
@@ -181,19 +182,19 @@ case class Preservation(
     doneDate: Option[DateTime],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
-    responsible: Option[ActorId],
-    administrator: Option[ActorId],
+    //responsible: Option[ActorId],
+    //administrator: Option[ActorId],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
     completedBy: Option[ActorId],
     completedDate: Option[DateTime],
     affectedThing: Option[ObjectUUID],
-    affectedType: Option[ObjectType],
     partOf: Option[EventId],
     note: Option[String],
     doneByActors: Option[Seq[ActorId]],
-    affectedThings: Option[Seq[ObjectUUID]]
-    // todo extraAttributes: Option[ExtraAttributes]
+    affectedThings: Option[Seq[ObjectUUID]],
+    keywords: Option[Seq[Int]],
+    materials: Option[Seq[Int]]
 ) extends ConservationEvent {
 
   override def withId(id: Option[EventId]) = copy(id = id)
@@ -207,53 +208,11 @@ case class Preservation(
 
 }
 
-object Preservation extends WithDateTimeFormatters {
+object Treatment extends WithDateTimeFormatters {
   val eventTypeId = 2
 
-  implicit val reads: Reads[Preservation]   = Json.reads[Preservation]
-  implicit val writes: Writes[Preservation] = Json.writes[Preservation]
-
-}
-
-case class Preparation(
-    id: Option[EventId],
-    eventTypeId: EventTypeId,
-    caseNumber: Option[String],
-    doneBy: Option[ActorId],
-    doneDate: Option[DateTime],
-    registeredBy: Option[ActorId],
-    registeredDate: Option[DateTime],
-    responsible: Option[ActorId],
-    administrator: Option[ActorId],
-    updatedBy: Option[ActorId],
-    updatedDate: Option[DateTime],
-    completedBy: Option[ActorId],
-    completedDate: Option[DateTime],
-    affectedThing: Option[ObjectUUID],
-    affectedType: Option[ObjectType],
-    partOf: Option[EventId],
-    note: Option[String],
-    doneByActors: Option[Seq[ActorId]],
-    affectedThings: Option[Seq[ObjectUUID]]
-    // todo extraAttributes: Option[ExtraAttributes]
-) extends ConservationEvent {
-
-  override def withId(id: Option[EventId]) = copy(id = id)
-
-  override def withAffectedThing(at: Option[MusitUUID]) = at.fold(this) {
-    case oid: ObjectUUID => copy(affectedThing = Some(oid))
-    case _               => this
-  }
-
-  override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
-
-}
-
-object Preparation extends WithDateTimeFormatters {
-  val eventTypeId = 3
-
-  implicit val reads: Reads[Preparation]   = Json.reads[Preparation]
-  implicit val writes: Writes[Preparation] = Json.writes[Preparation]
+  implicit val reads: Reads[Treatment]   = Json.reads[Treatment]
+  implicit val writes: Writes[Treatment] = Json.writes[Treatment]
 
 }
 
@@ -280,8 +239,7 @@ case class TechnicalDescription(
     note: Option[String],
     doneByActors: Option[Seq[ActorId]],
     affectedThings: Option[Seq[ObjectUUID]]
-    // todo extraAttributes: Option[ExtraAttributes]
-) extends ConservationModuleEvent {
+) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
 
@@ -297,7 +255,7 @@ case class TechnicalDescription(
 }
 
 object TechnicalDescription extends WithDateTimeFormatters {
-  val eventTypeId = 4
+  val eventTypeId = 3
   // The below formatters cannot be implicit due to undesirable implicit ambiguities
   implicit val reads: Reads[TechnicalDescription]   = Json.reads[TechnicalDescription]
   implicit val writes: Writes[TechnicalDescription] = Json.writes[TechnicalDescription]

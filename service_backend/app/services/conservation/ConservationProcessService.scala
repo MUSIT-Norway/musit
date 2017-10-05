@@ -88,8 +88,7 @@ class ConservationProcessService @Inject()(
           caseNumber = cp.caseNumber,
           doneByActors = cp.doneByActors
         )
-      case pres: Preservation         => ???
-      case prep: Preparation          => ???
+      case pres: Treatment            => ???
       case tech: TechnicalDescription => ???
 
     }

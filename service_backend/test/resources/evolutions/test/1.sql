@@ -905,6 +905,7 @@ CREATE TABLE MUSARK_CONSERVATION.EVENT (
   affected_uuid   VARCHAR2(36),
   note            VARCHAR2(500),
   case_number     VARCHAR2(1000),
+  is_deleted      INTEGER,
   event_json      CLOB,
   PRIMARY KEY (event_id)
   --CONSTRAINT ensure_event_json CHECK (event_json IS JSON)
@@ -923,6 +924,5 @@ CREATE TABLE MUSARK_CONSERVATION.EVENT_TYPE (
 
 -- INSERTING EVENT TYPES / CONSERVATION TYPES
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_attributes, extra_description_type) VALUES ('konserveringsprosess', 'conservation process', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
-
-INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('preparering', 'preparation', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
-INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('bevaring', 'preservation', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
+INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('behandling', 'treatment', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
+INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('teknisk beskrivelse', 'technical description', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);

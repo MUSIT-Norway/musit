@@ -158,3 +158,8 @@ GET           /:mid/conservations/conservationProcess/:id                 contro
 
 # TechnicalDescription endpoints
 POST          /:mid/conservations/technicalDescription                     controllers.conservation.TechnicalDescriptionController.addTechnicalDescription(mid: Int)
+
+# Treatment endpoints
+POST          /:mid/conservations/treatment                     controllers.conservation.TreatmentController.addTreatment(mid: Int)
+GET           /:mid/conservations/treatment/:id                 controllers.conservation.TreatmentController.getTreatmentById(mid: Int, id: Long)
+

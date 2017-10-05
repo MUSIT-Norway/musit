@@ -69,7 +69,7 @@ trait ConservationEventRowMappers extends EventRowMappers[ConservationModuleEven
     }
   }
 
-  protected def toConservationEvent(
+  /* protected def toConservationEvent(
       maybeEventId: Option[EventId],
       maybeDoneDate: Option[DateTime],
       maybeAffectedThing: Option[MusitUUID],
@@ -78,6 +78,6 @@ trait ConservationEventRowMappers extends EventRowMappers[ConservationModuleEven
     fromRow(maybeEventId, maybeDoneDate, maybeAffectedThing, rowAsJson).flatMap {
       case a: ConservationEvent => Some(a)
       case _                    => None
-    }
+    }*/
 
 }
