@@ -177,6 +177,7 @@ object ConservationProcess extends WithDateTimeFormatters {
 case class Treatment(
     id: Option[EventId],
     eventTypeId: EventTypeId,
+    parentEventId: Option[EventId],
     caseNumber: Option[String],
     doneBy: Option[ActorId],
     doneDate: Option[DateTime],

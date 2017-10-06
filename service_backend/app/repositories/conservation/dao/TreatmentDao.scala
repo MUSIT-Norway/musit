@@ -70,7 +70,7 @@ class TreatmentDao @Inject()(
    * are returned.
    *
    * @param id The event ID to look for
-   * @return the Conservation that was found or None
+   * @return the Treatment that was found or None
    */
   def findTreatmentById(
       mid: MuseumId,
@@ -89,10 +89,10 @@ class TreatmentDao @Inject()(
   }
 
   /**
-   * Write a single {{{Conservation}}} event to the DB.
+   * Write a single {{{Treatment}}} event to the DB.
    *
    * @param mid the MuseumId
-   * @param ce  The Conservation to persist.
+   * @param ce  The Treatment to persist.
    * @return eventually returns a MusitResult containing the EventId.
    */
   def insert(
@@ -104,46 +104,46 @@ class TreatmentDao @Inject()(
 
   /**
    * Performs an update action against the DB using the values in the provided
-   * {{{ConservationProcess}}} argument.
+   * {{{Treatment}}} argument.
    *
    * @param mid the MuseumId
    * @param id  the EventId associated with the analysis event to update
-   * @param cp  the ConservationProcess to update
+   * @param event  the Treatment to update
    * @return a result with an option of the updated event
    */
-  //  def update(
-  //              mid: MuseumId,
-  //              id: EventId,
-  //              cp: ConservationProcess
-  //            )(
-  //              implicit currUsr: AuthenticatedUser
-  //            ): Future[MusitResult[Option[ConservationProcess]]] = {
-  //    val action = updateAction(mid, id, cp).transactionally
-  //
-  //    db.run(action)
-  //      .flatMap { numUpdated =>
-  //        if (numUpdated == 1) {
-  //          findConservationProcessById(mid, id)
-  //        } else {
-  //          Future.successful {
-  //            MusitValidationError(
-  //              message = "Unexpected number of conservation process rows were updated.",
-  //              expected = Option(1),
-  //              actual = Option(numUpdated)
-  //            )
-  //          }
-  //        }
-  //      }
-  //      .recover(
-  //        nonFatal(s"An unexpected error occurred inserting an conservation process event")
-  //      )
-  //  }
-  //
-  //  private def updateAction(
-  //                            mid: MuseumId,
-  //                            id: EventId,
-  //                            event: ConservationProcess
-  //                          )(implicit currUsr: AuthenticatedUser): DBIO[Int] = {
-  //    eventTable.filter(_.eventId === id).update(asRow(mid, event))
-  //  }
+  def update(
+      mid: MuseumId,
+      id: EventId,
+      event: Treatment
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): Future[MusitResult[Option[Treatment]]] = {
+    val action = updateAction(mid, id, event).transactionally
+
+    db.run(action)
+      .flatMap { numUpdated =>
+        if (numUpdated == 1) {
+          findTreatmentById(mid, id)
+        } else {
+          Future.successful {
+            MusitValidationError(
+              message = "Unexpected number of treatment rows were updated.",
+              expected = Option(1),
+              actual = Option(numUpdated)
+            )
+          }
+        }
+      }
+      .recover(
+        nonFatal(s"An unexpected error occurred updating treatment event")
+      )
+  }
+
+  private def updateAction(
+      mid: MuseumId,
+      id: EventId,
+      event: Treatment
+  )(implicit currUsr: AuthenticatedUser): DBIO[Int] = {
+    eventTable.filter(_.eventId === id).update(asRow(mid, event))
+  }
 }

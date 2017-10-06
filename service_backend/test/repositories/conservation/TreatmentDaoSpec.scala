@@ -39,6 +39,7 @@ class TreatmentDaoSpec
     Treatment(
       id = None,
       eventTypeId = EventTypeId(Treatment.eventTypeId),
+      parentEventId = None,
       doneBy = Some(dummyActorId),
       doneDate = now,
       note = Some("hurra note"),
@@ -118,6 +119,29 @@ class TreatmentDaoSpec
         tr.keywords.value mustBe Seq(1, 2)
         tr.materials.value mustBe Seq(3, 4)
         tr.affectedThings.value mustBe oids
+      }
+    }
+
+    "Checking parent pointer" should {
+      val oids: Seq[ObjectUUID] = Seq(oid1, oid2, oid3)
+
+      "return the EventId allocated to a single treatment" in {
+        saveTreatment(Some(oids)) mustBe MusitSuccess(EventId(2))
+
+        val res = dao.findTreatmentById(defaultMid, EventId(2)).futureValue
+        res.isSuccess mustBe true
+        res.successValue must not be empty
+        val event = res.successValue.value
+
+        val newEvent =
+          event.copy(parentEventId = Some(EventId(1)), keywords = Some(Seq(1, 2, 3, 4)))
+
+        val updatedRes = dao.update(defaultMid, EventId(2), newEvent).futureValue
+
+        val updatedEvent = updatedRes.successValue.value
+
+        updatedEvent.parentEventId mustBe Some(EventId(1))
+        updatedEvent.keywords mustBe Some(Seq(1, 2, 3, 4))
       }
     }
 
