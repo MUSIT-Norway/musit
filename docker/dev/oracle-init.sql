@@ -616,7 +616,7 @@ INSERT INTO MUSARK_ANALYSIS.EVENT_TYPE (category, short_name, extra_description_
 INSERT INTO MUSARK_ANALYSIS.EVENT_TYPE (category, short_name, extra_description_type, extra_description_attributes, extra_result_attributes, no_name, en_name) VALUES (1, 'AFS', NULL, NULL, NULL, 'Grunnstoffanalyse (AFS)', 'Elemental analysis (AFS)');
 INSERT INTO MUSARK_ANALYSIS.EVENT_TYPE (category, short_name, extra_description_type, extra_description_attributes, extra_result_attributes, no_name, en_name) VALUES (6, NULL, NULL, NULL, NULL, 'Plantemateriale, makro (forkullet/uforkullet)', 'Plant material (charred/not charred)');
 INSERT INTO MUSARK_ANALYSIS.EVENT_TYPE (category, short_name, extra_description_type, extra_description_attributes, extra_result_attributes, no_name, en_name) VALUES (7, 'P+S', NULL, NULL, NULL, 'Pollen og sporer', 'Pollen and spores');
-INSERT INTO MUSARK_ANALYSIS.EVENT_TYPE (category, short_name, extra_description_type, extra_description_attributes, extra_result_type, extra_result_attributes, no_name, en_name) VALUES (8, NULL, NULL, NULL, 'MeasurementResult', '{"measurementId": "String", "measurementType":"String","size":"Size","precision":"String","method":"String"}', 'Målinger & tellinger', 'Counts & measurements');
+INSERT INTO MUSARK_ANALYSIS.EVENT_TYPE (category, short_name, extra_description_type, extra_description_attributes, extra_result_type, extra_result_attributes, no_name, en_name) VALUES (8, NULL, NULL, NULL, 'MeasurementResult', '{"measurementId": "String", "measurementType":"String","size":"Size","precision":"String","method":"String"}', 'Målinger og tellinger', 'Counts and measurements');
 INSERT INTO MUSARK_ANALYSIS.EVENT_TYPE (category, short_name, extra_description_type, extra_description_attributes, extra_result_attributes, no_name, en_name) VALUES (9, NULL, NULL, NULL, NULL, 'Skjelettanalyse, dyrebein', 'Osteology, non-human');
 INSERT INTO MUSARK_ANALYSIS.EVENT_TYPE (category, short_name, extra_description_type, extra_description_attributes, extra_result_attributes, no_name, en_name) VALUES (9, NULL, NULL, NULL, NULL, 'Skjelettanalyse, menneske', 'Osteology, human');
 INSERT INTO MUSARK_ANALYSIS.EVENT_TYPE (category, short_name, extra_description_type, extra_description_attributes, extra_result_attributes, no_name, en_name) VALUES (10, 'Cit-P', NULL, NULL, NULL, 'Fosfat', 'Phosphate determination');
@@ -723,7 +723,7 @@ INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SERVICE_TAGS,CONT
 INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SERVICE_TAGS,CONTACT,EMAIL) VALUES(390,'Stoneslab','4618 461003 / 46702606334','http://stoneslab.se/','|analysis|','','stonesslab@gmail.com');
 INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SERVICE_TAGS,CONTACT,EMAIL) VALUES(389,'Societas Archaeologica Upsaliensis (SAU)','','http://www.sau.se/service/osteologi/','|analysis|','Emma Sjöling','emma.sjoling@sau.se');
 INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SERVICE_TAGS,CONTACT,EMAIL) VALUES(388,'Rolf Sørensen, Kari E. Henningsmoen og Helge Irgens Høeg','','','|analysis|','','');
-INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SERVICE_TAGS,CONTACT,EMAIL) VALUES(387,'Research Laboratory for Archaeology & The History of Art', '','','|analysis|','','');
+INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SERVICE_TAGS,CONTACT,EMAIL) VALUES(387,'Research Laboratory for Archaeology and The History of Art', '','','|analysis|','','');
 INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SERVICE_TAGS,CONTACT,EMAIL) VALUES(386,'Poznan radiocarbon laboratory', '','','|analysis|','','c.fourteen@radiocarbon.pl');
 INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SERVICE_TAGS,CONTACT,EMAIL) VALUES(385,'NTNU Genomics Core Facility','72825345','http://www.ntnu.edu/mh/gcf','|analysis|','Vidar Beisvåg','vidar.beisvag@ntnu.no');
 INSERT INTO MUSARK_ACTOR.ORGANISATION(ORG_ID,FULL_NAME,TEL,WEB,SERVICE_TAGS,CONTACT,EMAIL) VALUES(384,'Norwegian Geological Survey','','','|analysis|','','ngu@ngu.no');
@@ -766,7 +766,7 @@ INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS
 INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,STREET_ADDRESS_2,POSTAL_CODE_PLACE,COUNTRY_NAME) VALUES(6 ,360 ,'Centre for Biodiversity Genomics','50 Stone Road East, University of Guelph','Guelph, ON, N1G2W1','Kanada');
 INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,STREET_ADDRESS_2,POSTAL_CODE_PLACE,COUNTRY_NAME) VALUES(7 ,361 ,'Natural History Museum of Denmark, University of Copenhagen','','1350 Copenhagen K','Danmark');
 INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,STREET_ADDRESS_2,POSTAL_CODE_PLACE,COUNTRY_NAME) VALUES(8 ,362 ,'University of Groningen','','9700 AB Groningen','Nederland');
-INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,STREET_ADDRESS_2,POSTAL_CODE_PLACE,COUNTRY_NAME) VALUES(9 ,363 ,'Archaeology & Palaeoecology Building','42 Fitzwilliam Street','Belfast BT9 6AX','Northern Ireland/Storbritannia');
+INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,STREET_ADDRESS_2,POSTAL_CODE_PLACE,COUNTRY_NAME) VALUES(9 ,363 ,'Archaeology and Palaeoecology Building','42 Fitzwilliam Street','Belfast BT9 6AX','Northern Ireland/Storbritannia');
 INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,STREET_ADDRESS_2,POSTAL_CODE_PLACE,COUNTRY_NAME) VALUES(10, 364,'DNA-lab, Naturhistorisk Museum','Postboks 1172 Blindern','0318 Oslo','Norge');
 INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,STREET_ADDRESS_2,POSTAL_CODE_PLACE,COUNTRY_NAME) VALUES(11, 365,'Anzingerstr. 7a','','85560 Ebersberg','Tyskland');
 INSERT INTO MUSARK_ACTOR.ORGANISATION_ADDRESS(ORGADDRESSID,ORG_ID,STREET_ADDRESS,STREET_ADDRESS_2,POSTAL_CODE_PLACE,COUNTRY_NAME) VALUES(12, 366,'Skovledet 30','','DK-2830 Virum','Danmark');
@@ -967,7 +967,7 @@ CREATE TABLE MUSARK_CONSERVATION.EVENT (
   part_of         NUMBER(20),
   affected_uuid   VARCHAR2(36),
   note            VARCHAR2(500),
-  case_numbers    VARCHAR2(1000),
+  case_number    VARCHAR2(1000),
   event_json      CLOB,
   PRIMARY KEY (event_id),
   CONSTRAINT ensure_event_json CHECK (event_json IS JSON)

@@ -1,17 +1,22 @@
 package controllers.conservation
 
 import com.google.inject.{Inject, Singleton}
-import controllers.{internalErr, saveRequest, updateRequestOpt}
-import models.conservation.events.{ConservationModuleEvent, Treatment}
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess, MusitValidationError}
+import controllers.{internalErr, saveRequest}
+import models.conservation.events.{ConservationEvent, Treatment}
+import no.uio.musit.MusitResults.{
+  MusitError,
+  MusitResult,
+  MusitSuccess,
+  MusitValidationError
+}
 import no.uio.musit.models.{EventId, MuseumId}
-import no.uio.musit.security.{Authenticator, CollectionManagement}
 import no.uio.musit.security.Permissions.{Read, Write}
+import no.uio.musit.security.{Authenticator, CollectionManagement}
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.ControllerComponents
-import services.conservation.{ConservationProcessService, TreatmentService}
+import services.conservation.TreatmentService
 
 import scala.concurrent.Future
 @Singleton
@@ -27,8 +32,9 @@ class TreatmentController @Inject()(
     MusitSecureAction(mid, CollectionManagement, Write).async(parse.json) {
       implicit request =>
         implicit val currUser = request.user
-        val jsr               = request.body.validate[ConservationModuleEvent]
-        saveRequest[ConservationModuleEvent, Option[ConservationModuleEvent]](jsr) {
+        implicit val _        = Treatment.reads
+        val jsr               = request.body.validate[Treatment]
+        saveRequest[ConservationEvent, Option[ConservationEvent]](jsr) {
           case proc: Treatment =>
             service.add(mid, proc)
 
@@ -41,7 +47,11 @@ class TreatmentController @Inject()(
   def getTreatmentById(mid: MuseumId, id: EventId) =
     MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
       implicit val currUser = request.user
-      service.findTreatmentById(mid, id).map {
+
+      def findById(): Future[MusitResult[Option[Treatment]]] =
+        service.findConservationEventById(mid, id)
+
+      findById().map {
         case MusitSuccess(ma) => ma.map(ae => Ok(Json.toJson(ae))).getOrElse(NotFound)
         case err: MusitError  => internalErr(err)
       }

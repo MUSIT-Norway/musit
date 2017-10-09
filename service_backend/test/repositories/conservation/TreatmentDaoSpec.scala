@@ -10,8 +10,7 @@ import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.{DateTimeMatchers, MusitResultValues}
 import no.uio.musit.time.dateTimeNow
 import org.scalatest.OptionValues
-import repositories.conservation.dao.TreatmentDao
-import utils.testdata.ConservationprocessGenerators
+import repositories.conservation.dao.{TechnicalDescriptionDao, TreatmentDao}
 
 class TreatmentDaoSpec
     extends MusitSpecWithAppPerSuite
@@ -19,7 +18,8 @@ class TreatmentDaoSpec
     with MusitResultValues
     with OptionValues {
 
-  private val dao = fromInstanceCache[TreatmentDao]
+  private val dao                     = fromInstanceCache[TreatmentDao]
+  private val technicalDescriptionDao = fromInstanceCache[TechnicalDescriptionDao]
 
   val collections = Seq(
     MuseumCollection(
@@ -39,7 +39,6 @@ class TreatmentDaoSpec
     Treatment(
       id = None,
       eventTypeId = EventTypeId(Treatment.eventTypeId),
-      parentEventId = None,
       doneBy = Some(dummyActorId),
       doneDate = now,
       note = Some("hurra note"),
@@ -111,7 +110,7 @@ class TreatmentDaoSpec
       }
 
       "return the treatment for a spesific EventId" in {
-        val res = dao.findTreatmentById(defaultMid, EventId(1)).futureValue
+        val res = dao.findSpecificById(defaultMid, EventId(1)).futureValue
         res.isSuccess mustBe true
         res.successValue must not be empty
         val tr = res.successValue.value
@@ -122,27 +121,39 @@ class TreatmentDaoSpec
       }
     }
 
-    "Checking parent pointer" should {
+    "Checking updating treatment" should {
       val oids: Seq[ObjectUUID] = Seq(oid1, oid2, oid3)
 
-      "return the EventId allocated to a single treatment" in {
+      "creating and updating a new treatment" in {
         saveTreatment(Some(oids)) mustBe MusitSuccess(EventId(2))
 
-        val res = dao.findTreatmentById(defaultMid, EventId(2)).futureValue
+        val res = dao.findSpecificById(defaultMid, EventId(2)).futureValue
         res.isSuccess mustBe true
         res.successValue must not be empty
         val event = res.successValue.value
 
         val newEvent =
-          event.copy(parentEventId = Some(EventId(1)), keywords = Some(Seq(1, 2, 3, 4)))
+          event.copy(partOf = Some(EventId(1)), keywords = Some(Seq(1, 2, 3, 4)))
 
         val updatedRes = dao.update(defaultMid, EventId(2), newEvent).futureValue
 
-        val updatedEvent = updatedRes.successValue.value
+        val updatedEvent = updatedRes.successValue.value.asInstanceOf[Treatment]
 
-        updatedEvent.parentEventId mustBe Some(EventId(1))
+        updatedEvent.partOf mustBe Some(EventId(1))
         updatedEvent.keywords mustBe Some(Seq(1, 2, 3, 4))
       }
+
+      "fail on findSpecificById with wrong type" in {
+        val resExp =
+          intercept[Exception] {
+            //Forventer egentlig IllegalStateException, men ser ut som en bug, ref:
+            // https://github.com/scalatest/scalatest/issues/1172
+            val res =
+              technicalDescriptionDao.findSpecificById(defaultMid, EventId(2)).futureValue
+          }
+
+      }
+
     }
 
     /* "updating an treatment event" should {

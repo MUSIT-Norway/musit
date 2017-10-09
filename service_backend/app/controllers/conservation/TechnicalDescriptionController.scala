@@ -41,7 +41,7 @@ class TechnicalDescriptionController @Inject()(
   def getTechnicalDescriptionById(mid: MuseumId, id: EventId) =
     MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
       implicit val currUser = request.user
-      service.findTechnicalDescriptionById(mid, id).map {
+      service.findConservationEventById(mid, id).map {
         case MusitSuccess(ma) => ma.map(ae => Ok(Json.toJson(ae))).getOrElse(NotFound)
         case err: MusitError  => internalErr(err)
       }

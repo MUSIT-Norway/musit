@@ -3,7 +3,7 @@ package controllers.actor
 import no.uio.musit.security.BearerToken
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import play.api.http.Status
-import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
+import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import utils.testdata.ActorJsonGenerator._
 
@@ -13,8 +13,15 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
 
   val fakeToken = BearerToken(FakeUsers.testUserToken)
 
-  def postOrganizationAddress(orgId: Int, json: JsValue): Future[WSResponse] = {
+  /*def postOrganizationAddress(orgId: Int, json: JsValue): Future[WSResponse] = {
     wsUrl(s"/organisation/$orgId/address").withHttpHeaders(fakeToken.asHeader).post(json)
+  }*/
+
+  def postOrganizationAddress(orgId: Int, json: JsValue): WSResponse = {
+    wsUrl(s"/organisation/$orgId/address")
+      .withHttpHeaders(fakeToken.asHeader)
+      .post(json)
+      .futureValue
   }
 
   "The OrganisationAddressController" must {
@@ -46,7 +53,7 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
     }
     "create address" in {
       val reqBody = orgAddressJson
-      val res     = postOrganizationAddress(1, reqBody).futureValue
+      val res     = postOrganizationAddress(1, reqBody)
       res.status mustBe Status.CREATED
 
       (res.json \ "id").asOpt[Int] must not be None
@@ -56,7 +63,7 @@ class OrganisationAddressControllerIntegrationSpec extends MusitSpecWithServerPe
     }
 
     "not create organisationAddress with illegal input" in {
-      val res = postOrganizationAddress(1, orgAddressIllegalJson).futureValue
+      val res = postOrganizationAddress(1, orgAddressIllegalJson)
       res.status mustBe Status.BAD_REQUEST
     }
 

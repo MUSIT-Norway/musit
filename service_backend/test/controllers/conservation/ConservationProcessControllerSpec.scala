@@ -44,6 +44,7 @@ class ConservationProcessControllerSpec
         Some("777"),
         Some(testAffectedThings)
       )
+    println("json: " + js)
     wsUrl(addConservationProcessUrl(mid)).withHttpHeaders(t.asHeader).post(js).futureValue
   }
 

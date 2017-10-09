@@ -95,6 +95,8 @@ object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatt
   val reads: Reads[ConservationEvent] = Reads { jsv =>
     implicit val ar = ConservationEvent.reads
     // implicit val ac = AnalysisCollection.reads
+    implicit val _t  = Treatment.reads
+    implicit val _td = TechnicalDescription.reads
 
     (jsv \ discriminatorAttributeName).validateOpt[Int] match {
       case JsSuccess(maybeType, path) =>
@@ -177,7 +179,6 @@ object ConservationProcess extends WithDateTimeFormatters {
 case class Treatment(
     id: Option[EventId],
     eventTypeId: EventTypeId,
-    parentEventId: Option[EventId],
     caseNumber: Option[String],
     doneBy: Option[ActorId],
     doneDate: Option[DateTime],
@@ -212,8 +213,8 @@ case class Treatment(
 object Treatment extends WithDateTimeFormatters {
   val eventTypeId = 2
 
-  implicit val reads: Reads[Treatment]   = Json.reads[Treatment]
-  implicit val writes: Writes[Treatment] = Json.writes[Treatment]
+  val reads: Reads[Treatment]   = Json.reads[Treatment]
+  val writes: Writes[Treatment] = Json.writes[Treatment]
 
 }
 
@@ -258,7 +259,7 @@ case class TechnicalDescription(
 object TechnicalDescription extends WithDateTimeFormatters {
   val eventTypeId = 3
   // The below formatters cannot be implicit due to undesirable implicit ambiguities
-  implicit val reads: Reads[TechnicalDescription]   = Json.reads[TechnicalDescription]
-  implicit val writes: Writes[TechnicalDescription] = Json.writes[TechnicalDescription]
+  val reads: Reads[TechnicalDescription]   = Json.reads[TechnicalDescription]
+  val writes: Writes[TechnicalDescription] = Json.writes[TechnicalDescription]
 
 }
