@@ -1,7 +1,7 @@
 package controllers.conservation
 
 import com.google.inject.{Inject, Singleton}
-import controllers._
+import controllers.{internalErr, _}
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.models.{CollectionUUID, MuseumId}
 import no.uio.musit.security.Permissions.Read
@@ -10,7 +10,6 @@ import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.mvc.ControllerComponents
 import services.conservation.ConservationProcessService
-
 @Singleton
 class ConservationController @Inject()(
     val controllerComponents: ControllerComponents,
@@ -33,5 +32,4 @@ class ConservationController @Inject()(
         case err: MusitError     => internalErr(err)
       }
     }
-
 }

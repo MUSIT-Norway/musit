@@ -13,6 +13,9 @@ import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers._
 
+//Hint, to run only this test, type:
+//test-only controllers.conservation.ConservationProcessControllerSpec
+
 class ConservationProcessControllerSpec
     extends MusitSpecWithServerPerSuite
     with DateTimeMatchers
@@ -23,22 +26,31 @@ class ConservationProcessControllerSpec
   val tokenRead = BearerToken(FakeUsers.testReadToken)
   val tokenTest = BearerToken(FakeUsers.testUserToken)
 
-  val baseUrl = (mid: Int) => s"/$mid/conservations"
-  val baseConservationProcessUrl = (mid: Int) =>
-    s"/$mid/conservations/conservationProcess"
-  val typesUrl = (mid: Int) => s"${baseUrl(mid)}/types"
+  val baseUrl      = (mid: Int) => s"/$mid/conservation"
+  val baseEventUrl = (mid: Int) => s"/$mid/conservation/events"
+  val typesUrl     = (mid: Int) => s"${baseUrl(mid)}/types"
 
-  val addConservationProcessUrl = baseConservationProcessUrl
-  val getConservationProcessUrl = baseConservationProcessUrl
+  val getEventByIdUrl = (mid: Int) => (id: Long) => s"${baseEventUrl(mid)}/$id"
+
+  val addConservationProcessUrl = baseEventUrl
+  val getConservationProcessUrl = baseEventUrl
   val getConservationProcessByIdUrl = (mid: Int) =>
-    (id: Long) => s"${baseConservationProcessUrl(mid)}/$id"
+    (id: Long) => s"${baseEventUrl(mid)}/$id"
   val putConservationProcessByIdUrl = (mid: Int) =>
-    (id: Long) => s"${baseConservationProcessUrl(mid)}/$id"
+    (id: Long) => s"${baseEventUrl(mid)}/$id"
 
-  def addDummyConservationProcess(t: BearerToken = token): WSResponse = {
+  def postEvent(json: JsObject, t: BearerToken = token) = {
+    wsUrl(baseEventUrl(mid)).withHttpHeaders(t.asHeader).post(json).futureValue
+  }
+
+  def getEvent(eventId: Long, t: BearerToken = token) = {
+    wsUrl(getEventByIdUrl(mid)(eventId)).withHttpHeaders(t.asHeader).get().futureValue
+  }
+
+  def addDummyConservationProcess(t: BearerToken = token) = {
     val js =
       dummyConservationProcessJSON(
-        ConservationProcessTypeId,
+        conservationProcessEventTypeId,
         Some(dateTimeNow),
         Some("testKommentar"),
         Some("777"),
@@ -59,6 +71,7 @@ class ConservationProcessControllerSpec
       .withHttpHeaders(t.asHeader)
       .get()
       .futureValue
+    println("skal validere json i getConservationPRocess: " + cp.json)
     cp.json.validate[ConservationProcess].get
   }
 
@@ -101,6 +114,8 @@ class ConservationProcessControllerSpec
       "add a new conservationProcess" in {
 
         val res = addDummyConservationProcess()
+        println("res.body: " + res.body)
+
         res.status mustBe CREATED // creates ids 1 to 2
         (res.json \ "id").as[Int] mustBe 1
       }
@@ -125,7 +140,7 @@ class ConservationProcessControllerSpec
 
         val updJson = jso.json.as[JsObject] ++ Json.obj(
           "note"           -> "Updated note",
-          "eventTypeId"    -> 1, // Should not be modified by the server.
+          "eventTypeId"    -> conservationProcessEventTypeId, // Should not be modified by the server.
           "doneBy"         -> FakeUsers.testUserId,
           "doneDate"       -> time.dateTimeNow.plusDays(20),
           "completedBy"    -> FakeUsers.testUserId,
@@ -169,7 +184,7 @@ class ConservationProcessControllerSpec
         val updJson = jso.json.as[JsObject] ++ Json.obj(
           "id"          -> 300,
           "note"        -> "Updated note",
-          "eventTypeId" -> 1, // Should not be modified by the server.
+          "eventTypeId" -> conservationProcessEventTypeId, // Should not be modified by the server.
           "updatedBy"   -> adminId,
           "updatedDate" -> time.dateTimeNow.plusDays(20)
         )
@@ -179,7 +194,54 @@ class ConservationProcessControllerSpec
         assert(updRes.status !== OK)
 
       }
+      val compositeConservationProcessEventId = 4L
 
+      "add composite ConservationProcess (ie with children)" in {
+
+        val treatment1 = Json.obj(
+          "eventTypeId"  -> treatmentEventTypeId,
+          "doneBy"       -> adminId,
+          "registeredBy" -> adminId,
+          "updatedBy"    -> adminId,
+          "completedBy"  -> adminId,
+          "note"         -> "en fin treatment"
+        )
+
+        val treatment2 = Json.obj(
+          "eventTypeId"  -> treatmentEventTypeId,
+          "doneBy"       -> adminId,
+          "registeredBy" -> adminId,
+          "updatedBy"    -> adminId,
+          "completedBy"  -> adminId,
+          "note"         -> "en annen fin treatment"
+        )
+
+        val json = Json.obj(
+          "eventTypeId"  -> conservationProcessEventTypeId,
+          "doneBy"       -> adminId,
+          "registeredBy" -> adminId,
+          "updatedBy"    -> adminId,
+          "completedBy"  -> adminId,
+          "events"       -> Json.arr(treatment1, treatment2)
+        )
+
+        val res = postEvent(json)
+        println("complex add: " + res)
+        res.status mustBe CREATED
+        val eventId = (res.json \ "id").as[EventId]
+        eventId.underlying mustBe compositeConservationProcessEventId
+      }
+
+      "get composite ConservationProcess (ie with children)" in {
+        val res = getEvent(compositeConservationProcessEventId)
+        res.status mustBe OK
+
+        println("res.body: " + res.body)
+
+        val consProcess = res.json.validate[ConservationProcess].get
+
+        consProcess.events.get.length must be >= 2
+      }
     }
   }
 }

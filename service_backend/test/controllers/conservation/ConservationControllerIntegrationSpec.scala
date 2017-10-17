@@ -15,7 +15,7 @@ class ConservationControllerIntegrationSpec
   val tokenRead = BearerToken(FakeUsers.testReadToken)
   val tokenTest = BearerToken(FakeUsers.testUserToken)
 
-  val baseUrl = (mid: Int) => s"/$mid/conservations"
+  val baseUrl = (mid: Int) => s"/$mid/conservation"
 
   val typesUrl = (mid: Int) => s"${baseUrl(mid)}/types"
 

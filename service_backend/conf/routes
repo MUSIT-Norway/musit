@@ -148,18 +148,10 @@ GET           /:mid/loans/active                                             con
 # Conservation module
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ConservationType endpoint
-GET           /:mid/conservations/types                                           controllers.conservation.ConservationController.getConservationTypes(mid: Int, collectionIds: Option[String])
+GET           /:mid/conservation/types                                           controllers.conservation.ConservationController.getConservationTypes(mid: Int, collectionIds: Option[String])
 
 # ConservationProcess endpoints
-POST          /:mid/conservations/conservationProcess                     controllers.conservation.ConservationProcessController.addConservationProcess(mid: Int)
-PUT           /:mid/conservations/conservationProcess/:id                 controllers.conservation.ConservationProcessController.updateConservationProcess(mid: Int, id: Long)
-#GET           /:mid/conservations/conservationPrcess
-GET           /:mid/conservations/conservationProcess/:id                 controllers.conservation.ConservationProcessController.getConservationProcessById(mid: Int, id: Long)
-
-# TechnicalDescription endpoints
-POST          /:mid/conservations/technicalDescription                     controllers.conservation.TechnicalDescriptionController.addTechnicalDescription(mid: Int)
-
-# Treatment endpoints
-POST          /:mid/conservations/treatment                     controllers.conservation.TreatmentController.addTreatment(mid: Int)
-GET           /:mid/conservations/treatment/:id                 controllers.conservation.TreatmentController.getTreatmentById(mid: Int, id: Long)
+POST          /:mid/conservation/events                     controllers.conservation.ConservationModuleEventController.addEvent(mid: Int)
+PUT           /:mid/conservation/events/:id                 controllers.conservation.ConservationModuleEventController.updateEvent(mid: Int, id: Long)
+GET           /:mid/conservation/events/:id                 controllers.conservation.ConservationModuleEventController.getEventById(mid: Int, id: Long)
 

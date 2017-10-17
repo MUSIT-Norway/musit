@@ -85,6 +85,12 @@ sealed trait ConservationEvent extends ConservationModuleEvent {
   val affectedThings: Option[Seq[ObjectUUID]]
   // todo val extraAttributes: Option[ExtraAttributes]
 
+  //A new copy, appropriate when updating the event in the database.
+  //TODO: Add the stuff necessary when updating an event
+  def withUpdatedInfo(
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ): ConservationEvent
 }
 
 object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatters {
@@ -93,7 +99,7 @@ object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatt
     "Type must be either Analysis or AnalysisCollection"
 
   val reads: Reads[ConservationEvent] = Reads { jsv =>
-    implicit val ar = ConservationEvent.reads
+    // implicit val ar = ConservationEvent.reads
     // implicit val ac = AnalysisCollection.reads
     implicit val _t  = Treatment.reads
     implicit val _td = TechnicalDescription.reads
@@ -152,7 +158,8 @@ case class ConservationProcess(
     partOf: Option[EventId],
     note: Option[String],
     doneByActors: Option[Seq[ActorId]],
-    affectedThings: Option[Seq[ObjectUUID]]
+    affectedThings: Option[Seq[ObjectUUID]],
+    events: Option[Seq[ConservationEvent]]
 ) extends ConservationModuleEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
@@ -170,6 +177,12 @@ case class ConservationProcess(
 
 object ConservationProcess extends WithDateTimeFormatters {
   val eventTypeId = 1
+
+  implicit val readsConsEvents: Reads[Seq[ConservationEvent]] =
+    Reads.seq(ConservationEvent.reads)
+  //val writesConsEvent = ConservationEvent.writes
+  //implicit val writesConsEvents: Writes[Seq[ConservationEvent]] = Writes.seq(writesConsEvent)
+
   // The below formatters cannot be implicit due to undesirable implicit ambiguities
   val reads: Reads[ConservationProcess]   = Json.reads[ConservationProcess]
   val writes: Writes[ConservationProcess] = Json.writes[ConservationProcess]
@@ -208,6 +221,10 @@ case class Treatment(
 
   override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
 
+  override def withUpdatedInfo(
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
 }
 
 object Treatment extends WithDateTimeFormatters {
@@ -253,6 +270,11 @@ case class TechnicalDescription(
   }
 
   override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
+
+  override def withUpdatedInfo(
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
 
 }
 

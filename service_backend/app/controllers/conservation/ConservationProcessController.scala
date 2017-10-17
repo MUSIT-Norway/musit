@@ -2,14 +2,18 @@ package controllers.conservation
 
 import com.google.inject.{Inject, Singleton}
 import controllers.{internalErr, saveRequest, updateRequestOpt}
-import models.conservation.events.{ConservationModuleEvent, ConservationProcess}
+import models.conservation.events.{
+  ConservationEvent,
+  ConservationModuleEvent,
+  ConservationProcess
+}
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess, MusitValidationError}
-import no.uio.musit.models.{EventId, MuseumId}
+import no.uio.musit.models.{EventId, EventTypeId, MuseumId}
 import no.uio.musit.security.Permissions.{Read, Write}
 import no.uio.musit.security.{Authenticator, CollectionManagement}
 import no.uio.musit.service.MusitController
 import play.api.Logger
-import play.api.libs.json.Json
+import play.api.libs.json._
 import play.api.mvc.ControllerComponents
 import services.conservation.ConservationProcessService
 
@@ -20,9 +24,17 @@ class ConservationProcessController @Inject()(
     val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val consService: ConservationProcessService
-) extends MusitController {
+) extends MusitController
+    with ConservationProcessControllerHelper {
 
   val logger = Logger(classOf[ConservationController])
+
+  def eventService: ConservationProcessService = consService
+
+  override val eventTypeId = EventTypeId(ConservationProcess.eventTypeId)
+
+  /* Gammelt, kan fjernes. Dette omfavnes nå av ConservationModuleEventKontroller. Den spesifikke
+    ConservationProcess-logikken vi behøver ligger i servicen
 
   def addConservationProcess(mid: MuseumId) =
     MusitSecureAction(mid, CollectionManagement, Write).async(parse.json) {
@@ -36,7 +48,6 @@ class ConservationProcessController @Inject()(
           case wrong =>
             Future.successful(MusitValidationError("Expected ConservationProcess"))
         }
-
     }
 
   def getConservationProcessById(mid: MuseumId, id: EventId) =
@@ -57,5 +68,5 @@ class ConservationProcessController @Inject()(
           consService.update(mid, eventId, cp)
         }
     }
-
+ */
 }

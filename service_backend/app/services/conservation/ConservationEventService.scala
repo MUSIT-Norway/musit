@@ -2,7 +2,7 @@ package services.conservation
 
 import com.google.inject.Inject
 import models.conservation.events.{ConservationEvent, ConservationModuleEvent}
-import no.uio.musit.MusitResults.MusitResult
+import no.uio.musit.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.{EventId, MuseumId}
@@ -12,8 +12,9 @@ import repositories.conservation.dao.ConservationEventDao
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
+import no.uio.musit.time.dateTimeNow
 
-class ConservationEventService[T <: ConservationEvent: ClassTag] @Inject()(
+abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Inject()(
     implicit
     val dao: ConservationEventDao[T],
     val ec: ExecutionContext
@@ -36,7 +37,7 @@ class ConservationEventService[T <: ConservationEvent: ClassTag] @Inject()(
 
   /**
    * Helper method specifically for adding an Analysis.
-   ***/
+    ***/
   private def addConservationEvent(
       mid: MuseumId,
       ce: T
@@ -60,55 +61,45 @@ class ConservationEventService[T <: ConservationEvent: ClassTag] @Inject()(
     dao.findSpecificById(mid, id)
   }
 
-  //  def localupdateConservationProcess(
-  //                                      cpFromDb: ConservationProcess,
-  //                                      cme: ConservationModuleEvent
-  //                                    )(implicit cu: AuthenticatedUser): ConservationProcess = {
-  //    assert(cpFromDb.eventTypeId == cme.eventTypeId)
-  //    assert(cpFromDb.id == cme.id || cme.id == None)
-  //
-  //    cme match {
-  //      case cp: ConservationProcess =>
-  //        cpFromDb.copy(
-  //          doneBy = cp.doneBy,
-  //          doneDate = cp.doneDate,
-  //          updatedBy = Some(cu.id),
-  //          updatedDate = Some(dateTimeNow),
-  //          completedBy = cp.completedBy,
-  //          completedDate = cp.completedDate,
-  //          note = cp.note,
-  //          affectedThings = cp.affectedThings,
-  //          caseNumber = cp.caseNumber,
-  //          doneByActors = cp.doneByActors
-  //        )
-  //      case pres: Preservation => ???
-  //      case prep: Preparation  => ???
-  //
-  //    }
-  //  }
-  //
-  //  /**
-  //    * Update an conservationProcess
-  //    */
-  //  def update(
-  //              mid: MuseumId,
-  //              eventId: EventId,
-  //              cp: ConservationModuleEvent
-  //            )(
-  //              implicit currUser: AuthenticatedUser
-  //            ): Future[MusitResult[Option[ConservationProcess]]] = {
-  //    val res = for {
-  //      maybeEvent <- MusitResultT(
-  //        conservationDao.findConservationProcessById(mid, eventId)
-  //      )
-  //      maybeUpdated <- MusitResultT(
-  //        maybeEvent.map { e =>
-  //          val u = localupdateConservationProcess(e, cp)
-  //          conservationDao.update(mid, eventId, u)
-  //        }.getOrElse(Future.successful(MusitSuccess(None)))
-  //      )
-  //    } yield maybeUpdated
-  //    res.value
-  //  }
+  /**
+   * Update a conservationEvent
+   */
+  def update(
+      mid: MuseumId,
+      eventId: EventId,
+      event: ConservationEvent
+  )(
+      implicit currUser: AuthenticatedUser
+  ): Future[MusitResult[Option[ConservationEvent]]] = {
 
+    val eventToWriteToDb = event.withUpdatedInfo(Some(currUser.id), Some(dateTimeNow))
+    val updateRes        = dao.update(mid, eventId, eventToWriteToDb)
+    updateRes
+    //TODO: I don't like to return 204-NoContent back to the frontend if something strange happened in the database on reading the event back in from the database!
+    // I rather want 500 error. To fix this, we need a modified variant of updateRequestOpt and something equivalent to the below:
+    //
+    // futureMusitResultFoldNone(updateRes, MusitInternalError("Unable to get the updated event back from the database!"))
+
+    /*
+      TODO: Do we need to read the previous one from the database? Or isn't that any safer because the front-end
+      is supposed to be able to override/clear anything not mentioned in its input json.
+       The old variant below did something like this...
+
+
+      val res = for {
+        maybeEvent <- MusitResultT(
+          dao.findConservationProcessById(mid, eventId)
+        )
+        maybeUpdated <- MusitResultT(
+          maybeEvent.map { e =>
+            val u = localupdateConservationProcess(e, cp)
+            dao.update(mid, eventId, u)
+          }.getOrElse(Future.successful(MusitSuccess(None)))
+        )
+      } yield maybeUpdated
+      res.value
+    }
+   */
+
+  }
 }

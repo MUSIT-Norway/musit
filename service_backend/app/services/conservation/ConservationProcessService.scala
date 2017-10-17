@@ -5,7 +5,7 @@ import models.conservation.events._
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
-import no.uio.musit.models.{CollectionUUID, EventId, MuseumId}
+import no.uio.musit.models.{CollectionUUID, EventId, EventTypeId, MuseumId}
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
