@@ -58,18 +58,21 @@ class ConservationModuleEventController @Inject()(
   }
 
   //Implementation of SubEventHelper:
-  def getControllerFor(
+  def getConservationEventServiceFor(
       eventTypeId: EventTypeId
-  ): Option[ConservationEventControllerHelper] = {
+  ): Option[ConservationEventService[ConservationEvent]] = {
     val res = findControllerHelperForEventTypeId(eventTypeId)
     res.map {
-      case subEventHelper: ConservationEventControllerHelper => subEventHelper
+      case subEventHelper: ConservationEventControllerHelper =>
+        subEventHelper.eventService
       case processHelper: ConservationProcessControllerHelper =>
         throw new IllegalStateException(
           "Internal error, getControllerFor expected to find a subEventHelper, not the process helper"
         )
     }
   }
+
+  def subEventHelper: SubEventHelper = this
 
   private def getEventTypeIdInJson(json: JsValue): MusitResult[Int] = {
     (json \ "eventTypeId").validate[Int] match {
@@ -127,7 +130,7 @@ class ConservationModuleEventController @Inject()(
 
             saveRequest[ConservationModuleEvent, Option[ConservationModuleEvent]](jsr) {
               case event: ConservationProcess =>
-                processhelper.eventService.add(mid, event)
+                processhelper.eventService.add(mid, event, subEventHelper)
               case wrong =>
                 Future.successful(
                   MusitValidationError(

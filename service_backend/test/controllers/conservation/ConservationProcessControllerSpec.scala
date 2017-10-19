@@ -1,6 +1,6 @@
 package controllers.conservation
 
-import models.conservation.events.ConservationProcess
+import models.conservation.events.{ConservationProcess, Treatment}
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.models._
 import no.uio.musit.security.BearerToken
@@ -226,7 +226,7 @@ class ConservationProcessControllerSpec
         )
 
         val res = postEvent(json)
-        println("complex add: " + res)
+//        println("complex add: " + res)
         res.status mustBe CREATED
         val eventId = (res.json \ "id").as[EventId]
         eventId.underlying mustBe compositeConservationProcessEventId
@@ -236,12 +236,26 @@ class ConservationProcessControllerSpec
         val res = getEvent(compositeConservationProcessEventId)
         res.status mustBe OK
 
-        println("res.body: " + res.body)
+//        println("res.body: " + res.body)
 
         val consProcess = res.json.validate[ConservationProcess].get
 
         consProcess.events.get.length must be >= 2
       }
+
+      "get a children of the composite ConservationProcess separately" in {
+        val res = getEvent(compositeConservationProcessEventId + 1)
+        res.status mustBe OK
+
+        println("res.body: " + res.body)
+
+        implicit val reads = Treatment.reads
+        val treatment      = res.json.validate[Treatment].get
+
+        treatment.partOf mustBe Some(EventId(compositeConservationProcessEventId))
+
+      }
+
     }
   }
 }

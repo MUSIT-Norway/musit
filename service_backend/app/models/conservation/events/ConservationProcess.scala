@@ -91,6 +91,7 @@ sealed trait ConservationEvent extends ConservationModuleEvent {
       updatedBy: Option[ActorId],
       updatedDate: Option[DateTime]
   ): ConservationEvent
+  def asPartOf(partOf: Option[EventId]): ConservationEvent
 }
 
 object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatters {
@@ -173,6 +174,7 @@ case class ConservationProcess(
 
   override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
 
+  def withoutChildren = copy(events = None)
 }
 
 object ConservationProcess extends WithDateTimeFormatters {
@@ -225,6 +227,9 @@ case class Treatment(
       updatedBy: Option[ActorId],
       updatedDate: Option[DateTime]
   ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
+
+  override def asPartOf(partOf: Option[EventId]) = copy(partOf = partOf)
+
 }
 
 object Treatment extends WithDateTimeFormatters {
@@ -275,6 +280,8 @@ case class TechnicalDescription(
       updatedBy: Option[ActorId],
       updatedDate: Option[DateTime]
   ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
+
+  override def asPartOf(partOf: Option[EventId]) = copy(partOf = partOf)
 
 }
 

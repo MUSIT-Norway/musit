@@ -1,6 +1,7 @@
 package controllers.conservation
 
 import models.conservation.events.ConservationEvent
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
 import no.uio.musit.models.EventTypeId
 import services.conservation.{ConservationEventService, ConservationProcessService}
 
@@ -11,17 +12,10 @@ sealed trait ConservationModuleEventControllerHelper {
 
 trait ConservationProcessControllerHelper
     extends ConservationModuleEventControllerHelper {
-  /*#OLD
-  def toJson( conservationProcess: ConservationProcess): JsValue
-  def validateJson(json: JsObject): JsResult[ConservationProcess]
-   */
   def eventService: ConservationProcessService
 }
 
 trait ConservationEventControllerHelper extends ConservationModuleEventControllerHelper {
-  //#OLD def toJson(conservationEvent: ConservationEvent): JsValue
-  //#OLD def validateJson(json: JsObject): JsResult[ConservationEvent]
-
   def eventService: ConservationEventService[ConservationEvent]
 }
 
@@ -30,7 +24,18 @@ trait ConservationEventControllerHelper extends ConservationModuleEventControlle
  handling for some of the event types, we need something like this)
  */
 trait SubEventHelper {
-  def getControllerFor(
+  def getConservationEventServiceFor(
       eventTypeId: EventTypeId
-  ): Option[ConservationEventControllerHelper]
+  ): Option[ConservationEventService[ConservationEvent]]
+
+  def getConservationEventServiceElseValidationError(
+      eventTypeId: EventTypeId
+  ): MusitResult[ConservationEventService[ConservationEvent]] = {
+
+    MusitResultUtils.optionToMusitResult(
+      getConservationEventServiceFor(eventTypeId),
+      MusitValidationError(s"Unable to find eventTypeId with value: $eventTypeId")
+    )
+
+  }
 }

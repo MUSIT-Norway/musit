@@ -1,8 +1,9 @@
 package services.conservation
 
 import com.google.inject.Inject
+import controllers.conservation.SubEventHelper
 import models.conservation.events._
-import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.{CollectionUUID, EventId, EventTypeId, MuseumId}
@@ -10,6 +11,7 @@ import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import repositories.conservation.dao.{ConservationProcessDao, ConservationTypeDao}
+import slick.dbio.DBIO
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -31,9 +33,10 @@ class ConservationProcessService @Inject()(
   /**
    * Add a new ConservationEvent.
    */
-  def add(mid: MuseumId, cpe: ConservationProcess)(
+  def add(mid: MuseumId, cpe: ConservationProcess, subEventHelper: SubEventHelper)(
       implicit currUser: AuthenticatedUser
   ): Future[MusitResult[Option[ConservationModuleEvent]]] = {
+
     val res = for {
       added <- MusitResultT(addConservation(mid, cpe))
       a     <- MusitResultT(conservationDao.findConservationProcessById(mid, added))

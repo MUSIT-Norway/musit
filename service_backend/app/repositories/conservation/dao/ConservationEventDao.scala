@@ -32,7 +32,11 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
   )(implicit currUsr: AuthenticatedUser): DBIO[Option[ConservationEvent]] = {
     val q1 = super.findByIdAction(mid, id).map { mayBeRow =>
       mayBeRow.map { row =>
-        fromRow(row._1, row._7, row._10.flatMap(ObjectUUID.fromString), row._13).get
+        fromRow(
+          row._1, /*TODO?row._9,*/ row._7,
+          row._10.flatMap(ObjectUUID.fromString),
+          row._13
+        ).get
       }
     }
     /*val q1 = eventTable.filter(a => a.eventId === id && a.museumId === mid)
@@ -110,6 +114,16 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       ce: T
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[EventId]] = {
     insertEvent(mid, ce)(asRow)
+  }
+
+  def createInsertAction(
+      mid: MuseumId,
+      partOf: EventId,
+      event: ConservationEvent
+  )(implicit currUsr: AuthenticatedUser): DBIO[EventId] = {
+    val row    = asRow(mid, event)
+    val newRow = row.copy(_9 = Some(partOf))
+    insertAction(newRow)
   }
 
   /**

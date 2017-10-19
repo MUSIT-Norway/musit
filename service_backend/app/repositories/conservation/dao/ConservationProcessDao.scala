@@ -8,13 +8,15 @@ import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
-
 import scala.concurrent.{ExecutionContext, Future}
+
 @Singleton
 class ConservationProcessDao @Inject()(
     implicit
     val dbConfigProvider: DatabaseConfigProvider,
-    val ec: ExecutionContext
+    implicit val ec: ExecutionContext,
+    val treatmentDao: TreatmentDao,
+    val technicalDescriptionDao: TechnicalDescriptionDao
 ) extends ConservationEventTableProvider
     with ConservationTables
     with EventActions
@@ -40,6 +42,20 @@ class ConservationProcessDao @Inject()(
       }
     }*/
     q1
+  }
+
+  /**Creates an insert action for a subevent.*/
+  def createInsertSubEventAction(
+      mid: MuseumId,
+      partOf: EventId,
+      event: ConservationEvent
+  )(implicit currUsr: AuthenticatedUser): DBIO[EventId] = {
+
+    val dao = event match {
+      case t: Treatment             => treatmentDao
+      case td: TechnicalDescription => technicalDescriptionDao
+    }
+    dao.createInsertAction(mid, partOf, event)
   }
 
   /**
@@ -98,7 +114,31 @@ class ConservationProcessDao @Inject()(
       mid: MuseumId,
       ce: ConservationProcess
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[EventId]] = {
-    insertEvent(mid, ce)(asRow)
+
+    val subEvents = ce.events.getOrElse(Seq.empty)
+
+    def subEventActions(partOf: EventId) =
+      subEvents.map(
+        subEvent =>
+          createInsertSubEventAction(mid, partOf, subEvent.asPartOf(Some(partOf)))
+      )
+
+    //TODO: This is probably what we really want
+    //val cpToInsert = ce.withoutChildren
+
+    //TODO: This is only temporary, to get the tests to work until we have a proper composite GET working
+    val cpToInsert = ce
+
+    val actions: DBIO[EventId] = for {
+
+      cpId <- insertAction(asRow(mid, cpToInsert))
+      _    <- DBIO.sequence(subEventActions(cpId)).map(_ => cpId)
+
+    } yield cpId
+
+    db.run(actions.transactionally)
+      .map(MusitSuccess.apply)
+      .recover(nonFatal(s"An error occurred trying to add event"))
   }
 
   /**

@@ -33,40 +33,4 @@ class ConservationProcessController @Inject()(
 
   override val eventTypeId = EventTypeId(ConservationProcess.eventTypeId)
 
-  /* Gammelt, kan fjernes. Dette omfavnes nå av ConservationModuleEventKontroller. Den spesifikke
-    ConservationProcess-logikken vi behøver ligger i servicen
-
-  def addConservationProcess(mid: MuseumId) =
-    MusitSecureAction(mid, CollectionManagement, Write).async(parse.json) {
-      implicit request =>
-        implicit val currUser = request.user
-        val jsr               = request.body.validate[ConservationModuleEvent]
-        saveRequest[ConservationModuleEvent, Option[ConservationModuleEvent]](jsr) {
-          case proc: ConservationProcess =>
-            consService.add(mid, proc)
-
-          case wrong =>
-            Future.successful(MusitValidationError("Expected ConservationProcess"))
-        }
-    }
-
-  def getConservationProcessById(mid: MuseumId, id: EventId) =
-    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
-      implicit val currUser = request.user
-      consService.findConservationProcessById(mid, id).map {
-        case MusitSuccess(ma) => ma.map(ae => Ok(Json.toJson(ae))).getOrElse(NotFound)
-        case err: MusitError  => internalErr(err)
-      }
-    }
-
-  def updateConservationProcess(mid: MuseumId, eventId: EventId) =
-    MusitSecureAction(mid, CollectionManagement, Write).async(parse.json) {
-      implicit request =>
-        implicit val currUser = implicitly(request.user)
-        val jsr               = request.body.validate[ConservationModuleEvent]
-        updateRequestOpt[ConservationModuleEvent, ConservationProcess](jsr) { cp =>
-          consService.update(mid, eventId, cp)
-        }
-    }
- */
 }

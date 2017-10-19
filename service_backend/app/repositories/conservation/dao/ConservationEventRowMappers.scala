@@ -39,6 +39,7 @@ trait ConservationEventRowMappers extends EventRowMappers[ConservationModuleEven
 
   override protected def fromRow(
       maybeEventId: Option[EventId],
+//TODO?   maybePartOf: Option[EventId],
       maybeDoneDate: Option[DateTime],
       maybeAffectedThing: Option[MusitUUID],
       rowAsJson: JsValue
@@ -58,6 +59,7 @@ trait ConservationEventRowMappers extends EventRowMappers[ConservationModuleEven
           .withDoneDate(maybeDoneDate)
           .withAffectedThing(maybeAffectedThing)
           .asInstanceOf[ConservationModuleEvent]
+//TODO?          .asPartOf(maybePartOf)
 
         Some(x)
 

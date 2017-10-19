@@ -1,6 +1,7 @@
 package repositories.conservation.dao
 
 import com.google.inject.{Inject, Singleton}
+import models.conservation.events.ConservationEvent
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models._
 import no.uio.musit.repositories.DbErrorHandlers
@@ -8,6 +9,7 @@ import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
+import slick.dbio.DBIO
 
 import scala.concurrent.{ExecutionContext, Future}
 @Singleton

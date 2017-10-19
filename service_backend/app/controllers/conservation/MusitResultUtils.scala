@@ -16,6 +16,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object MusitResultUtils {
 
+  def optionToMusitResult[T](opt: Option[T], errorIfNone: MusitError): MusitResult[T] = {
+    opt match {
+      case Some(t) => MusitSuccess(t)
+      case None    => errorIfNone
+    }
+  }
+
   def defaultErrorTranslator(err: MusitError): Result = {
     err match {
       case err: MusitValidationError => badRequestErr(err)
