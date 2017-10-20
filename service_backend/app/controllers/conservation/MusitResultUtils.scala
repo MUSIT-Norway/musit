@@ -65,7 +65,7 @@ object MusitResultUtils {
     value.map(mr => musitResultFoldNone(mr, resultIfNone))
   }
 
-  def futureMusitFlatMap[T, S](
+  def futureMusitResultFlatMap[T, S](
       futMr: Future[MusitResult[T]],
       f: T => Future[MusitResult[S]]
   )(implicit ec: ExecutionContext): Future[MusitResult[S]] = {

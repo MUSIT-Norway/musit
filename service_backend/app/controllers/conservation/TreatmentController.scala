@@ -13,12 +13,7 @@ class TreatmentController @Inject()(
     val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val service: TreatmentService
-) extends MusitController
-    with ConservationEventControllerHelper {
+) extends MusitController {
 
   val logger = Logger(classOf[ConservationController])
-
-  val eventTypeId = EventTypeId(Treatment.eventTypeId)
-
-  def eventService = service.asInstanceOf[ConservationEventService[ConservationEvent]]
 }

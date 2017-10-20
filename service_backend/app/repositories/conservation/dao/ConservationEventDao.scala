@@ -26,17 +26,30 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
 
   import profile.api._
 
+  def interpretRow(row: EventRow): ConservationEvent = {
+    fromRow(
+      row._1, /*TODO?row._9,*/ row._7,
+      row._10.flatMap(ObjectUUID.fromString),
+      row._13
+    ).get.asInstanceOf[ConservationEvent]
+  }
+
+  /*Todo: Add getOrElse instead of the above .get?
+        .getOrElse(
+        throw new IllegalStateException(
+          s"Unable to read event row from the database, with row: $row in ConservationProcessDao.readSubEvent"
+        )
+      )
+
+   */
+
   protected def findByIdAction(
       mid: MuseumId,
       id: EventId
   )(implicit currUsr: AuthenticatedUser): DBIO[Option[ConservationEvent]] = {
     val q1 = super.findByIdAction(mid, id).map { mayBeRow =>
       mayBeRow.map { row =>
-        fromRow(
-          row._1, /*TODO?row._9,*/ row._7,
-          row._10.flatMap(ObjectUUID.fromString),
-          row._13
-        ).get
+        interpretRow(row)
       }
     }
     /*val q1 = eventTable.filter(a => a.eventId === id && a.museumId === mid)

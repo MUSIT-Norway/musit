@@ -3,11 +3,12 @@ package repositories.conservation.dao
 import com.google.inject.{Inject, Singleton}
 import models.conservation.events._
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
-import no.uio.musit.models.{EventId, MuseumId, ObjectUUID}
+import no.uio.musit.models.{EventId, EventTypeId, MuseumId, ObjectUUID}
 import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
+
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -73,7 +74,12 @@ class ConservationProcessDao @Inject()(
   ): Future[MusitResult[Option[ConservationModuleEvent]]] = {
     val query = for {
       maybeEvent <- findByIdAction(mid, id)
-    } yield maybeEvent
+      children   <- listChildrenAction(mid, id)
+
+    } yield
+      maybeEvent.map(
+        event => event.asInstanceOf[ConservationProcess].copy(events = Some(children))
+      )
 
     db.run(query)
       .map(MusitSuccess.apply)
@@ -103,6 +109,47 @@ class ConservationProcessDao @Inject()(
     }
   }
 
+  private def readSubEvent(eventTypeId: EventTypeId, row: EventRow): ConservationEvent = {
+    val optSubEventType = ConservationEventType(eventTypeId)
+    val subEventType = optSubEventType.getOrElse(
+      throw new IllegalStateException(
+        s"Unhandled/unknown eventTypeId: $eventTypeId in ConservationProcessDao.readSubEvent"
+      )
+    )
+
+    val dao = subEventType match {
+      case Treatment            => treatmentDao
+      case TechnicalDescription => technicalDescriptionDao
+    }
+
+    dao.interpretRow(row)
+  }
+
+  /**
+   * Find all children events of a given conservationEvent
+   *
+   * Children are subtypes of ConservationEvent
+   */
+  private def listChildrenAction(
+      mid: MuseumId,
+      parentEventId: EventId
+  )(implicit currUsr: AuthenticatedUser): DBIO[Seq[ConservationEvent]] = {
+
+    val query = eventTable.filter { a =>
+      //TODO: Er det riktig å filtrere på museumId her?
+      // I den grad det gir mening å ha subevents på tvers av museer er det kanskje tryggest å få de med ut her?
+
+      a.partOf === parentEventId && a.museumId === mid
+    }
+
+    val action = query.result.map { res =>
+      res.map { row =>
+        readSubEvent(row._2, row)
+      }
+    }
+    action
+  }
+
   /**
    * Write a single {{{Conservation}}} event to the DB.
    *
@@ -124,10 +171,10 @@ class ConservationProcessDao @Inject()(
       )
 
     //TODO: This is probably what we really want
-    //val cpToInsert = ce.withoutChildren
+    val cpToInsert = ce.withoutChildren
 
     //TODO: This is only temporary, to get the tests to work until we have a proper composite GET working
-    val cpToInsert = ce
+    //val cpToInsert = ce
 
     val actions: DBIO[EventId] = for {
 

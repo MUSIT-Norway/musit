@@ -24,13 +24,7 @@ class ConservationProcessController @Inject()(
     val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val consService: ConservationProcessService
-) extends MusitController
-    with ConservationProcessControllerHelper {
+) extends MusitController {
 
   val logger = Logger(classOf[ConservationController])
-
-  def eventService: ConservationProcessService = consService
-
-  override val eventTypeId = EventTypeId(ConservationProcess.eventTypeId)
-
 }

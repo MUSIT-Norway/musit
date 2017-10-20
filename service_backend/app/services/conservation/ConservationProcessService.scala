@@ -1,7 +1,6 @@
 package services.conservation
 
 import com.google.inject.Inject
-import controllers.conservation.SubEventHelper
 import models.conservation.events._
 import no.uio.musit.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
 import no.uio.musit.functional.Implicits.futureMonad
@@ -33,7 +32,7 @@ class ConservationProcessService @Inject()(
   /**
    * Add a new ConservationEvent.
    */
-  def add(mid: MuseumId, cpe: ConservationProcess, subEventHelper: SubEventHelper)(
+  def add(mid: MuseumId, cpe: ConservationProcess)(
       implicit currUser: AuthenticatedUser
   ): Future[MusitResult[Option[ConservationModuleEvent]]] = {
 

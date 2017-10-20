@@ -38,7 +38,7 @@ class TechnicalDescriptionDaoSpec
     val now = Some(dateTimeNow)
     TechnicalDescription(
       id = None,
-      eventTypeId = EventTypeId(TechnicalDescription.eventTypeId),
+      eventTypeId = TechnicalDescription.eventTypeId,
       doneBy = Some(dummyActorId),
       doneDate = now,
       note = Some("eksempel på teknisk beskrivelse"),

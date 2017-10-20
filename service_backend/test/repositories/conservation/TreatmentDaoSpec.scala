@@ -38,7 +38,7 @@ class TreatmentDaoSpec
     val now = Some(dateTimeNow)
     Treatment(
       id = None,
-      eventTypeId = EventTypeId(Treatment.eventTypeId),
+      eventTypeId = Treatment.eventTypeId,
       doneBy = Some(dummyActorId),
       doneDate = now,
       note = Some("hurra note"),

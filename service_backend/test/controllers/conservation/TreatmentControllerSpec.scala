@@ -44,7 +44,6 @@ class TreatmentControllerSpec
         Some("777"),
         Some(testAffectedThings)
       )
-    println("json: " + js)
     wsUrl(addTreatmentUrl(mid)).withHttpHeaders(t.asHeader).post(js).futureValue
   }
 
@@ -59,7 +58,6 @@ class TreatmentControllerSpec
       .withHttpHeaders(t.asHeader)
       .get()
       .futureValue
-    println("skal validere json i getTreatment: " + cp.json)
     cp.json.validate[Treatment].get
   }
 

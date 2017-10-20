@@ -29,7 +29,7 @@ object ConservationModuleEvent extends TypedConservationEvent {
    * AnalysisModuleEvent ADT. If not the parsing will (and should) fail.
    */
   implicit val reads: Reads[ConservationModuleEvent] = Reads { jsv =>
-    (jsv \ "eventTypeId").validateOpt[Int] match {
+    (jsv \ "eventTypeId").validateOpt[EventTypeId] match {
       case JsSuccess(maybeType, path) =>
         maybeType.map {
           /*  case Preservation =>
@@ -105,7 +105,7 @@ object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatt
     implicit val _t  = Treatment.reads
     implicit val _td = TechnicalDescription.reads
 
-    (jsv \ discriminatorAttributeName).validateOpt[Int] match {
+    (jsv \ discriminatorAttributeName).validateOpt[EventTypeId] match {
       case JsSuccess(maybeType, path) =>
         maybeType.map {
           case Treatment.eventTypeId =>
@@ -140,6 +140,10 @@ object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatt
 /**
  * Representation of typical events related to the analysis of museum objects.
  * The specific event types are encoded as {{{EventTypeId}}}.
+ *
+ *
+ * Note: When you add a new subEvent type, you need to add a new ConservationSubEventType, to enable
+ * the compiler to find the other places which needs modification when a new event type gets added
  */
 case class ConservationProcess(
     id: Option[EventId],
@@ -178,7 +182,7 @@ case class ConservationProcess(
 }
 
 object ConservationProcess extends WithDateTimeFormatters {
-  val eventTypeId = 1
+  val eventTypeId = EventTypeId(1)
 
   implicit val readsConsEvents: Reads[Seq[ConservationEvent]] =
     Reads.seq(ConservationEvent.reads)
@@ -189,6 +193,29 @@ object ConservationProcess extends WithDateTimeFormatters {
   val reads: Reads[ConservationProcess]   = Json.reads[ConservationProcess]
   val writes: Writes[ConservationProcess] = Json.writes[ConservationProcess]
 
+}
+
+sealed trait ConservationEventType {
+  val eventTypeId: EventTypeId
+}
+
+object ConservationEventType {
+  def apply(eventTypeId: EventTypeId): Option[ConservationEventType] = {
+    eventTypeId match {
+      case Treatment.eventTypeId            => Some(Treatment)
+      case TechnicalDescription.eventTypeId => Some(TechnicalDescription)
+      case _                                => None
+    }
+  }
+  def mustFind(eventTypeId: EventTypeId): ConservationEventType = {
+    apply(eventTypeId) match {
+      case Some(t) => t
+      case None =>
+        throw new IllegalStateException(
+          s"Unhandled eventTypeId: $eventTypeId in ConservationProcess.ConservationProcess.subEventTypeIdToConservationEventType"
+        )
+    }
+  }
 }
 
 case class Treatment(
@@ -232,8 +259,8 @@ case class Treatment(
 
 }
 
-object Treatment extends WithDateTimeFormatters {
-  val eventTypeId = 2
+object Treatment extends WithDateTimeFormatters with ConservationEventType {
+  val eventTypeId = EventTypeId(2)
 
   val reads: Reads[Treatment]   = Json.reads[Treatment]
   val writes: Writes[Treatment] = Json.writes[Treatment]
@@ -285,8 +312,8 @@ case class TechnicalDescription(
 
 }
 
-object TechnicalDescription extends WithDateTimeFormatters {
-  val eventTypeId = 3
+object TechnicalDescription extends WithDateTimeFormatters with ConservationEventType {
+  val eventTypeId = EventTypeId(3)
   // The below formatters cannot be implicit due to undesirable implicit ambiguities
   val reads: Reads[TechnicalDescription]   = Json.reads[TechnicalDescription]
   val writes: Writes[TechnicalDescription] = Json.writes[TechnicalDescription]
