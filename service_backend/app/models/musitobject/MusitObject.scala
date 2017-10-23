@@ -3,6 +3,7 @@ package models.musitobject
 import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.models.ObjectTypes.CollectionObjectType
 import no.uio.musit.models._
+import org.joda.time.DateTime
 import play.api.libs.json.{Json, Writes}
 
 case class MusitObject(
@@ -25,7 +26,8 @@ case class MusitObject(
     numismaticAttribute: Option[NumismaticsAttribute],
     materials: Option[Seq[MusitObjectMaterial]],
     locations: Option[Seq[MusitObjectLocation]],
-    coordinates: Option[Seq[MusitObjectCoordinate]]
+    coordinates: Option[Seq[MusitObjectCoordinate]],
+    isDeleted: Boolean
 )
 
 case class NumismaticsAttribute(
@@ -66,7 +68,8 @@ object MusitObject {
           Option[String],
           Option[String],
           Option[String],
-          (Option[String], Option[String], Option[String], Option[String])
+          (Option[String], Option[String], Option[String], Option[String]),
+          DateTime
       )
   ) // scalastyle:ignore
 
@@ -101,7 +104,8 @@ object MusitObject {
         else None,
       materials = None,
       locations = None,
-      coordinates = None
+      coordinates = None,
+      isDeleted = t._9
     )
   }
 

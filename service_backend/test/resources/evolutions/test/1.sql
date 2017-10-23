@@ -887,3 +887,15 @@ INSERT INTO MUSIT_MAPPING.THING_LOCATION (collectionid, objectid, ark_gardsnavn,
 INSERT INTO MUSIT_MAPPING.THING_COORDINATE(collectionid, objectid, ark_projeksjon, ark_presisjon, ark_nord, ark_ost) VALUES (1, 3, 'EU89-UTM Sone 32', 'Stedsnavn (Gard)' , ',6934625,', ',434096,');
 INSERT INTO MUSIT_MAPPING.THING_COORDINATE(collectionid, objectid, ark_projeksjon, ark_presisjon, ark_nord, ark_ost) VALUES (1, 3, 'EU89-UTM Sone 32', 'Stedsnavn (lokalitet)' , ',6934625,', ',434096,');
 INSERT INTO MUSIT_MAPPING.THING_COORDINATE(collectionid, objectid, ark_projeksjon, ark_presisjon, ark_nord, ark_ost) VALUES (2, 55, 'EU89-UTM Sone 32','Funnsted' ,',6934625,', ',434096,');
+
+--------------------------------------------------------------------------------
+-- CORE
+--------------------------------------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS MUSARK_CORE;
+
+CREATE TABLE MUSARK_CORE.ES_INDEX_STATUS (
+  index_alias   VARCHAR2(255) NOT NULL,
+  index_created TIMESTAMP     NOT NULL,
+  index_updated TIMESTAMP,
+  PRIMARY KEY (index_alias)
+);

@@ -1,5 +1,7 @@
 package repositories.musitobject.dao
 
+import java.sql.Timestamp
+
 import com.google.inject.Inject
 import models.musitobject._
 import no.uio.musit.MusitResults._
@@ -18,6 +20,7 @@ import repositories.musitobject.dao.SearchFieldValues.{
   WildcardValue
 }
 import repositories.shared.dao.SharedTables
+import no.uio.musit.time.Implicits.jSqlTimestampToDateTime
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -192,43 +195,6 @@ class ObjectDao @Inject()(
   }
 
   /**
-   * Searches the DB for objects based on 3 different criteria.
-   *
-   * @param mid
-   * @param page
-   * @param limit
-   * @param museumNo
-   * @param subNo
-   * @param term
-   * @param collections
-   * @return
-   */
-  def search(
-      mid: MuseumId,
-      page: Int,
-      limit: Int,
-      museumNo: Option[MuseumNo],
-      subNo: Option[SubNo],
-      term: Option[String],
-      collections: Seq[MuseumCollection]
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[ObjectSearchResult]] = {
-    val offset = (page - 1) * limit
-    val query  = searchQuery(mid, museumNo, subNo, term, collections)
-
-    val totalMatches   = db.run(query.length.result)
-    val matchedResults = db.run(query.drop(offset).take(limit).result)
-
-    (for {
-      total   <- totalMatches
-      matches <- matchedResults
-    } yield {
-      MusitSuccess(
-        ObjectSearchResult(total, matches.map(MusitObject.fromSearchTuple))
-      )
-    }).recover(nonFatal(s"Error while retrieving search result"))
-  }
-
-  /**
    *
    * @param mid
    * @param mainObjectId
@@ -360,7 +326,8 @@ class ObjectDao @Inject()(
           mt."NAT_STAGE",
           mt."NAT_GENDER",
           mt."NAT_LEGDATO",
-          mt."NUM_DENOTATION",mt."NUM_VALOR",mt."NUM_DATE",mt."NUM_WEIGHT"
+          mt."NUM_DENOTATION", mt."NUM_VALOR", mt."NUM_DATE", mt."NUM_WEIGHT",
+          mt."UPDATED_DATE"
         FROM "MUSARK_STORAGE"."NEW_LOCAL_OBJECT" lo, "MUSIT_MAPPING"."MUSITTHING" mt
         WHERE lo."MUSEUM_ID" = ${mid.underlying}
         AND mt."MUSEUMID" = ${mid.underlying}
@@ -374,13 +341,13 @@ class ObjectDao @Inject()(
           LOWER(mt."SUBNO") ASC
         #${pagingClause(page, limit)}
       """.as[(Option[Long], Option[String], Int, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Int],
-        Option[String], Option[String], Option[String], Option[String], Option[String],(Option[String], Option[String], Option[String], Option[String]))]
+        Option[String], Option[String], Option[String], Option[String], Option[String],(Option[String], Option[String], Option[String], Option[String]), Timestamp)]
 
     db.run(query).map { r =>
       val res = r.map { t =>
         (t._1.map(ObjectId.apply), t._2.map(ObjectUUID.unsafeFromString),
           MuseumId.fromInt(t._3), t._4, t._5, t._6, t._7, t._8, t._9, t._10,
-          t._11, t._12, t._13.map(Collection.fromInt), t._14, t._15, t._16, t._17, t._18, t._19)
+          t._11, t._12, t._13.map(Collection.fromInt), t._14, t._15, t._16, t._17, t._18, t._19, jSqlTimestampToDateTime(t._20))
       }
       MusitSuccess(res)
     }

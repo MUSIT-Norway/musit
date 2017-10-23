@@ -24,6 +24,8 @@ test:
   variables:
     MUSIT_FUTURE_TIMEOUT: "15000"
     MUSIT_FUTURE_INTERVAL: "50"
+    ELASTICSEARCH_HOST: "elasticsearch"
+    ELASTICSEARCH_PORT: 9200
     POSTGRES_DB: postgres
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: postgres
@@ -33,6 +35,8 @@ test:
 
   services:
     - name: postgres:latest
+    - name: registry.gitlab.com/musit-norway/docker-elasticsearch:latest
+      alias: elasticsearch
 
   script:
     - echo "Building and running tests..."
@@ -40,7 +44,7 @@ test:
     - sbt clean scalastyle scalafmt
     - git status
     - git diff --exit-code || (echo "ERROR Scala formatting check failed, see differences above."; false)
-    - if [[ -n "$CODACY_PROJECT_TOKEN" ]]; then echo "Running with code coverage..."; sbt coverage test coverageReport; sbt coverageAggregate; sbt codacyCoverage; else echo "Coverage reporting disabled for forks"; sbt allTests:test; fi
+    - if [[ -n "$CODACY_PROJECT_TOKEN" ]]; then echo "Running with code coverage..."; sbt coverage allTests:test coverageReport; sbt coverageAggregate; sbt codacyCoverage; else echo "Coverage reporting disabled for forks"; sbt allTests:test; fi
 
 build:
   stage: build

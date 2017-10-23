@@ -17,6 +17,11 @@ services:
     ports:
       - "1521:1521"
 
+  elasticsearch:
+    image: registry.gitlab.com/musit-norway/docker-elasticsearch:latest
+    ports:
+      - 9200:9200
+
   postgres_db:
     build: postgres/
     environment:
@@ -44,8 +49,10 @@ services:
       - SLICK_DB_URL
       - SLICK_DB_USER
       - SLICK_DB_PASSWORD
+      - ELASTICSEARCH_HOST
     links:
       - db
+      - elasticsearch
 
   auth:
     image: service_auth:0.1-SNAPSHOT

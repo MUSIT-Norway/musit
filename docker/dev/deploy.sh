@@ -21,6 +21,11 @@ export SLICK_DB_USER=musit
 export SLICK_DB_PASSWORD=musit
 
 # ------------------------------------------------------------------------
+# Elasticsearch configuration
+# ------------------------------------------------------------------------
+export ELASTICSEARCH_HOST="elasticsearch"
+
+# ------------------------------------------------------------------------
 # Document module specific configuration (including postgres)
 # ------------------------------------------------------------------------
 export SYMBIOTIC_POSTGRES_HOST=postgres_db

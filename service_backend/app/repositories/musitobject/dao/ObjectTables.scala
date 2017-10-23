@@ -2,6 +2,7 @@ package repositories.musitobject.dao
 
 import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.models._
+import org.joda.time.DateTime
 import play.api.db.slick.HasDatabaseConfigProvider
 import repositories.shared.dao.ColumnTypeMappers
 import slick.jdbc.JdbcProfile
@@ -13,7 +14,7 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTyp
   // Type aliases representing rows for the different tables
   // format: off
   // scalastyle:off line.size.limit
-  type ObjectRow = ((Option[ObjectId], Option[ObjectUUID], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Collection], Option[String], Option[String], Option[String], Option[String], Option[String], (Option[String], Option[String], Option[String], Option[String])))
+  type ObjectRow = ((Option[ObjectId], Option[ObjectUUID], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Collection], Option[String], Option[String], Option[String], Option[String], Option[String], (Option[String], Option[String], Option[String], Option[String]), DateTime))
   type MaterialRow = ((Option[Int], Option[Long], Option[String], Option[String], Option[String], Option[Int], Option[String], Option[String], Option[Int], Option[Long], Option[String], Option[Int]))
   type LocationRow = ((Option[Int], Option[Long], Option[String], Option[Int], Option[String], Option[Int], Option[String], Option[String],Option[String], Option[String],Option[String], Option[String],Option[String],Option[String], Option[String],Option[String], Option[String],Option[String],Option[Int], Option[Int]))
   type CoordinateRow = ((Option[Int], Option[Long], Option[String], Option[String], Option[String], Option[String]))
@@ -52,7 +53,8 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTyp
       natStage,
       natGender,
       natLegDate,
-      (numDenotation, numValor, numDate, numWeight)
+      (numDenotation, numValor, numDate, numWeight),
+      updatedDate
     )
 
     // scalastyle:on method.name
@@ -80,6 +82,7 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTyp
     val numValor         = column[Option[String]]("NUM_VALOR")
     val numDate          = column[Option[String]]("NUM_DATE")
     val numWeight        = column[Option[String]]("NUM_WEIGHT")
+    val updatedDate      = column[DateTime]("UPDATED_DATE")
   }
 
   /**

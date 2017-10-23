@@ -5,8 +5,9 @@ import java.util.UUID
 import models.actor.Person
 import no.uio.musit.models.{ActorId, DatabaseId}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
+import no.uio.musit.test.matchers.MusitResultValues
 
-class ActorDaoSpec extends MusitSpecWithAppPerSuite {
+class ActorDaoSpec extends MusitSpecWithAppPerSuite with MusitResultValues {
 
   val actorDao: ActorDao = fromInstanceCache[ActorDao]
 

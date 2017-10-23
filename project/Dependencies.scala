@@ -28,6 +28,45 @@ object Dependencies {
     val logback       = "com.typesafe.play" %% "play-logback"          % version
   }
 
+  object Akka {
+    // this need to be synced with play
+    val akkaVersion     = "2.5.4"
+    val akkaHttpVersion = "10.0.9"
+    val akkaOrg         = "com.typesafe.akka"
+
+    val akkaModules =
+      Seq(
+        "akka-actor",
+        "akka-agent",
+        "akka-cluster",
+        "akka-cluster-metrics",
+        "akka-cluster-sharding",
+        "akka-cluster-tools",
+        "akka-contrib",
+        "akka-multi-node-testkit",
+        "akka-persistence",
+        "akka-persistence-tck",
+        "akka-remote",
+        "akka-slf4j",
+        "akka-stream",
+        "akka-stream-testkit",
+        "akka-testkit"
+      )
+
+    val akkaHttpModules = Seq(
+      "akka-http-core",
+      "akka-http",
+      "akka-http-testkit",
+      "akka-http-jackson",
+      "akka-http-xml"
+    )
+
+    val akkaDependencyOverrides = akkaModules.map(akkaOrg %% _ % akkaVersion) ++
+      akkaHttpModules.map(akkaOrg %% _ % akkaHttpVersion)
+
+    val akkaTestKit = akkaOrg %% "akka-testkit" % akkaVersion % Test
+  }
+
   object Netty {
     val reactiveStreamsHttp = "com.typesafe.netty" % "netty-reactive-streams-http" % "1.0.8"
   }
@@ -36,10 +75,11 @@ object Dependencies {
     val logbackVersion = "1.2.3"
     val slf4jVersion   = "1.7.25"
     val logback        = "ch.qos.logback" % "logback-classic" % logbackVersion
+    val log4jBridge    = "org.apache.logging.log4j" % "log4j-to-slf4j" % "2.8.2"
     val slf4jLibs      = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j")
     val slf4j          = slf4jLibs.map("org.slf4j" % _ % slf4jVersion)
     val slf4jApi       = "org.slf4j" % slf4jLibs.head % slf4jVersion
-    val loggingDeps    = slf4j ++ Seq(logback)
+    val loggingDeps    = slf4j ++ Seq(logback, log4jBridge)
   }
 
   object ScalaTest {
@@ -78,6 +118,14 @@ object Dependencies {
     )
   }
 
+  val elastic4sVersion: String = "5.5.3"
+  val elastic4s: Seq[ModuleID] = Seq(
+    "com.sksamuel.elastic4s" %% "elastic4s-core"         % elastic4sVersion,
+    "com.sksamuel.elastic4s" %% "elastic4s-http-streams" % elastic4sVersion,
+    "com.sksamuel.elastic4s" %% "elastic4s-play-json"    % elastic4sVersion
+      excludeAll ExclusionRule(organization = "com.typesafe.play")
+  )
+
   // Symbiotic dependencies
   object Symbiotic {
     val symbioticVersion = "0.1.14"
@@ -109,7 +157,8 @@ object Dependencies {
     ScalaTest.scalatest,
     ScalaTest.scalatestplus,
     ScalaTest.scalactic,
-    scalaMock
+    scalaMock,
+    Akka.akkaTestKit
   )
 
   val playWithPersistenceDependencies: Seq[ModuleID] = playDependencies ++ Seq(
@@ -124,6 +173,7 @@ object Dependencies {
       ScalaTest.scalatest,
       ScalaTest.scalatestplus,
       ScalaTest.scalactic,
-      scalaMock
+      scalaMock,
+      Akka.akkaTestKit
     )
 }
