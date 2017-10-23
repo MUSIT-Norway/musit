@@ -52,6 +52,10 @@ export DATAPORTEN_CLIENT_ID=$CLIENT_ID
 export DATAPORTEN_CLIENT_SECRET=$CLIENT_SECRET
 export DATAPORTEN_SESSION_TIMEOUT="4 hours"
 
+# More RAM than default was needed for the ElasticSearch container,
+# the default was too little and made it stop.
+sudo sysctl -w vm.max_map_count=262144
+
 # ------------------------------------------------------------------------
 # Start the deployment process...
 # ------------------------------------------------------------------------
