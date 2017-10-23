@@ -179,6 +179,11 @@ case class ConservationProcess(
   override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
 
   def withoutChildren = copy(events = None)
+
+  def withUpdatedInfo(
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
 }
 
 object ConservationProcess extends WithDateTimeFormatters {

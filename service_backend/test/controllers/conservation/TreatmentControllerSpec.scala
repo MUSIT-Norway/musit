@@ -37,7 +37,7 @@ class TreatmentControllerSpec
 
   def addDummyTreatment(t: BearerToken = token): WSResponse = {
     val js =
-      dummyConservationProcessJSON(
+      dummyEventJSON(
         treatmentEventTypeId,
         Some(dateTimeNow),
         Some("testKommentar"),

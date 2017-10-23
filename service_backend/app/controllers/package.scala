@@ -106,8 +106,9 @@ package object controllers {
   ): Future[Result] = {
     handleUpdateRequest(jsr) { a =>
       update(a).map {
-        case MusitSuccess(b)  => Results.Ok(Json.toJson(b))
-        case merr: MusitError => internalErr(merr)
+        case MusitSuccess(b)              => Results.Ok(Json.toJson(b))
+        case valErr: MusitValidationError => badRequestErr(valErr)
+        case merr: MusitError             => internalErr(merr)
       }
     }
   }
@@ -126,6 +127,7 @@ package object controllers {
         case MusitSuccess(b) =>
           b.map(r => Results.Ok(Json.toJson(r))).getOrElse(Results.NoContent)
 
+        case valErr: MusitValidationError => badRequestErr(valErr)
         case merr: MusitError =>
           internalErr(merr)
       }

@@ -167,7 +167,7 @@ class ConservationModuleEventController @Inject()(
         mrEventTypeId.flatMapToFutureResult {
           case ConservationProcess.eventTypeId => {
             val jsr = jsonBody.validate[ConservationProcess]
-            updateRequestOpt[ConservationModuleEvent, ConservationProcess](jsr) { cp =>
+            updateRequestOpt[ConservationProcess, ConservationProcess](jsr) { cp =>
               consService.update(mid, eventId, cp)
             }
           }

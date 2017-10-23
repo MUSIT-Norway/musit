@@ -139,6 +139,18 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     insertAction(newRow)
   }
 
+  def createUpdateAction(
+      mid: MuseumId,
+      partOf: EventId,
+      event: ConservationEvent
+  )(implicit currUsr: AuthenticatedUser): DBIO[Int] = {
+    require(event.id.isDefined)
+
+    val row    = asRow(mid, event)
+    val newRow = row.copy(_9 = Some(partOf))
+    updateAction(mid, event.id.get, event)
+  }
+
   /**
    * Performs an update action against the DB using the values in the provided
    * {{{ConservationEvent}}} argument.

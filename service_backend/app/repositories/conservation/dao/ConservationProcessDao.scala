@@ -2,8 +2,13 @@ package repositories.conservation.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.conservation.events._
-import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
-import no.uio.musit.models.{EventId, EventTypeId, MuseumId, ObjectUUID}
+import no.uio.musit.MusitResults.{
+  MusitInternalError,
+  MusitResult,
+  MusitSuccess,
+  MusitValidationError
+}
+import no.uio.musit.models._
 import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
@@ -45,6 +50,13 @@ class ConservationProcessDao @Inject()(
     q1
   }
 
+  private def getDaoFor(event: ConservationEvent) = {
+    event match {
+      case t: Treatment             => treatmentDao
+      case td: TechnicalDescription => technicalDescriptionDao
+    }
+  }
+
   /**Creates an insert action for a subevent.*/
   def createInsertSubEventAction(
       mid: MuseumId,
@@ -52,11 +64,30 @@ class ConservationProcessDao @Inject()(
       event: ConservationEvent
   )(implicit currUsr: AuthenticatedUser): DBIO[EventId] = {
 
-    val dao = event match {
-      case t: Treatment             => treatmentDao
-      case td: TechnicalDescription => technicalDescriptionDao
-    }
+    val dao = getDaoFor(event)
     dao.createInsertAction(mid, partOf, event)
+  }
+
+  /**Creates an insert or update action for a subevent, an update if it has an eventId, else an insert.*/
+  def createInsertOrUpdateSubEventAction(
+      mid: MuseumId,
+      partOf: EventId,
+      event: ConservationEvent
+  )(implicit currUsr: AuthenticatedUser): DBIO[EventId] = {
+
+    val dao = getDaoFor(event)
+    event.id match {
+      case Some(id) =>
+        dao.createUpdateAction(mid, partOf, event).map { numUpdated =>
+          numUpdated match {
+            case 0 => throw new MusitSlickClientError("klientfeil")
+            case 1 => id
+            case _ =>
+              throw new Exception(s"too many rows in update of eventId $id")
+          }
+        }
+      case None => dao.createInsertAction(mid, partOf, event)
+    }
   }
 
   /**
@@ -170,11 +201,7 @@ class ConservationProcessDao @Inject()(
           createInsertSubEventAction(mid, partOf, subEvent.asPartOf(Some(partOf)))
       )
 
-    //TODO: This is probably what we really want
     val cpToInsert = ce.withoutChildren
-
-    //TODO: This is only temporary, to get the tests to work until we have a proper composite GET working
-    //val cpToInsert = ce
 
     val actions: DBIO[EventId] = for {
 
@@ -204,9 +231,28 @@ class ConservationProcessDao @Inject()(
   )(
       implicit currUsr: AuthenticatedUser
   ): Future[MusitResult[Option[ConservationProcess]]] = {
-    val action = updateAction(mid, id, cp).transactionally
+    val subEvents = cp.events.getOrElse(Seq.empty)
 
-    db.run(action)
+    def subEventActions(partOf: EventId): Seq[DBIO[EventId]] =
+      subEvents.map(
+        subEvent =>
+          createInsertOrUpdateSubEventAction(mid, partOf, subEvent.asPartOf(Some(partOf)))
+      )
+
+    //We "clear" the children so that we don't get them embedded in the json-blob for the process
+    val cpToInsert = cp.withoutChildren
+
+    /*val subactionNumbUpd = DBIO[Int] = for {
+      subEventNumUpd  <- DBIO.sequence(subEventActions(id)).map(_ => 1)
+    } yield subEventNumUpd
+     */
+
+    val actions: DBIO[Int] = for {
+      numUpdated <- updateAction(mid, id, cpToInsert)
+      _          <- DBIO.sequence(subEventActions(id)).map(_ => 1)
+    } yield numUpdated
+
+    db.run(actions.transactionally)
       .flatMap { numUpdated =>
         if (numUpdated == 1) {
           findConservationProcessById(mid, id)

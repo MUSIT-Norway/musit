@@ -46,6 +46,7 @@ object MusitResultUtils {
     ): Future[Result] = {
       musitResult match {
         case MusitSuccess(t) => f(t)
+
         case err: MusitError => Future.successful(errorTranslator(err))
       }
     }

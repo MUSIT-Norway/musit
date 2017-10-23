@@ -2,7 +2,12 @@ package services.conservation
 
 import com.google.inject.Inject
 import models.conservation.events._
-import no.uio.musit.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{
+  MusitInternalError,
+  MusitResult,
+  MusitSuccess,
+  MusitValidationError
+}
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.{CollectionUUID, EventId, EventTypeId, MuseumId}
@@ -96,17 +101,36 @@ class ConservationProcessService @Inject()(
     }
   }
 
+  def check(test: Boolean, errorMsg: String): MusitResult[Boolean] = {
+    if (test) {
+      MusitSuccess(true)
+    } else {
+      MusitValidationError(errorMsg)
+    }
+  }
+
   /**
    * Update an conservationProcess
    */
+  import controllers.conservation.MusitResultUtils._
+
   def update(
       mid: MuseumId,
       eventId: EventId,
-      cp: ConservationModuleEvent
+      cp: ConservationProcess
   )(
       implicit currUser: AuthenticatedUser
   ): Future[MusitResult[Option[ConservationProcess]]] = {
-    val res = for {
+    check(
+      Some(eventId) == cp.id,
+      s"Inconsistent eventid in url($eventId) vs body (${cp.id})"
+    ).flatMapToFutureMusitResult { _ =>
+      val eventToWriteToDb = cp.withUpdatedInfo(Some(currUser.id), Some(dateTimeNow))
+      val updateRes        = conservationDao.update(mid, eventId, eventToWriteToDb)
+      updateRes
+    }
+  }
+  /*val res = for {
       maybeEvent <- MusitResultT(
                      conservationDao.findConservationProcessById(mid, eventId)
                    )
@@ -118,6 +142,6 @@ class ConservationProcessService @Inject()(
                      )
     } yield maybeUpdated
     res.value
-  }
+  }*/
 
 }

@@ -49,7 +49,7 @@ trait ConservationJsonGenerators { // test data
   val adminId    = ActorId.unsafeFromString(FakeUsers.testAdminId)
   val testUserId = ActorId.unsafeFromString(FakeUsers.testUserId)
 
-  def dummyConservationProcessJSON(
+  def dummyEventJSON(
       typeId: Int,
       doneDate: Option[DateTime],
       note: Option[String],
