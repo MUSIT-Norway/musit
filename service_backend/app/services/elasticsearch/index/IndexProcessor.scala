@@ -65,7 +65,7 @@ class IndexProcessor(
       .recover {
         case NonFatal(t) =>
           log.error(t, s"[$name]: Failed initialise index, will try again later")
-          as.scheduler.scheduleOnce(5 minutes) { initIndex() }
+          as.scheduler.scheduleOnce(2 minutes) { initIndex() }
       }
   }
 

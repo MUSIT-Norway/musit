@@ -76,9 +76,11 @@ class IndexAnalysis @Inject()(
       mat: Materializer,
       as: ActorSystem
   ): Unit = {
+
     findLastIndexDateTime().map {
-      _.map(dt => elasticsearchEventDao.analysisEventsStream(Some(dt)))
-        .getOrElse(Source.empty)
+      _.map { dt =>
+        elasticsearchEventDao.analysisEventsStream(Some(dt))
+      }.getOrElse(Source.empty)
     }.map { dbSource =>
       val esBulkSource = createFlow(dbSource, indexConfig)
 
