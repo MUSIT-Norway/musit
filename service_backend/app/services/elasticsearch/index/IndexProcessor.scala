@@ -128,7 +128,7 @@ class IndexProcessor(
       indexStatus = indexStatus.copy(reindexStatus = IndexSuccess)
       indexConfig = Some(newIndexName)
       scheduleNextUpdate()
-      log.info(s"[$name]: Reindex is done")
+      log.info(s"[$name]: Reindex (of '$newIndexName') is done")
 
     case ReindexFailed(t) =>
       indexStatus = indexStatus.copy(reindexStatus = IndexFailed)

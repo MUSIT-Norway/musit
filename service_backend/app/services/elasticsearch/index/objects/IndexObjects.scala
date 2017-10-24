@@ -54,6 +54,7 @@ class IndexObjects @Inject()(
   override val indexAliasName: String = indexAlias
 
   override def createIndex()(implicit ec: ExecutionContext) = {
+    println("TEMP: createIndex (Objects)")
     val config = createIndexConfig()
     client.execute(MusitObjectsIndexConfig.config(config.name)).flatMap { res =>
       if (res.acknowledged) Future.successful(config)
@@ -66,6 +67,8 @@ class IndexObjects @Inject()(
       mat: Materializer,
       as: ActorSystem
   ): Unit = {
+
+    println("TEMP: reindexDocuments (Objects)")
 
     val sampleSourceFuture = Future.successful(
       elasticsearchObjectsDao.sampleStream(fetchSize, None)
@@ -129,6 +132,8 @@ class IndexObjects @Inject()(
     val musitObjectFlow  = new MusitObjectTypeFlow().flow(config)
     val sampleObjectFlow = new SampleTypeFlow(actorService).flow(config)
 
+    println(s"TEMP: Creating flow, objSources.size=${objSources.size}")
+
     Source.fromGraph(GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
 
@@ -143,6 +148,8 @@ class IndexObjects @Inject()(
   }
 
   private def findLastIndexDateTime(): Future[Option[DateTime]] = {
+    println(s"TEMP: Calling findLastIndexDateTime on index $indexAliasName")
+
     indexStatusDao.findLastIndexed(indexAliasName).map {
       case MusitSuccess(v) => v.map(s => s.updated.getOrElse(s.indexed))
       case err: MusitError => None

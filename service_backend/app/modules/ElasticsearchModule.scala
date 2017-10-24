@@ -11,7 +11,7 @@ class ElasticsearchModule(environment: Environment, cfg: Configuration)
   override def configure() = {
     val host = cfg.underlying.getString("musit.elasticsearch.host")
     val port = cfg.underlying.getInt("musit.elasticsearch.port")
-
+    println(s"Kobler opp mot ES: ${ElasticsearchClientUri(host, port)}")
     bind[HttpClient].toInstance(HttpClient(ElasticsearchClientUri(host, port)))
   }
 
