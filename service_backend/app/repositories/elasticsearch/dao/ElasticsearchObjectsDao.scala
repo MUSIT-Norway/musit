@@ -34,14 +34,16 @@ class ElasticsearchObjectsDao @Inject()(
       streams: Int,
       fetchSize: Int
   ): Future[Seq[Source[MusitObject, NotUsed]]] = {
+    println("TEMP: <objectStreams>")
     val maxIdValue = objTable.filter(_.uuid.isDefined).map(_.id).max
 
     //    db.run(maxIdValue.result).map { maxId =>
     //      ElasticsearchObjectsDao.indexRanges(streams, maxId.get.underlying).map {
 
-    Future.successful(ElasticsearchObjectsDao.indexRanges(streams, 1000).map {
+    val res = Future.successful(ElasticsearchObjectsDao.indexRanges(streams, 1000).map {
 
       case (from, to) =>
+        println(s"TEMP: Skal lese objectstream fra $from til $to ")
         val query = objTable.filter(row => (row.id >= from) && (row.id <= to))
         Source.fromPublisher(
           db.stream(
@@ -53,11 +55,18 @@ class ElasticsearchObjectsDao @Inject()(
                 )
                 .transactionally
             )
-            .mapResult(MusitObject.fromSearchTuple)
+            .mapResult(o => {
+              println(s"TEMP: Skal lage objekt fra tuppel: $o")
+              MusitObject.fromSearchTuple(o)
+            })
+//            .mapResult(MusitObject.fromSearchTuple)
         )
       //}
       //}
     })
+    println("TEMP: </objectStreams>")
+
+    res
   }
 
   def objectsChangedAfterTimestampStream(
