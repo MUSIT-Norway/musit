@@ -34,8 +34,8 @@ class ElasticsearchObjectsDao @Inject()(
       streams: Int,
       fetchSize: Int
   ): Future[Seq[Source[MusitObject, NotUsed]]] = {
-    val maxIdValue =
-      objTable.filter(_.uuid.isDefined).map(_.id).max
+    val maxIdValue = 1000
+    //objTable.filter(_.uuid.isDefined).map(_.id).max
 
     db.run(maxIdValue.result).map { maxId =>
       ElasticsearchObjectsDao.indexRanges(streams, maxId.get.underlying).map {
