@@ -34,27 +34,30 @@ class ElasticsearchObjectsDao @Inject()(
       streams: Int,
       fetchSize: Int
   ): Future[Seq[Source[MusitObject, NotUsed]]] = {
-    val maxIdValue = 1000
-    //objTable.filter(_.uuid.isDefined).map(_.id).max
+    val maxIdValue = objTable.filter(_.uuid.isDefined).map(_.id).max
 
-    db.run(maxIdValue.result).map { maxId =>
-      ElasticsearchObjectsDao.indexRanges(streams, maxId.get.underlying).map {
-        case (from, to) =>
-          val query = objTable.filter(row => (row.id >= from) && (row.id <= to))
-          Source.fromPublisher(
-            db.stream(
-                query.result
-                  .withStatementParameters(
-                    rsType = ResultSetType.ForwardOnly,
-                    rsConcurrency = ResultSetConcurrency.ReadOnly,
-                    fetchSize = fetchSize
-                  )
-                  .transactionally
-              )
-              .mapResult(MusitObject.fromSearchTuple)
-          )
-      }
-    }
+    //    db.run(maxIdValue.result).map { maxId =>
+    //      ElasticsearchObjectsDao.indexRanges(streams, maxId.get.underlying).map {
+
+    Future.successful(ElasticsearchObjectsDao.indexRanges(streams, 1000).map {
+
+      case (from, to) =>
+        val query = objTable.filter(row => (row.id >= from) && (row.id <= to))
+        Source.fromPublisher(
+          db.stream(
+              query.result
+                .withStatementParameters(
+                  rsType = ResultSetType.ForwardOnly,
+                  rsConcurrency = ResultSetConcurrency.ReadOnly,
+                  fetchSize = fetchSize
+                )
+                .transactionally
+            )
+            .mapResult(MusitObject.fromSearchTuple)
+        )
+      //}
+      //}
+    })
   }
 
   def objectsChangedAfterTimestampStream(
