@@ -74,6 +74,8 @@ object MusitObject {
   ) // scalastyle:ignore
 
   def fromSearchTuple(t: ObjSearchTuple): MusitObject = {
+    println(s"TEMP: fromSearchTuple: $t")
+
     MusitObject(
       id = t._1.get, // scalastyle:ignore
       uuid = t._2,

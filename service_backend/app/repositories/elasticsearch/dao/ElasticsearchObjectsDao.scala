@@ -56,7 +56,6 @@ class ElasticsearchObjectsDao @Inject()(
                 .transactionally
             )
             .mapResult(o => {
-              println(s"TEMP: Skal lage objekt fra tuppel: $o")
               MusitObject.fromSearchTuple(o)
             })
 //            .mapResult(MusitObject.fromSearchTuple)
@@ -127,6 +126,8 @@ class ElasticsearchObjectsDao @Inject()(
 
 object ElasticsearchObjectsDao {
   def indexRanges(count: Int, lastId: Long): List[(Long, Long)] = {
+    println("TEMP: <indexRanges>")
+
     val oi = Range.Long(lastId / count, lastId + 1, (lastId + 1) / count)
     oi.foldLeft(List.empty[(Long, Long)]) {
         case (list, id) =>

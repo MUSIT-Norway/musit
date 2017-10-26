@@ -78,6 +78,7 @@ class IndexObjects @Inject()(
       sampleSource <- sampleSourceFuture
     } yield (objSources, sampleSource)
 
+    println("før source.map")
     sources.map {
       case (objSources, sampleSource) =>
         val es = new DatabaseMaintainedElasticSearchIndexSink(
@@ -89,6 +90,7 @@ class IndexObjects @Inject()(
         ).toElasticsearchSink
 
         val esBulkSource = createFlow(config, objSources, sampleSource)
+        println("etter createFlow")
         esBulkSource.runWith(es)
     }
   }
