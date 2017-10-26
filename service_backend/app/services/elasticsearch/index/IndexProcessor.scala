@@ -33,7 +33,7 @@ class IndexProcessor(
 
   private implicit val ec: ExecutionContext = context.dispatcher
   private implicit val as: ActorSystem      = context.system
-  private implicit val to: Timeout          = Timeout(10 seconds)
+  private implicit val to: Timeout          = Timeout(100 seconds)
 
   private val name = self.path.name
 
