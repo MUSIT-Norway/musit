@@ -139,14 +139,22 @@ class IndexObjects @Inject()(
     Source.fromGraph(GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
 
+      println(s"TEMP: før mergeToEs")
       val mergeToEs =
         builder.add(Merge[BulkCompatibleDefinition](objSources.size + 1))
 
+      println(s"TEMP: før objSources.map")
       objSources.map(_.via(musitObjectFlow)).foreach(_ ~> mergeToEs)
+      println(s"TEMP: før sampleSource.via")
       sampleSource.via(sampleObjectFlow) ~> mergeToEs
 
-      SourceShape.of(mergeToEs.out)
+      println(s"TEMP: før SourceShape.of")
+      val res = SourceShape.of(mergeToEs.out)
+      println(s"TEMP: etter SourceShape.of")
+
+      res
     })
+
   }
 
   private def findLastIndexDateTime(): Future[Option[DateTime]] = {
