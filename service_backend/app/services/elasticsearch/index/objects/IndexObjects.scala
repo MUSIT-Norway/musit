@@ -160,10 +160,15 @@ class IndexObjects @Inject()(
   private def findLastIndexDateTime(): Future[Option[DateTime]] = {
     println(s"TEMP: Calling findLastIndexDateTime on index $indexAliasName")
 
-    indexStatusDao.findLastIndexed(indexAliasName).map {
+    val res = indexStatusDao.findLastIndexed(indexAliasName).map {
       case MusitSuccess(v) => v.map(s => s.updated.getOrElse(s.indexed))
       case err: MusitError => None
     }
+    res.map(
+      optDateTime =>
+        println(s"findLastIndexDateTime $indexAliasName dateTime:$optDateTime")
+    )
+    res
   }
 
 }
