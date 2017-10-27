@@ -40,7 +40,7 @@ class ElasticsearchObjectsDao @Inject()(
     //    db.run(maxIdValue.result).map { maxId =>
     //      ElasticsearchObjectsDao.indexRanges(streams, maxId.get.underlying).map {
 
-    val res = Future.successful(ElasticsearchObjectsDao.indexRanges(streams, 50).map {
+    val res = Future.successful(ElasticsearchObjectsDao.indexRanges(streams, 60).map {
 
       case (from, to) =>
         println(s"TEMP: Skal lese objectstream fra $from til $to ")

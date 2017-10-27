@@ -43,8 +43,8 @@
   <logger name="controllers" level="DEBUG"/>
   <logger name="models" level="INFO"/>
   <logger name="modules" level="INFO"/>
-  <logger name="repositories" level="DEBUG"/>
-  <logger name="services" level="DEBUG"/>
+  <logger name="repositories" level="INFO"/>
+  <logger name="services" level="INFO"/>
 
   <!-- musit packages-->
   <logger name="no.uio.musit" level="INFO"/>
