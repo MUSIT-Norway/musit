@@ -49,7 +49,7 @@
   <!-- musit packages-->
   <logger name="no.uio.musit" level="INFO"/>
 
-  <root level="ERROR">
+  <root level="INFO">
     <appender-ref ref="ASYNCSTDOUT"/>
     <appender-ref ref="ASYNCFILE"/>
   </root>
