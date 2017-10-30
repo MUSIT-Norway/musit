@@ -40,7 +40,7 @@
   <logger name="akka.stream.Materializer" level="INFO"/>
 
   <!-- musit play packages -->
-  <logger name="controllers" level="DEBUG"/>
+  <logger name="controllers" level="INFO"/>
   <logger name="models" level="INFO"/>
   <logger name="modules" level="INFO"/>
   <logger name="repositories" level="INFO"/>

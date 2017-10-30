@@ -80,6 +80,7 @@ class IndexProcessor(
 
   def ready: Receive = {
     case RequestUpdateIndex =>
+      println(s"[$name]: RequestUpdateIndex")
       indexConfig match {
         case Some(indexName) if indexStatus.canUpdate =>
           indexer.updateExistingIndex(
@@ -98,6 +99,7 @@ class IndexProcessor(
       }
 
     case RequestReindex =>
+      println(s"[$name]: RequestReindex")
       if (indexStatus.canReindex) {
         indexer.reindexToNewIndex(
           IndexCallback(
@@ -113,24 +115,30 @@ class IndexProcessor(
       }
 
     case Status =>
+      println(s"[$name]Status")
+
       sender() ! nextUpdate.map(_ => ScheduledUpdate).getOrElse(indexStatus.status)
 
     case UpdateIndexSuccess =>
+      println(s"[$name]UpdateIndexSuccess")
       indexStatus = indexStatus.copy(updateIndexStatus = IndexSuccess)
       scheduleNextUpdate()
       log.info(s"[$name]: Index is up to date")
 
     case UpdateIndexFailed(t) =>
+      println(s"[$name]: UpdateIndexFailed")
       indexStatus = indexStatus.copy(updateIndexStatus = IndexFailed)
       log.error(t, s"[$name]: Failed to update index")
 
     case ReindexSuccess(newIndexName) =>
+      println(s"[$name]: ReindexSuccess $newIndexName")
       indexStatus = indexStatus.copy(reindexStatus = IndexSuccess)
       indexConfig = Some(newIndexName)
       scheduleNextUpdate()
       log.info(s"[$name]: Reindex (of '$newIndexName') is done")
 
     case ReindexFailed(t) =>
+      println(s"[$name]: ReindexFailed")
       indexStatus = indexStatus.copy(reindexStatus = IndexFailed)
       log.error(t, s"[$name]: Reindex failed")
 
