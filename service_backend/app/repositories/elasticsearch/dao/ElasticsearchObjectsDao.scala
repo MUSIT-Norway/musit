@@ -47,13 +47,12 @@ class ElasticsearchObjectsDao @Inject()(
         val query = objTable.filter(row => (row.id >= from) && (row.id <= to))
         Source.fromPublisher(
           db.stream(
-              query.result
-                .withStatementParameters(
-                  rsType = ResultSetType.ForwardOnly,
-                  rsConcurrency = ResultSetConcurrency.ReadOnly,
-                  fetchSize = fetchSize
-                )
-                .transactionally
+              query.result.withStatementParameters(
+                rsType = ResultSetType.ForwardOnly,
+                rsConcurrency = ResultSetConcurrency.ReadOnly,
+                fetchSize = fetchSize
+              )
+              //why .transactionally here? .transactionally
             )
             .mapResult(o => {
               MusitObject.fromSearchTuple(o)
