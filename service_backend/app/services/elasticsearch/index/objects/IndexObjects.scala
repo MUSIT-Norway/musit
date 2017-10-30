@@ -95,7 +95,9 @@ class IndexObjects @Inject()(
 
         val esBulkSource = createFlow(config, objSources, sampleSource)
         println("etter createFlow")
-        esBulkSource.runWith(es)
+        val res = esBulkSource.runWith(es)
+        println("etter runWith")
+        res
     }
   }
 

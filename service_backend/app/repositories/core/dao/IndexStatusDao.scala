@@ -34,6 +34,7 @@ class IndexStatusDao @Inject()(
       alias: String
   ): Future[MusitResult[Option[IndexStatus]]] = {
     logger.info("<findLastIndexed>")
+    println("findLastIndexed") //Just in case logger is turned off by some means
 
     val query =
       esIndexStatusTable.filter(_.indexAlias === alias)
