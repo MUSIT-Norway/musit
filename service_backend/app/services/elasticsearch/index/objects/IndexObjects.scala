@@ -24,6 +24,7 @@ import services.elasticsearch.index.shared.{
 }
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 /**
  * Index documents into the musit_object index.
@@ -57,8 +58,11 @@ class IndexObjects @Inject()(
     println("TEMP: createIndex (Objects)")
     val config = createIndexConfig()
     client.execute(MusitObjectsIndexConfig.config(config.name)).flatMap { res =>
+      println("TEMP: Inne i createIndex, flatmap: " + res)
+
       if (res.acknowledged) Future.successful(config)
       else Future.failed(new IllegalStateException("Unable to setup index"))
+
     }
   }
 
@@ -161,9 +165,22 @@ class IndexObjects @Inject()(
     println(s"TEMP: Calling findLastIndexDateTime on index $indexAliasName")
 
     val res = indexStatusDao.findLastIndexed(indexAliasName).map {
-      case MusitSuccess(v) => v.map(s => s.updated.getOrElse(s.indexed))
-      case err: MusitError => None
+      case MusitSuccess(v) => {
+        println("Success findlastIndexed: " + v)
+        v.map(s => s.updated.getOrElse(s.indexed))
+      }
+      case err: MusitError => {
+        println("findlastIndexed error: " + err)
+        None
+      }
     }
+
+    res onComplete {
+      case Success(s) => println("indexStatusDao.findLastIndexed success:" + s)
+      case Failure(t) =>
+        println("indexStatusDao.findLastIndexed An error has occured: " + t.getMessage)
+    }
+
     res.map(
       optDateTime =>
         println(s"findLastIndexDateTime $indexAliasName dateTime:$optDateTime")

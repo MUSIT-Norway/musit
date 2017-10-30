@@ -129,7 +129,7 @@ trait ResponseLogger extends ResponseListener[BulkCompatibleDefinition] {
       org: BulkCompatibleDefinition
   ): Unit = {
     if (resp.error.isDefined) {
-      logger.error(s"$resp")
+      logger.error(s"Failure: $resp")
     } else {
       logger.warn(s"Failure without error message: $resp")
     }
