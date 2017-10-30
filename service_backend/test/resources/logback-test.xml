@@ -21,6 +21,15 @@
   <logger name="models" level="OFF"/>
   <logger name="repositories" level="OFF"/>
 
+  <logger name="org.apache" level="DEBUG" />
+  <logger name="httpclient" level="DEBUG" />
+  <logger name="httpclient.wire" level="DEBUG" />
+  <logger name="org.apache.http.headers" level="DEBUG" />
+  <logger name="org.apache.http.wire" level="DEBUG" />
+  <logger name="com.sksamuel.elastic4s" level="DEBUG" />
+
+
+
   <root level="ERROR">
     <appender-ref ref="STDOUT"/>
   </root>

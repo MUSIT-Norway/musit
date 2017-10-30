@@ -49,6 +49,14 @@
   <!-- musit packages-->
   <logger name="no.uio.musit" level="INFO"/>
 
+
+  <logger name="org.apache" level="DEBUG" />
+  <logger name="httpclient" level="DEBUG" />
+  <logger name="httpclient.wire" level="DEBUG" />
+  <logger name="org.apache.http.headers" level="DEBUG" />
+  <logger name="org.apache.http.wire" level="DEBUG" />
+  <logger name="com.sksamuel.elastic4s" level="DEBUG" />
+
   <root level="INFO">
     <appender-ref ref="ASYNCSTDOUT"/>
     <appender-ref ref="ASYNCFILE"/>
