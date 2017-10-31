@@ -10,8 +10,9 @@ import org.joda.time.DateTime
 import play.api.libs.json._
 
 trait ConservationJsonGenerators { // test data
-  val conservationProcessEventTypeId = 1
-  val treatmentEventTypeId           = 2
+  val conservationProcessEventTypeId  = 1
+  val treatmentEventTypeId            = 2
+  val technicalDescriptionEventTypeId = 3
 
   val validObjectUUIDs = Seq(
     ObjectUUID.unsafeFromString("baab2f60-4f49-40fe-99c8-174b13b12d46"),

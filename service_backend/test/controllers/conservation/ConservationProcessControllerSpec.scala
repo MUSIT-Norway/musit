@@ -36,6 +36,9 @@ class ConservationProcessControllerSpec
 
   val eventByIdUrl = (mid: Int) => (id: Long) => s"${baseEventUrl(mid)}/$id"
 
+  val eventsByObjectUuid = (mid: Int) =>
+    (id: String) => s"/$mid/conservation/events/object/$id"
+
   def postEvent(json: JsObject, t: BearerToken = token) = {
     wsUrl(baseEventUrl(mid)).withHttpHeaders(t.asHeader).post(json).futureValue
   }
@@ -46,6 +49,10 @@ class ConservationProcessControllerSpec
 
   def putEvent(eventId: Long, json: JsObject, t: BearerToken = token) = {
     wsUrl(eventByIdUrl(mid)(eventId)).withHttpHeaders(t.asHeader).put(json).futureValue
+  }
+
+  def getEventForObject(oid: String, t: BearerToken = token) = {
+    wsUrl(eventsByObjectUuid(mid)(oid)).withHttpHeaders(t.asHeader).get().futureValue
   }
 
   implicit val minReads = ConservationModuleEvent.reads
@@ -194,13 +201,14 @@ class ConservationProcessControllerSpec
       "add standalone treatment having data in one of the 'extra' attributes" in {
 
         val treatmentJson = Json.obj(
-          "eventTypeId"  -> treatmentEventTypeId,
-          "doneBy"       -> adminId,
-          "registeredBy" -> adminId,
-          "updatedBy"    -> adminId,
-          "completedBy"  -> adminId,
-          "note"         -> "en annen fin treatment",
-          "materials"    -> Seq(1, 2, 3)
+          "eventTypeId"    -> treatmentEventTypeId,
+          "doneBy"         -> adminId,
+          "registeredBy"   -> adminId,
+          "updatedBy"      -> adminId,
+          "completedBy"    -> adminId,
+          "note"           -> "en annen fin treatment",
+          "materials"      -> Seq(1, 2, 3),
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
         )
 
         val res = postEvent(treatmentJson)
@@ -243,7 +251,7 @@ class ConservationProcessControllerSpec
         )
 
         val res = postEvent(json)
-//        println("complex add: " + res)
+        //        println("complex add: " + res)
         res.status mustBe CREATED
         val eventId = (res.json \ "id").as[EventId]
         eventId.underlying mustBe compositeConservationProcessEventId
@@ -371,6 +379,34 @@ class ConservationProcessControllerSpec
 
         val updTreat = putEvent(compositeConservationProcessEventId, jsonCp)
         updTreat.status mustBe BAD_REQUEST
+      }
+
+      "Get the list of events from an object, by it's objectUuid" in {
+        val techDescrJson = Json.obj(
+          "eventTypeId"    -> technicalDescriptionEventTypeId,
+          "doneBy"         -> adminId,
+          "registeredBy"   -> adminId,
+          "updatedBy"      -> adminId,
+          "completedBy"    -> adminId,
+          "note"           -> "en annen fin techDesc",
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+
+        val res = postEvent(techDescrJson)
+        res.status mustBe CREATED
+
+        val oid    = "42b6a92e-de59-4fde-9c46-5c8794be0b34"
+        val events = getEventForObject(oid)
+        events.status mustBe OK
+        //return both subevents, an earlier treatment and above techDescription
+        events.json.as[JsArray].value.size mustBe 2
+
+      }
+
+      "Return No_content(204) when objectUuid has no events" in {
+        val oid    = "376d41e7-c463-45e8-9bde-7a2c9844637e"
+        val events = getEventForObject(oid)
+        events.status mustBe NO_CONTENT
       }
     }
   }

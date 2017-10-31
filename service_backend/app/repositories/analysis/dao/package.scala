@@ -1,7 +1,6 @@
 package repositories.analysis
 
 package object dao {
-
   val SchemaName                 = "MUSARK_ANALYSIS"
   val AnalysisEventTableName     = "EVENT"
   val AnalysisResultTableName    = "RESULT"
@@ -11,5 +10,4 @@ package object dao {
   val StorageMediumTableName     = "STORAGEMEDIUM"
   val StorageContainerTableName  = "STORAGECONTAINER"
   val SampleTypeTableName        = "SAMPLE_TYPE"
-
 }

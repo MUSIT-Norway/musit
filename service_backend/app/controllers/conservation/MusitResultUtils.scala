@@ -59,6 +59,15 @@ object MusitResultUtils {
     value.flatMap(opt => opt.fold(resultIfNone)(t => MusitSuccess(t)))
   }
 
+  def musitResultToOption[T](
+      value: MusitResult[Option[T]]
+  ): Option[T] = {
+    value match {
+      case MusitSuccess(t) => t
+      case err             => None
+    }
+  }
+
   def futureMusitResultFoldNone[T](
       value: Future[MusitResult[Option[T]]],
       resultIfNone: => MusitResult[T]

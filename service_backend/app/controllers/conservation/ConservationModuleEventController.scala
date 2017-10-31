@@ -1,10 +1,10 @@
 package controllers.conservation
 
 import com.google.inject.{Inject, Singleton}
-import controllers.{internalErr, saveRequest, updateRequestOpt}
+import controllers.{internalErr, listAsPlayResult, saveRequest, updateRequestOpt}
 import models.conservation.events._
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess, _}
-import no.uio.musit.models.{EventId, EventTypeId, MuseumId}
+import no.uio.musit.models.{EventId, EventTypeId, MuseumId, ObjectUUID}
 import no.uio.musit.security.Permissions.{Read, Write}
 import no.uio.musit.security.{AuthenticatedUser, Authenticator, CollectionManagement}
 import no.uio.musit.service.MusitController
@@ -20,6 +20,7 @@ class ConservationModuleEventController @Inject()(
     val authService: Authenticator,
     val consService: ConservationProcessService,
     val conservationService: ConservationService,
+    val objectEventService: ObjectEventService,
     val conservationProcessController: ConservationProcessController,
     val treatmentController: TreatmentController,
     val technicalDescriptionController: TechnicalDescriptionController
@@ -186,4 +187,23 @@ class ConservationModuleEventController @Inject()(
           }
         }
     }
+
+  def getEventsForObject(mid: Int, oid: String) =
+    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
+      implicit val currUser = request.user
+      ObjectUUID
+        .fromString(oid)
+        .map { uuid =>
+          objectEventService.getEventsForObject(mid, uuid).map {
+            case MusitSuccess(conservationEvent) => listAsPlayResult(conservationEvent)
+            case err: MusitError                 => internalErr(err)
+          }
+        }
+        .getOrElse {
+          Future.successful(
+            BadRequest(Json.obj("message" -> s"Invalid object UUID $oid"))
+          )
+        }
+    }
+
 }

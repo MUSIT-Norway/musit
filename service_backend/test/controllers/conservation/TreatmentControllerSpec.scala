@@ -100,6 +100,7 @@ class TreatmentControllerSpec
 
         res1.eventTypeId.underlying mustBe treatmentEventTypeId
         res1.id.get.underlying mustBe 1
+        res1.affectedThings.get.length mustBe 2
       }
       "successfully update a treatment" in {
 
@@ -137,7 +138,11 @@ class TreatmentControllerSpec
         (updRes.json \ "completedBy").asOpt[ActorId] mustBe Some(testUserId)
         (updRes.json \ "completedDate").asOpt[DateTime] mustApproximate Some(mdatetime)
         (updRes.json \ "caseNumber").asOpt[String] mustBe Some("666")
-        (updRes.json \ "affectedThings").asOpt[Seq[String]] mustBe Some(oids)
+        (updRes.json \ "affectedThings")
+          .asOpt[Seq[String]]
+          .map(s => s.sorted) mustBe Some(
+          oids.sorted
+        )
         (updRes.json \ "registeredDate").asOpt[DateTime] mustApproximate Some(mdatetime)
 
       }

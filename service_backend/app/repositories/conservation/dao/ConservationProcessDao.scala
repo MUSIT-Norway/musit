@@ -65,7 +65,7 @@ class ConservationProcessDao @Inject()(
   )(implicit currUsr: AuthenticatedUser): DBIO[EventId] = {
 
     val dao = getDaoFor(event)
-    dao.createInsertAction(mid, partOf, event)
+    dao.createInsertAction(mid, Some(partOf), event)
   }
 
   /**Creates an insert or update action for a subevent, an update if it has an eventId, else an insert.*/
@@ -86,7 +86,7 @@ class ConservationProcessDao @Inject()(
               throw new Exception(s"too many rows in update of eventId $id")
           }
         }
-      case None => dao.createInsertAction(mid, partOf, event)
+      case None => dao.createInsertAction(mid, Some(partOf), event)
     }
   }
 

@@ -629,3 +629,9 @@ CREATE TABLE MUSARK_CONSERVATION.EVENT_TYPE (
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('konserveringsprosess', 'conservation process',NULL, NULL, NULL);
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('preparering','preparation', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('bevaring', 'preservation','ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
+
+CREATE TABLE MUSARK_CONSERVATION.OBJECT_EVENT(
+object_uuid varchar2(36)NOT NULL,
+event_id number(20) NOT NULL,
+PRIMARY KEY (object_uuid,event_id)
+);

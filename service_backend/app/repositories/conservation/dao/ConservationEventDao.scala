@@ -1,22 +1,26 @@
 package repositories.conservation.dao
 
-import com.google.inject.{Inject, Singleton}
-import models.conservation.events.{ConservationEvent, ConservationModuleEvent}
+import com.google.inject.Inject
+import models.conservation.events.ConservationEvent
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
+import no.uio.musit.functional.Implicits.futureMonad
+import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.{EventId, MuseumId, ObjectUUID}
+import no.uio.musit.musitUtils.Utils
 import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.reflect.ClassTag
-import scala.reflect._
+import scala.reflect.{ClassTag, _}
 
 class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     implicit
     val dbConfigProvider: DatabaseConfigProvider,
-    val ec: ExecutionContext
+    val ec: ExecutionContext,
+    val objectEventDao: ObjectEventDao
+//    val daoUtils: DaoUtils
 ) extends ConservationEventTableProvider
     with ConservationTables
     with EventActions
@@ -43,6 +47,16 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
 
    */
 
+  def getEventObjectsAction(eventId: EventId): DBIO[Seq[ObjectUUID]] = {
+    objectEventDao.getEventObjectsAction(eventId)
+
+  }
+
+  def getObjectEventIds(objectUuid: ObjectUUID): Future[MusitResult[Seq[EventId]]] = {
+    objectEventDao.getObjectEventIds(objectUuid)
+
+  }
+
   protected def findByIdAction(
       mid: MuseumId,
       id: EventId
@@ -52,13 +66,18 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
         interpretRow(row)
       }
     }
-    /*val q1 = eventTable.filter(a => a.eventId === id && a.museumId === mid)
-    q1.result.headOption.map { x =>
-      x.flatMap { row =>
-        fromRow(row._1, row._7, row._10.flatMap(ObjectUUID.fromString), row._13)
+    q1.flatMap {
+      case (Some(event)) => {
+        val futObjectList = getEventObjectsAction(id)
+        val futObj = futObjectList.map { ol =>
+          val lista = Some(event.withAffectedThings(Some(ol)))
+          lista
+        }
+        futObj
       }
-    }*/
-    q1.map(x => x.map(e => e.asInstanceOf[ConservationEvent]))
+      case None =>
+        DBIO.successful(None)
+    }
   }
 
   /**
@@ -77,7 +96,6 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     val query = for {
       maybeEvent <- findByIdAction(mid, id)
     } yield maybeEvent
-
     db.run(query)
       .map(MusitSuccess.apply)
       .recover(nonFatal(s"An unexpected error occurred fetching event $id"))
@@ -115,6 +133,27 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     }
   }
 
+  def getEventsForObject(mid: MuseumId, objectUuid: ObjectUUID)(
+      implicit currUser: AuthenticatedUser
+  ): Future[MusitResult[Seq[ConservationEvent]]] = {
+
+    def localFindById(id: EventId) = findById(mid, id)
+
+    (for {
+
+      ids <- MusitResultT(getObjectEventIds(objectUuid))
+      events <- {
+        MusitResultT(
+          Utils.mapIdsToObjects[EventId, ConservationEvent](
+            ids,
+            localFindById,
+            "Missing events for these eventIds:"
+          )
+        )
+      }
+    } yield events).value
+  }
+
   /**
    * Write a single {{{ConservationEvent}}} to the DB.
    *
@@ -126,17 +165,36 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       mid: MuseumId,
       ce: T
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[EventId]] = {
-    insertEvent(mid, ce)(asRow)
+    val action = createInsertAction(mid, ce.partOf, ce)
+    db.run(action.transactionally)
+      .map(MusitSuccess.apply)
+      .recover(nonFatal(s"An error occurred trying to add event ${ce.getClass.getName}"))
   }
 
+  /**
+   * an insert action for inserting a conservationEvent
+   * eventWithoutObjects is the event without it's list
+   * of objectIds. We will not save the objectList in the
+   * event's json. The objects are saved in the table objectEvent.
+   *
+   * @param mid MuseumId
+   * @param partOf the eventId of the conservationProcess
+   * @param event the event to be inserted.
+   * @return a DBIO[EventId] the eventId of the ConservationEvent(subEvent)
+   */
   def createInsertAction(
       mid: MuseumId,
-      partOf: EventId,
+      partOf: Option[EventId],
       event: ConservationEvent
   )(implicit currUsr: AuthenticatedUser): DBIO[EventId] = {
-    val row    = asRow(mid, event)
-    val newRow = row.copy(_9 = Some(partOf))
-    insertAction(newRow)
+    val objectIds           = event.affectedThings.getOrElse(Seq.empty)
+    val eventWithoutObjects = event.withAffectedThings(None)
+    val row                 = asRow(mid, eventWithoutObjects)
+    val newRow              = row.copy(_9 = partOf)
+    for {
+      eventId <- insertAction(newRow)
+      _       <- objectEventDao.insertObjectEventAction(eventId, objectIds)
+    } yield eventId
   }
 
   def createUpdateAction(
@@ -145,10 +203,18 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       event: ConservationEvent
   )(implicit currUsr: AuthenticatedUser): DBIO[Int] = {
     require(event.id.isDefined)
+    val eventId = event.id.get
+
+    val objectIds = event.affectedThings.getOrElse(Seq.empty)
 
     val row    = asRow(mid, event)
     val newRow = row.copy(_9 = Some(partOf))
-    updateAction(mid, event.id.get, event)
+
+    for {
+      numEventRowsUpdated <- updateActionRowOnly(mid, eventId, event)
+      _                   <- objectEventDao.updateObjectEventAction(eventId, objectIds)
+    } yield numEventRowsUpdated
+
   }
 
   /**
@@ -167,7 +233,7 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
   )(
       implicit currUsr: AuthenticatedUser
   ): Future[MusitResult[Option[ConservationEvent]]] = {
-    val action = updateAction(mid, id, event).transactionally
+    val action = createUpdateAction(mid, id, event).transactionally
 
     db.run(action)
       .flatMap { numUpdated =>
@@ -188,11 +254,12 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       )
   }
 
-  private def updateAction(
+  private def updateActionRowOnly(
       mid: MuseumId,
       id: EventId,
       event: ConservationEvent
   )(implicit currUsr: AuthenticatedUser): DBIO[Int] = {
     eventTable.filter(_.eventId === id).update(asRow(mid, event))
   }
+
 }

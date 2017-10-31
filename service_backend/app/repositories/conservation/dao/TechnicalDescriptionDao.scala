@@ -11,7 +11,8 @@ import scala.concurrent.ExecutionContext
 class TechnicalDescriptionDao @Inject()(
     implicit
     override val dbConfigProvider: DatabaseConfigProvider,
-    override val ec: ExecutionContext
+    override val ec: ExecutionContext,
+    override val objectEventDao: ObjectEventDao
 ) extends ConservationEventDao[TechnicalDescription] {
 
   override val logger = Logger(classOf[TechnicalDescriptionDao])
