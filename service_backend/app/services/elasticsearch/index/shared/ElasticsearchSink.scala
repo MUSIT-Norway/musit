@@ -32,18 +32,6 @@ trait ElasticsearchSink {
   def responseListener: ResponseListener[BulkCompatibleDefinition] =
     ResponseListener.noop
 
-  def debugResponseListener: ResponseListener[BulkCompatibleDefinition] = {
-    new ResponseListener[Any] {
-      override def onAck(resp: BulkResponseItem, original: Any): Unit =
-        println("ResponseListener onAck: " + resp)
-      override def onFailure(resp: BulkResponseItem, original: Any): Unit = {
-        println(s"ResponseListener onFailure, resp: $resp")
-        println(s"ResponseListener onFailure: original: $original")
-      }
-    }
-
-  }
-
   private[this] implicit val rb = new RequestBuilder[BulkCompatibleDefinition] {
     override def request(t: BulkCompatibleDefinition) = t
   }
@@ -55,7 +43,7 @@ trait ElasticsearchSink {
       client.subscriber[BulkCompatibleDefinition](
         completionFn = onComplete,
         errorFn = onError,
-        listener = debugResponseListener // responseListener
+        listener = responseListener
       )
     Sink.fromSubscriber(sub)
   }
@@ -141,7 +129,7 @@ trait ResponseLogger extends ResponseListener[BulkCompatibleDefinition] {
       org: BulkCompatibleDefinition
   ): Unit = {
     if (resp.error.isDefined) {
-      logger.error(s"Failure: $resp")
+      logger.error(s"$resp")
     } else {
       logger.warn(s"Failure without error message: $resp")
     }

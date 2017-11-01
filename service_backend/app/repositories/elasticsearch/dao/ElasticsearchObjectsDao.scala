@@ -34,37 +34,27 @@ class ElasticsearchObjectsDao @Inject()(
       streams: Int,
       fetchSize: Int
   ): Future[Seq[Source[MusitObject, NotUsed]]] = {
-    println("TEMP: <objectStreams>")
-    val maxIdValue = objTable.filter(_.uuid.isDefined).map(_.id).max
+    val maxIdValue =
+      objTable.filter(_.uuid.isDefined).map(_.id).max
 
-    //    db.run(maxIdValue.result).map { maxId =>
-    //      ElasticsearchObjectsDao.indexRanges(streams, maxId.get.underlying).map {
-
-    val res = Future.successful(ElasticsearchObjectsDao.indexRanges(streams, 60).map {
-
-      case (from, to) =>
-        println(s"TEMP: Skal lese objectstream fra $from til $to ")
-        val query = objTable.filter(row => (row.id >= from) && (row.id <= to))
-        Source.fromPublisher(
-          db.stream(
-              query.result.withStatementParameters(
-                rsType = ResultSetType.ForwardOnly,
-                rsConcurrency = ResultSetConcurrency.ReadOnly,
-                fetchSize = fetchSize
+    db.run(maxIdValue.result).map { maxId =>
+      ElasticsearchObjectsDao.indexRanges(streams, maxId.get.underlying).map {
+        case (from, to) =>
+          val query = objTable.filter(row => (row.id >= from) && (row.id <= to))
+          Source.fromPublisher(
+            db.stream(
+                query.result
+                  .withStatementParameters(
+                    rsType = ResultSetType.ForwardOnly,
+                    rsConcurrency = ResultSetConcurrency.ReadOnly,
+                    fetchSize = fetchSize
+                  )
+                  .transactionally
               )
-              //why .transactionally here? .transactionally
-            )
-            .mapResult(o => {
-              MusitObject.fromSearchTuple(o)
-            })
-//            .mapResult(MusitObject.fromSearchTuple)
-        )
-      //}
-      //}
-    })
-    println("TEMP: </objectStreams>")
-
-    res
+              .mapResult(MusitObject.fromSearchTuple)
+          )
+      }
+    }
   }
 
   def objectsChangedAfterTimestampStream(
@@ -125,8 +115,6 @@ class ElasticsearchObjectsDao @Inject()(
 
 object ElasticsearchObjectsDao {
   def indexRanges(count: Int, lastId: Long): List[(Long, Long)] = {
-    println("TEMP: <indexRanges>")
-
     val oi = Range.Long(lastId / count, lastId + 1, (lastId + 1) / count)
     oi.foldLeft(List.empty[(Long, Long)]) {
         case (list, id) =>

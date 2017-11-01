@@ -24,7 +24,6 @@ import services.elasticsearch.index.shared.{
 }
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 /**
  * Index documents into the musit_object index.
@@ -55,14 +54,10 @@ class IndexObjects @Inject()(
   override val indexAliasName: String = indexAlias
 
   override def createIndex()(implicit ec: ExecutionContext) = {
-    println("TEMP: createIndex (Objects)")
     val config = createIndexConfig()
     client.execute(MusitObjectsIndexConfig.config(config.name)).flatMap { res =>
-      println("TEMP: Inne i createIndex, flatmap: " + res)
-
       if (res.acknowledged) Future.successful(config)
       else Future.failed(new IllegalStateException("Unable to setup index"))
-
     }
   }
 
@@ -72,8 +67,6 @@ class IndexObjects @Inject()(
       as: ActorSystem
   ): Unit = {
 
-    println("TEMP: reindexDocuments (Objects)")
-
     val sampleSourceFuture = Future.successful(
       elasticsearchObjectsDao.sampleStream(fetchSize, None)
     )
@@ -82,7 +75,6 @@ class IndexObjects @Inject()(
       sampleSource <- sampleSourceFuture
     } yield (objSources, sampleSource)
 
-    println("før source.map")
     sources.map {
       case (objSources, sampleSource) =>
         val es = new DatabaseMaintainedElasticSearchIndexSink(
@@ -94,10 +86,7 @@ class IndexObjects @Inject()(
         ).toElasticsearchSink
 
         val esBulkSource = createFlow(config, objSources, sampleSource)
-        println("etter createFlow")
-        val res = esBulkSource.runWith(es)
-        println("etter runWith")
-        res
+        esBulkSource.runWith(es)
     }
   }
 
@@ -140,54 +129,24 @@ class IndexObjects @Inject()(
     val musitObjectFlow  = new MusitObjectTypeFlow().flow(config)
     val sampleObjectFlow = new SampleTypeFlow(actorService).flow(config)
 
-    println(s"TEMP: Creating flow, objSources.size=${objSources.size}")
-
     Source.fromGraph(GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
 
-      println(s"TEMP: før mergeToEs")
       val mergeToEs =
         builder.add(Merge[BulkCompatibleDefinition](objSources.size + 1))
 
-      println(s"TEMP: før objSources.map")
       objSources.map(_.via(musitObjectFlow)).foreach(_ ~> mergeToEs)
-      println(s"TEMP: før sampleSource.via")
       sampleSource.via(sampleObjectFlow) ~> mergeToEs
 
-      println(s"TEMP: før SourceShape.of")
-      val res = SourceShape.of(mergeToEs.out)
-      println(s"TEMP: etter SourceShape.of")
-
-      res
+      SourceShape.of(mergeToEs.out)
     })
-
   }
 
   private def findLastIndexDateTime(): Future[Option[DateTime]] = {
-    println(s"TEMP: Calling findLastIndexDateTime on index $indexAliasName")
-
-    val res = indexStatusDao.findLastIndexed(indexAliasName).map {
-      case MusitSuccess(v) => {
-        println("Success findlastIndexed: " + v)
-        v.map(s => s.updated.getOrElse(s.indexed))
-      }
-      case err: MusitError => {
-        println("findlastIndexed error: " + err)
-        None
-      }
+    indexStatusDao.findLastIndexed(indexAliasName).map {
+      case MusitSuccess(v) => v.map(s => s.updated.getOrElse(s.indexed))
+      case err: MusitError => None
     }
-
-    res onComplete {
-      case Success(s) => println("indexStatusDao.findLastIndexed success:" + s)
-      case Failure(t) =>
-        println("indexStatusDao.findLastIndexed An error has occured: " + t.getMessage)
-    }
-
-    res.map(
-      optDateTime =>
-        println(s"findLastIndexDateTime $indexAliasName dateTime:$optDateTime")
-    )
-    res
   }
 
 }

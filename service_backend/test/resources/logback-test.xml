@@ -14,22 +14,13 @@
   <logger name="play" level="WARN"/>
   <logger name="akka" level="ERROR"/>
   <logger name="slick.jdbc" level="OFF"/>
+
   <logger name="Application" level="OFF"/>
   <logger name="no.uio.musit" level="OFF"/>
   <logger name="controllers" level="OFF"/>
   <logger name="services" level="OFF"/>
   <logger name="models" level="OFF"/>
   <logger name="repositories" level="OFF"/>
-
-<!-- Include if you need low-level http and ES-logging
-  <logger name="org.apache" level="DEBUG" />
-  <logger name="httpclient" level="DEBUG" />
-  <logger name="httpclient.wire" level="DEBUG" />
-  <logger name="org.apache.http.headers" level="DEBUG" />
-  <logger name="org.apache.http.wire" level="DEBUG" />
-  <logger name="com.sksamuel.elastic4s" level="DEBUG" />
--->
-
 
 
   <root level="ERROR">

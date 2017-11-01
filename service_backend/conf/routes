@@ -145,8 +145,3 @@ GET           /purposes                                                      con
 POST          /:mid/loans                                                    controllers.loan.LoanController.createLoan(mid: Int)
 GET           /:mid/loans/active                                             controllers.loan.LoanController.findActiveLoan(mid: Int)
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# System Info (Debugging)
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-GET /systemInfo/mainInfo controllers.SystemInfoController.getMainInfo
-GET /systemInfo/doEsCall controllers.SystemInfoController.doEsCall
