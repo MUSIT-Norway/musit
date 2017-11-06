@@ -1002,3 +1002,31 @@ PRIMARY KEY (object_uuid,event_id)
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('konserveringsprosess', 'conservation process',NULL, NULL, NULL);
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('behandling','treatment', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('teknisk beskrivelse', 'technical description',NULL, NULL, NULL);
+
+CREATE SEQUENCE MUSARK_CONSERVATION.treatment_material_seq
+INCREMENT BY 1
+START WITH 1
+NOMAXVALUE
+NOCYCLE
+NOCACHE;
+
+CREATE TABLE MUSARK_CONSERVATION.TREATMENT_MATERIAL(
+material_id INTEGER DEFAULT MUSARK_CONSERVATION.treatment_material_seq.nextval,
+no_material VARCHAR2(100),
+en_material VARCHAR2(100),
+PRIMARY KEY (material_id)
+);
+
+CREATE SEQUENCE MUSARK_CONSERVATION.treatment_keyword_seq
+INCREMENT BY 1
+START WITH 1
+NOMAXVALUE
+NOCYCLE
+NOCACHE;
+
+CREATE TABLE MUSARK_CONSERVATION.TREATMENT_KEYWORD(
+keyword_id INTEGER DEFAULT MUSARK_CONSERVATION.treatment_keyword_seq.nextval,
+no_keyword VARCHAR2(100),
+en_keyword VARCHAR2(100),
+PRIMARY KEY (keyword_id)
+);

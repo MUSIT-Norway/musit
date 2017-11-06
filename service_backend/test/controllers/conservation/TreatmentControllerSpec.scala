@@ -30,10 +30,12 @@ class TreatmentControllerSpec
   val baseUrl      = (mid: Int) => s"/$mid/conservation"
   val baseEventUrl = (mid: Int) => s"/$mid/conservation/events"
 
-  val addTreatmentUrl     = baseEventUrl
-  val getTreatmentUrl     = baseEventUrl
-  val getTreatmentByIdUrl = (mid: Int) => (id: Long) => s"${baseEventUrl(mid)}/$id"
-  val putTreatmentByIdUrl = (mid: Int) => (id: Long) => s"${baseEventUrl(mid)}/$id"
+  val addTreatmentUrl      = baseEventUrl
+  val getTreatmentUrl      = baseEventUrl
+  val getTreatmentByIdUrl  = (mid: Int) => (id: Long) => s"${baseEventUrl(mid)}/$id"
+  val putTreatmentByIdUrl  = (mid: Int) => (id: Long) => s"${baseEventUrl(mid)}/$id"
+  val getTreatmentMaterial = s"/conservation/treatmentMaterials"
+  val getKeywordMaterial   = s"/conservation/treatmentKeywords"
 
   def addDummyTreatment(t: BearerToken = token): WSResponse = {
     val js =
@@ -174,7 +176,27 @@ class TreatmentControllerSpec
         assert(updRes.status !== OK)
 
       }
-
+      "return the list of materials in treatment event" in {
+        val res =
+          wsUrl(getTreatmentMaterial)
+            .withHttpHeaders(tokenRead.asHeader)
+            .get()
+            .futureValue
+        println(res.json)
+        res.status mustBe OK
+        res.json.as[JsArray].value.size mustBe 5
+        (res.json \ 0 \ "noTerm").as[String] mustBe "testMateriale"
+        (res.json \ 0 \ "id").as[Int] mustBe 1
+      }
+      "return the list of keywordss in treatment event" in {
+        val res =
+          wsUrl(getKeywordMaterial).withHttpHeaders(tokenRead.asHeader).get().futureValue
+        println(res.json)
+        res.status mustBe OK
+        res.json.as[JsArray].value.size mustBe 5
+        (res.json \ 0 \ "noTerm").as[String] mustBe "testKeyword"
+        (res.json \ 0 \ "id").as[Int] mustBe 1
+      }
     }
   }
 }

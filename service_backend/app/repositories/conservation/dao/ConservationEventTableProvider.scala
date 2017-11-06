@@ -64,5 +64,4 @@ private[dao] trait ConservationEventTableProvider
     // scalastyle:on method.name
 
   }
-
 }

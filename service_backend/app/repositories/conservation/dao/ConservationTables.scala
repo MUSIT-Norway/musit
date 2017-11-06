@@ -1,5 +1,6 @@
 package repositories.conservation.dao
 
+import models.conservation.{TreatmentKeyword, TreatmentMaterial}
 import models.conservation.events.ConservationType
 import no.uio.musit.models.{CollectionUUID, EventTypeId}
 import play.api.db.slick.HasDatabaseConfigProvider
@@ -17,7 +18,9 @@ trait ConservationTables
 
   import profile.api._
 
-  val conservationTypeTable = TableQuery[ConservationTypeTable]
+  val conservationTypeTable  = TableQuery[ConservationTypeTable]
+  val treatmentMaterialTable = TableQuery[TreatmentMaterialTable]
+  val treatmentKeywordTable  = TableQuery[TreatmentKeywordTable]
 
   // scalastyle:off line.size.limit
   type ConservationTypeRow =
@@ -86,6 +89,72 @@ trait ConservationTables
       extraDescriptionAttributes =
         t._6.flatMap(a => Json.fromJson[Map[String, String]](a).asOpt)
     )
+  }
+
+  /**
+   * Representation of the MUSARK_ANALYSIS.TREATMENT table
+   */
+  // scalastyle:off line.size.limit
+  type TreatmentMaterialRow =
+    (
+        Int,
+        String,
+        String
+    )
+
+  protected[dao] def fromTreatmentMaterialRow(
+      t: TreatmentMaterialRow
+  ): TreatmentMaterial = {
+    TreatmentMaterial(id = t._1, noTerm = t._2, enTerm = t._3)
+  }
+
+  class TreatmentMaterialTable(val tag: Tag)
+      extends Table[TreatmentMaterialRow](
+        tag,
+        Some(SchemaName),
+        TreatmentMaterialTableName
+      ) {
+    val id     = column[Int]("MATERIAL_ID")
+    val noTerm = column[String]("NO_MATERIAL")
+    val enTerm = column[String]("EN_MATERIAL")
+
+    // scalastyle:off method.name
+    def * = (id, noTerm, enTerm)
+
+    // scalastyle:on method.name
+  }
+
+  /**
+   * Representation of the MUSARK_CONSERVATION.TREATMENT_KEYWORD table
+   */
+  // scalastyle:off line.size.limit
+  type TreatmentKeywordRow =
+    (
+        Int,
+        String,
+        String
+    )
+
+  protected[dao] def fromTreatmentKeywordRow(
+      t: TreatmentKeywordRow
+  ): TreatmentKeyword = {
+    TreatmentKeyword(id = t._1, noTerm = t._2, enTerm = t._3)
+  }
+
+  class TreatmentKeywordTable(val tag: Tag)
+      extends Table[TreatmentKeywordRow](
+        tag,
+        Some(SchemaName),
+        TreatmentKeywordTableName
+      ) {
+    val id     = column[Int]("KEYWORD_ID")
+    val noTerm = column[String]("NO_KEYWORD")
+    val enTerm = column[String]("EN_KEYWORD")
+
+    // scalastyle:off method.name
+    def * = (id, noTerm, enTerm)
+
+    // scalastyle:on method.name
   }
 
 }

@@ -14,6 +14,8 @@ package object dao {
   val ConservationEventTypeTableName = "EVENT_TYPE"
   val ObjectEventTableName           = "OBJECT_EVENT"
   val MappingSchemaName              = "MUSIT_MAPPING"
+  val TreatmentMaterialTableName     = "TREATMENT_MATERIAL"
+  val TreatmentKeywordTableName      = "TREATMENT_KEYWORD"
 }
 
 /*

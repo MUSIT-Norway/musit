@@ -9,12 +9,13 @@ import no.uio.musit.security.{Authenticator, CollectionManagement}
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.mvc.ControllerComponents
-import services.conservation.ConservationProcessService
+import services.conservation.{ConservationProcessService, TreatmentService}
 @Singleton
 class ConservationController @Inject()(
     val controllerComponents: ControllerComponents,
     val authService: Authenticator,
-    val consService: ConservationProcessService
+    val consService: ConservationProcessService,
+    val treatmentService: TreatmentService
 ) extends MusitController {
 
   val logger = Logger(classOf[ConservationController])
@@ -30,6 +31,22 @@ class ConservationController @Inject()(
       consService.getTypesFor(maybeColl).map {
         case MusitSuccess(types) => listAsPlayResult(types)
         case err: MusitError     => internalErr(err)
+      }
+    }
+
+  def getMaterialList =
+    MusitSecureAction(CollectionManagement).async { implicit request =>
+      treatmentService.getMaterialList.map {
+        case MusitSuccess(t) => listAsPlayResult(t)
+        case err: MusitError => internalErr(err)
+      }
+    }
+
+  def getKeywordList =
+    MusitSecureAction(CollectionManagement).async { implicit request =>
+      treatmentService.getKeywordList.map {
+        case MusitSuccess(t) => listAsPlayResult(t)
+        case err: MusitError => internalErr(err)
       }
     }
 }
