@@ -464,18 +464,6 @@ CREATE TABLE MUSARK_LOAN.LENT_OBJECT (
 );
 
 
--- Grant all rights on tables to musit user
-BEGIN
-  FOR x IN (SELECT owner || '.' || table_name ownertab
-            FROM all_tables
-            WHERE owner LIKE 'MUSARK_%' OR owner = 'MUSIT_MAPPING')
-  LOOP
-    EXECUTE IMMEDIATE 'GRANT ALL ON ' || x.ownertab || ' TO MUSIT';
-  END LOOP;
-END;
-
-
-
 CREATE SEQUENCE MUSARK_CONSERVATION.event_eventid_seq
 INCREMENT BY 1
 START WITH 1
@@ -554,3 +542,14 @@ no_keyword VARCHAR2(100),
 en_keyword VARCHAR2(100),
 PRIMARY KEY (keyword_id)
 );
+
+
+-- Grant all rights on tables to musit user
+BEGIN
+  FOR x IN (SELECT owner || '.' || table_name ownertab
+            FROM all_tables
+            WHERE owner LIKE 'MUSARK_%' OR owner = 'MUSIT_MAPPING')
+  LOOP
+    EXECUTE IMMEDIATE 'GRANT ALL ON ' || x.ownertab || ' TO MUSIT';
+  END LOOP;
+END;
