@@ -182,9 +182,7 @@ class TreatmentControllerSpec
             .withHttpHeaders(tokenRead.asHeader)
             .get()
             .futureValue
-        println(res.json)
         res.status mustBe OK
-        println(res.json.as[JsArray].value.size)
         res.json.as[JsArray].value.size mustBe 73
         (res.json \ 0 \ "noTerm").as[String] mustBe "Sitronsyre"
         (res.json \ 0 \ "id").as[Int] mustBe 1
@@ -192,8 +190,6 @@ class TreatmentControllerSpec
       "return the list of keywords in treatment event" in {
         val res =
           wsUrl(getKeywordMaterial).withHttpHeaders(tokenRead.asHeader).get().futureValue
-        println(res.json)
-        println(res.json)
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 16
         (res.json \ 0 \ "noTerm").as[String] mustBe "Støvsuget"
