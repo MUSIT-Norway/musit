@@ -80,6 +80,7 @@ class IndexProcessor(
 
   def ready: Receive = {
     case RequestUpdateIndex =>
+      nextUpdate = None
       indexConfig match {
         case Some(indexName) if indexStatus.canUpdate =>
           indexer.updateExistingIndex(
@@ -109,6 +110,7 @@ class IndexProcessor(
         log.info(s"[$name]: Reindexing")
         sender() ! Accepted
       } else {
+        log.warning(s"RequestReindex Cannot reindex: $name")
         sender() ! NotAccepted
       }
 
@@ -138,12 +140,20 @@ class IndexProcessor(
       unhandled(msg)
   }
 
-  private def scheduleNextUpdate(): Unit =
+  private def scheduleNextUpdate(): Unit = {
+
+    /*  nextUpdate is cleared at the start of RequestUpdateIndex.
+        Alternatively we could perhaps just as well remove this guard and ignore clearing
+        nextUpdate at the beginning of RequestUpdateIndex.
+        (The current logic is a bit safer if scheduleNextUpdate is called "too often".)
+     */
+
     if (nextUpdate.isEmpty) {
       nextUpdate = updateInterval.map(
         t => context.system.scheduler.scheduleOnce(t, self, RequestUpdateIndex)
       )
     }
+  }
 
   def cancelNextUpdate(): Unit = {
     nextUpdate.foreach(_.cancel())
