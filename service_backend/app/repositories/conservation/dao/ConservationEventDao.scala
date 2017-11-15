@@ -1,6 +1,7 @@
 package repositories.conservation.dao
 
 import com.google.inject.Inject
+import controllers.conservation.MusitResultUtils._
 import models.conservation.events.ConservationEvent
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
 import no.uio.musit.functional.Implicits.futureMonad
@@ -9,6 +10,7 @@ import no.uio.musit.models.{EventId, MuseumId, ObjectUUID}
 import no.uio.musit.musitUtils.Utils
 import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.security.AuthenticatedUser
+import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 
@@ -189,8 +191,10 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
   )(implicit currUsr: AuthenticatedUser): DBIO[EventId] = {
     val objectIds           = event.affectedThings.getOrElse(Seq.empty)
     val eventWithoutObjects = event.withAffectedThings(None)
-    val row                 = asRow(mid, eventWithoutObjects)
-    val newRow              = row.copy(_9 = partOf)
+    val eventWithRegisteredDate =
+      eventWithoutObjects.withRegisteredInfo(Some(currUsr.id), Some(dateTimeNow))
+    val row    = asRow(mid, eventWithRegisteredDate)
+    val newRow = row.copy(_9 = partOf)
     for {
       eventId <- insertAction(newRow)
       _       <- objectEventDao.insertObjectEventAction(eventId, objectIds)
@@ -205,10 +209,17 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     require(event.id.isDefined)
     val eventId = event.id.get
 
-    val objectIds = event.affectedThings.getOrElse(Seq.empty)
+    //updated and registered are filled in during putUpdateAndRegDataToProcessAndSubevents
+    //or updated are filled in during conservationEvent.update(update on single subevent)
+    require(event.updatedBy.get == currUsr.id)
+    require(event.updatedDate.isDefined)
 
-    val row    = asRow(mid, event)
-    val newRow = row.copy(_9 = Some(partOf))
+    require(event.registeredBy.isDefined)
+    require(event.registeredDate.isDefined)
+
+    val objectIds = event.affectedThings.getOrElse(Seq.empty)
+    val row       = asRow(mid, event)
+    val newRow    = row.copy(_9 = Some(partOf))
 
     for {
       numEventRowsUpdated <- updateActionRowOnly(mid, eventId, event)
@@ -233,7 +244,9 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
   )(
       implicit currUsr: AuthenticatedUser
   ): Future[MusitResult[Option[ConservationEvent]]] = {
-    val action = createUpdateAction(mid, id, event).transactionally
+    val updatedEvent = event.withUpdatedInfo(Some(currUsr.id), Some(dateTimeNow))
+    val action       = createUpdateAction(mid, id, updatedEvent).transactionally
+    //println("inniUpdate-dao " + event)
 
     db.run(action)
       .flatMap { numUpdated =>

@@ -19,13 +19,17 @@ trait ConservationEventRowMappers extends EventRowMappers[ConservationModuleEven
       currUsr: AuthenticatedUser
   ): EventRow = {
     val js = Json.toJson[ConservationModuleEvent](e)
+    //println("inni ASROW " + e.registeredDate)
 
-    (
+    require(e.registeredDate.isDefined)
+    require(e.registeredBy.isDefined)
+
+    val row = (
       e.id,
       e.eventTypeId,
       mid,
-      e.registeredBy.getOrElse(currUsr.id),
-      e.registeredDate.getOrElse(dateTimeNow),
+      e.registeredBy.get,
+      e.registeredDate.get,
       e.doneBy,
       e.doneDate,
       e.updatedDate,
@@ -35,6 +39,7 @@ trait ConservationEventRowMappers extends EventRowMappers[ConservationModuleEven
       e.caseNumber,
       js
     )
+    row
   }
 
   override protected def fromRow(

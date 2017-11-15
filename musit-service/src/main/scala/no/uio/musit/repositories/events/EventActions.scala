@@ -56,8 +56,9 @@ trait EventActions extends DbErrorHandlers {
   protected val noaction: DBIO[Unit] = DBIO.successful(())
 
   /** Action for inserting a new row in the event table */
-  protected def insertAction(event: EventRow): DBIO[EventId] =
+  protected def insertAction(event: EventRow): DBIO[EventId] = {
     eventTable returning eventTable.map(_.eventId) += event
+  }
 
   /** Locate an event by the given ID */
   protected def findByIdAction(

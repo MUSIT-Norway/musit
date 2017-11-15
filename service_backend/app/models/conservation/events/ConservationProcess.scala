@@ -1,10 +1,13 @@
 package models.conservation.events
 
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
 import org.joda.time.DateTime
 import play.api.libs.json._
+
+import scala.concurrent.Future
 
 sealed trait ConservationModuleEvent extends MusitEvent {
 
@@ -86,11 +89,17 @@ sealed trait ConservationEvent extends ConservationModuleEvent {
   // todo val extraAttributes: Option[ExtraAttributes]
 
   //A new copy, appropriate when updating the event in the database.
-  //TODO: Add the stuff necessary when updating an event
   def withUpdatedInfo(
       updatedBy: Option[ActorId],
       updatedDate: Option[DateTime]
   ): ConservationEvent
+
+  //A new copy, appropriate when adding/inserting the event in the database.
+  def withRegisteredInfo(
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ): ConservationEvent
+
   def asPartOf(partOf: Option[EventId]): ConservationEvent
 
   def withAffectedThings(objects: Option[Seq[ObjectUUID]]): ConservationEvent
@@ -186,8 +195,15 @@ case class ConservationProcess(
       updatedBy: Option[ActorId],
       updatedDate: Option[DateTime]
   ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
-}
 
+  def withRegisteredInfo(
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
+
+  def withEvents(newEvents: Seq[ConservationEvent]) = copy(events = Some(newEvents))
+
+}
 object ConservationProcess extends WithDateTimeFormatters {
   val eventTypeId = EventTypeId(1)
 
@@ -262,6 +278,11 @@ case class Treatment(
       updatedDate: Option[DateTime]
   ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
 
+  override def withRegisteredInfo(
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
+
   override def asPartOf(partOf: Option[EventId]) = copy(partOf = partOf)
 
   override def withAffectedThings(objects: Option[Seq[ObjectUUID]]): ConservationEvent =
@@ -316,6 +337,11 @@ case class TechnicalDescription(
       updatedBy: Option[ActorId],
       updatedDate: Option[DateTime]
   ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
+
+  override def withRegisteredInfo(
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
 
   override def asPartOf(partOf: Option[EventId]) = copy(partOf = partOf)
 

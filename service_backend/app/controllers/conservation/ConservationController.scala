@@ -35,7 +35,7 @@ class ConservationController @Inject()(
     }
 
   def getMaterialList =
-    MusitSecureAction(CollectionManagement).async { implicit request =>
+    MusitSecureAction().async { implicit request =>
       treatmentService.getMaterialList.map {
         case MusitSuccess(t) => listAsPlayResult(t)
         case err: MusitError => internalErr(err)
@@ -43,7 +43,7 @@ class ConservationController @Inject()(
     }
 
   def getKeywordList =
-    MusitSecureAction(CollectionManagement).async { implicit request =>
+    MusitSecureAction().async { implicit request =>
       treatmentService.getKeywordList.map {
         case MusitSuccess(t) => listAsPlayResult(t)
         case err: MusitError => internalErr(err)

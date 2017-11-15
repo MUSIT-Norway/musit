@@ -40,10 +40,10 @@ trait ConservationprocessGenerators {
       partOf = None,
       doneByActors = None,
       affectedThings = oids,
-      registeredBy = None,
+      registeredBy = Some(dummyActorId),
       registeredDate = now,
       updatedBy = None,
-      updatedDate = now,
+      updatedDate = None,
       events = None
     )
   }

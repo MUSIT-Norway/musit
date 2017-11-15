@@ -11,6 +11,7 @@ import no.uio.musit.MusitResults.{
 import no.uio.musit.models._
 import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.security.AuthenticatedUser
+import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 
@@ -76,6 +77,8 @@ class ConservationProcessDao @Inject()(
   )(implicit currUsr: AuthenticatedUser): DBIO[EventId] = {
 
     val dao = getDaoFor(event)
+    //val eventWithUpdated = event.withUpdatedInfo(Some(currUsr.id), Some(dateTimeNow))
+    // println("Inni dao.process.createInsertOrUpdateAction " + event)
     event.id match {
       case Some(id) =>
         dao.createUpdateAction(mid, partOf, event).map { numUpdated =>
@@ -91,18 +94,18 @@ class ConservationProcessDao @Inject()(
   }
 
   /**
-   * Locates a specific analysis module related event by its EventId.
+   * Same as findById, but will ensure that only the conservation specific events
+   * are returned.
    *
-   * @param mid           the MuseumId to look for.
-   * @param id            the EventId to look for.
-   * @return eventually returns a MusitResult that might contain the ConservationModuleEvent.
+   * @param id The event ID to look for
+   * @return the Conservation that was found or None
    */
-  def findById(
+  def findConservationProcessById(
       mid: MuseumId,
       id: EventId
   )(
       implicit currUsr: AuthenticatedUser
-  ): Future[MusitResult[Option[ConservationModuleEvent]]] = {
+  ): Future[MusitResult[Option[ConservationProcess]]] = {
     val query = for {
       maybeEvent <- findByIdAction(mid, id)
       children   <- listChildrenAction(mid, id)
@@ -124,7 +127,7 @@ class ConservationProcessDao @Inject()(
    * @param id The event ID to look for
    * @return the Conservation that was found or None
    */
-  def findConservationProcessById(
+  /* def findConservationProcessById(
       mid: MuseumId,
       id: EventId
   )(
@@ -138,8 +141,43 @@ class ConservationProcessDao @Inject()(
         }
       }
     }
+  }*/
+
+  /**
+   * Same as findById, but will ensure that only the conservation specific events
+   * are returned.
+   *
+   * @param id The event ID to look for
+   * @return the Conservation that was found or None
+   */
+  def findConservationModuleById(
+      mid: MuseumId,
+      id: EventId
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): Future[MusitResult[Option[ConservationModuleEvent]]] = {
+    val query = findByIdAction(mid, id)
+    db.run(query)
+      .map(MusitSuccess.apply)
+      .recover(nonFatal(s"An unexpected error occurred fetching event $id"))
   }
 
+  /*def FindOnlyConservationProcessRowById(
+      mid: MuseumId,
+      eventId: EventId
+  ): Future[Option[ConservationProcess]] = {
+    //db.run(eventTable.filter( e => e.eventId === eventId && e.museumId = mid).result.headOption)
+    val query = eventTable.filter { e =>
+      e.museumId === mid &&
+      e.eventId === eventId
+    }.map(res => res.asInstanceOf[ConservationProcess]).result.headOption
+    db.run(query)
+      .map(MusitSuccess.apply)
+      .recover(
+        nonFatal(s"An error occurred trying to find event $eventId for museumId $mid")
+      )
+  }
+   */
   private def readSubEvent(eventTypeId: EventTypeId, row: EventRow): ConservationEvent = {
     val optSubEventType = ConservationEventType(eventTypeId)
     val subEventType = optSubEventType.getOrElse(
@@ -197,12 +235,13 @@ class ConservationProcessDao @Inject()(
 
     def subEventActions(partOf: EventId) =
       subEvents.map(
-        subEvent =>
+        subEvent => {
+          //val event = subEvent.withRegisteredInfo(Some(currUsr.id), Some(dateTimeNow))
           createInsertSubEventAction(mid, partOf, subEvent.asPartOf(Some(partOf)))
+        }
       )
 
     val cpToInsert = ce.withoutChildren
-
     val actions: DBIO[EventId] = for {
 
       cpId <- insertAction(asRow(mid, cpToInsert))
@@ -232,12 +271,15 @@ class ConservationProcessDao @Inject()(
       implicit currUsr: AuthenticatedUser
   ): Future[MusitResult[Option[ConservationProcess]]] = {
     val subEvents = cp.events.getOrElse(Seq.empty)
-
-    def subEventActions(partOf: EventId): Seq[DBIO[EventId]] =
+    def subEventActions(partOf: EventId): Seq[DBIO[EventId]] = {
       subEvents.map(
-        subEvent =>
+        subEvent => {
+          //subEvent.withUpdatedInfo(Some(currUsr.id), Some(dateTimeNow))
+          //println("inni process.dao. update " + subEvent)
           createInsertOrUpdateSubEventAction(mid, partOf, subEvent.asPartOf(Some(partOf)))
+        }
       )
+    }
 
     //We "clear" the children so that we don't get them embedded in the json-blob for the process
     val cpToInsert = cp.withoutChildren
@@ -246,7 +288,7 @@ class ConservationProcessDao @Inject()(
       subEventNumUpd  <- DBIO.sequence(subEventActions(id)).map(_ => 1)
     } yield subEventNumUpd
      */
-
+    //println("inni process.dao. update før kall til subevents " + cpToInsert)
     val actions: DBIO[Int] = for {
       numUpdated <- updateAction(mid, id, cpToInsert)
       _          <- DBIO.sequence(subEventActions(id)).map(_ => 1)

@@ -77,30 +77,29 @@ class ConservationProcessDaoSpec
         val res = dao.findConservationProcessById(defaultMid, EventId(1)).futureValue
         res.isSuccess mustBe true
         res.successValue must not be empty
-        res.successValue.value.note.value must include("SaveConservation")
+        val cp = res.successValue
+        cp.value.note.value must include("SaveConservation")
+        cp.value.updatedBy mustBe None
+        cp.value.registeredBy must not be None
       }
     }
 
     "updating an conservationProcess event" should {
       "successfully save the modified fields" in {
         val eid = EventId(1L)
-        val cp = dao
-          .findById(defaultMid, eid)
-          .futureValue
-          .successValue
-          .value
-          .asInstanceOf[ConservationProcess]
+        val cp =
+          dao.findConservationProcessById(defaultMid, eid).futureValue.successValue.value
 
         val upd = cp.copy(
           updatedBy = Some(dummyActorId),
           updatedDate = Some(dateTimeNow),
           note = Some("I was just updated")
         )
-
         val res = dao.update(defaultMid, eid, upd).futureValue.successValue.value
 
         res.note mustBe upd.note
         res.updatedBy mustBe Some(dummyActorId)
+        res.registeredBy !== res.updatedBy
         res.updatedDate mustApproximate Some(dateTimeNow)
       }
       "fail if the conservationProcess doesn't exist" in {
