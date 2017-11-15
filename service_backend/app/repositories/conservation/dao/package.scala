@@ -2,6 +2,7 @@ package repositories.conservation
 
 import com.google.inject.{Inject, Singleton}
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
+import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.repositories.DbErrorHandlers
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.{GetResult, JdbcProfile}
@@ -17,9 +18,6 @@ package object dao {
   val TreatmentMaterialTableName     = "TREATMENT_MATERIAL"
   val TreatmentKeywordTableName      = "TREATMENT_KEYWORD"
 }
-
-/*
-
 @Singleton
 class DaoUtils @Inject()(
     implicit
@@ -30,13 +28,14 @@ class DaoUtils @Inject()(
 
   import profile.api._
 
-  def dbRun[T](res: DBIO[T], onErrorMsg: String): Future[MusitResult[T]] = {
+  def dbRun[T](res: DBIO[T], onErrorMsg: String): FutureMusitResult[T] = {
 
-    db.run(res)
-      .map(MusitSuccess.apply)
-      .recover(
-        nonFatal(onErrorMsg)
-      )
+    FutureMusitResult(
+      db.run(res)
+        .map(MusitSuccess.apply)
+        .recover(
+          nonFatal(onErrorMsg)
+        )
+    )
   }
 }
- */

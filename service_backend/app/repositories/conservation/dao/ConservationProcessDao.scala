@@ -8,12 +8,14 @@ import no.uio.musit.MusitResults.{
   MusitSuccess,
   MusitValidationError
 }
+import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models._
 import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
+import repositories.conservation.DaoUtils
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -23,7 +25,8 @@ class ConservationProcessDao @Inject()(
     val dbConfigProvider: DatabaseConfigProvider,
     implicit val ec: ExecutionContext,
     val treatmentDao: TreatmentDao,
-    val technicalDescriptionDao: TechnicalDescriptionDao
+    val technicalDescriptionDao: TechnicalDescriptionDao,
+    val daoUtils: DaoUtils
 ) extends ConservationEventTableProvider
     with ConservationTables
     with EventActions
@@ -229,7 +232,7 @@ class ConservationProcessDao @Inject()(
   def insert(
       mid: MuseumId,
       ce: ConservationProcess
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[EventId]] = {
+  )(implicit currUsr: AuthenticatedUser): FutureMusitResult[EventId] = {
 
     val subEvents = ce.events.getOrElse(Seq.empty)
 
@@ -249,9 +252,12 @@ class ConservationProcessDao @Inject()(
 
     } yield cpId
 
-    db.run(actions.transactionally)
-      .map(MusitSuccess.apply)
-      .recover(nonFatal(s"An error occurred trying to add event"))
+    daoUtils.dbRun(actions.transactionally, "An error occurred trying to add event")
+    /*FutureMusitResult(
+      db.run(actions.transactionally)
+        .map(MusitSuccess.apply)
+        .recover(nonFatal(s"An error occurred trying to add event"))
+    )*/
   }
 
   /**

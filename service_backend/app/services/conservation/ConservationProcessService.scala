@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import controllers.conservation.MusitResultUtils
 import models.conservation.events._
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
+import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models._
@@ -39,7 +40,7 @@ class ConservationProcessService @Inject()(
 
     val event = cpe.withRegisteredInfo(Some(currUser.id), Some(dateTimeNow))
     val res = for {
-      added <- MusitResultT(addConservation(mid, event))
+      added <- MusitResultT((addConservation(mid, event)).value)
       a     <- MusitResultT(conservationDao.findConservationProcessById(mid, added))
     } yield a
     res.value
@@ -51,14 +52,24 @@ class ConservationProcessService @Inject()(
   private def addConservation(
       mid: MuseumId,
       ce: ConservationProcess
-  )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
+  )(implicit currUser: AuthenticatedUser): FutureMusitResult[EventId] = {
+
+    conservationDao.insert(mid, ce)
+
+  }
+
+  /*
+  private def addConservation2(
+                               mid: MuseumId,
+                               ce: ConservationProcess
+                             )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
     val res = for {
       eid <- MusitResultT(conservationDao.insert(mid, ce))
     } yield eid
 
     res.value
   }
-
+   */
   /**
    * Locate an event with the given EventId.
    */

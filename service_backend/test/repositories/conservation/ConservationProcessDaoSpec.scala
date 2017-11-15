@@ -62,7 +62,7 @@ class ConservationProcessDaoSpec
       mid: MuseumId = defaultMid
   ): MusitResult[EventId] = {
     val cpe = dummyConservationProcess(oids)
-    dao.insert(mid, cpe).futureValue
+    dao.insert(mid, cpe).value.futureValue
   }
 
   "ConservationProcessDao" when {
