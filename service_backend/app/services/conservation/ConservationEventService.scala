@@ -3,6 +3,7 @@ package services.conservation
 import com.google.inject.Inject
 import models.conservation.events.{ConservationEvent, ConservationModuleEvent}
 import no.uio.musit.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
+import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.{EventId, MuseumId}
@@ -27,15 +28,17 @@ abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Injec
    */
   def add(mid: MuseumId, ce: T)(
       implicit currUser: AuthenticatedUser
-  ): Future[MusitResult[Option[ConservationEvent]]] = {
+  ): FutureMusitResult[Option[ConservationEvent]] = {
 
     /*val event: T =
       ce.withRegisteredInfo(Some(currUser.id), Some(dateTimeNow)).asInstanceOf[T]*/
     val res = for {
-      added <- MusitResultT(dao.insert(mid, ce))
-      a     <- MusitResultT(dao.findSpecificById(mid, added))
+      added <- dao.insert(mid, ce)
+      a <- dao
+            .findSpecificById(mid, added)
+            .map(m => m.asInstanceOf[Option[ConservationEvent]])
     } yield a
-    res.value
+    res
   }
 
   /**
@@ -44,12 +47,8 @@ abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Injec
   private def addConservationEvent(
       mid: MuseumId,
       ce: T
-  )(implicit currUser: AuthenticatedUser): Future[MusitResult[EventId]] = {
-    val res = for {
-      eid <- MusitResultT(dao.insert(mid, ce))
-    } yield eid
-
-    res.value
+  )(implicit currUser: AuthenticatedUser): FutureMusitResult[EventId] = {
+    dao.insert(mid, ce)
   }
 
   /**
@@ -60,7 +59,7 @@ abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Injec
       id: EventId
   )(
       implicit currUser: AuthenticatedUser
-  ): Future[MusitResult[Option[T]]] = {
+  ): FutureMusitResult[Option[T]] = {
     dao.findSpecificById(mid, id)
   }
 
@@ -73,7 +72,7 @@ abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Injec
       event: ConservationEvent
   )(
       implicit currUser: AuthenticatedUser
-  ): Future[MusitResult[Option[ConservationEvent]]] = {
+  ): FutureMusitResult[Option[ConservationEvent]] = {
 
     //val eventToWriteToDb = event.withUpdatedInfo(Some(currUser.id), Some(dateTimeNow))
     val updateRes = dao.update(mid, eventId, event)

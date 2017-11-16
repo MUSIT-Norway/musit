@@ -108,7 +108,7 @@ class ConservationProcessDao @Inject()(
       id: EventId
   )(
       implicit currUsr: AuthenticatedUser
-  ): Future[MusitResult[Option[ConservationProcess]]] = {
+  ): FutureMusitResult[Option[ConservationProcess]] = {
     val query = for {
       maybeEvent <- findByIdAction(mid, id)
       children   <- listChildrenAction(mid, id)
@@ -118,9 +118,7 @@ class ConservationProcessDao @Inject()(
         event => event.asInstanceOf[ConservationProcess].copy(events = Some(children))
       )
 
-    db.run(query)
-      .map(MusitSuccess.apply)
-      .recover(nonFatal(s"An unexpected error occurred fetching event $id"))
+    daoUtils.dbRun(query, s"An unexpected error occurred fetching event $id")
   }
 
   /**
@@ -158,11 +156,9 @@ class ConservationProcessDao @Inject()(
       id: EventId
   )(
       implicit currUsr: AuthenticatedUser
-  ): Future[MusitResult[Option[ConservationModuleEvent]]] = {
+  ): FutureMusitResult[Option[ConservationModuleEvent]] = {
     val query = findByIdAction(mid, id)
-    db.run(query)
-      .map(MusitSuccess.apply)
-      .recover(nonFatal(s"An unexpected error occurred fetching event $id"))
+    daoUtils.dbRun(query, s"An unexpected error occurred fetching event $id")
   }
 
   /*def FindOnlyConservationProcessRowById(
@@ -275,13 +271,12 @@ class ConservationProcessDao @Inject()(
       cp: ConservationProcess
   )(
       implicit currUsr: AuthenticatedUser
-  ): Future[MusitResult[Option[ConservationProcess]]] = {
+  ): FutureMusitResult[Option[ConservationProcess]] = {
     val subEvents = cp.events.getOrElse(Seq.empty)
+
     def subEventActions(partOf: EventId): Seq[DBIO[EventId]] = {
       subEvents.map(
         subEvent => {
-          //subEvent.withUpdatedInfo(Some(currUsr.id), Some(dateTimeNow))
-          //println("inni process.dao. update " + subEvent)
           createInsertOrUpdateSubEventAction(mid, partOf, subEvent.asPartOf(Some(partOf)))
         }
       )
@@ -300,12 +295,16 @@ class ConservationProcessDao @Inject()(
       _          <- DBIO.sequence(subEventActions(id)).map(_ => 1)
     } yield numUpdated
 
-    db.run(actions.transactionally)
+    daoUtils
+      .dbRun(
+        actions.transactionally,
+        "An unexpected error occurred inserting an conservation process event"
+      )
       .flatMap { numUpdated =>
         if (numUpdated == 1) {
           findConservationProcessById(mid, id)
         } else {
-          Future.successful {
+          FutureMusitResult.failed {
             MusitValidationError(
               message = "Unexpected number of conservation process rows were updated.",
               expected = Option(1),
@@ -314,9 +313,23 @@ class ConservationProcessDao @Inject()(
           }
         }
       }
-      .recover(
+    /* FutureMusitResult(db.run(actions.transactionally))
+      .flatMap { numUpdated =>
+        if (numUpdated == 1) {
+          findConservationProcessById(mid, id)
+        } else {
+          FutureMusitResult.failed{
+            MusitValidationError(
+              message = "Unexpected number of conservation process rows were updated.",
+              expected = Option(1),
+              actual = Option(numUpdated)
+            )
+          }
+        }
+      }
+        .recover(
         nonFatal(s"An unexpected error occurred inserting an conservation process event")
-      )
+      )*/
   }
 
   private def updateAction(

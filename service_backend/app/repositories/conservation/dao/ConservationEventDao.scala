@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import controllers.conservation.MusitResultUtils._
 import models.conservation.events.ConservationEvent
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
+import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models.{EventId, MuseumId, ObjectUUID}
@@ -13,6 +14,7 @@ import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
+import repositories.conservation.DaoUtils
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.{ClassTag, _}
@@ -21,8 +23,8 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     implicit
     val dbConfigProvider: DatabaseConfigProvider,
     val ec: ExecutionContext,
-    val objectEventDao: ObjectEventDao
-//    val daoUtils: DaoUtils
+    val objectEventDao: ObjectEventDao,
+    val daoUtils: DaoUtils
 ) extends ConservationEventTableProvider
     with ConservationTables
     with EventActions
@@ -54,7 +56,7 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
 
   }
 
-  def getObjectEventIds(objectUuid: ObjectUUID): Future[MusitResult[Seq[EventId]]] = {
+  def getObjectEventIds(objectUuid: ObjectUUID): FutureMusitResult[Seq[EventId]] = {
     objectEventDao.getObjectEventIds(objectUuid)
 
   }
@@ -94,13 +96,14 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       id: EventId
   )(
       implicit currUsr: AuthenticatedUser
-  ): Future[MusitResult[Option[ConservationEvent]]] = {
+  ): FutureMusitResult[Option[ConservationEvent]] = {
     val query = for {
       maybeEvent <- findByIdAction(mid, id)
     } yield maybeEvent
-    db.run(query)
+    daoUtils.dbRun(query, s"An unexpected error occurred fetching event $id")
+    /*db.run(query)
       .map(MusitSuccess.apply)
-      .recover(nonFatal(s"An unexpected error occurred fetching event $id"))
+      .recover(nonFatal(s"An unexpected error occurred fetching event $id"))*/
   }
 
   /**
@@ -115,45 +118,41 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       id: EventId
   )(
       implicit currUsr: AuthenticatedUser
-  ): Future[MusitResult[Option[T]]] = {
-    findById(mid, id).map { r =>
-      r.map { mc =>
-        mc.flatMap {
-          case ce: T =>
-            Some(ce)
-          case x =>
-            val expectedClassName = classTag[T].runtimeClass.getName()
-            val foundClassName    = x.getClass().getName()
+  ): FutureMusitResult[Option[T]] = {
+    findById(mid, id).map { mc =>
+      mc.flatMap {
+        case ce: T =>
+          Some(ce)
+        case x =>
+          val expectedClassName = classTag[T].runtimeClass.getName()
+          val foundClassName    = x.getClass().getName()
 //            println("fant: " + foundClassName + " forventet: " + expectedClassName)
-            throw new IllegalStateException(
-              s"findEventById, expected to find an event of a given type: ${expectedClassName}" +
-                s", but it had another type: ${foundClassName}"
-            )
+          throw new IllegalStateException(
+            s"findEventById, expected to find an event of a given type: ${expectedClassName}" +
+              s", but it had another type: ${foundClassName}"
+          )
 
-        }
       }
     }
   }
 
   def getEventsForObject(mid: MuseumId, objectUuid: ObjectUUID)(
       implicit currUser: AuthenticatedUser
-  ): Future[MusitResult[Seq[ConservationEvent]]] = {
+  ): FutureMusitResult[Seq[ConservationEvent]] = {
 
     def localFindById(id: EventId) = findById(mid, id)
 
-    (for {
+    for {
 
-      ids <- MusitResultT(getObjectEventIds(objectUuid))
+      ids <- getObjectEventIds(objectUuid)
       events <- {
-        MusitResultT(
-          Utils.mapIdsToObjects[EventId, ConservationEvent](
-            ids,
-            localFindById,
-            "Missing events for these eventIds:"
-          )
+        FutureMusitResult.collectAllOrFail[EventId, ConservationEvent](
+          ids,
+          localFindById,
+          eventIds => MusitValidationError(s"Missing events for these eventIds:$eventIds")
         )
       }
-    } yield events).value
+    } yield events
   }
 
   /**
@@ -166,11 +165,12 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
   def insert(
       mid: MuseumId,
       ce: T
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[EventId]] = {
+  )(implicit currUsr: AuthenticatedUser): FutureMusitResult[EventId] = {
     val action = createInsertAction(mid, ce.partOf, ce)
-    db.run(action.transactionally)
-      .map(MusitSuccess.apply)
-      .recover(nonFatal(s"An error occurred trying to add event ${ce.getClass.getName}"))
+    daoUtils.dbRun(
+      action.transactionally,
+      s"An error occurred trying to add event ${ce.getClass.getName}"
+    )
   }
 
   /**
@@ -243,17 +243,18 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       event: ConservationEvent
   )(
       implicit currUsr: AuthenticatedUser
-  ): Future[MusitResult[Option[ConservationEvent]]] = {
+  ): FutureMusitResult[Option[ConservationEvent]] = {
     val updatedEvent = event.withUpdatedInfo(Some(currUsr.id), Some(dateTimeNow))
     val action       = createUpdateAction(mid, id, updatedEvent).transactionally
     //println("inniUpdate-dao " + event)
 
-    db.run(action)
+    daoUtils
+      .dbRun(action, "An unexpected error occurred updating the conservation event")
       .flatMap { numUpdated =>
         if (numUpdated == 1) {
-          findSpecificById(mid, id)
+          findSpecificById(mid, id).map(_.asInstanceOf[Option[T]])
         } else {
-          Future.successful {
+          FutureMusitResult.failed {
             MusitValidationError(
               message = "Unexpected number of event rows were updated.",
               expected = Option(1),
@@ -262,9 +263,6 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
           }
         }
       }
-      .recover(
-        nonFatal(s"An unexpected error occurred updating the conservation event")
-      )
   }
 
   private def updateActionRowOnly(

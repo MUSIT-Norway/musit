@@ -3,12 +3,14 @@ package repositories.conservation.dao
 import com.google.inject.{Inject, Singleton}
 import models.conservation.events.ConservationEvent
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
+import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models._
 import no.uio.musit.repositories.DbErrorHandlers
 import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
+import repositories.conservation.DaoUtils
 import slick.dbio.DBIO
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -16,7 +18,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class ConservationDao @Inject()(
     implicit
     val dbConfigProvider: DatabaseConfigProvider,
-    val ec: ExecutionContext
+    val ec: ExecutionContext,
+    val daoUtils: DaoUtils
 ) extends ConservationEventTableProvider
     with ConservationTables
     with EventActions
@@ -35,19 +38,22 @@ class ConservationDao @Inject()(
    */
   def getEventTypeId(
       eventId: EventId
-  )(implicit currUser: AuthenticatedUser): Future[MusitResult[Option[EventTypeId]]] = {
+  )(implicit currUser: AuthenticatedUser): FutureMusitResult[Option[EventTypeId]] = {
 
     val query = eventTable.filter { e =>
       e.eventId === eventId
     }.map(event => event.eventTypeId).result.headOption
-
-    db.run(query)
+    daoUtils.dbRun(
+      query,
+      s"An unexpected error occurred fetching eventTypeId for event with id: $eventId"
+    )
+    /* db.run(query)
       .map(MusitSuccess.apply)
       .recover(
         nonFatal(
           s"An unexpected error occurred fetching eventTypeId for event with id: $eventId"
         )
-      )
+      )*/
 
   }
 }

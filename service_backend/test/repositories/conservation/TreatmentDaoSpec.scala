@@ -97,7 +97,7 @@ class TreatmentDaoSpec
       mid: MuseumId = defaultMid
   ): MusitResult[EventId] = {
     val cpe = dummyTreatment(oids)
-    dao.insert(mid, cpe).futureValue
+    dao.insert(mid, cpe).value.futureValue
   }
 
   "TreatmentDao" when {
@@ -110,7 +110,7 @@ class TreatmentDaoSpec
       }
 
       "return the treatment for a spesific EventId" in {
-        val res = dao.findSpecificById(defaultMid, EventId(1)).futureValue
+        val res = dao.findSpecificById(defaultMid, EventId(1)).value.futureValue
         res.isSuccess mustBe true
         res.successValue must not be empty
         val tr = res.successValue.value
@@ -127,7 +127,7 @@ class TreatmentDaoSpec
       "creating and updating a new treatment" in {
         saveTreatment(Some(oids)) mustBe MusitSuccess(EventId(2))
 
-        val res = dao.findSpecificById(defaultMid, EventId(2)).futureValue
+        val res = dao.findSpecificById(defaultMid, EventId(2)).value.futureValue
         res.isSuccess mustBe true
         res.successValue must not be empty
         val event = res.successValue.value
@@ -135,7 +135,7 @@ class TreatmentDaoSpec
         val newEvent =
           event.copy(partOf = Some(EventId(1)), keywords = Some(Seq(1, 2, 3, 4)))
 
-        val updatedRes = dao.update(defaultMid, EventId(2), newEvent).futureValue
+        val updatedRes = dao.update(defaultMid, EventId(2), newEvent).value.futureValue
 
         val updatedEvent = updatedRes.successValue.value.asInstanceOf[Treatment]
 
@@ -149,7 +149,10 @@ class TreatmentDaoSpec
             //Forventer egentlig IllegalStateException, men ser ut som en bug, ref:
             // https://github.com/scalatest/scalatest/issues/1172
             val res =
-              technicalDescriptionDao.findSpecificById(defaultMid, EventId(2)).futureValue
+              technicalDescriptionDao
+                .findSpecificById(defaultMid, EventId(2))
+                .value
+                .futureValue
           }
 
       }
@@ -161,7 +164,7 @@ class TreatmentDaoSpec
         val eid = EventId(1L)
         val cp = dao
           .findById(defaultMid, eid)
-          .futureValue
+          .value.futureValue
           .successValue
           .value
           .asInstanceOf[Treatment]
@@ -172,7 +175,7 @@ class TreatmentDaoSpec
           note = Some("I was just updated")
         )
 
-        val res = dao.update(defaultMid, eid, upd).futureValue.successValue.value
+        val res = dao.update(defaultMid, eid, upd).value.futureValue.successValue.value
 
         res.note mustBe upd.note
         res.updatedBy mustBe Some(dummyActorId)
@@ -183,7 +186,7 @@ class TreatmentDaoSpec
         val oids = Seq(oid1, oid2)
         val cp   = dummyTreatment(Some(oids)).copy(id = Some(eid))
 
-        dao.update(defaultMid, eid, cp).futureValue.isFailure mustBe true
+        dao.update(defaultMid, eid, cp).value.futureValue.isFailure mustBe true
       }
     }*/
   }

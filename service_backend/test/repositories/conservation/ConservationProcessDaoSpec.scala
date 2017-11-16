@@ -74,7 +74,8 @@ class ConservationProcessDaoSpec
       }
 
       "return the conservationProcess for a spesific EventId" in {
-        val res = dao.findConservationProcessById(defaultMid, EventId(1)).futureValue
+        val res =
+          dao.findConservationProcessById(defaultMid, EventId(1)).value.futureValue
         res.isSuccess mustBe true
         res.successValue must not be empty
         val cp = res.successValue
@@ -88,14 +89,19 @@ class ConservationProcessDaoSpec
       "successfully save the modified fields" in {
         val eid = EventId(1L)
         val cp =
-          dao.findConservationProcessById(defaultMid, eid).futureValue.successValue.value
+          dao
+            .findConservationProcessById(defaultMid, eid)
+            .value
+            .futureValue
+            .successValue
+            .value
 
         val upd = cp.copy(
           updatedBy = Some(dummyActorId),
           updatedDate = Some(dateTimeNow),
           note = Some("I was just updated")
         )
-        val res = dao.update(defaultMid, eid, upd).futureValue.successValue.value
+        val res = dao.update(defaultMid, eid, upd).value.futureValue.successValue.value
 
         res.note mustBe upd.note
         res.updatedBy mustBe Some(dummyActorId)
@@ -107,7 +113,7 @@ class ConservationProcessDaoSpec
         val oids = Seq(oid1, oid2)
         val cp   = dummyConservationProcess(Some(oids)).copy(id = Some(eid))
 
-        dao.update(defaultMid, eid, cp).futureValue.isFailure mustBe true
+        dao.update(defaultMid, eid, cp).value.futureValue.isFailure mustBe true
       }
     }
   }

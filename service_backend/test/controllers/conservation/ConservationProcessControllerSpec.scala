@@ -200,8 +200,6 @@ class ConservationProcessControllerSpec
           "id"          -> 200,
           "note"        -> "Updated note",
           "eventTypeId" -> conservationProcessEventTypeId // Should not be modified by the server.
-          /*  "updatedBy"   -> adminId,
-          "updatedDate" -> time.dateTimeNow.plusDays(20)*/
         )
 
         val updRes = putEvent(3L, updJson)
@@ -253,14 +251,11 @@ class ConservationProcessControllerSpec
         val json = Json.obj(
           "eventTypeId" -> conservationProcessEventTypeId,
           "doneBy"      -> adminId,
-          //"registeredBy" -> adminId,
-          //"updatedBy"   -> adminId,
           "completedBy" -> adminId,
           "events"      -> Json.arr(treatment1, treatment2)
         )
 
         val res = postEvent(json)
-        //println("complex add: " + res.body)
         res.status mustBe CREATED
         val eventId = (res.json \ "id").as[EventId]
         eventId.underlying mustBe compositeConservationProcessEventId

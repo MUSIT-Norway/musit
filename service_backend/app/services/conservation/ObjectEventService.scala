@@ -3,6 +3,7 @@ package services.conservation
 import com.google.inject.Inject
 import models.conservation.events.ConservationEvent
 import no.uio.musit.MusitResults.MusitResult
+import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models.{MuseumId, ObjectUUID}
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
@@ -20,7 +21,7 @@ class ObjectEventService @Inject()(
 
   def getEventsForObject(mid: MuseumId, objectUuid: ObjectUUID)(
       implicit currUser: AuthenticatedUser
-  ): Future[MusitResult[Seq[ConservationEvent]]] = {
+  ): FutureMusitResult[Seq[ConservationEvent]] = {
     dao.getEventsForObject(mid, objectUuid)
   }
 }

@@ -2,6 +2,7 @@ package services.conservation
 
 import com.google.inject.Inject
 import no.uio.musit.MusitResults.MusitResult
+import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models.{EventId, EventTypeId}
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
@@ -19,7 +20,7 @@ class ConservationService @Inject()(
 
   def getEventTypeId(eventId: EventId)(
       implicit currUser: AuthenticatedUser
-  ): Future[MusitResult[Option[EventTypeId]]] = {
+  ): FutureMusitResult[Option[EventTypeId]] = {
     dao.getEventTypeId(eventId)
   }
 }

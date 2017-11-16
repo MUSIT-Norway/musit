@@ -95,7 +95,7 @@ class TechnicalDescriptionDaoSpec
       mid: MuseumId = defaultMid
   ): MusitResult[EventId] = {
     val cpe = dummyTechnicalDescription(oids)
-    dao.insert(mid, cpe).futureValue
+    dao.insert(mid, cpe).value.futureValue
   }
 
   "TechnicalDescriptionDao" when {
@@ -108,7 +108,7 @@ class TechnicalDescriptionDaoSpec
       }
 
       "return the technical description for a spesific EventId" in {
-        val res = dao.findSpecificById(defaultMid, EventId(1)).futureValue
+        val res = dao.findSpecificById(defaultMid, EventId(1)).value.futureValue
         res.isSuccess mustBe true
         res.successValue must not be empty
         val tr = res.successValue.value
@@ -123,7 +123,7 @@ class TechnicalDescriptionDaoSpec
       "creating and updating a new technical description" in {
         saveTechnicalDescription(Some(oids)) mustBe MusitSuccess(EventId(2))
 
-        val res = dao.findSpecificById(defaultMid, EventId(2)).futureValue
+        val res = dao.findSpecificById(defaultMid, EventId(2)).value.futureValue
         res.isSuccess mustBe true
         res.successValue must not be empty
         val event = res.successValue.value
@@ -131,7 +131,8 @@ class TechnicalDescriptionDaoSpec
         val newEvent =
           event.copy(partOf = Some(EventId(1)), note = Some("New note"))
 
-        val updatedRes = dao.update(defaultMid, EventId(2), newEvent).futureValue
+        val updatedRes =
+          dao.update(defaultMid, EventId(2), newEvent).value.futureValue
 
         val updatedEvent =
           updatedRes.successValue.value.asInstanceOf[TechnicalDescription]
@@ -147,7 +148,7 @@ class TechnicalDescriptionDaoSpec
             //Forventer egentlig IllegalStateException, men ser ut som en bug, ref:
             // https://github.com/scalatest/scalatest/issues/1172
             val res =
-              treatmentDao.findSpecificById(defaultMid, EventId(2)).futureValue
+              treatmentDao.findSpecificById(defaultMid, EventId(2)).value.futureValue
           }
       }
     }

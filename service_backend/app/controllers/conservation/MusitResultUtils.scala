@@ -7,6 +7,7 @@ import no.uio.musit.MusitResults.{
   MusitSuccess,
   MusitValidationError
 }
+import no.uio.musit.functional.FutureMusitResult
 import play.api.mvc.Result
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,11 +33,11 @@ object MusitResultUtils {
 
   implicit class MusitResultHelpers[T](val musitResult: MusitResult[T]) {
     def flatMapToFutureMusitResult[S](
-        f: T => Future[MusitResult[S]]
-    ): Future[MusitResult[S]] = {
+        f: T => FutureMusitResult[S]
+    ): FutureMusitResult[S] = {
       musitResult match {
         case MusitSuccess(t) => f(t)
-        case err: MusitError => Future.successful(err)
+        case err: MusitError => FutureMusitResult.failed(err)
       }
     }
 
@@ -75,10 +76,4 @@ object MusitResultUtils {
     value.map(mr => musitResultFoldNone(mr, resultIfNone))
   }
 
-  def futureMusitResultFlatMap[T, S](
-      futMr: Future[MusitResult[T]],
-      f: T => Future[MusitResult[S]]
-  )(implicit ec: ExecutionContext): Future[MusitResult[S]] = {
-    futMr.flatMap(mr => mr.flatMapToFutureMusitResult(f))
-  }
 }

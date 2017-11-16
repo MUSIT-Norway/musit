@@ -6,6 +6,7 @@ import models.conservation.events.Treatment
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
+import repositories.conservation.DaoUtils
 
 import scala.concurrent.{ExecutionContext, Future}
 @Singleton
@@ -13,7 +14,8 @@ class TreatmentDao @Inject()(
     implicit
     override val dbConfigProvider: DatabaseConfigProvider,
     override val ec: ExecutionContext,
-    override val objectEventDao: ObjectEventDao
+    override val objectEventDao: ObjectEventDao,
+    override val daoUtils: DaoUtils
 ) extends ConservationEventDao[Treatment] {
 
   override val logger = Logger(classOf[TreatmentDao])

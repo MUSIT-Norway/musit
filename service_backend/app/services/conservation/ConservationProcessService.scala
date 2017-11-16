@@ -5,6 +5,7 @@ import controllers.conservation.MusitResultUtils
 import models.conservation.events._
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
 import no.uio.musit.functional.FutureMusitResult
+import no.uio.musit.functional.Extensions._
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
 import no.uio.musit.models._
@@ -36,14 +37,14 @@ class ConservationProcessService @Inject()(
    */
   def add(mid: MuseumId, cpe: ConservationProcess)(
       implicit currUser: AuthenticatedUser
-  ): Future[MusitResult[Option[ConservationModuleEvent]]] = {
+  ): FutureMusitResult[Option[ConservationProcess]] = {
 
     val event = cpe.withRegisteredInfo(Some(currUser.id), Some(dateTimeNow))
     val res = for {
-      added <- MusitResultT((addConservation(mid, event)).value)
-      a     <- MusitResultT(conservationDao.findConservationProcessById(mid, added))
+      added <- addConservation(mid, event)
+      a     <- conservationDao.findConservationProcessById(mid, added)
     } yield a
-    res.value
+    res
   }
 
   /**
@@ -78,7 +79,7 @@ class ConservationProcessService @Inject()(
       id: EventId
   )(
       implicit currUser: AuthenticatedUser
-  ): Future[MusitResult[Option[ConservationModuleEvent]]] = {
+  ): FutureMusitResult[Option[ConservationProcess]] = {
     conservationDao.findConservationProcessById(mid, id)
   }
 
@@ -146,70 +147,41 @@ class ConservationProcessService @Inject()(
 
   import MusitResultUtils._
 
-  def findRegisteredByAndDate(
-      mid: MuseumId,
-      eventId: EventId,
-      cp: ConservationProcess
-  )(
-      implicit currUser: AuthenticatedUser
-  ): Future[MusitResult[ConservationProcess]] = {
-
-    val res = for {
-      dbCp <- MusitResultT(
-               futureMusitResultFoldNone(
-                 conservationDao.findConservationProcessById(mid, eventId),
-                 MusitValidationError(
-                   s"Unable to find conservation process with id: $eventId"
-                 )
-               )
-             )
-    } yield {
-      cp.copy(registeredBy = dbCp.registeredBy, registeredDate = dbCp.registeredDate)
-    }
-    res.value
-  }
-
   def putUpdateAndRegDataToProcessAndSubevents(
       conservationProcess: ConservationProcess,
       currUser: ActorId,
       currDate: DateTime,
-      findRegisteredActorDate: EventId => Future[MusitResult[ActorDate]]
-  ): Future[MusitResult[ConservationProcess]] = {
+      findRegisteredActorDate: EventId => FutureMusitResult[ActorDate]
+  ): FutureMusitResult[ConservationProcess] = {
     val cp = conservationProcess.withUpdatedInfo(Some(currUser), Some(currDate))
     val subevents = cp.events
       .getOrElse(Seq.empty)
       .map(event => {
         event.id match {
           case Some(id) =>
-            val res = for {
-              dbEventActorDate <- MusitResultT(
-                                   findRegisteredActorDate(id)
-                                 )
-
-            } yield
+            findRegisteredActorDate(id).map { dbEventActorDate =>
               event
                 .withUpdatedInfo(Some(currUser), Some(currDate))
                 .withRegisteredInfo(
                   Some(dbEventActorDate.user),
                   Some(dbEventActorDate.date)
                 )
-            res.value
-
+            }
           case None =>
-            Future.successful(
-              MusitSuccess(event.withRegisteredInfo(Some(currUser), Some(currDate)))
-            )
+            FutureMusitResult
+              .from(event.withRegisteredInfo(Some(currUser), Some(currDate)))
         }
       })
-    val newSubevents = MusitResultT.sequenceF(subevents).value
+
+    val newSubevents = FutureMusitResult.sequence(subevents)
     val res = for {
-      processActorDate <- MusitResultT(findRegisteredActorDate(cp.id.get))
-      events           <- MusitResultT(newSubevents)
+      processActorDate <- findRegisteredActorDate(cp.id.get)
+      events           <- newSubevents
 
     } yield
       cp.withRegisteredInfo(Some(processActorDate.user), Some(processActorDate.date))
         .withEvents(events)
-    res.value
+    res
   }
 
   /**
@@ -223,28 +195,26 @@ class ConservationProcessService @Inject()(
       cp: ConservationProcess
   )(
       implicit currUser: AuthenticatedUser
-  ): Future[MusitResult[Option[ConservationProcess]]] = {
+  ): FutureMusitResult[Option[ConservationProcess]] = {
+    import no.uio.musit.functional.Extensions
 
     def getRegisteredActorDate(
-        futMrEvent: Future[MusitResult[ConservationModuleEvent]]
-    ): Future[MusitResult[ActorDate]] = {
+        futMrEvent: FutureMusitResult[ConservationModuleEvent]
+    ): FutureMusitResult[ActorDate] = {
       futMrEvent.map(
-        mrEvent =>
-          mrEvent.map(
-            event => ActorDate(event.registeredBy.get, event.registeredDate.get)
-        )
+        event => ActorDate(event.registeredBy.get, event.registeredDate.get)
       )
     }
 
-    def findRegisteredActorDate(localEventId: EventId): Future[MusitResult[ActorDate]] = {
+    def findRegisteredActorDate(localEventId: EventId): FutureMusitResult[ActorDate] = {
       getRegisteredActorDate(
-        futureMusitResultFoldNone(
-          //conservationDao.findById(mid, localEventId),
-          conservationDao.findConservationModuleById(mid, localEventId),
-          MusitValidationError(
-            s"Unable to find conservation subevent with id: $eventId"
+        conservationDao
+          .findConservationModuleById(mid, localEventId)
+          .getOrError(
+            MusitValidationError(
+              s"Unable to find conservation subevent with id: $eventId"
+            )
           )
-        )
       )
     }
 
@@ -253,19 +223,17 @@ class ConservationProcessService @Inject()(
       s"Inconsistent eventid in url($eventId) vs body (${cp.id})"
     ).flatMapToFutureMusitResult { _ =>
       val res = for {
-        eventToWriteToDb <- MusitResultT(
-                             putUpdateAndRegDataToProcessAndSubevents(
-                               cp,
-                               currUser.id,
-                               dateTimeNow,
-                               findRegisteredActorDate
-                             )
+        eventToWriteToDb <- putUpdateAndRegDataToProcessAndSubevents(
+                             cp,
+                             currUser.id,
+                             dateTimeNow,
+                             findRegisteredActorDate
                            )
-        maybeUpdated <- MusitResultT(
-                         conservationDao.update(mid, eventId, eventToWriteToDb)
-                       )
+
+        maybeUpdated <- conservationDao.update(mid, eventId, eventToWriteToDb)
+
       } yield maybeUpdated
-      res.value
+      res
     }
 
   }

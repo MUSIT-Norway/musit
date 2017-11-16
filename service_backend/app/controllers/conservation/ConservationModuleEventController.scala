@@ -5,6 +5,7 @@ import controllers.{internalErr, listAsPlayResult, saveRequest, updateRequestOpt
 import models.conservation.events._
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess, _}
 import no.uio.musit.models.{EventId, EventTypeId, MuseumId, ObjectUUID}
+import no.uio.musit.functional.Extensions._
 import no.uio.musit.security.Permissions.{Read, Write}
 import no.uio.musit.security.{AuthenticatedUser, Authenticator, CollectionManagement}
 import no.uio.musit.service.MusitController
@@ -84,7 +85,7 @@ class ConservationModuleEventController @Inject()(
 
             saveRequest[ConservationModuleEvent, Option[ConservationModuleEvent]](jsr) {
               case event: ConservationProcess =>
-                consService.add(mid, event)
+                consService.add(mid, event).value
               case wrong =>
                 Future.successful(
                   MusitValidationError(
@@ -104,7 +105,7 @@ class ConservationModuleEventController @Inject()(
             mrService.flatMapToFutureResult { service =>
               saveRequest[ConservationEvent, Option[ConservationEvent]](jsr) {
                 case event: ConservationEvent =>
-                  service.add(mid, event)
+                  service.add(mid, event).value
                 case wrong =>
                   Future.successful(
                     MusitValidationError(
@@ -129,28 +130,30 @@ class ConservationModuleEventController @Inject()(
   ): Future[Result] = {
     val futMrOptEventTypeId = conservationService.getEventTypeId(id)
 
-    val futMrEventTypeId = futureMusitResultFoldNone(
-      futMrOptEventTypeId,
+    val futMrEventTypeId = futMrOptEventTypeId.getOrError(
       //Todo: This may be a client/validation error, if it passes in an invalided eventId
       MusitInternalError(s"Unable to find event type id for event with id: $id")
     )
 
     val futMrOptEvent =
-      MusitResultUtils
-        .futureMusitResultFlatMap[EventTypeId, Option[ConservationModuleEvent]](
-          futMrEventTypeId, {
-            case ConservationProcess.eventTypeId =>
-              consService.findConservationProcessById(mid, id)
-            case conservationEventId => {
-              val mrService =
-                findConservationEventServiceBlameClientIfNotFound(conservationEventId)
-              mrService.flatMapToFutureMusitResult(
-                eventService => eventService.findConservationEventById(mid, id)
-              )
-            }
+      futMrEventTypeId.flatMap[Option[ConservationModuleEvent]] { eventTypeId =>
+        val res = eventTypeId match {
+          case ConservationProcess.eventTypeId =>
+            consService.findConservationProcessById(mid, id)
+          case conservationEventId => {
+            val mrService =
+              findConservationEventServiceBlameClientIfNotFound(conservationEventId)
+            mrService.flatMapToFutureMusitResult(
+              eventService => eventService.findConservationEventById(mid, id)
+            )
           }
+        }
+        res.map(
+          optEvent => optEvent.map(event => event.asInstanceOf[ConservationModuleEvent])
         )
-    futMrOptEvent.map {
+      }
+
+    futMrOptEvent.value map {
       case MusitSuccess(ma) => ma.map(ae => Ok(Json.toJson(ae))).getOrElse(NotFound)
       case err: MusitError  => internalErr(err)
     }
@@ -169,7 +172,7 @@ class ConservationModuleEventController @Inject()(
           case ConservationProcess.eventTypeId => {
             val jsr = jsonBody.validate[ConservationProcess]
             updateRequestOpt[ConservationProcess, ConservationProcess](jsr) { cp =>
-              consService.update(mid, eventId, cp)
+              consService.update(mid, eventId, cp).value
             }
           }
           case conservationEventId => {
@@ -181,7 +184,7 @@ class ConservationModuleEventController @Inject()(
 
             mrService.flatMapToFutureResult { eventService =>
               updateRequestOpt[ConservationEvent, ConservationEvent](jsr) { cp =>
-                eventService.update(mid, eventId, cp)
+                eventService.update(mid, eventId, cp).value
               }
             }
           }
@@ -194,7 +197,7 @@ class ConservationModuleEventController @Inject()(
       ObjectUUID
         .fromString(oid)
         .map { uuid =>
-          objectEventService.getEventsForObject(mid, uuid).map {
+          objectEventService.getEventsForObject(mid, uuid).value.map {
             case MusitSuccess(conservationEvent) => listAsPlayResult(conservationEvent)
             case err: MusitError                 => internalErr(err)
           }

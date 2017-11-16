@@ -3,9 +3,11 @@ package repositories.conservation.dao
 import com.google.inject.{Inject, Singleton}
 import models.conservation.events._
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
+import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models.{EventId, ObjectUUID}
 import no.uio.musit.repositories.DbErrorHandlers
 import play.api.db.slick.DatabaseConfigProvider
+import repositories.conservation.DaoUtils
 import repositories.shared.dao.ColumnTypeMappers
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -13,7 +15,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class ObjectEventDao @Inject()(
     implicit
     val dbConfigProvider: DatabaseConfigProvider,
-    val ec: ExecutionContext
+    val ec: ExecutionContext,
+    val daoUtils: DaoUtils
 ) extends ConservationEventTableProvider
     with ColumnTypeMappers
     with ConservationTables
@@ -23,13 +26,13 @@ class ObjectEventDao @Inject()(
 
   private val objectEventTable = TableQuery[ObjectEventTable]
 
-  def dbRun[T](res: DBIO[T], onErrorMsg: String): Future[MusitResult[T]] = {
+  /* def dbRun[T](res: DBIO[T], onErrorMsg: String): FutureMusitResult[T] = {
     db.run(res)
       .map(MusitSuccess.apply)
       .recover(
         nonFatal(onErrorMsg)
       )
-  }
+  }*/
 
   def insertAction(objectUuid: ObjectUUID, eventId: EventId): DBIO[Int] = {
     val action = objectEventTable += ObjectEvent(objectUuid, eventId)
@@ -44,11 +47,11 @@ class ObjectEventDao @Inject()(
 
   }
 
-  def getObjectEventIds(objectUuid: ObjectUUID): Future[MusitResult[Seq[EventId]]] = {
+  def getObjectEventIds(objectUuid: ObjectUUID): FutureMusitResult[Seq[EventId]] = {
     val action =
       objectEventTable.filter(oe => oe.objectUuid === objectUuid).map(oe => oe.eventId)
     val res = action.result
-    dbRun(res, s"An unexpected error occurred fetching object $objectUuid")
+    daoUtils.dbRun(res, s"An unexpected error occurred fetching object $objectUuid")
   }
 
   /**
