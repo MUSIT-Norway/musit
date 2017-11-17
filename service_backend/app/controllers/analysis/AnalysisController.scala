@@ -7,6 +7,7 @@ import models.analysis.events.SaveCommands._
 import models.analysis.events._
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess, MusitValidationError}
 import no.uio.musit.models.{CollectionUUID, EventId, MuseumId, ObjectUUID}
+import no.uio.musit.security.Permissions.{Read, Write}
 import no.uio.musit.security.{AccessAll, AuthenticatedUser, Authenticator}
 import no.uio.musit.security.{AccessAll, AuthenticatedUser, Authenticator, CollectionManagement}
 import no.uio.musit.service.MusitController
@@ -22,7 +23,7 @@ import scala.concurrent.Future
 @Singleton
 class AnalysisController @Inject()(
     val conf: Configuration,
-    val controllerComponents: ControllerComponents,: AuthenticatedUser
+    val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val analysisService: AnalysisService,
     val analysisSearchService: AnalysisSearchService
@@ -116,7 +117,6 @@ class AnalysisController @Inject()(
 
   def addResult(mid: MuseumId, id: Long) =
     MusitSecureAction(mid, CollectionManagement, Write).async(parse.json) {
-      implicit val currUser: AuthenticatedUser = request.user
       implicit request =>
         implicit val currUser = request.user
         val jsr               = request.body.validate[AnalysisResult]
