@@ -31,11 +31,9 @@ class DaoUtils @Inject()(
   def dbRun[T](res: DBIO[T], onErrorMsg: String): FutureMusitResult[T] = {
 
     FutureMusitResult(
-      db.run(res)
-        .map(MusitSuccess.apply)
-        .recover(
-          nonFatal(onErrorMsg)
-        )
+      db.run(res).map(MusitSuccess.apply).recover {
+        nonFatal(onErrorMsg)
+      }
     )
   }
 }

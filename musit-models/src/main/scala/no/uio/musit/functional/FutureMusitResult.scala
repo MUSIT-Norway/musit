@@ -1,6 +1,11 @@
 package no.uio.musit.functional
 
-import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{
+  MusitError,
+  MusitResult,
+  MusitSuccess,
+  MusitValidationError
+}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -35,7 +40,7 @@ import scala.concurrent.{ExecutionContext, Future}
   collectAllOrFail[A, B]          Seq[A], f: A => FMR[Option[B]], Seq[A] => MusitError   : FMR[Seq[B]]
 
   getOrError  FMR[Option[T]],   => MusitError    : FMR[T]
-
+  flatMapInsideOption[A,B]  FMR[Option[A]], f: A=>FMR[B]     : FRM[Option[B]]
 
  */
 
@@ -76,9 +81,22 @@ object Extensions {
         opt.fold[MusitResult[T]](error)(t => MusitSuccess(t))
       }
     }
+
+    def flatMapInsideOption[B](
+        f: T => FutureMusitResult[B]
+    )(implicit ec: ExecutionContext): FutureMusitResult[Option[B]] = {
+
+      value.flatMap[Option[B]] {
+        case Some(v) => {
+          f(v).map(Some(_))
+        }
+        case None => {
+          FutureMusitResult.successful[Option[B]](None)
+        }
+      }
+    }
   }
 }
-
 object FutureMusitResult {
   def successful[A](
       a: A
@@ -94,6 +112,14 @@ object FutureMusitResult {
 
   def from[A](mr: MusitResult[A]) = FutureMusitResult(Future.successful(mr))
   def from[A](a: A)               = successful(a)
+
+  def requireFromClient(test: Boolean, errorMsg: String): FutureMusitResult[Unit] = {
+    if (test) {
+      successful(())
+    } else {
+      failed(MusitValidationError(errorMsg))
+    }
+  }
 
   def sequence[A](seqFutMr: Seq[FutureMusitResult[A]])(
       implicit ec: ExecutionContext

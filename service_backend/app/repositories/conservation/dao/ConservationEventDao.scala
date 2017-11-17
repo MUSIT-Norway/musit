@@ -36,9 +36,9 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
 
   def interpretRow(row: EventRow): ConservationEvent = {
     fromRow(
-      row._1, /*TODO?row._9,*/ row._7,
-      row._10.flatMap(ObjectUUID.fromString),
-      row._13
+      valEventId(row), /*TODO?row._9,*/ valDoneDate(row),
+      valAffectedThing(row).flatMap(ObjectUUID.fromString),
+      valJson(row)
     ).get.asInstanceOf[ConservationEvent]
   }
 
@@ -61,7 +61,7 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
 
   }
 
-  protected def findByIdAction(
+  def findConservationEventByIdAction(
       mid: MuseumId,
       id: EventId
   )(implicit currUsr: AuthenticatedUser): DBIO[Option[ConservationEvent]] = {
@@ -91,19 +91,18 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
    * @param id            the EventId to look for.
    * @return eventually returns a MusitResult that might contain the ConservationEvent.
    */
-  def findById(
+  def findConservationEventById(
       mid: MuseumId,
       id: EventId
   )(
       implicit currUsr: AuthenticatedUser
   ): FutureMusitResult[Option[ConservationEvent]] = {
-    val query = for {
-      maybeEvent <- findByIdAction(mid, id)
-    } yield maybeEvent
-    daoUtils.dbRun(query, s"An unexpected error occurred fetching event $id")
-    /*db.run(query)
-      .map(MusitSuccess.apply)
-      .recover(nonFatal(s"An unexpected error occurred fetching event $id"))*/
+    val query = findConservationEventByIdAction(mid, id)
+
+    daoUtils.dbRun(
+      query,
+      s"An unexpected error occurred fetching event $id (Scala type: ${classTag[T].runtimeClass.getName()}"
+    )
   }
 
   /**
@@ -113,13 +112,13 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
    * @param id The event ID to look for
    * @return the event that was found. Exception is thrown if wrong event type found.
    */
-  def findSpecificById(
+  def findSpecificConservationEventById(
       mid: MuseumId,
       id: EventId
   )(
       implicit currUsr: AuthenticatedUser
   ): FutureMusitResult[Option[T]] = {
-    findById(mid, id).map { mc =>
+    findConservationEventById(mid, id).map { mc =>
       mc.flatMap {
         case ce: T =>
           Some(ce)
@@ -140,7 +139,7 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[Seq[ConservationEvent]] = {
 
-    def localFindById(id: EventId) = findById(mid, id)
+    def localFindById(id: EventId) = findConservationEventById(mid, id)
 
     for {
 
@@ -252,7 +251,7 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       .dbRun(action, "An unexpected error occurred updating the conservation event")
       .flatMap { numUpdated =>
         if (numUpdated == 1) {
-          findSpecificById(mid, id).map(_.asInstanceOf[Option[T]])
+          findSpecificConservationEventById(mid, id).map(_.asInstanceOf[Option[T]])
         } else {
           FutureMusitResult.failed {
             MusitValidationError(

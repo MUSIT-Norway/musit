@@ -108,7 +108,8 @@ class TechnicalDescriptionDaoSpec
       }
 
       "return the technical description for a spesific EventId" in {
-        val res = dao.findSpecificById(defaultMid, EventId(1)).value.futureValue
+        val res =
+          dao.findSpecificConservationEventById(defaultMid, EventId(1)).value.futureValue
         res.isSuccess mustBe true
         res.successValue must not be empty
         val tr = res.successValue.value
@@ -123,7 +124,8 @@ class TechnicalDescriptionDaoSpec
       "creating and updating a new technical description" in {
         saveTechnicalDescription(Some(oids)) mustBe MusitSuccess(EventId(2))
 
-        val res = dao.findSpecificById(defaultMid, EventId(2)).value.futureValue
+        val res =
+          dao.findSpecificConservationEventById(defaultMid, EventId(2)).value.futureValue
         res.isSuccess mustBe true
         res.successValue must not be empty
         val event = res.successValue.value
@@ -148,7 +150,10 @@ class TechnicalDescriptionDaoSpec
             //Forventer egentlig IllegalStateException, men ser ut som en bug, ref:
             // https://github.com/scalatest/scalatest/issues/1172
             val res =
-              treatmentDao.findSpecificById(defaultMid, EventId(2)).value.futureValue
+              treatmentDao
+                .findSpecificConservationEventById(defaultMid, EventId(2))
+                .value
+                .futureValue
           }
       }
     }

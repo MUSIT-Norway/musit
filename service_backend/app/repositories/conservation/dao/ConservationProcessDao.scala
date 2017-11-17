@@ -36,21 +36,28 @@ class ConservationProcessDao @Inject()(
 
   import profile.api._
 
-  private def findByIdAction(
+  def interpretConservationProcessRow(row: EventRow): ConservationProcess = {
+    require(
+      valEventTypeId(row) == ConservationProcess.eventTypeId,
+      s"didn't get proper conservationProcess eventTypeId, expected: ${ConservationProcess.eventTypeId}, found: ${valEventTypeId(row)}"
+    )
+
+    fromRow(
+      valEventId(row), /*TODO?row._9,*/ valDoneDate(row),
+      valAffectedThing(row).flatMap(ObjectUUID.fromString),
+      valJson(row)
+    ).get.asInstanceOf[ConservationProcess]
+  }
+
+  private def findConservationProcessByIdAction(
       mid: MuseumId,
       id: EventId
-  )(implicit currUsr: AuthenticatedUser): DBIO[Option[ConservationModuleEvent]] = {
+  )(implicit currUsr: AuthenticatedUser): DBIO[Option[ConservationProcess]] = {
     val q1 = super.findByIdAction(mid, id).map { mayBeRow =>
       mayBeRow.map { row =>
-        fromRow(row._1, row._7, row._10.flatMap(ObjectUUID.fromString), row._13).get
+        interpretConservationProcessRow(row)
       }
     }
-    /*val q1 = eventTable.filter(a => a.eventId === id && a.museumId === mid)
-    q1.result.headOption.map { x =>
-      x.flatMap { row =>
-        fromRow(row._1, row._7, row._10.flatMap(ObjectUUID.fromString), row._13)
-      }
-    }*/
     q1
   }
 
@@ -80,8 +87,6 @@ class ConservationProcessDao @Inject()(
   )(implicit currUsr: AuthenticatedUser): DBIO[EventId] = {
 
     val dao = getDaoFor(event)
-    //val eventWithUpdated = event.withUpdatedInfo(Some(currUsr.id), Some(dateTimeNow))
-    // println("Inni dao.process.createInsertOrUpdateAction " + event)
     event.id match {
       case Some(id) =>
         dao.createUpdateAction(mid, partOf, event).map { numUpdated =>
@@ -97,28 +102,22 @@ class ConservationProcessDao @Inject()(
   }
 
   /**
-   * Same as findById, but will ensure that only the conservation specific events
-   * are returned.
-   *
+   * Reads in the conservation process, but without subEvents!!!
    * @param id The event ID to look for
    * @return the Conservation that was found or None
    */
-  def findConservationProcessById(
+  def findConservationProcessIgnoreSubEvents(
       mid: MuseumId,
       id: EventId
   )(
       implicit currUsr: AuthenticatedUser
   ): FutureMusitResult[Option[ConservationProcess]] = {
-    val query = for {
-      maybeEvent <- findByIdAction(mid, id)
-      children   <- listChildrenAction(mid, id)
+    val query = findConservationProcessByIdAction(mid, id)
 
-    } yield
-      maybeEvent.map(
-        event => event.asInstanceOf[ConservationProcess].copy(events = Some(children))
-      )
-
-    daoUtils.dbRun(query, s"An unexpected error occurred fetching event $id")
+    daoUtils.dbRun(
+      query,
+      s"An unexpected error occurred fetching conservation process event $id"
+    )
   }
 
   /**
@@ -128,56 +127,33 @@ class ConservationProcessDao @Inject()(
    * @param id The event ID to look for
    * @return the Conservation that was found or None
    */
-  /* def findConservationProcessById(
+  def findRegisteredActorDate(
       mid: MuseumId,
       id: EventId
   )(
       implicit currUsr: AuthenticatedUser
-  ): Future[MusitResult[Option[ConservationProcess]]] = {
-    findById(mid, id).map { r =>
-      r.map { mc =>
-        mc.flatMap {
-          case ce: ConservationProcess => Some(ce)
-          case _                       => None
-        }
+  ): FutureMusitResult[Option[ActorDate]] = {
+
+    val query = super.findByIdAction(mid, id).map { mayBeRow =>
+      mayBeRow.map { row =>
+        ActorDate(valRegisteredBy(row), valRegisteredDate(row))
+
       }
     }
-  }*/
 
-  /**
-   * Same as findById, but will ensure that only the conservation specific events
-   * are returned.
-   *
-   * @param id The event ID to look for
-   * @return the Conservation that was found or None
-   */
-  def findConservationModuleById(
-      mid: MuseumId,
-      id: EventId
-  )(
-      implicit currUsr: AuthenticatedUser
-  ): FutureMusitResult[Option[ConservationModuleEvent]] = {
-    val query = findByIdAction(mid, id)
-    daoUtils.dbRun(query, s"An unexpected error occurred fetching event $id")
+    daoUtils.dbRun(
+      query,
+      s"An unexpected error occurred fetching registered by/date for event $id"
+    )
   }
 
-  /*def FindOnlyConservationProcessRowById(
+  def readSubEvent(
+      eventTypeId: EventTypeId,
       mid: MuseumId,
       eventId: EventId
-  ): Future[Option[ConservationProcess]] = {
-    //db.run(eventTable.filter( e => e.eventId === eventId && e.museumId = mid).result.headOption)
-    val query = eventTable.filter { e =>
-      e.museumId === mid &&
-      e.eventId === eventId
-    }.map(res => res.asInstanceOf[ConservationProcess]).result.headOption
-    db.run(query)
-      .map(MusitSuccess.apply)
-      .recover(
-        nonFatal(s"An error occurred trying to find event $eventId for museumId $mid")
-      )
-  }
-   */
-  private def readSubEvent(eventTypeId: EventTypeId, row: EventRow): ConservationEvent = {
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): FutureMusitResult[Option[ConservationEvent]] = {
     val optSubEventType = ConservationEventType(eventTypeId)
     val subEventType = optSubEventType.getOrElse(
       throw new IllegalStateException(
@@ -189,8 +165,8 @@ class ConservationProcessDao @Inject()(
       case Treatment            => treatmentDao
       case TechnicalDescription => technicalDescriptionDao
     }
-
-    dao.interpretRow(row)
+    val subEvent = dao.findConservationEventById(mid, eventId)
+    subEvent
   }
 
   /**
@@ -198,10 +174,12 @@ class ConservationProcessDao @Inject()(
    *
    * Children are subtypes of ConservationEvent
    */
-  private def listChildrenAction(
+  def listSubEventIdsWithTypes(
       mid: MuseumId,
       parentEventId: EventId
-  )(implicit currUsr: AuthenticatedUser): DBIO[Seq[ConservationEvent]] = {
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): FutureMusitResult[Seq[EventIdWithEventTypeId]] = {
 
     val query = eventTable.filter { a =>
       //TODO: Er det riktig å filtrere på museumId her?
@@ -209,13 +187,17 @@ class ConservationProcessDao @Inject()(
 
       a.partOf === parentEventId && a.museumId === mid
     }
-
     val action = query.result.map { res =>
       res.map { row =>
-        readSubEvent(row._2, row)
+        EventIdWithEventTypeId(valEventId(row).get, valEventTypeId(row))
+
       }
     }
-    action
+
+    daoUtils.dbRun(
+      action,
+      s"An error occurred trying to read sub events of event with id: $parentEventId"
+    )
   }
 
   /**
@@ -249,11 +231,7 @@ class ConservationProcessDao @Inject()(
     } yield cpId
 
     daoUtils.dbRun(actions.transactionally, "An error occurred trying to add event")
-    /*FutureMusitResult(
-      db.run(actions.transactionally)
-        .map(MusitSuccess.apply)
-        .recover(nonFatal(s"An error occurred trying to add event"))
-    )*/
+
   }
 
   /**
@@ -271,7 +249,7 @@ class ConservationProcessDao @Inject()(
       cp: ConservationProcess
   )(
       implicit currUsr: AuthenticatedUser
-  ): FutureMusitResult[Option[ConservationProcess]] = {
+  ): FutureMusitResult[Unit] = {
     val subEvents = cp.events.getOrElse(Seq.empty)
 
     def subEventActions(partOf: EventId): Seq[DBIO[EventId]] = {
@@ -302,7 +280,8 @@ class ConservationProcessDao @Inject()(
       )
       .flatMap { numUpdated =>
         if (numUpdated == 1) {
-          findConservationProcessById(mid, id)
+          FutureMusitResult.from(())
+          //#OLD findConservationProcessWithoutSubEvents(mid, id)
         } else {
           FutureMusitResult.failed {
             MusitValidationError(
@@ -313,23 +292,7 @@ class ConservationProcessDao @Inject()(
           }
         }
       }
-    /* FutureMusitResult(db.run(actions.transactionally))
-      .flatMap { numUpdated =>
-        if (numUpdated == 1) {
-          findConservationProcessById(mid, id)
-        } else {
-          FutureMusitResult.failed{
-            MusitValidationError(
-              message = "Unexpected number of conservation process rows were updated.",
-              expected = Option(1),
-              actual = Option(numUpdated)
-            )
-          }
-        }
-      }
-        .recover(
-        nonFatal(s"An unexpected error occurred inserting an conservation process event")
-      )*/
+
   }
 
   private def updateAction(

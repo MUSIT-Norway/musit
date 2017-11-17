@@ -110,7 +110,8 @@ class TreatmentDaoSpec
       }
 
       "return the treatment for a spesific EventId" in {
-        val res = dao.findSpecificById(defaultMid, EventId(1)).value.futureValue
+        val res =
+          dao.findSpecificConservationEventById(defaultMid, EventId(1)).value.futureValue
         res.isSuccess mustBe true
         res.successValue must not be empty
         val tr = res.successValue.value
@@ -127,7 +128,8 @@ class TreatmentDaoSpec
       "creating and updating a new treatment" in {
         saveTreatment(Some(oids)) mustBe MusitSuccess(EventId(2))
 
-        val res = dao.findSpecificById(defaultMid, EventId(2)).value.futureValue
+        val res =
+          dao.findSpecificConservationEventById(defaultMid, EventId(2)).value.futureValue
         res.isSuccess mustBe true
         res.successValue must not be empty
         val event = res.successValue.value
@@ -150,7 +152,7 @@ class TreatmentDaoSpec
             // https://github.com/scalatest/scalatest/issues/1172
             val res =
               technicalDescriptionDao
-                .findSpecificById(defaultMid, EventId(2))
+                .findSpecificConservationEventById(defaultMid, EventId(2))
                 .value
                 .futureValue
           }

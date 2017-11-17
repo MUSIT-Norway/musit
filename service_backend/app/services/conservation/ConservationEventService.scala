@@ -35,7 +35,7 @@ abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Injec
     val res = for {
       added <- dao.insert(mid, ce)
       a <- dao
-            .findSpecificById(mid, added)
+            .findSpecificConservationEventById(mid, added)
             .map(m => m.asInstanceOf[Option[ConservationEvent]])
     } yield a
     res
@@ -60,7 +60,7 @@ abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Injec
   )(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[Option[T]] = {
-    dao.findSpecificById(mid, id)
+    dao.findSpecificConservationEventById(mid, id)
   }
 
   /**

@@ -83,9 +83,12 @@ class ConservationModuleEventController @Inject()(
           case ConservationProcess.eventTypeId => {
             val jsr = jsonBody.validate[ConservationProcess]
 
-            saveRequest[ConservationModuleEvent, Option[ConservationModuleEvent]](jsr) {
+            saveRequest[ConservationModuleEvent, Option[ConservationProcess]](jsr) {
               case event: ConservationProcess =>
-                consService.add(mid, event).value
+                (for {
+                  eventId <- consService.addConservationProcess(mid, event)
+                  res     <- consService.findConservationProcessById(mid, eventId)
+                } yield res).value
               case wrong =>
                 Future.successful(
                   MusitValidationError(

@@ -24,6 +24,8 @@ trait TypedConservationEvent {
   protected val discriminatorAttributeName = "eventTypeId"
 }
 
+case class EventIdWithEventTypeId(val eventId: EventId, eventTypeId: EventTypeId)
+
 object ConservationModuleEvent extends TypedConservationEvent {
 
   /**
