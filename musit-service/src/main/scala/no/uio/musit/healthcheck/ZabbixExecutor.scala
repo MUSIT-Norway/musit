@@ -33,7 +33,7 @@ class ZabbixExecutor(
 
   val scheduler: Cancellable = actorSystem.scheduler.schedule(
     initialDelay = 10 seconds,
-    interval = 4 minutes
+    interval = 1 minutes
   ) {
     executeHealthChecks().onFailure {
       case t => logger.warn("Failed to execute health check", t)

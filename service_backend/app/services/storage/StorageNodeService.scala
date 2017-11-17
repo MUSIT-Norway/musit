@@ -500,7 +500,7 @@ class StorageNodeService @Inject()(
                 if (currUsr.isAuthorized(obj.museumId)) {
                   Option((sn._1, np.map(_.name).mkString(", ")))
                 } else {
-                  Option((sn._1, Museum.museumIdToString(obj.museumId)))
+                  Option((sn._1, Museum.unsafeMuseumIdToString(obj.museumId)))
                 }
               }
 

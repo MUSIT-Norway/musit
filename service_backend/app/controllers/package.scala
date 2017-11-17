@@ -10,7 +10,7 @@ import no.uio.musit.models.{
   MuseumId,
   StorageNodeDatabaseId
 }
-import no.uio.musit.security.AuthenticatedUser
+import no.uio.musit.security.{AccessAll, AuthenticatedUser, ModuleConstraint}
 import no.uio.musit.service.MusitRequest
 import play.api.libs.json._
 import play.api.mvc.{Result, Results}
@@ -141,9 +141,10 @@ package object controllers {
    */
   def parseCollectionIdsParam(
       mid: MuseumId,
-      str: String
+      mod: ModuleConstraint,
+      cidsStr: String
   )(implicit currUsr: AuthenticatedUser): Either[Result, Seq[MuseumCollection]] = {
-    val colIds = str
+    val colIds = cidsStr
       .split(",")
       .map { ss =>
         val s = ss.trim
@@ -152,27 +153,17 @@ package object controllers {
       .toSeq
     val badCols = colIds.filter(_._2.isEmpty)
 
-    if (str.isEmpty) {
-      Left(
-        Results.BadRequest(
-          Json.obj(
-            "message" -> s"collectionIds param must contain at least 1 collection ID."
-          )
-        )
-      )
+    if (cidsStr.isEmpty) {
+      Left(badRequestStr(s"collectionIds param must contain at least 1 collection ID."))
     } else if (badCols.nonEmpty) {
-      Left(
-        Results.BadRequest(
-          Json.obj(
-            "message" -> s"Invalid CollectionUUIDs: ${badCols.map(_._1).mkString(", ")}"
-          )
-        )
-      )
+      Left(badRequestStr(s"Invalid CollectionUUIDs: ${badCols.map(_._1).mkString(", ")}"))
     } else {
-      val cids = colIds
-        .filter(_._2.nonEmpty)
-        .flatMap(_._2)
-        .filter(cid => currUsr.canAccess(mid, cid))
+      val cids = colIds.filter(_._2.nonEmpty).flatMap(_._2).filter { cid =>
+        mod match {
+          case AccessAll => currUsr.canAccess(mid, Some(cid))
+          case _         => currUsr.canAccess(mid, mod, Some(cid))
+        }
+      }
 
       val cols = currUsr.collectionsFor(mid).filter(mc => cids.contains(mc.uuid))
 
@@ -181,7 +172,7 @@ package object controllers {
           Results.Forbidden(
             Json.obj(
               "message" -> (s"Not authorized to access one or more of " +
-                s" the following collection(s) $str")
+                s" the following collection(s) $cidsStr")
             )
           )
         )

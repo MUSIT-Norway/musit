@@ -577,6 +577,17 @@ INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletyp
 INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype) VALUES (381,'Sediment-/jordprøver',  'Sediment and soil samples', 'Jordmikromorfologiske prøver','Soil micromorphology samples');
 INSERT INTO MUSARK_ANALYSIS.SAMPLE_TYPE(sampletype_id,no_sampletype,en_sampletype,no_samplesubtype,en_samplesubtype) VALUES (382,'Sediment-/jordprøver',  'Sediment and soil samples', 'Kornfordelingsprøver','Grain size distribution (GSD) samples');
 
+--------------------------------------------------------------------------------
+-- CORE
+--------------------------------------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS MUSARK_CORE;
+
+CREATE TABLE MUSARK_CORE.ES_INDEX_STATUS (
+  index_alias   VARCHAR2(255)            NOT NULL,
+  index_created TIMESTAMP WITH TIME ZONE NOT NULL,
+  index_updated TIMESTAMP WITH TIME ZONE,
+  PRIMARY KEY (index_alias)
+);
 
 
 CREATE SCHEMA IF NOT EXISTS MUSARK_CONSERVATION;

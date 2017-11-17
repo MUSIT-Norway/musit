@@ -364,7 +364,7 @@ class AnalysisServiceSpec
         case ac: AnalysisCollection =>
           ac.id mustBe Some(eventId)
           inside(ac.result.value) {
-            case AgeResult(registeredBy, _, extRef, comment, age) =>
+            case AgeResult(registeredBy, _, extRef, comment, age, _) =>
               registeredBy mustBe Some(dummyActorId)
               extRef mustBe None
               comment mustBe Some("Collection Result")
@@ -378,7 +378,7 @@ class AnalysisServiceSpec
           val results = ac.events.flatMap(_.result)
           results.size mustBe 8
           forAll(results) {
-            case AgeResult(registeredBy, _, extRef, comment, age) =>
+            case AgeResult(registeredBy, _, extRef, comment, age, _) =>
               registeredBy mustBe Some(dummyActorId)
               extRef mustBe None
               comment.value must startWith("res for ")

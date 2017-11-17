@@ -186,47 +186,4 @@ class ObjectService @Inject()(
     objDao.pagedObjects(mid, nodeId, collectionIds, page, limit)
   }
 
-  /**
-   * Search for objects based on the given criteria.
-   *
-   * @param mid           The MuseumId to search for objects in
-   * @param collectionIds The collections to search for objects in.
-   * @param page          The page number to retrieve.
-   * @param limit         The number of results per page.
-   * @param museumNo      The MuseumNo to find matches for.
-   * @param subNo         The SubNo to find matches for.
-   * @param term          The object term to find matches for.
-   * @param currUsr       The currently authenticated user.
-   * @return A list of search results matching the given criteria.
-   */
-  def search(
-      mid: MuseumId,
-      collectionIds: Seq[MuseumCollection],
-      page: Int,
-      limit: Int,
-      museumNo: Option[MuseumNo],
-      subNo: Option[SubNo],
-      term: Option[String]
-  )(implicit currUsr: AuthenticatedUser): Future[MusitResult[ObjectSearchResult]] = {
-    objDao.search(mid, page, limit, museumNo, subNo, term, collectionIds).flatMap {
-      case MusitSuccess(searchResult) =>
-        // We found some objects...now we need to find the current location for each.
-        Future
-          .sequence(searchResult.matches.map(getCurrentLocation(mid, _)))
-          .map(MusitResult.sequence)
-          .map { objects =>
-            objects.map(objs => searchResult.copy(matches = objs))
-          }
-          .recover {
-            case NonFatal(ex) =>
-              val msg = s"An error occured when executing object search"
-              logger.error(msg, ex)
-              MusitInternalError(msg)
-          }
-
-      case err: MusitError =>
-        Future.successful(err)
-    }
-  }
-
 }

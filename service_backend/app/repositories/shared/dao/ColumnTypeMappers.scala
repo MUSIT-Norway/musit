@@ -17,7 +17,7 @@ trait ColumnTypeMappers extends BaseColumnTypeMappers with ColumnTypesImplicits 
   import columnTypes._
   import profile.api.{MappedColumnType, BaseColumnType}
 
-  implicit val storageTypeMapper =
+  implicit val storageTypeMapper: BaseColumnType[StorageType] =
     MappedColumnType.base[StorageType, String](
       storageType => storageType.entryName,
       string => StorageType.withName(string)

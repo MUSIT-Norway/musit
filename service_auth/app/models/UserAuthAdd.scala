@@ -34,13 +34,18 @@ object UserAuthAdd {
 
 // TODO: Remove above code when below is completed.
 
-case class UserAdd(email: Email, accesses: List[ModuleAddAccess])
+case class UserAdd(
+    email: Email,
+    maybeDbCoord: Option[GroupId],
+    accesses: List[ModuleAddAccess]
+)
 
 object UserAdd {
   val form: Form[UserAdd] = Form(
     mapping(
-      "email"   -> email.transform[Email](Email.apply, _.value),
-      "modules" -> list[ModuleAddAccess](ModuleAddAccess.formMapping)
+      "email"    -> email.transform[Email](Email.apply, _.value),
+      "db_coord" -> optional(uuid.transform[GroupId](GroupId.apply, _.underlying)),
+      "modules"  -> list[ModuleAddAccess](ModuleAddAccess.formMapping)
     )(UserAdd.apply)(UserAdd.unapply)
   )
 }

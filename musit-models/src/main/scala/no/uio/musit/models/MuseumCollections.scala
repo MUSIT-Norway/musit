@@ -45,7 +45,7 @@ object MuseumCollections {
     implicit val writes: Writes[Collection] = Writes(os => JsNumber(os.id))
 
     private[this] val InvalidMsg = (arg: String) =>
-      String.format("%s can not be mapped to an old schema.", arg)
+      String.format("%s can not be mapped to a museum Collection.", arg)
 
     // scalastyle:off
     @throws(classOf[IllegalArgumentException])

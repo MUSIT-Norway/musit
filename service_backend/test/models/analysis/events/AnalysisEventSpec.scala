@@ -58,7 +58,8 @@ class AnalysisEventSpec
           registeredBy = Some(dummyActor),
           registeredDate = Some(dummyDate),
           extRef = Some(Seq(dummyNote)),
-          comment = Some(dummyNote)
+          comment = Some(dummyNote),
+          attachments = None
         )
       )
     )
@@ -85,7 +86,8 @@ class AnalysisEventSpec
           registeredBy = Some(dummyActor),
           registeredDate = Some(dummyDate),
           extRef = Some(Seq(dummyNote)),
-          comment = Some(dummyNote)
+          comment = Some(dummyNote),
+          attachments = None
         )
       ),
       reason = Some(dummyReason),

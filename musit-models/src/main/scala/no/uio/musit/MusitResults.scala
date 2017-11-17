@@ -75,7 +75,7 @@ object MusitResults {
   }
 
   /**
-   * Use this to as return type when operations is successful
+   * Use this to as the return type when an operation is successful and has value.
    */
   case class MusitSuccess[+A](value: A) extends MusitResult[A] {
     override val isSuccess: Boolean = true
@@ -101,6 +101,13 @@ object MusitResults {
    */
   case object MusitEmpty extends MusitError {
     override val message: String    = "empty"
+    override val isSuccess: Boolean = false
+  }
+
+  /**
+   * This can be used when data is not found.
+   */
+  case class MusitNotFound(message: String) extends MusitError {
     override val isSuccess: Boolean = false
   }
 

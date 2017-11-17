@@ -70,17 +70,17 @@ trait EventActions extends DbErrorHandlers {
       e.eventId === id
     }.result.headOption
 
-  /** List all events for the given StorageNodeId */
+  /** List all events for the affectedUuid */
   protected def listEventsAction[ID <: MusitUUID](
       mid: MuseumId,
-      nodeId: ID,
+      affectedId: ID,
       eventTypeId: EventTypeId,
       limit: Option[Int] = None
   ): DBIO[Seq[EventRow]] = {
     val q = eventTable.filter { e =>
       e.museumId === mid &&
       e.eventTypeId === eventTypeId &&
-      e.affectedUuid === nodeId.asString
+      e.affectedUuid === affectedId.asString
     }.sortBy(_.eventId.desc)
 
     limit.map {

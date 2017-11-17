@@ -1,6 +1,7 @@
 @import controllers.web.MenuItems
 @import controllers.web.routes.UserController
 @import models.{UserPermissions, Group}
+@import no.uio.musit.models.GroupId
 @import no.uio.musit.models.MuseumCollection
 @import no.uio.musit.models.Museums.Museum
 @import no.uio.musit.security.{AuthenticatedUser, EncryptedToken}
@@ -12,7 +13,8 @@
         selectedUser: UserPermissions,
         museum: Option[Museum],
         collections: Seq[MuseumCollection],
-        groups: Seq[Group]
+        groups: Seq[Group],
+        maybeDbCoord: Option[GroupId]
 )(implicit messages: Messages)
 
 @main(user, etok, s"User Details", activeMenu = MenuItems.Museums) {
@@ -49,6 +51,51 @@
           <div class="row">
             <div class="col-md-3 text-right"><label>Actor ID:</label></div>
             <div class="col-md-9">@selectedUser.userId.map(_.asString).getOrElse("-")</div>
+          </div>
+          <div class="row">
+          @defining(
+            maybeDbCoord.map { gid =>
+              (
+                gid.asString,
+                true,
+                UserController.revokeDbCoord(
+                  email = selectedUser.feideEmail.value,
+                  groupId = gid.asString,
+                  mid = museum.map(_.id.underlying)
+                )
+              )
+            }.getOrElse {
+              val grpId = groups.find(_.museumId == museum.get.id).get.id
+              (
+                grpId.asString,
+                false,
+                UserController.grantDbCoord(
+                  email = selectedUser.feideEmail.value,
+                  groupId = grpId.asString,
+                  mid = museum.map(_.id.underlying)
+                )
+              )
+            }
+          ) { case (gid, isChecked, callAction) =>
+            <form class="inline-form" id="db_coord-form" method="POST" action="@callAction&_at=@etok.urlEncoded">
+              <div class="col-md-3 text-right">
+                <label for="db_coord_">Database Coordinator</label>
+              </div>
+              <div class="col-md-9">
+                <input
+                  class="checkbox-inline"
+                  type="checkbox"
+                  id="db_coord"
+                  name="db_coord"
+                  value="@gid"
+                  @if(isChecked) {
+                    checked
+                  }
+                  onchange="document.getElementById('db_coord-form').submit()"
+                >
+              </div>
+            </form>
+          }
           </div>
         </div>
       </div>

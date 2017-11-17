@@ -6,13 +6,7 @@ import play.api.libs.ws.{DefaultWSProxyServer, WSProxyServer, WSRequest}
 
 class ProxiedRequest(req: WSRequest, config: Configuration) {
 
-  val proxy: Option[WSProxyServer] = for {
-    host <- config.getOptional[String](ProxyHost)
-    port <- config.getOptional[Int](ProxyPort)
-    user     = config.getOptional[String](ProxyUser)
-    password = config.getOptional[String](ProxyPassword)
-  } yield
-    DefaultWSProxyServer(host = host, port = port, principal = user, password = password)
+  val proxy: Option[WSProxyServer] = readConfig(config)
 
   def viaProxy: WSRequest = proxy.map(req.withProxyServer).getOrElse(req)
 
@@ -27,6 +21,20 @@ object ProxiedRequest {
   val ProxyUser     = s"$MusitWsProxyKey.user"
   val ProxyPassword = s"$MusitWsProxyKey.password"
 
+  def readConfig(config: Configuration) = {
+    for {
+      host <- config.getOptional[String](ProxyHost)
+      port <- config.getOptional[Int](ProxyPort)
+      user     = config.getOptional[String](ProxyUser)
+      password = config.getOptional[String](ProxyPassword)
+    } yield
+      DefaultWSProxyServer(
+        host = host,
+        port = port,
+        principal = user,
+        password = password
+      )
+  }
 }
 
 trait ViaProxy {

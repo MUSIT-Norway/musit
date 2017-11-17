@@ -11,14 +11,31 @@ echo "## This script is ONLY meant for DEVELOPMENT, and NOT for PRODUCTION."
 echo "## If you are seeing this message in PRODUCTION, something has gone terribly wrong!"
 echo "################################################################################"
 
+echo "If some stuff fails with strange errors, try to run pre-deploy.sh first"
 # ------------------------------------------------------------------------
-# Slick Database configuration
+# Slick MUSIT DB configuration
 # ------------------------------------------------------------------------
 export EVOLUTION_ENABLED=false
 export APPLICATION_SECRET=dummyAppSecret
 export SLICK_DB_URL=jdbc:oracle:thin:@db:1521:orcl
 export SLICK_DB_USER=musit
 export SLICK_DB_PASSWORD=musit
+
+# ------------------------------------------------------------------------
+# Elasticsearch configuration
+# ------------------------------------------------------------------------
+export ELASTICSEARCH_HOST="elasticsearch"
+
+# ------------------------------------------------------------------------
+# Document module specific configuration (including postgres)
+# ------------------------------------------------------------------------
+export SYMBIOTIC_POSTGRES_HOST=postgres_db
+export SYMBIOTIC_POSTGRES_PORT=5432
+export SYMBIOTIC_POSTGRES_USE_SSL=false
+export SYMBIOTIC_DB_USER=postgres
+export SYMBIOTIC_DB_PASSWORD=postgres
+export SYMBIOTIC_DB_NAME=postgres
+export SYMBIOTIC_FS_ROOT_DIR="dman/files"
 
 # ------------------------------------------------------------------------
 # The application defaults to use the fake security module (no.uio.musit.security.fake.FakeModule)
@@ -35,6 +52,7 @@ export CALLBACK_URL="http://musit-test:8888/api/auth/rest/authenticate"
 export DATAPORTEN_CLIENT_ID=$CLIENT_ID
 export DATAPORTEN_CLIENT_SECRET=$CLIENT_SECRET
 export DATAPORTEN_SESSION_TIMEOUT="4 hours"
+
 
 # ------------------------------------------------------------------------
 # Start the deployment process...

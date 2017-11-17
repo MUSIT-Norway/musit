@@ -15,17 +15,21 @@
 
   <p>
     @defining(
+      museum.map { m =>
+        s"${UserController.usersPerModule(m.id.underlying)}?_at=${etok.urlEncoded}"
+      }.getOrElse("#")
+    ) { backUrl =>
+      <a href="@backUrl">Go back</a>
+    }
+    &nbsp;&nbsp;
+    @defining(
       s"${UserController.userEditView(selectedUser.feideEmail.value, museum.map(_.id.underlying))}" +
-        s"${museum.map(_ => "&").getOrElse("?")}"
+              s"${museum.map(_ => "&").getOrElse("?")}"
     ) { baseUrl =>
       <a href="@(baseUrl)_at=@etok.urlEncoded">
         Edit user
       </a>
     }
-    &nbsp;&nbsp;
-    <a href="javascript:window.history.back()">
-      Go back
-    </a>
   </p>
 
   <div class="row">

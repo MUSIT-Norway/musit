@@ -21,6 +21,7 @@ object AnalysisResults {
     val registeredDate: Option[DateTime]
     val extRef: Option[Seq[String]]
     val comment: Option[String]
+    val attachments: Option[Seq[String]]
 
     def withRegisteredDate(d: Option[DateTime]): AnalysisResult = {
       this match {
@@ -86,16 +87,19 @@ object AnalysisResults {
    * Most analysis' will have this form of result. It provides a set of the most
    * commonly used fields to register different forms of results.
    *
-   * @param registeredBy The ActorId that registered the result
+   * @param registeredBy   The ActorId that registered the result
    * @param registeredDate The date when the result was registered
-   * @param extRef A list of references to external systems.
-   * @param comment A comment field that may contain a hand written result
+   * @param extRef         A list of references to external systems.
+   * @param comment        A comment field that may contain a hand written result
+   * @param attachments    A list of Strings representing attached files IDs in
+   *                       the document module
    */
   case class GenericResult(
       registeredBy: Option[ActorId],
       registeredDate: Option[DateTime],
       extRef: Option[Seq[String]],
-      comment: Option[String]
+      comment: Option[String],
+      attachments: Option[Seq[String]]
   ) extends AnalysisResult
 
   object GenericResult extends ResultTypeCompanion {
@@ -109,18 +113,21 @@ object AnalysisResults {
    * typically be of this result type. It contains the common field, as well as
    * the age field.
    *
-   * @param registeredBy The ActorId that registered the result
+   * @param registeredBy   The ActorId that registered the result
    * @param registeredDate The date when the result was registered
-   * @param extRef A list of references to external systems.
-   * @param comment A comment field that may contain a hand written result
-   * @param age The result containing the specific dating result.
+   * @param extRef         A list of references to external systems.
+   * @param comment        A comment field that may contain a hand written result
+   * @param attachments    A list of Strings representing attached files IDs in
+   *                       the document module
+   * @param age            The result containing the specific dating result.
    */
   case class AgeResult(
       registeredBy: Option[ActorId],
       registeredDate: Option[DateTime],
       extRef: Option[Seq[String]],
       comment: Option[String],
-      age: Option[String]
+      age: Option[String],
+      attachments: Option[Seq[String]]
   ) extends AnalysisResult
 
   object AgeResult extends ResultTypeCompanion {
@@ -132,11 +139,13 @@ object AnalysisResults {
   /**
    * AnalysisResult type specifically to related to carbon dating analysis.
    *
-   * @param registeredBy The ActorId that registered the result
-   * @param registeredDate The date when the result was registered
-   * @param extRef A list of references to external systems.
-   * @param comment A comment field that may contain a hand written result
-   * @param ageEstimate The estimated radio carbon date
+   * @param registeredBy      The ActorId that registered the result
+   * @param registeredDate    The date when the result was registered
+   * @param extRef            A list of references to external systems.
+   * @param comment           A comment field that may contain a hand written result
+   * @param attachments       A list of Strings representing attached files IDs in
+   *                          the document module
+   * @param ageEstimate       The estimated radio carbon date
    * @param standardDeviation The estimated standard deviation
    */
   case class RadioCarbonResult(
@@ -144,6 +153,7 @@ object AnalysisResults {
       registeredDate: Option[DateTime],
       extRef: Option[Seq[String]],
       comment: Option[String],
+      attachments: Option[Seq[String]],
       ageEstimate: Option[String],
       standardDeviation: Option[String]
   ) extends AnalysisResult
@@ -157,21 +167,24 @@ object AnalysisResults {
   /**
    * AnalysisResult type for registering measurements and counts.
    *
-   * @param registeredBy The ActorId that registered the result
-   * @param registeredDate The date when the result was registered
-   * @param extRef A list of references to external systems.
-   * @param comment A comment field that may contain a hand written result
-   * @param measurementId A field with the ID value of the measurement type.
+   * @param registeredBy    The ActorId that registered the result
+   * @param registeredDate  The date when the result was registered
+   * @param extRef          A list of references to external systems.
+   * @param comment         A comment field that may contain a hand written result
+   * @param attachments     A list of Strings representing attached files IDs in
+   *                        the document module
+   * @param measurementId   A field with the ID value of the measurement type.
    * @param measurementType The type of measurement performed.
-   * @param size The measured size.
-   * @param precision The precision of the measured size.
-   * @param method The method that was used to perform the measurement.
+   * @param size            The measured size.
+   * @param precision       The precision of the measured size.
+   * @param method          The method that was used to perform the measurement.
    */
   case class MeasurementResult(
       registeredBy: Option[ActorId],
       registeredDate: Option[DateTime],
       extRef: Option[Seq[String]],
       comment: Option[String],
+      attachments: Option[Seq[String]],
       measurementId: Option[String],
       measurementType: Option[String],
       size: Option[Size],
@@ -188,19 +201,22 @@ object AnalysisResults {
   /**
    * AnalysisResult type for registering results for a genetic extraction.
    *
-   * @param registeredBy The ActorId that registered the result
+   * @param registeredBy   The ActorId that registered the result
    * @param registeredDate The date when the result was registered
-   * @param extRef A list of references to external systems.
-   * @param comment A comment field that may contain a hand written result
-   * @param storageMedium The storage medium used to keep the extracted result in.
-   * @param concentration The concentration of the extracted material.
-   * @param volume The size / volume of the extracted material
+   * @param extRef         A list of references to external systems.
+   * @param comment        A comment field that may contain a hand written result
+   * @param attachments    A list of Strings representing attached files IDs in
+   *                       the document module
+   * @param storageMedium  The storage medium used to keep the extracted result in.
+   * @param concentration  The concentration of the extracted material.
+   * @param volume         The size / volume of the extracted material
    */
   case class ExtractionResult(
       registeredBy: Option[ActorId],
       registeredDate: Option[DateTime],
       extRef: Option[Seq[String]],
       comment: Option[String],
+      attachments: Option[Seq[String]],
       storageMedium: Option[String],
       concentration: Option[Size],
       volume: Option[Size]
@@ -211,4 +227,5 @@ object AnalysisResults {
 
     implicit val format: Format[ExtractionResult] = Json.format[ExtractionResult]
   }
+
 }

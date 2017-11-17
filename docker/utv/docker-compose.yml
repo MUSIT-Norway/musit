@@ -32,6 +32,7 @@ services:
       - SLICK_DB_URL
       - SLICK_DB_USER
       - SLICK_DB_PASSWORD
+      - ELASTICSEARCH_HOST
 
   auth:
     image: service_auth:0.1-SNAPSHOT
@@ -65,3 +66,27 @@ services:
       - SLICK_DB_URL
       - SLICK_DB_USER
       - SLICK_DB_PASSWORD
+
+  document:
+    image: service_document:0.1-SNAPSHOT
+    environment:
+      - MUSIT_ENV
+      - MUSIT_BASE_URL
+      - DOCKER_HOSTNAME
+      - MUSIT_SECURITY_MODULE
+      - DATAPORTEN_CLIENT_ID
+      - DATAPORTEN_CLIENT_SECRET
+      - DATAPORTEN_SESSION_TIMEOUT
+      - APPLICATION_SECRET
+      - EVOLUTION_ENABLED
+      - SLICK_DB_URL
+      - SLICK_DB_USER
+      - SLICK_DB_PASSWORD
+      # Props for the document management library to connect to postgres
+      - SYMBIOTIC_POSTGRES_HOST
+      - SYMBIOTIC_POSTGRES_PORT
+      - SYMBIOTIC_POSTGRES_USE_SSL
+      - SYMBIOTIC_DB_USER
+      - SYMBIOTIC_DB_PASSWORD
+      - SYMBIOTIC_DB_NAME
+      - SYMBIOTIC_FS_ROOT_DIR

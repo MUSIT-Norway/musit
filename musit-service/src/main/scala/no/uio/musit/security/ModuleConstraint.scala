@@ -7,11 +7,16 @@ sealed abstract class ModuleConstraint(val id: Int, val name: String)
 case object AccessAll            extends ModuleConstraint(0, "All")
 case object StorageFacility      extends ModuleConstraint(1, "Storage Facility")
 case object CollectionManagement extends ModuleConstraint(2, "Collection Management")
+case object DocumentArchive      extends ModuleConstraint(3, "Document Archive")
 
 object ModuleConstraint {
 
-  // Explisitly not including the All constraing
-  val AllModules: Seq[ModuleConstraint] = Seq(CollectionManagement, StorageFacility)
+  // Explicitly not including the {{{All}}} constraint
+  val AllModules: Seq[ModuleConstraint] = Seq(
+    CollectionManagement,
+    StorageFacility,
+    DocumentArchive
+  )
 
   implicit val reads: Reads[ModuleConstraint] = Reads { jsv =>
     jsv.validate[Int] match {
@@ -34,6 +39,7 @@ object ModuleConstraint {
     case AccessAll.id            => Some(AccessAll)
     case StorageFacility.id      => Some(StorageFacility)
     case CollectionManagement.id => Some(CollectionManagement)
+    case DocumentArchive.id      => Some(DocumentArchive)
     case _                       => None
   }
 
