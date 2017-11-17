@@ -7,7 +7,7 @@ import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationErro
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.functional.Implicits.futureMonad
 import no.uio.musit.functional.MonadTransformers.MusitResultT
-import no.uio.musit.models.{EventId, MuseumId, ObjectUUID}
+import no.uio.musit.models.{ActorDate, EventId, MuseumId, ObjectUUID}
 import no.uio.musit.musitUtils.Utils
 import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.security.AuthenticatedUser
@@ -33,6 +33,27 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
   val logger = Logger(classOf[ConservationEventDao[ConservationEvent]])
 
   import profile.api._
+
+  /** Gets the registered by and date fields. Handles both processed and subevents. */
+  def findRegisteredActorDate(
+      mid: MuseumId,
+      id: EventId
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): FutureMusitResult[Option[ActorDate]] = {
+
+    val query = super.findByIdAction(mid, id).map { mayBeRow =>
+      mayBeRow.map { row =>
+        ActorDate(valRegisteredBy(row), valRegisteredDate(row))
+
+      }
+    }
+
+    daoUtils.dbRun(
+      query,
+      s"An unexpected error occurred fetching registered by/date for event $id"
+    )
+  }
 
   def interpretRow(row: EventRow): ConservationEvent = {
     fromRow(
@@ -165,7 +186,9 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       mid: MuseumId,
       ce: T
   )(implicit currUsr: AuthenticatedUser): FutureMusitResult[EventId] = {
-    val action = createInsertAction(mid, ce.partOf, ce)
+    val event = ce.withRegisteredInfo(Some(currUsr.id), Some(dateTimeNow))
+
+    val action = createInsertAction(mid, event.partOf, event)
     daoUtils.dbRun(
       action.transactionally,
       s"An error occurred trying to add event ${ce.getClass.getName}"
@@ -190,9 +213,12 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
   )(implicit currUsr: AuthenticatedUser): DBIO[EventId] = {
     val objectIds           = event.affectedThings.getOrElse(Seq.empty)
     val eventWithoutObjects = event.withAffectedThings(None)
-    val eventWithRegisteredDate =
-      eventWithoutObjects.withRegisteredInfo(Some(currUsr.id), Some(dateTimeNow))
-    val row    = asRow(mid, eventWithRegisteredDate)
+
+    // registered by and date are filled in in the service layer (during copyWithRegDataForProcessAndSubevents)
+    require(event.registeredBy.isDefined)
+    require(event.registeredDate.isDefined)
+
+    val row    = asRow(mid, eventWithoutObjects)
     val newRow = row.copy(_9 = partOf)
     for {
       eventId <- insertAction(newRow)
@@ -208,8 +234,8 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     require(event.id.isDefined)
     val eventId = event.id.get
 
-    //updated and registered are filled in during putUpdateAndRegDataToProcessAndSubevents
-    //or updated are filled in during conservationEvent.update(update on single subevent)
+    //updated and registered are filled in during copyWithUpdateAndRegDataToProcessAndSubevents
+    //or otherwise in the service layer (update on single subevent)
     require(event.updatedBy.get == currUsr.id)
     require(event.updatedDate.isDefined)
 
@@ -244,7 +270,8 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       implicit currUsr: AuthenticatedUser
   ): FutureMusitResult[Option[ConservationEvent]] = {
     val updatedEvent = event.withUpdatedInfo(Some(currUsr.id), Some(dateTimeNow))
-    val action       = createUpdateAction(mid, id, updatedEvent).transactionally
+
+    val action = createUpdateAction(mid, id, updatedEvent).transactionally
     //println("inniUpdate-dao " + event)
 
     daoUtils

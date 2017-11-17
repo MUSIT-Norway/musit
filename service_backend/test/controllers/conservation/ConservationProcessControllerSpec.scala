@@ -365,7 +365,6 @@ class ConservationProcessControllerSpec
         )
         //time.dateTimeNow.plusDays(20)
         val updRes = putEvent(compositeConservationProcessEventId, json)
-        println(updRes.body)
 
         updRes.status mustBe OK
 

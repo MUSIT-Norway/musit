@@ -13,7 +13,11 @@ import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
 import play.api.Logger
-import repositories.conservation.dao.{ConservationProcessDao, ConservationTypeDao}
+import repositories.conservation.dao.{
+  ConservationProcessDao,
+  ConservationTypeDao,
+  TreatmentDao
+}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -21,6 +25,8 @@ class ConservationProcessService @Inject()(
     implicit
     val conservationDao: ConservationProcessDao,
     val typeDao: ConservationTypeDao,
+    val subEventDao: TreatmentDao, //Arbitrary choice, to get access to helper functions irrespective of event type
+    //Should have been ConservationModuleEventDao (TODO: Make this split)
     val ec: ExecutionContext
 ) {
 
@@ -36,7 +42,7 @@ class ConservationProcessService @Inject()(
       mid: MuseumId,
       cp: ConservationProcess
   )(implicit currUser: AuthenticatedUser): FutureMusitResult[EventId] = {
-    val event = cp.withRegisteredInfo(Some(currUser.id), Some(dateTimeNow))
+    val event = copyWithRegDataForProcessAndSubEvents(cp, currUser.id, dateTimeNow)
     conservationDao.insert(mid, event)
   }
 
@@ -69,7 +75,30 @@ class ConservationProcessService @Inject()(
     }
   }
 
-  def putUpdateAndRegDataToProcessAndSubevents(
+  /*** Fill in registered by and date both in the process and in all subevents */
+  def copyWithRegDataForProcessAndSubEvents(
+      conservationProcess: ConservationProcess,
+      currUser: ActorId,
+      currDate: DateTime
+  ): ConservationProcess = {
+
+    val someCurrUser = Some(currUser)
+    val someCurrDate = Some(currDate)
+
+    val cp = conservationProcess.withRegisteredInfo(someCurrUser, someCurrDate)
+
+    val subEvents = cp.events
+      .getOrElse(Seq.empty)
+      .map(subEvent => subEvent.withRegisteredInfo(someCurrUser, someCurrDate))
+
+    cp.withEvents(subEvents)
+
+  }
+
+  /***
+   *  Fill in updated by and date in the process and set updated and
+   *  registered by/date as appropriate in the subevents */
+  def copyWithUpdateAndRegDataToProcessAndSubEvents(
       conservationProcess: ConservationProcess,
       currUser: ActorId,
       currDate: DateTime,
@@ -121,7 +150,7 @@ class ConservationProcessService @Inject()(
     import no.uio.musit.functional.Extensions
 
     def getRegisteredActorDate(localEventId: EventId): FutureMusitResult[ActorDate] = {
-      conservationDao
+      subEventDao
         .findRegisteredActorDate(mid, localEventId)
         .getOrError(
           MusitValidationError(
@@ -136,7 +165,7 @@ class ConservationProcessService @Inject()(
             s"Inconsistent eventid in url($eventId) vs body (${cp.id})"
           )
 
-      eventToWriteToDb <- putUpdateAndRegDataToProcessAndSubevents(
+      eventToWriteToDb <- copyWithUpdateAndRegDataToProcessAndSubEvents(
                            cp,
                            currUser.id,
                            dateTimeNow,

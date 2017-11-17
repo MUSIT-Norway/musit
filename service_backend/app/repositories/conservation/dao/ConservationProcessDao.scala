@@ -36,6 +36,8 @@ class ConservationProcessDao @Inject()(
 
   import profile.api._
 
+  def subEventDao = treatmentDao //Arbitrary choice, could have used any of the other.
+
   def interpretConservationProcessRow(row: EventRow): ConservationProcess = {
     require(
       valEventTypeId(row) == ConservationProcess.eventTypeId,
@@ -117,33 +119,6 @@ class ConservationProcessDao @Inject()(
     daoUtils.dbRun(
       query,
       s"An unexpected error occurred fetching conservation process event $id"
-    )
-  }
-
-  /**
-   * Same as findById, but will ensure that only the conservation specific events
-   * are returned.
-   *
-   * @param id The event ID to look for
-   * @return the Conservation that was found or None
-   */
-  def findRegisteredActorDate(
-      mid: MuseumId,
-      id: EventId
-  )(
-      implicit currUsr: AuthenticatedUser
-  ): FutureMusitResult[Option[ActorDate]] = {
-
-    val query = super.findByIdAction(mid, id).map { mayBeRow =>
-      mayBeRow.map { row =>
-        ActorDate(valRegisteredBy(row), valRegisteredDate(row))
-
-      }
-    }
-
-    daoUtils.dbRun(
-      query,
-      s"An unexpected error occurred fetching registered by/date for event $id"
     )
   }
 
