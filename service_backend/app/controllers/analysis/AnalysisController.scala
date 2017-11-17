@@ -9,7 +9,12 @@ import no.uio.musit.MusitResults.{MusitError, MusitSuccess, MusitValidationError
 import no.uio.musit.models.{CollectionUUID, EventId, MuseumId, ObjectUUID}
 import no.uio.musit.security.Permissions.{Read, Write}
 import no.uio.musit.security.{AccessAll, AuthenticatedUser, Authenticator}
-import no.uio.musit.security.{AccessAll, AuthenticatedUser, Authenticator, CollectionManagement}
+import no.uio.musit.security.{
+  AccessAll,
+  AuthenticatedUser,
+  Authenticator,
+  CollectionManagement
+}
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.libs.json._

@@ -171,7 +171,7 @@ class SampleObjectController @Inject()(
           soService.delete(oid).map {
             case MusitSuccess(_)  => Ok
             case MusitNotFound(_) => NotFound
-            case MusitEmpty      => NotFound
+            case MusitEmpty       => NotFound
             case err: MusitError  => internalErr(err)
           }
         }
