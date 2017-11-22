@@ -35,7 +35,6 @@ abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Injec
   def add(mid: MuseumId, ce: T)(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[Option[ConservationEvent]] = {
-
     val event: T =
       ce.withRegisteredInfo(Some(currUser.id), Some(dateTimeNow)).asInstanceOf[T]
     val res = for {

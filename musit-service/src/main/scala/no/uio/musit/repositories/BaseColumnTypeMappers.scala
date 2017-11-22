@@ -5,22 +5,22 @@ import java.sql.{Timestamp => JSqlTimestamp}
 import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
+import no.uio.musit.security.Permissions.Permission
+import no.uio.musit.security.{BearerToken, ModuleConstraint, SessionUUID}
 import no.uio.musit.time.Implicits.{dateTimeToJTimestamp, jSqlTimestampToDateTime}
 import org.joda.time.DateTime
 import play.api.db.slick.HasDatabaseConfig
 import play.api.libs.json.{JsValue, Json}
 import slick.ast._
 import slick.jdbc.JdbcProfile
+import slick.lifted.FunctionSymbolExtensionMethods._
 import slick.lifted._
-import FunctionSymbolExtensionMethods._
-import no.uio.musit.security.Permissions.Permission
-import no.uio.musit.security.{BearerToken, ModuleConstraint, SessionUUID}
 
 trait BaseColumnTypeMappers extends ColumnTypesImplicits {
   self: HasDatabaseConfig[JdbcProfile] =>
 
   import columnTypes._
-  import profile.api.{MappedColumnType, BaseColumnType}
+  import profile.api.{BaseColumnType, MappedColumnType}
 
   // Implicit that extends Email typed columns with a toLowerCase method
   implicit class EmailColumnExtensionMethods[P1](val c: Rep[Email]) {
@@ -185,4 +185,5 @@ trait BaseColumnTypeMappers extends ColumnTypesImplicits {
       bt => bt.underlying,
       str => BearerToken(str)
     )
+
 }

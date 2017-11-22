@@ -568,3 +568,9 @@ INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(no_keyword, en_keyword) VALUES
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(no_keyword, en_keyword) VALUES('Slipt (maskinelt)','Slipt (maskinelt)');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(no_keyword, en_keyword) VALUES('Avstøpning','Avstøpning');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(no_keyword, en_keyword) VALUES('Lakkert','Lakkert');
+
+
+
+-- INSERTING EVENT ROLES/ CONSERVATION ACTOR ROLE DATE
+INSERT INTO MUSARK_CONSERVATION.ROLE(no_role, en_role,role_for) VALUES ('Utført av', 'Done by ', 'actor');
+INSERT INTO MUSARK_CONSERVATION.ROLE(no_role, en_role,role_for) VALUES ('Deltatt i', 'participated in','actor');

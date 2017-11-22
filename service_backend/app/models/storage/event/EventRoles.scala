@@ -1,6 +1,7 @@
 package models.storage.event
 
 import no.uio.musit.models.{ActorId, ObjectId, StorageNodeDatabaseId}
+import org.joda.time.DateTime
 import play.api.libs.json.{Format, Json}
 
 case class ActorRole(roleId: Int, actorId: ActorId)

@@ -38,7 +38,7 @@ trait ConservationprocessGenerators {
       completedDate = None,
       caseNumber = None,
       partOf = None,
-      doneByActors = None,
+      actorsAndRoles = None,
       affectedThings = oids,
       registeredBy = Some(dummyActorId),
       registeredDate = now,

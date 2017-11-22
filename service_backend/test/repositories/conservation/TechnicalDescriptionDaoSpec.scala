@@ -47,7 +47,7 @@ class TechnicalDescriptionDaoSpec
       completedDate = None,
       caseNumber = None,
       partOf = None,
-      doneByActors = None,
+      actorsAndRoles = None,
       affectedThings = oids,
       registeredBy = None,
       registeredDate = now,

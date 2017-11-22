@@ -1,13 +1,9 @@
 package models.conservation.events
 
-import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.formatters.WithDateTimeFormatters
-import no.uio.musit.models.ObjectTypes.ObjectType
 import no.uio.musit.models._
 import org.joda.time.DateTime
 import play.api.libs.json._
-
-import scala.concurrent.Future
 
 sealed trait ConservationModuleEvent extends MusitEvent {
 
@@ -15,8 +11,15 @@ sealed trait ConservationModuleEvent extends MusitEvent {
   val partOf: Option[EventId]
   val note: Option[String]
   val caseNumber: Option[String]
-  val doneByActors: Option[Seq[ActorId]]
+  //val doneByActors: Option[Seq[ActorId]]
+  val actorsAndRoles: Option[Seq[ActorRoleDate]]
   val affectedThings: Option[Seq[ObjectUUID]]
+
+  def withoutActorRoleAndDates: ConservationModuleEvent = withActorRoleAndDates(None)
+
+  def withActorRoleAndDates(
+      actorsAndRoles: Option[Seq[ActorRoleDate]]
+  ): ConservationModuleEvent
 
 }
 trait TypedConservationEvent {
@@ -86,7 +89,8 @@ sealed trait ConservationEvent extends ConservationModuleEvent {
   val updatedDate: Option[DateTime]
   val completedBy: Option[ActorId]
   val completedDate: Option[DateTime]
-  val doneByActors: Option[Seq[ActorId]]
+  //val doneByActors: Option[Seq[ActorId],
+  val actorsAndRoles: Option[Seq[ActorRoleDate]]
   val affectedThings: Option[Seq[ObjectUUID]]
   // todo val extraAttributes: Option[ExtraAttributes]
 
@@ -105,6 +109,10 @@ sealed trait ConservationEvent extends ConservationModuleEvent {
   def asPartOf(partOf: Option[EventId]): ConservationEvent
 
   def withAffectedThings(objects: Option[Seq[ObjectUUID]]): ConservationEvent
+
+  override def withoutActorRoleAndDates: ConservationEvent = withActorRoleAndDates(None)
+
+  def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]): ConservationEvent
 }
 
 object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatters {
@@ -175,7 +183,8 @@ case class ConservationProcess(
     affectedThing: Option[ObjectUUID],
     partOf: Option[EventId],
     note: Option[String],
-    doneByActors: Option[Seq[ActorId]],
+    //doneByActors: Option[Seq[ActorId]],
+    actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
     events: Option[Seq[ConservationEvent]]
 ) extends ConservationModuleEvent {
@@ -204,6 +213,9 @@ case class ConservationProcess(
   ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
 
   def withEvents(newEvents: Seq[ConservationEvent]) = copy(events = Some(newEvents))
+
+  override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
+    copy(actorsAndRoles = actorsAndRoles)
 
 }
 object ConservationProcess extends WithDateTimeFormatters {
@@ -260,7 +272,8 @@ case class Treatment(
     affectedThing: Option[ObjectUUID],
     partOf: Option[EventId],
     note: Option[String],
-    doneByActors: Option[Seq[ActorId]],
+    // doneByActors: Option[Seq[ActorId]],
+    actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
     keywords: Option[Seq[Int]],
     materials: Option[Seq[Int]]
@@ -289,6 +302,9 @@ case class Treatment(
 
   override def withAffectedThings(objects: Option[Seq[ObjectUUID]]): ConservationEvent =
     copy(affectedThings = objects)
+
+  override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
+    copy(actorsAndRoles = actorsAndRoles)
 }
 
 object Treatment extends WithDateTimeFormatters with ConservationEventType {
@@ -320,7 +336,8 @@ case class TechnicalDescription(
     affectedThing: Option[ObjectUUID],
     partOf: Option[EventId],
     note: Option[String],
-    doneByActors: Option[Seq[ActorId]],
+    //doneByActors: Option[Seq[ActorId]],
+    actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]]
 ) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
@@ -349,6 +366,9 @@ case class TechnicalDescription(
 
   override def withAffectedThings(objects: Option[Seq[ObjectUUID]]): ConservationEvent =
     copy(affectedThings = objects)
+
+  override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
+    copy(actorsAndRoles = actorsAndRoles)
 }
 
 object TechnicalDescription extends WithDateTimeFormatters with ConservationEventType {

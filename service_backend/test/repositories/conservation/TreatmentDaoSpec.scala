@@ -2,7 +2,7 @@ package repositories.conservation
 
 import java.util.UUID
 
-import models.conservation.events.Treatment
+import models.conservation.events.{ActorRoleDate, Treatment}
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.models._
 import no.uio.musit.security._
@@ -10,6 +10,8 @@ import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.{DateTimeMatchers, MusitResultValues}
 import no.uio.musit.time.dateTimeNow
 import org.scalatest.OptionValues
+import play.api.libs.json.JsObject
+import play.libs.Json
 import repositories.conservation.dao.{TechnicalDescriptionDao, TreatmentDao}
 
 class TreatmentDaoSpec
@@ -47,12 +49,21 @@ class TreatmentDaoSpec
       completedDate = None,
       caseNumber = None,
       partOf = None,
-      doneByActors = None,
+      //actorsAndRoles = None,
       affectedThings = oids,
       registeredBy = None,
       registeredDate = now,
       updatedBy = None,
       updatedDate = now,
+      actorsAndRoles = Some(
+        Seq(
+          ActorRoleDate(
+            1,
+            ActorId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"),
+            now
+          )
+        )
+      ),
       keywords = Some(Seq(1, 2)),
       materials = Some(Seq(3, 4))
     )
@@ -119,6 +130,15 @@ class TreatmentDaoSpec
         tr.keywords.value mustBe Seq(1, 2)
         tr.materials.value mustBe Seq(3, 4)
         tr.affectedThings.value mustBe oids
+        tr.actorsAndRoles.isDefined mustBe true
+        tr.actorsAndRoles.get.length mustBe 1
+
+        //check that actorsAndRoles and affectedThings are removed for json column in db
+        val trt  = dao.getEventRowFromEventTable(tr.id.get).value.futureValue.successValue
+        val json = trt._13.asInstanceOf[JsObject]
+
+        (json \ "actorsAndRoles").isDefined mustBe false
+        (json \ "affectedThings").isDefined mustBe false
       }
     }
 

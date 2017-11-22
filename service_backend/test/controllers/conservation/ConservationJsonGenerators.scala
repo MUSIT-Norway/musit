@@ -1,7 +1,7 @@
 package controllers.conservation
 
 import models.conservation.events.ConservationProcess
-import no.uio.musit.models.{ActorId, ObjectUUID}
+import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
 import no.uio.musit.test.matchers.DateTimeMatchers
 import no.uio.musit.test.{FakeUsers, MusitSpec}
 import no.uio.musit.time.dateTimeNow

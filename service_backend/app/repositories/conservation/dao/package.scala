@@ -17,6 +17,8 @@ package object dao {
   val MappingSchemaName              = "MUSIT_MAPPING"
   val TreatmentMaterialTableName     = "TREATMENT_MATERIAL"
   val TreatmentKeywordTableName      = "TREATMENT_KEYWORD"
+  val EventActorsRolesTableName      = "EVENT_ACTOR_ROLE_DATE"
+  val RolesTableName                 = "ROLE"
 }
 @Singleton
 class DaoUtils @Inject()(

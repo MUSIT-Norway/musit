@@ -1,14 +1,10 @@
 package repositories.conservation.dao
 
 import com.google.inject.Inject
-import controllers.conservation.MusitResultUtils._
 import models.conservation.events.ConservationEvent
-import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
+import no.uio.musit.MusitResults.MusitValidationError
 import no.uio.musit.functional.FutureMusitResult
-import no.uio.musit.functional.Implicits.futureMonad
-import no.uio.musit.functional.MonadTransformers.MusitResultT
-import no.uio.musit.models.{ActorDate, EventId, MuseumId, ObjectUUID}
-import no.uio.musit.musitUtils.Utils
+import no.uio.musit.models._
 import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
@@ -16,7 +12,7 @@ import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import repositories.conservation.DaoUtils
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import scala.reflect.{ClassTag, _}
 
 class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
@@ -24,7 +20,8 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     val dbConfigProvider: DatabaseConfigProvider,
     val ec: ExecutionContext,
     val objectEventDao: ObjectEventDao,
-    val daoUtils: DaoUtils
+    val daoUtils: DaoUtils,
+    val actorRoleDao: ActorRoleDateDao
 ) extends ConservationEventTableProvider
     with ConservationTables
     with EventActions
@@ -119,11 +116,15 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       implicit currUsr: AuthenticatedUser
   ): FutureMusitResult[Option[ConservationEvent]] = {
     val query = findConservationEventByIdAction(mid, id)
-
-    daoUtils.dbRun(
+    val futEvent = daoUtils.dbRun(
       query,
       s"An unexpected error occurred fetching event $id (Scala type: ${classTag[T].runtimeClass.getName()}"
     )
+    val res = for {
+      event  <- futEvent
+      actors <- actorRoleDao.getEventActorRoleDates(id)
+    } yield event.map(m => m.withActorRoleAndDates(Some(actors)))
+    res
   }
 
   /**
@@ -211,8 +212,11 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       partOf: Option[EventId],
       event: ConservationEvent
   )(implicit currUsr: AuthenticatedUser): DBIO[EventId] = {
-    val objectIds           = event.affectedThings.getOrElse(Seq.empty)
-    val eventWithoutObjects = event.withAffectedThings(None)
+    val objectIds      = event.affectedThings.getOrElse(Seq.empty)
+    val actorsAndRoles = event.actorsAndRoles.getOrElse(Seq.empty)
+
+    val eventWithoutActorRoleAndDate = event.withoutActorRoleAndDates
+    val eventWithoutObjects          = eventWithoutActorRoleAndDate.withAffectedThings(None)
 
     // registered by and date are filled in in the service layer (during copyWithRegDataForProcessAndSubevents)
     require(event.registeredBy.isDefined)
@@ -222,13 +226,13 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     val newRow = row.copy(_9 = partOf)
     for {
       eventId <- insertAction(newRow)
+      actors  <- actorRoleDao.insertActorRoleDateAction(eventId, actorsAndRoles)
       _       <- objectEventDao.insertObjectEventAction(eventId, objectIds)
     } yield eventId
   }
 
   def createUpdateAction(
       mid: MuseumId,
-      partOf: EventId,
       event: ConservationEvent
   )(implicit currUsr: AuthenticatedUser): DBIO[Int] = {
     require(event.id.isDefined)
@@ -242,13 +246,16 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     require(event.registeredBy.isDefined)
     require(event.registeredDate.isDefined)
 
-    val objectIds = event.affectedThings.getOrElse(Seq.empty)
-    val row       = asRow(mid, event)
-    val newRow    = row.copy(_9 = Some(partOf))
+    val objectIds                    = event.affectedThings.getOrElse(Seq.empty)
+    val actors                       = event.actorsAndRoles.getOrElse(Seq.empty)
+    val eventWithoutActorRoleAndDate = event.withoutActorRoleAndDates
+    val eventWithoutObjects          = eventWithoutActorRoleAndDate.withAffectedThings(None)
+    val row                          = asRow(mid, eventWithoutObjects)
 
     for {
-      numEventRowsUpdated <- updateActionRowOnly(mid, eventId, event)
+      numEventRowsUpdated <- updateActionRowOnly(eventId, row)
       _                   <- objectEventDao.updateObjectEventAction(eventId, objectIds)
+      _                   <- actorRoleDao.updateActorRoleDateAction(eventId, actors)
     } yield numEventRowsUpdated
 
   }
@@ -271,7 +278,7 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
   ): FutureMusitResult[Option[ConservationEvent]] = {
     val updatedEvent = event.withUpdatedInfo(Some(currUsr.id), Some(dateTimeNow))
 
-    val action = createUpdateAction(mid, id, updatedEvent).transactionally
+    val action = createUpdateAction(mid, updatedEvent).transactionally
     //println("inniUpdate-dao " + event)
 
     daoUtils
@@ -292,11 +299,10 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
   }
 
   private def updateActionRowOnly(
-      mid: MuseumId,
       id: EventId,
-      event: ConservationEvent
+      event: EventRow
   )(implicit currUsr: AuthenticatedUser): DBIO[Int] = {
-    eventTable.filter(_.eventId === id).update(asRow(mid, event))
+    eventTable.filter(_.eventId === id).update(event)
   }
 
 }

@@ -2,7 +2,6 @@ package repositories.conservation.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.conservation.events._
-import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models.{EventId, ObjectUUID}
 import no.uio.musit.repositories.DbErrorHandlers
@@ -10,7 +9,7 @@ import play.api.db.slick.DatabaseConfigProvider
 import repositories.conservation.DaoUtils
 import repositories.shared.dao.ColumnTypeMappers
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 @Singleton
 class ObjectEventDao @Inject()(
     implicit
@@ -84,41 +83,6 @@ class ObjectEventDao @Inject()(
       inserted <- insertObjectEventAction(eventId, objectUuids)
     } yield inserted
   }
-
-  /*def getEventListForObjectAction(objectUuid: ObjectUUID): DBIO[Seq[ObjectEvent]] = {
-    val action = objectEventTable.filter(a => a.objectUuid === objectUuid)
-    action
-  }
-
-  def getEventsForObjectAction(eventIds: Seq[EventId]: DBIO[Seq[ObjectEvent]] = {
-    val action = objectEventTable.filter(a => a.eventId === eventIds)
-    action
-  }
-   */
-  /**
-   * Locate all events related to the provided ObjectUUID.
-   *
-   * @param mid the MuseumId
-   * @param objectUuid The ObjectUUID to find events' for
-   * @return eventually a result with a list of events and their results
-   */
-  /* def getEventForObject(mid: MuseumId, objectUuid: ObjectUUID)(
-      implicit currUsr: AuthenticatedUser
-  ): Future[MusitResult[Seq[ConservationEvent]]] = {
-    val eventsRes = for {
-      eventIds <- db.run(getEventListForObjectAction(objectUuid))
-      events   <- db.run(getEventsForObjectAction(eventIds))
-    } yield MusitSuccess(events)
-
-    eventsRes.recover(
-      nonFatal(s"An unexpected error occurred fetching events for object $oid")
-    )
-  }*/
-
-  /* def getEventForObject(objectUuid: ObjectUUID): Future[Seq[ObjectEvent]] = {
-    val query = objectEventTable.filter(a => a.objectUuid === objectUuid)
-    db.run(query.result)
-  }*/
 
   private class ObjectEventTable(tag: Tag)
       extends Table[ObjectEvent](

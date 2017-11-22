@@ -1,6 +1,7 @@
 package controllers.conservation
 
 import models.conservation.events.{
+  ConservationEvent,
   ConservationModuleEvent,
   ConservationProcess,
   Treatment
@@ -13,8 +14,8 @@ import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import no.uio.musit.time
 import org.joda.time.DateTime
 import play.api.libs.json._
-import play.api.libs.ws.WSResponse
 import play.api.test.Helpers._
+import repositories.conservation.dao.ConservationEventDao
 
 //Hint, to run only this test, type:
 //test-only controllers.conservation.ConservationProcessControllerSpec
@@ -218,14 +219,32 @@ class ConservationProcessControllerSpec
           "completedBy"    -> adminId,
           "note"           -> "en annen fin treatment",
           "materials"      -> Seq(1, 2, 3),
-          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 1,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(20)
+            ),
+            Json.obj(
+              "roleId"  -> 2,
+              "actorId" -> testUserId,
+              "date"    -> time.dateTimeNow.plusDays(10)
+            )
+          )
         )
 
         val res = postEvent(treatmentJson)
+
         res.status mustBe CREATED
         val eventId = (res.json \ "id").as[EventId]
         eventId.underlying mustBe standaloneTreatmentId
 
+        val treatment = getEventObject(eventId).asInstanceOf[Treatment]
+        treatment.actorsAndRoles.get.length mustBe 2
+        val myActors = treatment.actorsAndRoles.get.sortBy(_.roleId)
+
+        myActors.head.roleId mustBe 1
       }
 
       val compositeConservationProcessEventId = standaloneTreatmentId + 1
@@ -242,7 +261,19 @@ class ConservationProcessControllerSpec
           "doneBy"         -> adminId,
           "completedBy"    -> adminId,
           "note"           -> "en fin treatment",
-          "affectedThings" -> Seq("baab2f60-4f49-40fe-99c8-174b13b12d46")
+          "affectedThings" -> Seq("baab2f60-4f49-40fe-99c8-174b13b12d46"),
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 1,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(1)
+            ),
+            Json.obj(
+              "roleId"  -> 1,
+              "actorId" -> testUserId,
+              "date"    -> time.dateTimeNow.plusDays(2)
+            )
+          )
         )
 
         val treatment2 = Json.obj(
@@ -251,7 +282,19 @@ class ConservationProcessControllerSpec
           "completedBy"    -> adminId,
           "note"           -> "en annen fin treatment",
           "materials"      -> Seq(1, 2, 3),
-          "affectedThings" -> Seq("376d41e7-c463-45e8-9bde-7a2c9844637e")
+          "affectedThings" -> Seq("376d41e7-c463-45e8-9bde-7a2c9844637e"),
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 2,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(3)
+            ),
+            Json.obj(
+              "roleId"  -> 2,
+              "actorId" -> testUserId,
+              "date"    -> time.dateTimeNow.plusDays(4)
+            )
+          )
         )
 
         val json = Json.obj(
@@ -259,13 +302,50 @@ class ConservationProcessControllerSpec
           "doneBy"         -> adminId,
           "completedBy"    -> adminId,
           "events"         -> Json.arr(treatment1, treatment2),
-          "affectedThings" -> oids
+          "affectedThings" -> oids,
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 2,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(5)
+            ),
+            Json.obj(
+              "roleId"  -> 1,
+              "actorId" -> testUserId,
+              "date"    -> time.dateTimeNow.plusDays(6)
+            )
+          )
         )
 
         val res = postEvent(json)
         res.status mustBe CREATED
         val eventId = (res.json \ "id").as[EventId]
         eventId.underlying mustBe compositeConservationProcessEventId
+
+        val cpr = getEventObject(eventId).asInstanceOf[ConservationProcess]
+        cpr.actorsAndRoles.get.length mustBe 2
+        val cprActors = cpr.actorsAndRoles.get.sortBy(_.roleId)
+        cprActors.head.roleId mustBe 1
+
+        val trm1 = cpr.events.map { m =>
+          val first = m.head.id
+          first.map(eventId => {
+            val trm = getEventObject(eventId)
+            trm.actorsAndRoles.get.length mustBe 2
+            val trmActors = trm.actorsAndRoles.get.sortBy(_.roleId)
+            trmActors.head.roleId mustBe 1
+          })
+        }
+        val trm2 = cpr.events.map { m =>
+          val second = m.tail.head.id
+          second.map(eventId => {
+            val trm = getEventObject(eventId)
+            trm.actorsAndRoles.get.length mustBe 2
+            val trmActors = trm.actorsAndRoles.get.sortBy(_.roleId)
+            trmActors.head.roleId mustBe 2
+          })
+        }
+
       }
 
       "get composite ConservationProcess (ie with children)" in {
@@ -294,7 +374,8 @@ class ConservationProcessControllerSpec
 
       }
 
-      val treatmentId = compositeConservationProcessEventId + 2 //The second child
+      val treatmentId           = compositeConservationProcessEventId + 2 //The second child
+      val treatmentIdWithActors = treatmentId + 2                         // one spesific treatment to check for later
 
       "update a child of the composite ConservationProcess separately and " +
         "get it back in the conservationProcess" in {
@@ -334,7 +415,14 @@ class ConservationProcessControllerSpec
           "eventTypeId" -> treatmentEventTypeId,
           "doneBy"      -> adminId,
           "completedBy" -> adminId,
-          "note"        -> "en fin treatment 3"
+          "note"        -> "en fin treatment 3",
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 2,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(5)
+            )
+          )
         )
 
         val updatedMaterials = Seq(2)
@@ -353,7 +441,24 @@ class ConservationProcessControllerSpec
           "doneBy"      -> adminId,
           "completedBy" -> adminId,
           "note"        -> "ny treatment3",
-          "materials"   -> updatedMaterials
+          "materials"   -> updatedMaterials,
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 2,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(5)
+            ),
+            Json.obj(
+              "roleId"  -> 2,
+              "actorId" -> testUserId,
+              "date"    -> time.dateTimeNow.plusDays(6)
+            ),
+            Json.obj(
+              "roleId"  -> 1,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(3)
+            )
+          )
         )
 
         val json = Json.obj(
@@ -361,17 +466,34 @@ class ConservationProcessControllerSpec
           "eventTypeId" -> conservationProcessEventTypeId,
           "doneBy"      -> adminId,
           "completedBy" -> adminId,
-          "events"      -> Json.arr(treatment1, treatment2, treatment3)
+          "events"      -> Json.arr(treatment1, treatment2, treatment3),
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 2,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(5)
+            ),
+            Json.obj(
+              "roleId"  -> 1,
+              "actorId" -> testUserId,
+              "date"    -> time.dateTimeNow.plusDays(6)
+            )
+          )
         )
         //time.dateTimeNow.plusDays(20)
+
         val updRes = putEvent(compositeConservationProcessEventId, json)
 
         updRes.status mustBe OK
 
-        val treatmentAfterUpdate = getEventObject(treatmentId + 2).asInstanceOf[Treatment]
+        val treatmentAfterUpdate =
+          getEventObject(treatmentIdWithActors).asInstanceOf[Treatment]
+
         treatmentAfterUpdate.note mustBe Some("ny treatment3")
         treatmentAfterUpdate.materials mustBe Some(updatedMaterials)
         treatmentAfterUpdate.registeredDate must not be None
+        treatmentAfterUpdate.actorsAndRoles.map(a => a.tail.head.roleId mustBe 2)
+        treatmentAfterUpdate.actorsAndRoles.get.length mustBe 3
 
         val cp = getEventObject(compositeConservationProcessEventId)
           .asInstanceOf[ConservationProcess]
@@ -448,13 +570,21 @@ class ConservationProcessControllerSpec
           "materials"      -> updatedMaterials,
           "affectedThings" -> Seq("7ae2521e-904c-432b-998c-bb09810310a9")
         )
+        val treatment3 = Json.obj(
+          "id"          -> treatmentIdWithActors, //earlier with actors should no be without actors
+          "eventTypeId" -> treatmentEventTypeId,
+          "doneBy"      -> adminId,
+          "completedBy" -> adminId,
+          "note"        -> "ny treatment6663",
+          "materials"   -> updatedMaterials
+        )
 
         val json = Json.obj(
           "id"             -> compositeConservationProcessEventId,
           "eventTypeId"    -> conservationProcessEventTypeId,
           "doneBy"         -> adminId,
           "completedBy"    -> adminId,
-          "events"         -> Json.arr(treatment1, treatment2),
+          "events"         -> Json.arr(treatment1, treatment2, treatment3),
           "affectedThings" -> oids
         )
         //time.dateTimeNow.plusDays(20)
@@ -491,6 +621,10 @@ class ConservationProcessControllerSpec
           Seq(ObjectUUID.unsafeFromString("baab2f60-4f49-40fe-99c8-174b13b12d46"))
         )
 
+        val gmlSubTreatment =
+          getEventObject(treatmentIdWithActors).asInstanceOf[Treatment]
+        gmlSubTreatment.note mustBe Some("ny treatment6663")
+        gmlSubTreatment.actorsAndRoles.get.length mustBe 0
       }
     }
   }
