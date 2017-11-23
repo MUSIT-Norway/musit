@@ -24,8 +24,8 @@ class ActorRoleDateDao @Inject()(
 
   import profile.api._
 
-  private val actorRoleDateTable = TableQuery[ActorAndRole]
-  private val RoleTable          = TableQuery[Role]
+  private val eventActorRoleDateTable = TableQuery[EventActorAndRoleAndDate]
+  private val RoleTable               = TableQuery[Role]
 
   def insertActorRoleAction(
       eventId: EventId,
@@ -33,7 +33,7 @@ class ActorRoleDateDao @Inject()(
       actorId: ActorId,
       whatDate: Option[DateTime]
   ): DBIO[Int] = {
-    val action = actorRoleDateTable += EventActorRoleDate(
+    val action = eventActorRoleDateTable += EventActorRoleDate(
       eventId,
       roleId,
       actorId,
@@ -59,7 +59,7 @@ class ActorRoleDateDao @Inject()(
   }
 
   def deleteActorRoleDateAction(eventId: EventId): DBIO[Int] = {
-    val q      = actorRoleDateTable.filter(oe => oe.eventId === eventId)
+    val q      = eventActorRoleDateTable.filter(oe => oe.eventId === eventId)
     val action = q.delete
     action
   }
@@ -76,7 +76,7 @@ class ActorRoleDateDao @Inject()(
 
   def getEventActorRoleDates(eventId: EventId): FutureMusitResult[Seq[ActorRoleDate]] = {
     val action =
-      actorRoleDateTable
+      eventActorRoleDateTable
         .filter(_.eventId === eventId)
         .sortBy(_.roleId)
         .map(ard => (ard.roleId, ard.actorId, ard.actorDate))
@@ -86,7 +86,7 @@ class ActorRoleDateDao @Inject()(
       .map(_.map(m => ActorRoleDate(m._1, m._2, m._3)))
   }
 
-  private class ActorAndRole(tag: Tag)
+  private class EventActorAndRoleAndDate(tag: Tag)
       extends Table[EventActorRoleDate](
         tag,
         Some(SchemaName),

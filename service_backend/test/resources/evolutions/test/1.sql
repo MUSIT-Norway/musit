@@ -981,6 +981,7 @@ INSERT INTO MUSARK_CONSERVATION.ROLE(no_role, en_role,role_for) VALUES ('Deltatt
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_attributes, extra_description_type) VALUES ('konserveringsprosess', 'conservation process', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('behandling', 'treatment', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('teknisk beskrivelse', 'technical description', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
+INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('oppbevaring og håndtering', 'Storage and handling', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
 
 -- INSERTING TREATMENT MATERIALS
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_material) VALUES(1,'Sitronsyre','Sitronsyre');

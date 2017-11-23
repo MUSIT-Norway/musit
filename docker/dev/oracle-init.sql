@@ -550,14 +550,6 @@ event_id number(20) NOT NULL,
 PRIMARY KEY (object_uuid,event_id)
 );
 
-CREATE TABLE MUSARK_CONSERVATION.EVENT_ACTOR_ROLE_DATE(
-event_id  NUMBER(20)NOT NULL,
-actor_id VARCHAR2(36) NOT NULL,
-role_id INTEGER NOT NULL,
-actor_role_date DATE,
-PRIMARY KEY (event_id,actor_id,role_id)
-);
-
 
 CREATE SEQUENCE MUSARK_CONSERVATION.ROLE_SEQ
 INCREMENT BY 1
@@ -573,6 +565,17 @@ en_role VARCHAR2(100),
 role_for VARCHAR2(50), // om det er rollen hendelse_aktør eller hendelse_gjenstand
 PRIMARY KEY (role_id)
 );
+
+CREATE TABLE MUSARK_CONSERVATION.EVENT_ACTOR_ROLE_DATE(
+event_id  NUMBER(20)NOT NULL,
+actor_id VARCHAR2(36) NOT NULL,
+role_id INTEGER NOT NULL,
+actor_role_date DATE,
+PRIMARY KEY (event_id,actor_id,role_id),
+CONSTRAINT FK_ARD_EVENTID FOREIGN KEY (event_id) references MUSARK_CONSERVERING.EVENT(event_id),
+CONSTRAINT FK_ARD_ROLEID FOREIGN KEY (role_id) references MUSARK_CONSERVERING.ROLE(role_id)
+);
+
 
 
 CREATE SEQUENCE MUSARK_CONSERVATION.treatment_material_seq

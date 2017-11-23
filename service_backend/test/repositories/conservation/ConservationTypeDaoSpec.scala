@@ -51,7 +51,7 @@ class ConservationTypeDaoSpec extends MusitSpecWithAppPerSuite with MusitResultV
       val res = dao.allFor(Some(entoUUID)).futureValue
 
       val ats = res.successValue
-      ats.size mustBe 3
+      ats.size mustBe 4
 
       forAll(ats) { t =>
         (t.collections.contains(entoUUID) || t.collections.isEmpty) mustBe true

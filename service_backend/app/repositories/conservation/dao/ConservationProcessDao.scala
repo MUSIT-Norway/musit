@@ -20,6 +20,7 @@ class ConservationProcessDao @Inject()(
     implicit val ec: ExecutionContext,
     val treatmentDao: TreatmentDao,
     val technicalDescriptionDao: TechnicalDescriptionDao,
+    val storageAndHandlingDao: StorageAndHandlingDao,
     val daoUtils: DaoUtils
 ) extends ConservationEventTableProvider
     with ConservationTables
@@ -61,6 +62,7 @@ class ConservationProcessDao @Inject()(
     event match {
       case t: Treatment             => treatmentDao
       case td: TechnicalDescription => technicalDescriptionDao
+      case sah: StorageAndHandling  => storageAndHandlingDao
     }
   }
 
@@ -133,6 +135,7 @@ class ConservationProcessDao @Inject()(
     val dao = subEventType match {
       case Treatment            => treatmentDao
       case TechnicalDescription => technicalDescriptionDao
+      case StorageAndHandling   => storageAndHandlingDao
     }
     val subEvent = dao.findConservationEventById(mid, eventId)
     subEvent

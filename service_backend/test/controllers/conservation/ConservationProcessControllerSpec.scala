@@ -1,11 +1,6 @@
 package controllers.conservation
 
-import models.conservation.events.{
-  ConservationEvent,
-  ConservationModuleEvent,
-  ConservationProcess,
-  Treatment
-}
+import models.conservation.events._
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.models._
 import no.uio.musit.security.BearerToken
@@ -75,7 +70,7 @@ class ConservationProcessControllerSpec
         Some("777"),
         Some(testAffectedThings)
       )
-    //println("json: " + js)
+
     postEvent(js)
   }
 
@@ -98,6 +93,13 @@ class ConservationProcessControllerSpec
     cp.json.validate[ConservationProcess].get
   }
 
+  val standaloneTreatmentId               = 4L
+  val compositeConservationProcessEventId = standaloneTreatmentId + 1
+  val treatmentId                         = compositeConservationProcessEventId + 2 //The second child
+  val treatmentIdWithActors               = treatmentId + 2 // one spesific treatment to check for later
+
+  val edate = DateTime.now
+
   "Using the conservationProcess controller" when {
 
     "fetching conservationProcess types" should {
@@ -107,7 +109,7 @@ class ConservationProcessControllerSpec
           wsUrl(typesUrl(mid)).withHttpHeaders(tokenRead.asHeader).get().futureValue
 
         res.status mustBe OK
-        res.json.as[JsArray].value.size mustBe 3
+        res.json.as[JsArray].value.size mustBe 4
       }
     }
     "working with conservationProcess" should {
@@ -140,16 +142,6 @@ class ConservationProcessControllerSpec
           "376d41e7-c463-45e8-9bde-7a2c9844637e"
         )
 
-        /* val updJson = jso.json.as[JsObject] ++ Json.obj(
-          "note"           -> "Updated note",
-          "eventTypeId"    -> conservationProcessEventTypeId, // Should not be modified by the server.
-          "doneBy"         -> FakeUsers.testUserId,
-          "doneDate"       -> time.dateTimeNow.plusDays(20),
-          "completedBy"    -> FakeUsers.testUserId,
-          "completedDate"  -> time.dateTimeNow.plusDays(20),
-          "caseNumber"     -> "666",
-          "affectedThings" -> oids
-        )*/
         val updJson = Json.obj(
           "id"             -> eventId,
           "note"           -> "Updated note",
@@ -163,7 +155,7 @@ class ConservationProcessControllerSpec
         )
 
         val updRes = putEvent(eventId, updJson)
-        //println("hit da" + updRes.body)
+
         updRes.status mustBe OK
 
         val mdatetime = time.dateTimeNow.plusDays(20)
@@ -203,13 +195,11 @@ class ConservationProcessControllerSpec
         )
 
         val updRes = putEvent(3L, updJson)
-        // println(updRes.body)
+
         assert(updRes.status == BAD_REQUEST)
         (updRes.json \ "message").as[String] must include("Inconsistent")
 
       }
-
-      val standaloneTreatmentId = 4L
 
       "add standalone treatment having data in one of the 'extra' attributes" in {
 
@@ -247,7 +237,6 @@ class ConservationProcessControllerSpec
         myActors.head.roleId mustBe 1
       }
 
-      val compositeConservationProcessEventId = standaloneTreatmentId + 1
       val oids = Seq(
         ObjectUUID.unsafeFromString("7ae2521e-904c-432b-998c-bb09810310a9"),
         ObjectUUID.unsafeFromString("baab2f60-4f49-40fe-99c8-174b13b12d46"),
@@ -373,9 +362,6 @@ class ConservationProcessControllerSpec
         )
 
       }
-
-      val treatmentId           = compositeConservationProcessEventId + 2 //The second child
-      val treatmentIdWithActors = treatmentId + 2                         // one spesific treatment to check for later
 
       "update a child of the composite ConservationProcess separately and " +
         "get it back in the conservationProcess" in {
@@ -551,7 +537,7 @@ class ConservationProcessControllerSpec
       }
 
       "update composite event with new updatedBy and updatedDate " in {
-        val edate = DateTime.now
+
         val treatment1 = Json.obj(
           "eventTypeId"    -> treatmentEventTypeId,
           "doneBy"         -> adminId,
@@ -602,7 +588,8 @@ class ConservationProcessControllerSpec
           Seq(ObjectUUID.unsafeFromString("7ae2521e-904c-432b-998c-bb09810310a9"))
         )
 
-        val newSubTreatment = getEventObject(11).asInstanceOf[Treatment]
+        val newSubTreatment =
+          getEventObject(treatmentIdWithActors + 2).asInstanceOf[Treatment]
         newSubTreatment.note mustBe Some("en fin treatment på id 11")
         newSubTreatment.updatedBy mustBe None
         newSubTreatment.updatedDate mustBe None
@@ -625,6 +612,142 @@ class ConservationProcessControllerSpec
           getEventObject(treatmentIdWithActors).asInstanceOf[Treatment]
         gmlSubTreatment.note mustBe Some("ny treatment6663")
         gmlSubTreatment.actorsAndRoles.get.length mustBe 0
+      }
+    }
+    "working with subevents " should {
+
+      val standaloneStorageAndHandlingId = 12L
+      "add standalone storageAndHandling having data in one of the 'extra' attributes" in {
+
+        val sahJson = Json.obj(
+          "eventTypeId"      -> storageAndHandlingEventTypeId,
+          "doneBy"           -> adminId,
+          "completedBy"      -> adminId,
+          "note"             -> "en ny og fin oppbevaringOgHåndtering",
+          "relativeHumidity" -> " >20% ",
+          "lightAndUvLevel"  -> "mye uv",
+          "temperature"      -> "30+",
+          "affectedThings"   -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 1,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(20)
+            ),
+            Json.obj(
+              "roleId"  -> 2,
+              "actorId" -> testUserId,
+              "date"    -> time.dateTimeNow.plusDays(10)
+            )
+          )
+        )
+        val res = postEvent(sahJson)
+        res.status mustBe CREATED
+        val eventId = (res.json \ "id").as[EventId]
+        eventId.underlying mustBe standaloneStorageAndHandlingId
+
+        val sah = getEventObject(eventId).asInstanceOf[StorageAndHandling]
+        sah.actorsAndRoles.get.length mustBe 2
+        val myActors = sah.actorsAndRoles.get.sortBy(_.roleId)
+        sah.relativeHumidity mustBe Some(" >20% ")
+        sah.lightAndUvLevel mustBe Some("mye uv")
+        sah.temperature mustBe Some("30+")
+
+        myActors.head.roleId mustBe 1
+      }
+      "Post a new storageAndHandle event to our cp compositeConservationProcessEventId" in {
+        val sahJson = Json.obj(
+          "eventTypeId"      -> storageAndHandlingEventTypeId,
+          "note"             -> "den nyeste og fineste oppbevaringOgHåndtering",
+          "relativeHumidity" -> " >30% ",
+          "lightAndUvLevel"  -> "mye mer uv",
+          "temperature"      -> "30 minus",
+          "affectedThings"   -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 1,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(20)
+            ),
+            Json.obj(
+              "roleId"  -> 2,
+              "actorId" -> testUserId,
+              "date"    -> time.dateTimeNow.plusDays(10)
+            )
+          )
+        )
+        val json = Json.obj(
+          "id"             -> compositeConservationProcessEventId,
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "doneBy"         -> adminId,
+          "completedBy"    -> adminId,
+          "events"         -> Json.arr(sahJson),
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+
+        val updRes = putEvent(compositeConservationProcessEventId, json)
+        updRes.status mustBe OK
+
+        val newSubStorageAndHandle =
+          getEventObject(standaloneStorageAndHandlingId + 1)
+            .asInstanceOf[StorageAndHandling]
+        newSubStorageAndHandle.note mustBe Some(
+          "den nyeste og fineste oppbevaringOgHåndtering"
+        )
+        newSubStorageAndHandle.updatedBy mustBe None
+        newSubStorageAndHandle.updatedDate mustBe None
+        newSubStorageAndHandle.registeredDate mustApproximate Some(edate)
+        newSubStorageAndHandle.registeredBy mustBe Some(adminId)
+
+        val cpe = getEventObject(compositeConservationProcessEventId)
+          .asInstanceOf[ConservationProcess]
+        cpe.events.get.exists(
+          m => m.eventTypeId.underlying === storageAndHandlingEventTypeId
+        ) mustBe true
+
+        val subEvent = cpe.events.get.head
+        subEvent.affectedThings mustBe Some(
+          Seq(ObjectUUID.unsafeFromString("baab2f60-4f49-40fe-99c8-174b13b12d46"))
+        )
+      }
+
+      "update the storageAndHandle event in our cp compositeConservationProcessEventId" in {
+        val sahJson = Json.obj(
+          "id"               -> (standaloneStorageAndHandlingId + 1),
+          "eventTypeId"      -> storageAndHandlingEventTypeId,
+          "note"             -> "endring av oppbevaringOgHåndtering",
+          "relativeHumidity" -> " >30% ",
+          "lightAndUvLevel"  -> "mye mer uv",
+          "temperature"      -> "30 pluss",
+          "affectedThings"   -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 2,
+              "actorId" -> testUserId,
+              "date"    -> time.dateTimeNow.plusDays(10)
+            )
+          )
+        )
+        val json = Json.obj(
+          "id"             -> compositeConservationProcessEventId,
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "doneBy"         -> adminId,
+          "completedBy"    -> adminId,
+          "events"         -> Json.arr(sahJson),
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+
+        val updRes = putEvent(compositeConservationProcessEventId, json)
+        updRes.status mustBe OK
+        val newSubStorageAndHandle =
+          getEventObject(standaloneStorageAndHandlingId + 1)
+            .asInstanceOf[StorageAndHandling]
+        newSubStorageAndHandle.note mustBe Some(
+          "endring av oppbevaringOgHåndtering"
+        )
+        newSubStorageAndHandle.temperature mustBe Some("30 pluss")
+        newSubStorageAndHandle.lightAndUvLevel mustBe Some("mye mer uv")
+        newSubStorageAndHandle.actorsAndRoles.get.length mustBe 1
       }
     }
   }
