@@ -28,24 +28,22 @@ class TreatmentDao @Inject()(
 
   import profile.api._
 
-  def getMaterialList: Future[MusitResult[Seq[TreatmentMaterial]]] = {
-    db.run(treatmentMaterialTable.result)
+  def getMaterialList: FutureMusitResult[Seq[TreatmentMaterial]] = {
+    daoUtils
+      .dbRun(treatmentMaterialTable.result, "something went wrong in getMaterialList")
       .map(_.map(fromTreatmentMaterialRow))
-      .map(MusitSuccess.apply)
-      .recover(nonFatal(s"An unexpected error occurred fetching material list"))
   }
 
-  def getKeywordList: Future[MusitResult[Seq[TreatmentKeyword]]] = {
-    db.run(treatmentKeywordTable.result)
+  def getKeywordList: FutureMusitResult[Seq[TreatmentKeyword]] = {
+    daoUtils
+      .dbRun(treatmentKeywordTable.result, "something went wrong in getKeywordList")
       .map(_.map(fromTreatmentKeywordRow))
-      .map(MusitSuccess.apply)
-      .recover(nonFatal(s"An unexpected error occurred fetching material list"))
   }
 
   def getEventRowFromEventTable(eventId: EventId): FutureMusitResult[EventRow] = {
     val q = eventTable.filter(_.eventId === eventId).result.headOption
     daoUtils
-      .dbRun(q, "something went wrong in getJsonValueFromEventTable")
+      .dbRun(q, "something went wrong in getEventRowFromEventTable")
       .getOrError(MusitValidationError("didn't find record"))
   }
 }

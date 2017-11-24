@@ -34,29 +34,25 @@ class ConservationController @Inject()(
       implicit val currUser = request.user
 
       val maybeColl = collectionIds.flatMap(CollectionUUID.fromString)
-      cpService.getTypesFor(maybeColl).map {
+      futureMusitResultSeqToPlayResult(cpService.getTypesFor(maybeColl))
+    /* .map {
         case MusitSuccess(types) => listAsPlayResult(types)
         case err: MusitError     => internalErr(err)
-      }
+      }*/
     }
 
   def getMaterialList =
     MusitSecureAction().async { implicit request =>
-      treatmentService.getMaterialList.map {
-        case MusitSuccess(t) => listAsPlayResult(t)
-        case err: MusitError => internalErr(err)
-      }
+      futureMusitResultSeqToPlayResult(treatmentService.getMaterialList)
     }
 
   def getKeywordList =
     MusitSecureAction().async { implicit request =>
-      treatmentService.getKeywordList.map {
-        case MusitSuccess(t) => listAsPlayResult(t)
-        case err: MusitError => internalErr(err)
-      }
+      futureMusitResultSeqToPlayResult(treatmentService.getKeywordList)
     }
 
   def getRoleList = MusitSecureAction().async { implicit request =>
     futureMusitResultSeqToPlayResult(conservationService.getRoleList)
   }
+
 }

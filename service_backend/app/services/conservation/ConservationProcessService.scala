@@ -31,7 +31,7 @@ class ConservationProcessService @Inject()(
 
   def getTypesFor(coll: Option[CollectionUUID])(
       implicit currUser: AuthenticatedUser
-  ): Future[MusitResult[Seq[ConservationType]]] = {
+  ): FutureMusitResult[Seq[ConservationType]] = {
     typeDao.allFor(coll)
   }
 

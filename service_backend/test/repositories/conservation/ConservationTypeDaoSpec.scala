@@ -48,7 +48,7 @@ class ConservationTypeDaoSpec extends MusitSpecWithAppPerSuite with MusitResultV
     "return all conservation types for a specific collection" in {
       val entoUUID = Entomology.uuid // scalastyle:ignore
 
-      val res = dao.allFor(Some(entoUUID)).futureValue
+      val res = dao.allFor(Some(entoUUID)).value.futureValue
 
       val ats = res.successValue
       ats.size mustBe 4

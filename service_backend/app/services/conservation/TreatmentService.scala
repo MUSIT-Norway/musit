@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import models.conservation.{TreatmentKeyword, TreatmentMaterial}
 import models.conservation.events.Treatment
 import no.uio.musit.MusitResults.MusitResult
+import no.uio.musit.functional.FutureMusitResult
 import repositories.conservation.dao.TreatmentDao
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -14,10 +15,10 @@ class TreatmentService @Inject()(
     override val ec: ExecutionContext
 ) extends ConservationEventService[Treatment] {
 
-  def getMaterialList: Future[MusitResult[Seq[TreatmentMaterial]]] = {
+  def getMaterialList: FutureMusitResult[Seq[TreatmentMaterial]] = {
     dao.getMaterialList
   }
-  def getKeywordList: Future[MusitResult[Seq[TreatmentKeyword]]] = {
+  def getKeywordList: FutureMusitResult[Seq[TreatmentKeyword]] = {
     dao.getKeywordList
   }
 }
