@@ -973,8 +973,8 @@ PRIMARY KEY (role_id)
 
 
 -- INSERTING EVENT ROLES/ CONSERVATION ACTOR ROLE DATE
-INSERT INTO MUSARK_CONSERVATION.ROLE(no_role, en_role,role_for) VALUES ('Utført av', 'Done by ', 'actor');
-INSERT INTO MUSARK_CONSERVATION.ROLE(no_role, en_role,role_for) VALUES ('Deltatt i', 'participated in','actor');
+INSERT INTO MUSARK_CONSERVATION.ROLE(no_role, en_role,role_for) VALUES ('Utført av', 'Done by', 'actor');
+INSERT INTO MUSARK_CONSERVATION.ROLE(no_role, en_role,role_for) VALUES ('Deltatt i', 'Participated in','actor');
 
 
 -- INSERTING EVENT TYPES / CONSERVATION TYPES

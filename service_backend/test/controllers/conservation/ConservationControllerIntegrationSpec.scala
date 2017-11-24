@@ -17,7 +17,8 @@ class ConservationControllerIntegrationSpec
 
   val baseUrl = (mid: Int) => s"/$mid/conservation"
 
-  val typesUrl = (mid: Int) => s"${baseUrl(mid)}/types"
+  val typesUrl       = (mid: Int) => s"${baseUrl(mid)}/types"
+  val getRoleListUrl = s"/conservation/roles"
 
   "Using the conservation controller" when {
 
@@ -31,6 +32,21 @@ class ConservationControllerIntegrationSpec
         res.json.as[JsArray].value.size mustBe 4
         (res.json \ 0 \ "noName").as[String] mustBe "konserveringsprosess"
         (res.json \ 0 \ "id").as[Int] mustBe 1
+      }
+    }
+    "fetching role list" should {
+
+      "return the list of roles for actors in conservation events " in {
+        val res =
+          wsUrl(getRoleListUrl).withHttpHeaders(tokenRead.asHeader).get().futureValue
+        res.status mustBe OK
+        res.json.as[JsArray].value.size mustBe 2
+        (res.json \ 0 \ "noRole").as[String] mustBe "Utført av"
+        (res.json \ 0 \ "enRole").as[String] mustBe "Done by"
+        (res.json \ 0 \ "roleId").as[Int] mustBe 1
+        (res.json \ 1 \ "noRole").as[String] mustBe "Deltatt i"
+        (res.json \ 1 \ "enRole").as[String] mustBe "Participated in"
+        (res.json \ 1 \ "roleId").as[Int] mustBe 2
       }
     }
   }

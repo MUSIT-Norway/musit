@@ -1,13 +1,10 @@
 package services.conservation
 
 import com.google.inject.Inject
-import controllers.conservation.MusitResultUtils
 import models.conservation.events._
-import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
-import no.uio.musit.functional.FutureMusitResult
+import no.uio.musit.MusitResults.{MusitResult, MusitValidationError}
 import no.uio.musit.functional.Extensions._
-import no.uio.musit.functional.Implicits.futureMonad
-import no.uio.musit.functional.MonadTransformers.MusitResultT
+import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
@@ -138,8 +135,6 @@ class ConservationProcessService @Inject()(
   /**
    * Update an conservationProcess
    */
-  import controllers.conservation.MusitResultUtils._
-
   def update(
       mid: MuseumId,
       eventId: EventId,
@@ -147,7 +142,6 @@ class ConservationProcessService @Inject()(
   )(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[Option[ConservationProcess]] = {
-    import no.uio.musit.functional.Extensions
 
     def getRegisteredActorDate(localEventId: EventId): FutureMusitResult[ActorDate] = {
       subEventDao

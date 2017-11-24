@@ -19,6 +19,6 @@ object EventActorRoleDate extends WithDateTimeFormatters {
 
 case class EventRole(roleId: Int, noRole: String, enRole: String, roleFor: String)
 
-object Role extends WithDateTimeFormatters {
+object EventRole extends WithDateTimeFormatters {
   implicit val format: Format[EventRole] = Json.format[EventRole]
 }

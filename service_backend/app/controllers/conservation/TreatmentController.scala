@@ -1,13 +1,11 @@
 package controllers.conservation
 
 import com.google.inject.{Inject, Singleton}
-import models.conservation.events.{ConservationEvent, Treatment}
-import no.uio.musit.models.EventTypeId
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.mvc.ControllerComponents
-import services.conservation.{ConservationEventService, TreatmentService}
+import services.conservation.TreatmentService
 @Singleton
 class TreatmentController @Inject()(
     val controllerComponents: ControllerComponents,

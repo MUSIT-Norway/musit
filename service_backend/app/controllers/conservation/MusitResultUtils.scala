@@ -1,13 +1,9 @@
 package controllers.conservation
 
 import controllers._
-import no.uio.musit.MusitResults.{
-  MusitError,
-  MusitResult,
-  MusitSuccess,
-  MusitValidationError
-}
+import no.uio.musit.MusitResults._
 import no.uio.musit.functional.FutureMusitResult
+import play.api.libs.json.{Json, Writes}
 import play.api.mvc.Result
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -27,8 +23,33 @@ object MusitResultUtils {
   def defaultErrorTranslator(err: MusitError): Result = {
     err match {
       case err: MusitValidationError => badRequestErr(err)
-      case err: MusitError           => internalErr(err)
+
+      case err: MusitNotAuthenticated =>
+        musitNotAuthenticatedErr(err)
+
+      case err: MusitNotAuthorized =>
+        musitNotAuthorized(err)
+
+      case err: MusitError => internalErr(err)
     }
+  }
+
+  def musitResultSeqToPlayResult[T](musitResult: MusitResult[Seq[T]])(
+      implicit w: Writes[T]
+  ): Result = {
+    musitResult match {
+      case MusitSuccess(tt) => listAsPlayResult(tt)
+      case err: MusitError  => defaultErrorTranslator(err)
+    }
+  }
+
+  def futureMusitResultSeqToPlayResult[T](
+      futMusitResult: FutureMusitResult[Seq[T]]
+  )(
+      implicit w: Writes[T],
+      ec: ExecutionContext
+  ): Future[Result] = {
+    futMusitResult.value.map(musitResultSeqToPlayResult(_)(w))
   }
 
   implicit class MusitResultHelpers[T](val musitResult: MusitResult[T]) {

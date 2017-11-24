@@ -25,7 +25,7 @@ class ActorRoleDateDao @Inject()(
   import profile.api._
 
   private val eventActorRoleDateTable = TableQuery[EventActorAndRoleAndDate]
-  private val RoleTable               = TableQuery[Role]
+  private val roleTable               = TableQuery[Role]
 
   def insertActorRoleAction(
       eventId: EventId,
@@ -84,6 +84,10 @@ class ActorRoleDateDao @Inject()(
     daoUtils
       .dbRun(action, s"getEventActorRoleDatesAction failed for eventId $eventId")
       .map(_.map(m => ActorRoleDate(m._1, m._2, m._3)))
+  }
+
+  def getRoleList: FutureMusitResult[Seq[EventRole]] = {
+    daoUtils.dbRun(roleTable.result, "getRoleList failed")
   }
 
   private class EventActorAndRoleAndDate(tag: Tag)

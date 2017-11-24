@@ -1,9 +1,4 @@
-import no.uio.musit.MusitResults.{
-  MusitError,
-  MusitResult,
-  MusitSuccess,
-  MusitValidationError
-}
+import no.uio.musit.MusitResults._
 import no.uio.musit.models.{
   CollectionUUID,
   MuseumCollection,
@@ -26,6 +21,12 @@ package object controllers {
 
   val badRequestErr = (err: MusitValidationError) =>
     Results.BadRequest(Json.obj("message" -> err.message))
+
+  val musitNotAuthenticatedErr = (err: MusitNotAuthenticated) =>
+    Results.Unauthorized(Json.obj("message" -> err.message))
+
+  val musitNotAuthorized = (err: MusitNotAuthorized) =>
+    Results.Forbidden(Json.obj("message" -> err.message))
 
   val badRequestStr = (msg: String) => Results.BadRequest(Json.obj("message" -> msg))
 

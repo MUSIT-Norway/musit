@@ -9,12 +9,18 @@ import no.uio.musit.security.{Authenticator, CollectionManagement}
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.mvc.ControllerComponents
-import services.conservation.{ConservationProcessService, TreatmentService}
+import MusitResultUtils._
+import services.conservation.{
+  ConservationProcessService,
+  ConservationService,
+  TreatmentService
+}
 @Singleton
 class ConservationController @Inject()(
     val controllerComponents: ControllerComponents,
     val authService: Authenticator,
-    val consService: ConservationProcessService,
+    val cpService: ConservationProcessService,
+    val conservationService: ConservationService,
     val treatmentService: TreatmentService
 ) extends MusitController {
 
@@ -28,7 +34,7 @@ class ConservationController @Inject()(
       implicit val currUser = request.user
 
       val maybeColl = collectionIds.flatMap(CollectionUUID.fromString)
-      consService.getTypesFor(maybeColl).map {
+      cpService.getTypesFor(maybeColl).map {
         case MusitSuccess(types) => listAsPlayResult(types)
         case err: MusitError     => internalErr(err)
       }
@@ -49,4 +55,8 @@ class ConservationController @Inject()(
         case err: MusitError => internalErr(err)
       }
     }
+
+  def getRoleList = MusitSecureAction().async { implicit request =>
+    futureMusitResultSeqToPlayResult(conservationService.getRoleList)
+  }
 }

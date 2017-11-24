@@ -1,18 +1,19 @@
 package services.conservation
 
 import com.google.inject.Inject
-import no.uio.musit.MusitResults.MusitResult
+import models.conservation.events.EventRole
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models.{EventId, EventTypeId}
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
-import repositories.conservation.dao.ConservationDao
+import repositories.conservation.dao.{ActorRoleDateDao, ConservationDao}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class ConservationService @Inject()(
     implicit
     val dao: ConservationDao,
+    val actorRoleDateDao: ActorRoleDateDao,
     val ec: ExecutionContext
 ) {
 
@@ -22,5 +23,9 @@ class ConservationService @Inject()(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[Option[EventTypeId]] = {
     dao.getEventTypeId(eventId)
+  }
+
+  def getRoleList: FutureMusitResult[Seq[EventRole]] = {
+    actorRoleDateDao.getRoleList
   }
 }

@@ -1,7 +1,8 @@
 package repositories.conservation.dao
 
 import com.google.inject.{Inject, Singleton}
-import models.conservation.events.ConservationEvent
+import models.conservation.TreatmentKeyword
+import models.conservation.events.{ConservationEvent, EventRole}
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models._
@@ -19,7 +20,8 @@ class ConservationDao @Inject()(
     implicit
     val dbConfigProvider: DatabaseConfigProvider,
     val ec: ExecutionContext,
-    val daoUtils: DaoUtils
+    val daoUtils: DaoUtils,
+    val actorRoleDao: ActorRoleDateDao
 ) extends ConservationEventTableProvider
     with ConservationTables
     with EventActions
@@ -47,13 +49,14 @@ class ConservationDao @Inject()(
       query,
       s"An unexpected error occurred fetching eventTypeId for event with id: $eventId"
     )
-    /* db.run(query)
-      .map(MusitSuccess.apply)
-      .recover(
-        nonFatal(
-          s"An unexpected error occurred fetching eventTypeId for event with id: $eventId"
-        )
-      )*/
 
   }
+
+  def getKeywordList: Future[MusitResult[Seq[TreatmentKeyword]]] = {
+    db.run(treatmentKeywordTable.result)
+      .map(_.map(fromTreatmentKeywordRow))
+      .map(MusitSuccess.apply)
+      .recover(nonFatal(s"An unexpected error occurred fetching material list"))
+  }
+
 }
