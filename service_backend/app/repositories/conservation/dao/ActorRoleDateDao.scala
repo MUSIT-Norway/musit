@@ -142,31 +142,9 @@ class ActorRoleDateDao @Inject()(
     val enRole  = column[String]("EN_ROLE")
     val roleFor = column[String]("ROLE_FOR")
 
-    val create = (
-        roleId: Int,
-        noRole: String,
-        enRole: String,
-        roleFor: String
-    ) =>
-      EventRole(
-        roleId = roleId,
-        noRole = noRole,
-        enRole = enRole,
-        roleFor = roleFor
-    )
-
-    val destroy = (er: EventRole) =>
-      Some(
-        (
-          er.roleId,
-          er.noRole,
-          er.enRole,
-          er.roleFor
-        )
-    )
-
     // scalastyle:off method.name
-    def * = (roleId, noRole, enRole, roleFor) <> (create.tupled, destroy)
+    def * =
+      (roleId, noRole, enRole, roleFor) <> ((EventRole.apply _).tupled, EventRole.unapply)
 
     // scalastyle:on method.name
 

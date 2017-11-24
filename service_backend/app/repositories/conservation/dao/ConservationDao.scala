@@ -52,11 +52,4 @@ class ConservationDao @Inject()(
 
   }
 
-  def getKeywordList: Future[MusitResult[Seq[TreatmentKeyword]]] = {
-    db.run(treatmentKeywordTable.result)
-      .map(_.map(fromTreatmentKeywordRow))
-      .map(MusitSuccess.apply)
-      .recover(nonFatal(s"An unexpected error occurred fetching material list"))
-  }
-
 }

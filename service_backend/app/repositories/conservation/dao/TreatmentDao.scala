@@ -31,13 +31,10 @@ class TreatmentDao @Inject()(
   def getMaterialList: FutureMusitResult[Seq[TreatmentMaterial]] = {
     daoUtils
       .dbRun(treatmentMaterialTable.result, "something went wrong in getMaterialList")
-      .map(_.map(fromTreatmentMaterialRow))
   }
 
   def getKeywordList: FutureMusitResult[Seq[TreatmentKeyword]] = {
-    daoUtils
-      .dbRun(treatmentKeywordTable.result, "something went wrong in getKeywordList")
-      .map(_.map(fromTreatmentKeywordRow))
+    daoUtils.dbRun(treatmentKeywordTable.result, "something went wrong in getKeywordList")
   }
 
   def getEventRowFromEventTable(eventId: EventId): FutureMusitResult[EventRow] = {

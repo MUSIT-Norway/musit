@@ -91,25 +91,8 @@ trait ConservationTables
     )
   }
 
-  /**
-   * Representation of the MUSARK_ANALYSIS.TREATMENT table
-   */
-  // scalastyle:off line.size.limit
-  type TreatmentMaterialRow =
-    (
-        Int,
-        String,
-        String
-    )
-
-  protected[dao] def fromTreatmentMaterialRow(
-      t: TreatmentMaterialRow
-  ): TreatmentMaterial = {
-    TreatmentMaterial(id = t._1, noTerm = t._2, enTerm = t._3)
-  }
-
   class TreatmentMaterialTable(val tag: Tag)
-      extends Table[TreatmentMaterialRow](
+      extends Table[TreatmentMaterial](
         tag,
         Some(SchemaName),
         TreatmentMaterialTableName
@@ -119,30 +102,14 @@ trait ConservationTables
     val enTerm = column[String]("EN_MATERIAL")
 
     // scalastyle:off method.name
-    def * = (id, noTerm, enTerm)
+    def * =
+      (id, noTerm, enTerm) <> ((TreatmentMaterial.apply _).tupled, TreatmentMaterial.unapply)
 
     // scalastyle:on method.name
   }
 
-  /**
-   * Representation of the MUSARK_CONSERVATION.TREATMENT_KEYWORD table
-   */
-  // scalastyle:off line.size.limit
-  type TreatmentKeywordRow =
-    (
-        Int,
-        String,
-        String
-    )
-
-  protected[dao] def fromTreatmentKeywordRow(
-      t: TreatmentKeywordRow
-  ): TreatmentKeyword = {
-    TreatmentKeyword(id = t._1, noTerm = t._2, enTerm = t._3)
-  }
-
   class TreatmentKeywordTable(val tag: Tag)
-      extends Table[TreatmentKeywordRow](
+      extends Table[TreatmentKeyword](
         tag,
         Some(SchemaName),
         TreatmentKeywordTableName
@@ -152,7 +119,8 @@ trait ConservationTables
     val enTerm = column[String]("EN_KEYWORD")
 
     // scalastyle:off method.name
-    def * = (id, noTerm, enTerm)
+    def * =
+      (id, noTerm, enTerm) <> ((TreatmentKeyword.apply _).tupled, TreatmentKeyword.unapply)
 
     // scalastyle:on method.name
   }
