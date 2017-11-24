@@ -6,6 +6,7 @@ import models.conservation.events._
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess, _}
 import no.uio.musit.models.{EventId, EventTypeId, MuseumId, ObjectUUID}
 import no.uio.musit.functional.Extensions._
+import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.security.Permissions.{Read, Write}
 import no.uio.musit.security.{AuthenticatedUser, Authenticator, CollectionManagement}
 import no.uio.musit.service.MusitController
@@ -148,11 +149,16 @@ class ConservationModuleEventController @Inject()(
           case ConservationProcess.eventTypeId =>
             consService.findConservationProcessById(mid, id)
           case conservationEventId => {
-            val mrService =
-              findConservationEventServiceBlameClientIfNotFound(conservationEventId)
-            mrService.flatMapToFutureMusitResult(
-              eventService => eventService.findConservationEventById(mid, id)
-            )
+
+            for {
+              eventService <- FutureMusitResult.from(
+                               findConservationEventServiceBlameClientIfNotFound(
+                                 conservationEventId
+                               )
+                             )
+              event <- eventService.findConservationEventById(mid, id)
+
+            } yield event
           }
         }
         res.map(

@@ -5,7 +5,7 @@ import no.uio.musit.models._
 import org.joda.time.DateTime
 import play.api.libs.json._
 
-sealed trait ConservationModuleEvent extends MusitEvent {
+sealed trait ConservationModuleEvent extends ModernMusitEvent {
 
   val eventTypeId: EventTypeId
   val partOf: Option[EventId]
@@ -22,6 +22,7 @@ sealed trait ConservationModuleEvent extends MusitEvent {
   ): ConservationModuleEvent
 
 }
+
 trait TypedConservationEvent {
   protected val missingEventTypeMsg        = "No event type was specified"
   protected val discriminatorAttributeName = "eventTypeId"
@@ -40,14 +41,8 @@ object ConservationModuleEvent extends TypedConservationEvent {
     (jsv \ "eventTypeId").validateOpt[EventTypeId] match {
       case JsSuccess(maybeType, path) =>
         maybeType.map {
-          /*  case Preservation =>
-            Preservation.reads.reads(jsv)*/
           case ConservationProcess.eventTypeId =>
             ConservationProcess.reads.reads(jsv)
-          case TechnicalDescription.eventTypeId =>
-            TechnicalDescription.reads.reads(jsv)
-          case StorageAndHandling.eventTypeId =>
-            StorageAndHandling.reads.reads(jsv)
           case _ =>
             ConservationEvent.reads.reads(jsv)
 
@@ -70,6 +65,7 @@ object ConservationModuleEvent extends TypedConservationEvent {
       ConservationProcess.writes.writes(cpe).as[JsObject] ++ Json.obj(
         discriminatorAttributeName -> ConservationProcess.eventTypeId
       )
+
     case te: Treatment =>
       Treatment.writes.writes(te).as[JsObject] ++ Json.obj(
         discriminatorAttributeName -> Treatment.eventTypeId
@@ -136,19 +132,22 @@ object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatt
 
     (jsv \ discriminatorAttributeName).validateOpt[EventTypeId] match {
       case JsSuccess(maybeType, path) =>
-        maybeType.map {
-          case Treatment.eventTypeId =>
-            jsv.validate[Treatment]
+        maybeType.map { eventTypeId =>
+          ConservationEventType(eventTypeId) match {
+            case Some(eventType) =>
+              eventType match {
+                case Treatment =>
+                  jsv.validate[Treatment]
 
-          case TechnicalDescription.eventTypeId =>
-            jsv.validate[TechnicalDescription]
+                case TechnicalDescription =>
+                  jsv.validate[TechnicalDescription]
 
-          case StorageAndHandling.eventTypeId =>
-            jsv.validate[StorageAndHandling]
-
-          case unknown =>
-            JsError(path, s"$unknown is not a valid type. $missingEventTypeMsg")
-
+                case StorageAndHandling =>
+                  jsv.validate[StorageAndHandling]
+              }
+            case None =>
+              JsError(path, s"$eventTypeId is not a valid type. $missingEventTypeMsg")
+          }
         }.getOrElse {
           JsError(path, missingEventTypeMsg)
         }
@@ -184,8 +183,6 @@ case class ConservationProcess(
     id: Option[EventId],
     eventTypeId: EventTypeId,
     caseNumber: Option[String],
-    doneBy: Option[ActorId],
-    doneDate: Option[DateTime],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     //responsible: Option[ActorId],
@@ -194,10 +191,8 @@ case class ConservationProcess(
     updatedDate: Option[DateTime],
     completedBy: Option[ActorId],
     completedDate: Option[DateTime],
-    affectedThing: Option[ObjectUUID],
     partOf: Option[EventId],
     note: Option[String],
-    //doneByActors: Option[Seq[ActorId]],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
     events: Option[Seq[ConservationEvent]]
@@ -207,14 +202,7 @@ case class ConservationProcess(
 
   override def withId(id: Option[EventId]) = copy(id = id)
 
-  override def withAffectedThing(at: Option[MusitUUID]) = at.fold(this) {
-    case oid: ObjectUUID => copy(affectedThing = Some(oid))
-    case _               => this
-  }
-
-  override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
-
-  def withoutChildren = copy(events = None)
+  def withoutEvents = copy(events = None)
 
   def withUpdatedInfo(
       updatedBy: Option[ActorId],
@@ -264,7 +252,7 @@ object ConservationEventType {
       case Some(t) => t
       case None =>
         throw new IllegalStateException(
-          s"Unhandled eventTypeId: $eventTypeId in ConservationProcess.ConservationProcess.subEventTypeIdToConservationEventType"
+          s"Unknown/unhandled eventTypeId: $eventTypeId in ConservationProcess.ConservationProcess.subEventTypeIdToConservationEventType"
         )
     }
   }
@@ -274,15 +262,12 @@ case class Treatment(
     id: Option[EventId],
     eventTypeId: EventTypeId,
     caseNumber: Option[String],
-    doneBy: Option[ActorId],
-    doneDate: Option[DateTime],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
     completedBy: Option[ActorId],
     completedDate: Option[DateTime],
-    affectedThing: Option[ObjectUUID],
     partOf: Option[EventId],
     note: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
@@ -292,13 +277,6 @@ case class Treatment(
 ) extends ConservationEvent {
 
   override def withId(id: Option[EventId]) = copy(id = id)
-
-  override def withAffectedThing(at: Option[MusitUUID]) = at.fold(this) {
-    case oid: ObjectUUID => copy(affectedThing = Some(oid))
-    case _               => this
-  }
-
-  override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
 
   override def withUpdatedInfo(
       updatedBy: Option[ActorId],
@@ -335,15 +313,12 @@ case class TechnicalDescription(
     id: Option[EventId],
     eventTypeId: EventTypeId,
     caseNumber: Option[String],
-    doneBy: Option[ActorId],
-    doneDate: Option[DateTime],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
     completedBy: Option[ActorId],
     completedDate: Option[DateTime],
-    affectedThing: Option[ObjectUUID],
     partOf: Option[EventId],
     note: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
@@ -353,13 +328,6 @@ case class TechnicalDescription(
   //override val affectedThing: Option[ObjectUUID] = None
 
   override def withId(id: Option[EventId]) = copy(id = id)
-
-  override def withAffectedThing(at: Option[MusitUUID]) = at.fold(this) {
-    case oid: ObjectUUID => copy(affectedThing = Some(oid))
-    case _               => this
-  }
-
-  override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
 
   override def withUpdatedInfo(
       updatedBy: Option[ActorId],
@@ -396,15 +364,12 @@ case class StorageAndHandling(
     id: Option[EventId],
     eventTypeId: EventTypeId,
     caseNumber: Option[String],
-    doneBy: Option[ActorId],
-    doneDate: Option[DateTime],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
     completedBy: Option[ActorId],
     completedDate: Option[DateTime],
-    affectedThing: Option[ObjectUUID],
     partOf: Option[EventId],
     note: Option[String],
     lightAndUvLevel: Option[String],
@@ -417,13 +382,6 @@ case class StorageAndHandling(
   //override val affectedThing: Option[ObjectUUID] = None
 
   override def withId(id: Option[EventId]) = copy(id = id)
-
-  override def withAffectedThing(at: Option[MusitUUID]) = at.fold(this) {
-    case oid: ObjectUUID => copy(affectedThing = Some(oid))
-    case _               => this
-  }
-
-  override def withDoneDate(dd: Option[DateTime]) = copy(doneDate = dd)
 
   override def withUpdatedInfo(
       updatedBy: Option[ActorId],

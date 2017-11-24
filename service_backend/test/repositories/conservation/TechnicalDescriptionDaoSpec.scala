@@ -39,10 +39,7 @@ class TechnicalDescriptionDaoSpec
     TechnicalDescription(
       id = None,
       eventTypeId = TechnicalDescription.eventTypeId,
-      doneBy = Some(dummyActorId),
-      doneDate = now,
       note = Some("eksempel på teknisk beskrivelse"),
-      affectedThing = None,
       completedBy = None,
       completedDate = None,
       caseNumber = None,

@@ -143,11 +143,11 @@ class ConservationProcessControllerSpec
         )
 
         val updJson = Json.obj(
-          "id"             -> eventId,
-          "note"           -> "Updated note",
-          "eventTypeId"    -> conservationProcessEventTypeId, // Should not be modified by the server.
-          "doneBy"         -> FakeUsers.testUserId,
-          "doneDate"       -> time.dateTimeNow.plusDays(20),
+          "id"          -> eventId,
+          "note"        -> "Updated note",
+          "eventTypeId" -> conservationProcessEventTypeId, // Should not be modified by the server.
+          //        "doneBy"         -> FakeUsers.testUserId,
+//          "doneDate"       -> time.dateTimeNow.plusDays(20),
           "completedBy"    -> FakeUsers.testUserId,
           "completedDate"  -> time.dateTimeNow.plusDays(20),
           "caseNumber"     -> "666",
@@ -164,8 +164,8 @@ class ConservationProcessControllerSpec
         (updRes.json \ "note").as[String] must include("Updated")
         // (updRes.json \ "updatedBy").asOpt[ActorId] mustBe Some(adminId)
         // (updRes.json \ "updatedDate").asOpt[DateTime] mustApproximate Some(mdatetime)
-        (updRes.json \ "doneBy").asOpt[ActorId] mustBe Some(testUserId)
-        (updRes.json \ "doneDate").asOpt[DateTime] mustApproximate Some(mdatetime)
+//        (updRes.json \ "doneBy").asOpt[ActorId] mustBe Some(testUserId)
+//        (updRes.json \ "doneDate").asOpt[DateTime] mustApproximate Some(mdatetime)
         (updRes.json \ "completedBy").asOpt[ActorId] mustBe Some(testUserId)
         (updRes.json \ "completedDate").asOpt[DateTime] mustApproximate Some(mdatetime)
         (updRes.json \ "caseNumber").asOpt[String] mustBe Some("666")

@@ -12,7 +12,11 @@ import no.uio.musit.time.dateTimeNow
 import org.scalatest.OptionValues
 import play.api.libs.json.JsObject
 import play.libs.Json
-import repositories.conservation.dao.{TechnicalDescriptionDao, TreatmentDao}
+import repositories.conservation.dao.{
+  EventAccessors,
+  TechnicalDescriptionDao,
+  TreatmentDao
+}
 
 class TreatmentDaoSpec
     extends MusitSpecWithAppPerSuite
@@ -41,10 +45,7 @@ class TreatmentDaoSpec
     Treatment(
       id = None,
       eventTypeId = Treatment.eventTypeId,
-      doneBy = Some(dummyActorId),
-      doneDate = now,
       note = Some("hurra note"),
-      affectedThing = None,
       completedBy = None,
       completedDate = None,
       caseNumber = None,
@@ -135,7 +136,7 @@ class TreatmentDaoSpec
 
         //check that actorsAndRoles and affectedThings are removed for json column in db
         val trt  = dao.getEventRowFromEventTable(tr.id.get).value.futureValue.successValue
-        val json = trt._13.asInstanceOf[JsObject]
+        val json = EventAccessors.valJson(trt).asInstanceOf[JsObject]
 
         (json \ "actorsAndRoles").isDefined mustBe false
         (json \ "affectedThings").isDefined mustBe false

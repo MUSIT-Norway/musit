@@ -1,7 +1,5 @@
 package repositories.conservation.dao
 
-import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
-import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models._
 import no.uio.musit.repositories.events.BaseEventTableProvider
 import org.joda.time.DateTime
@@ -9,8 +7,6 @@ import play.api.Logger
 import play.api.libs.json.JsValue
 import repositories.shared.dao.ColumnTypeMappers
 import slick.lifted.ProvenShape
-
-import scala.concurrent.ExecutionContext
 
 private[dao] trait ConservationEventTableProvider
     extends BaseEventTableProvider
@@ -23,20 +19,18 @@ private[dao] trait ConservationEventTableProvider
   override val schema = SchemaName
   override val table  = ConservationEventTableName
 
+  //If you modify this, remember to update the ugly copy below in the EventAccessors object!
   override type EventRow = (
-      Option[EventId],
-      EventTypeId,
-      MuseumId,
-      ActorId,
-      DateTime,
-      Option[ActorId],
-      Option[DateTime],
-      Option[DateTime],
-      Option[EventId],
-      Option[String], // MusitUUID
-      Option[String],
-      Option[String],
-      JsValue
+      Option[EventId], // 1 - EventId
+      EventTypeId, // 2 - EventTypeId
+      MuseumId, // 3 - MuseumId
+      ActorId, // 4 - RegisteredBy
+      DateTime, // 5 - RegisteredDate
+      Option[DateTime], // 6- UpdatedDate
+      Option[EventId], //7 - PartOf
+      Option[String], // 8 - Note
+      Option[String], // 9 - CaseNumber
+      JsValue // 10 - EventJson
   )
 
   def valEventId(row: EventRow)     = row._1
@@ -47,11 +41,9 @@ private[dao] trait ConservationEventTableProvider
   def valRegisteredBy(row: EventRow)   = row._4
   def valRegisteredDate(row: EventRow) = row._5
 
-  def valDoneBy(row: EventRow)   = row._6
-  def valDoneDate(row: EventRow) = row._7
+  def valJson(row: EventRow) = row._10
 
-  def valAffectedThing(row: EventRow) = row._10
-  def valJson(row: EventRow)          = row._13
+  def withPartOf(row: EventRow, partOf: Option[EventId]) = row.copy(_7 = partOf)
 
   override lazy val eventTable = TableQuery[ConservationEventTable]
 
@@ -69,18 +61,31 @@ private[dao] trait ConservationEventTableProvider
         museumId,
         registeredBy,
         registeredDate,
-        doneBy,
-        doneDate,
         updatedDate,
         partOf,
-        affectedUuid,
         note,
         caseNumber,
         eventJson
       )
-
     // scalastyle:on method.name
-
   }
+}
 
+/** TODO: Please make the need for the copy of EventRow to go away.
+ *  Without having to spread incredibly ugly code like _.10 etc outside of this file
+ */
+object EventAccessors {
+  type EventRow = (
+      Option[EventId], // 1 - EventId
+      EventTypeId, // 2 - EventTypeId
+      MuseumId, // 3 - MuseumId
+      ActorId, // 4 - RegisteredBy
+      DateTime, // 5 - RegisteredDate
+      Option[DateTime], // 6- UpdatedDate
+      Option[EventId], //7 - PartOf
+      Option[String], // 8 - Note
+      Option[String], // 9 - CaseNumber
+      JsValue // 10 - EventJson
+  )
+  def valJson(row: EventRow) = row._10
 }

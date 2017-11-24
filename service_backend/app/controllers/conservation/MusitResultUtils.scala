@@ -32,14 +32,6 @@ object MusitResultUtils {
   }
 
   implicit class MusitResultHelpers[T](val musitResult: MusitResult[T]) {
-    def flatMapToFutureMusitResult[S](
-        f: T => FutureMusitResult[S]
-    ): FutureMusitResult[S] = {
-      musitResult match {
-        case MusitSuccess(t) => f(t)
-        case err: MusitError => FutureMusitResult.failed(err)
-      }
-    }
 
     def flatMapToFutureResult(
         f: T => Future[Result],
@@ -52,28 +44,4 @@ object MusitResultUtils {
       }
     }
   }
-
-  def musitResultFoldNone[T](
-      value: MusitResult[Option[T]],
-      resultIfNone: => MusitResult[T]
-  ): MusitResult[T] = {
-    value.flatMap(opt => opt.fold(resultIfNone)(t => MusitSuccess(t)))
-  }
-
-  def musitResultToOption[T](
-      value: MusitResult[Option[T]]
-  ): Option[T] = {
-    value match {
-      case MusitSuccess(t) => t
-      case err             => None
-    }
-  }
-
-  def futureMusitResultFoldNone[T](
-      value: Future[MusitResult[Option[T]]],
-      resultIfNone: => MusitResult[T]
-  )(implicit ec: ExecutionContext): Future[MusitResult[T]] = {
-    value.map(mr => musitResultFoldNone(mr, resultIfNone))
-  }
-
 }

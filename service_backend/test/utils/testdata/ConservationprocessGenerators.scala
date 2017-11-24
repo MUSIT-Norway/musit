@@ -30,12 +30,7 @@ trait ConservationprocessGenerators {
     ConservationProcess(
       id = None,
       eventTypeId = dummyConservationTypeId,
-      doneBy = Some(dummyActorId),
-      doneDate = now,
       note = Some(dummyNote),
-      affectedThing = None,
-      completedBy = None,
-      completedDate = None,
       caseNumber = None,
       partOf = None,
       actorsAndRoles = None,
@@ -44,6 +39,8 @@ trait ConservationprocessGenerators {
       registeredDate = now,
       updatedBy = None,
       updatedDate = None,
+      completedBy = None,
+      completedDate = None,
       events = None
     )
   }

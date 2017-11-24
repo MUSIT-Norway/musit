@@ -39,9 +39,8 @@ class ConservationProcessDao @Inject()(
       s"didn't get proper conservationProcess eventTypeId, expected: ${ConservationProcess.eventTypeId}, found: ${valEventTypeId(row)}"
     )
 
-    fromRow(
-      valEventId(row), /*TODO?row._9,*/ valDoneDate(row),
-      valAffectedThing(row).flatMap(ObjectUUID.fromString),
+    fromConservationRow(
+      valEventId(row),
       valJson(row)
     ).get.asInstanceOf[ConservationProcess]
   }
@@ -194,7 +193,7 @@ class ConservationProcessDao @Inject()(
         }
       )
 
-    val cpToInsert = ce.withoutChildren
+    val cpToInsert = ce.withoutEvents
     val actions: DBIO[EventId] = for {
 
       cpId <- insertAction(asRow(mid, cpToInsert))
@@ -233,7 +232,7 @@ class ConservationProcessDao @Inject()(
     }
 
     //We "clear" the children so that we don't get them embedded in the json-blob for the process
-    val cpToInsert = cp.withoutChildren
+    val cpToInsert = cp.withoutEvents
     //val cpWithoutActorsToInsert = cpToInsert.withoutActorRoleAndDates
 
     val actions: DBIO[Int] = for {

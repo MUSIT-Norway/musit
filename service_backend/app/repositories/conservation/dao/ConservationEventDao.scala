@@ -53,9 +53,8 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
   }
 
   def interpretRow(row: EventRow): ConservationEvent = {
-    fromRow(
-      valEventId(row), /*TODO?row._9,*/ valDoneDate(row),
-      valAffectedThing(row).flatMap(ObjectUUID.fromString),
+    fromConservationRow(
+      valEventId(row),
       valJson(row)
     ).get.asInstanceOf[ConservationEvent]
   }
@@ -223,7 +222,7 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     require(event.registeredDate.isDefined)
 
     val row    = asRow(mid, eventWithoutObjects)
-    val newRow = row.copy(_9 = partOf)
+    val newRow = withPartOf(row, partOf)
     for {
       eventId <- insertAction(newRow)
       actors  <- actorRoleDao.insertActorRoleDateAction(eventId, actorsAndRoles)

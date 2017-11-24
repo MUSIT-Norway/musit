@@ -38,6 +38,7 @@ trait EventRowMappers[A <: MusitEvent] { self: BaseEventTableProvider =>
         .withAffectedThing(maybeAffectedThing)
         .asInstanceOf[A]
     }
+
 }
 
 /**
