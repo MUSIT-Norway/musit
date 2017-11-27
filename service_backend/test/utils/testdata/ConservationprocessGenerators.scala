@@ -1,6 +1,6 @@
 package utils.testdata
 
-import models.conservation.events.ConservationProcess
+import models.conservation.events.{ActorRoleDate, ConservationProcess}
 import no.uio.musit.models._
 import no.uio.musit.time.dateTimeNow
 
@@ -33,7 +33,15 @@ trait ConservationprocessGenerators {
       note = Some(dummyNote),
       caseNumber = None,
       partOf = None,
-      actorsAndRoles = None,
+      actorsAndRoles = Some(
+        Seq(
+          ActorRoleDate(
+            1,
+            ActorId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"),
+            now
+          )
+        )
+      ),
       affectedThings = oids,
       registeredBy = Some(dummyActorId),
       registeredDate = now,

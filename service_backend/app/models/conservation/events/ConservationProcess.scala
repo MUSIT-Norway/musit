@@ -216,6 +216,8 @@ case class ConservationProcess(
 
   def withEvents(newEvents: Seq[ConservationEvent]) = copy(events = Some(newEvents))
 
+  override def withoutActorRoleAndDates: ConservationProcess = withActorRoleAndDates(None)
+
   override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
     copy(actorsAndRoles = actorsAndRoles)
 

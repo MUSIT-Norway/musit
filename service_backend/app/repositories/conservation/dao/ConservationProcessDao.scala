@@ -21,7 +21,9 @@ class ConservationProcessDao @Inject()(
     val treatmentDao: TreatmentDao,
     val technicalDescriptionDao: TechnicalDescriptionDao,
     val storageAndHandlingDao: StorageAndHandlingDao,
-    val daoUtils: DaoUtils
+    val daoUtils: DaoUtils,
+    val actorRoleDateDao: ActorRoleDateDao,
+    val objectEventDao: ObjectEventDao
 ) extends ConservationEventTableProvider
     with ConservationTables
     with EventActions
@@ -32,6 +34,14 @@ class ConservationProcessDao @Inject()(
   import profile.api._
 
   def subEventDao = treatmentDao //Arbitrary choice, could have used any of the other.
+
+  def getEventRowFromEventTable(eventId: EventId): FutureMusitResult[EventRow] = {
+    subEventDao.getEventRowFromEventTable(eventId)
+    /*val q = eventTable.filter(_.eventId === eventId).result.headOption
+    daoUtils
+      .dbRun(q, "something went wrong in getEventRowFromEventTable")
+      .getOrError(MusitValidationError("didn't find record"))*/
+  }
 
   def interpretConservationProcessRow(row: EventRow): ConservationProcess = {
     require(
@@ -111,11 +121,34 @@ class ConservationProcessDao @Inject()(
   ): FutureMusitResult[Option[ConservationProcess]] = {
     val query = findConservationProcessByIdAction(mid, id)
 
-    daoUtils.dbRun(
+    val futCp = daoUtils.dbRun(
       query,
       s"An unexpected error occurred fetching conservation process event $id"
     )
+    val res = for {
+      event  <- futCp
+      actors <- actorRoleDateDao.getEventActorRoleDates(id)
+    } yield event.map(m => m.withActorRoleAndDates(Some(actors)))
+    res
   }
+
+  /* def findConservationEventById(
+      mid: MuseumId,
+      id: EventId
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): FutureMusitResult[Option[ConservationEvent]] = {
+    val query = findConservationEventByIdAction(mid, id)
+    val futEvent = daoUtils.dbRun(
+      query,
+      s"An unexpected error occurred fetching event $id (Scala type: ${classTag[T].runtimeClass.getName()}"
+    )
+    val res = for {
+      event  <- futEvent
+      actors <- actorRoleDao.getEventActorRoleDates(id)
+    } yield event.map(m => m.withActorRoleAndDates(Some(actors)))
+    res
+  }*/
 
   def readSubEvent(
       eventTypeId: EventTypeId,
@@ -193,11 +226,17 @@ class ConservationProcessDao @Inject()(
         }
       )
 
-    val cpToInsert = ce.withoutEvents
-    val actions: DBIO[EventId] = for {
+    val actorsAndRoles  = ce.actorsAndRoles.getOrElse(Seq.empty)
+    val objectIds       = ce.affectedThings.getOrElse(Seq.empty)
+    val cpToInsert      = ce.withoutEvents
+    val cpWithoutActors = cpToInsert.withoutActorRoleAndDates
+    //val cpWithoutObjects = cpWithoutActors.withAffectedThings(None)
 
-      cpId <- insertAction(asRow(mid, cpToInsert))
-      _    <- DBIO.sequence(subEventActions(cpId)).map(_ => cpId)
+    val actions: DBIO[EventId] = for {
+      cpId   <- insertAction(asRow(mid, cpWithoutActors))
+      actors <- actorRoleDateDao.insertActorRoleDateAction(cpId, actorsAndRoles)
+      //objects <- objectEventDao.insertObjectEventAction(cpId, objectIds)
+      _ <- DBIO.sequence(subEventActions(cpId)).map(_ => cpId)
 
     } yield cpId
 
@@ -222,6 +261,7 @@ class ConservationProcessDao @Inject()(
       implicit currUsr: AuthenticatedUser
   ): FutureMusitResult[Unit] = {
     val subEvents = cp.events.getOrElse(Seq.empty)
+    val actors    = cp.actorsAndRoles.getOrElse(Seq.empty)
 
     def subEventActions(partOf: EventId): Seq[DBIO[EventId]] = {
       subEvents.map(
@@ -232,11 +272,12 @@ class ConservationProcessDao @Inject()(
     }
 
     //We "clear" the children so that we don't get them embedded in the json-blob for the process
-    val cpToInsert = cp.withoutEvents
-    //val cpWithoutActorsToInsert = cpToInsert.withoutActorRoleAndDates
+    val cpToInsert              = cp.withoutEvents
+    val cpWithoutActorsToInsert = cpToInsert.withoutActorRoleAndDates
 
     val actions: DBIO[Int] = for {
-      numUpdated <- updateAction(mid, id, cpToInsert)
+      numUpdated <- updateAction(mid, id, cpWithoutActorsToInsert)
+      _          <- actorRoleDateDao.updateActorRoleDateAction(id, actors)
       _          <- DBIO.sequence(subEventActions(id)).map(_ => 1)
     } yield numUpdated
 

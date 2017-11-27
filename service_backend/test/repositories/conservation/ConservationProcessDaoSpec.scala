@@ -10,7 +10,8 @@ import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.{DateTimeMatchers, MusitResultValues}
 import no.uio.musit.time.dateTimeNow
 import org.scalatest.OptionValues
-import repositories.conservation.dao.ConservationProcessDao
+import play.api.libs.json.JsObject
+import repositories.conservation.dao.{ConservationProcessDao, EventAccessors}
 import utils.testdata.ConservationprocessGenerators
 
 class ConservationProcessDaoSpec
@@ -81,10 +82,22 @@ class ConservationProcessDaoSpec
             .futureValue
         res.isSuccess mustBe true
         res.successValue must not be empty
+
         val cp = res.successValue
         cp.value.note.value must include("SaveConservation")
         cp.value.updatedBy mustBe None
         cp.value.registeredBy must not be None
+        cp.value.actorsAndRoles.isDefined mustBe true
+        cp.value.actorsAndRoles.get.length mustBe 1
+
+        //check that actorsAndRoles and affectedThings are removed for json column in db
+        val cpRow =
+          dao.getEventRowFromEventTable(cp.value.id.get).value.futureValue.successValue
+        val json = EventAccessors.valJson(cpRow).asInstanceOf[JsObject]
+
+        // (json \ "affectedThings").isDefined mustBe false
+        // println("objects is false ")
+        (json \ "actorsAndRoles").isDefined mustBe false
       }
     }
 
@@ -102,7 +115,8 @@ class ConservationProcessDaoSpec
         val upd = cp.copy(
           updatedBy = Some(dummyActorId),
           updatedDate = Some(dateTimeNow),
-          note = Some("I was just updated")
+          note = Some("I was just updated"),
+          actorsAndRoles = None
         )
         val resTemp = dao.update(defaultMid, eid, upd).value.futureValue.successValue
         val res = dao
@@ -116,6 +130,8 @@ class ConservationProcessDaoSpec
         res.updatedBy mustBe Some(dummyActorId)
         res.registeredBy !== res.updatedBy
         res.updatedDate mustApproximate Some(dateTimeNow)
+        res.actorsAndRoles.isDefined mustBe true
+        res.actorsAndRoles.get.length mustBe 0
       }
       "fail if the conservationProcess doesn't exist" in {
         val eid  = EventId(200)

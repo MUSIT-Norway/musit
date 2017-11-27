@@ -45,7 +45,6 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
 
       }
     }
-
     daoUtils.dbRun(
       query,
       s"An unexpected error occurred fetching registered by/date for event $id"

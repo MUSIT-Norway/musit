@@ -458,11 +458,6 @@ class ConservationProcessControllerSpec
               "roleId"  -> 2,
               "actorId" -> adminId,
               "date"    -> time.dateTimeNow.plusDays(5)
-            ),
-            Json.obj(
-              "roleId"  -> 1,
-              "actorId" -> testUserId,
-              "date"    -> time.dateTimeNow.plusDays(6)
             )
           )
         )
@@ -485,6 +480,7 @@ class ConservationProcessControllerSpec
           .asInstanceOf[ConservationProcess]
 
         cp.events.get.length must be >= 3
+        cp.actorsAndRoles.get.length mustBe 1
       }
 
       "Return not OK when update an subevent with wrong eventId" in {
