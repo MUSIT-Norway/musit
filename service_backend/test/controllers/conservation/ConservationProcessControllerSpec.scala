@@ -109,7 +109,7 @@ class ConservationProcessControllerSpec
           wsUrl(typesUrl(mid)).withHttpHeaders(tokenRead.asHeader).get().futureValue
 
         res.status mustBe OK
-        res.json.as[JsArray].value.size mustBe 4
+        res.json.as[JsArray].value.size mustBe 5
       }
     }
     "working with conservationProcess" should {
@@ -744,6 +744,79 @@ class ConservationProcessControllerSpec
         newSubStorageAndHandle.temperature mustBe Some("30 pluss")
         newSubStorageAndHandle.lightAndUvLevel mustBe Some("mye mer uv")
         newSubStorageAndHandle.actorsAndRoles.get.length mustBe 1
+      }
+
+      val hseRiskAssessmentId = standaloneStorageAndHandlingId + 1
+      "Post a new hseRiskAssessment event to our cp compositeConservationProcessEventId" in {
+        val sahJson = Json.obj(
+          "eventTypeId"    -> hseRiskAssessmentEventTypeId,
+          "note"           -> "den nyeste og fineste hmsrisiko-en",
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 1,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(20)
+            )
+          )
+        )
+        val json = Json.obj(
+          "id"             -> compositeConservationProcessEventId,
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "doneBy"         -> adminId,
+          "completedBy"    -> adminId,
+          "events"         -> Json.arr(sahJson),
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+
+        val updRes = putEvent(compositeConservationProcessEventId, json)
+        updRes.status mustBe OK
+
+        val newSubHseRiskAssessment =
+          getEventObject(hseRiskAssessmentId + 1).asInstanceOf[HseRiskAssessment]
+        newSubHseRiskAssessment.note mustBe Some(
+          "den nyeste og fineste hmsrisiko-en"
+        )
+        newSubHseRiskAssessment.updatedBy mustBe None
+        newSubHseRiskAssessment.updatedDate mustBe None
+        newSubHseRiskAssessment.registeredDate mustApproximate Some(edate)
+        newSubHseRiskAssessment.registeredBy mustBe Some(adminId)
+
+        val cpe = getEventObject(compositeConservationProcessEventId)
+          .asInstanceOf[ConservationProcess]
+        cpe.events.get.exists(
+          m => m.eventTypeId.underlying === hseRiskAssessmentEventTypeId
+        ) mustBe true
+
+        val subEvent = cpe.events.get.head
+        subEvent.affectedThings mustBe Some(
+          Seq(ObjectUUID.unsafeFromString("baab2f60-4f49-40fe-99c8-174b13b12d46"))
+        )
+      }
+      "update the hseRiskAssessment event in our cp compositeConservationProcessEventId" in {
+        val sahJson = Json.obj(
+          "id"             -> (hseRiskAssessmentId + 1),
+          "eventTypeId"    -> hseRiskAssessmentEventTypeId,
+          "note"           -> "endring av HMS",
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+        val json = Json.obj(
+          "id"             -> compositeConservationProcessEventId,
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "doneBy"         -> adminId,
+          "completedBy"    -> adminId,
+          "events"         -> Json.arr(sahJson),
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+
+        val updRes = putEvent(compositeConservationProcessEventId, json)
+        updRes.status mustBe OK
+        val newSubHseRiskAss =
+          getEventObject(hseRiskAssessmentId + 1).asInstanceOf[HseRiskAssessment]
+        newSubHseRiskAss.note mustBe Some(
+          "endring av HMS"
+        )
+        newSubHseRiskAss.actorsAndRoles.get.length mustBe 0
       }
     }
   }

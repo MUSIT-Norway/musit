@@ -562,7 +562,7 @@ CREATE TABLE MUSARK_CONSERVATION.ROLE(
 role_id INTEGER DEFAULT MUSARK_CONSERVATION.ROLE_SEQ.NEXTVAL,
 no_role VARCHAR2(100),
 en_role VARCHAR2(100),
-role_for VARCHAR2(50), // om det er rollen hendelse_aktør eller hendelse_gjenstand
+role_for VARCHAR2(50), -- om det er rollen hendelse_aktør eller hendelse_gjenstand
 PRIMARY KEY (role_id)
 );
 
@@ -571,9 +571,9 @@ event_id  NUMBER(20)NOT NULL,
 actor_id VARCHAR2(36) NOT NULL,
 role_id INTEGER NOT NULL,
 actor_role_date DATE,
-PRIMARY KEY (event_id,actor_id,role_id),
-CONSTRAINT FK_ARD_EVENTID FOREIGN KEY (event_id) references MUSARK_CONSERVERING.EVENT(event_id),
-CONSTRAINT FK_ARD_ROLEID FOREIGN KEY (role_id) references MUSARK_CONSERVERING.ROLE(role_id)
+PRIMARY KEY (event_id,actor_id,role_id)
+--CONSTRAINT FK_ARD_EVENTID FOREIGN KEY (event_id) references MUSARK_CONSERVERING.EVENT(event_id),
+--CONSTRAINT FK_ARD_ROLEID FOREIGN KEY (role_id) references MUSARK_CONSERVERING.ROLE(role_id)
 );
 
 
