@@ -3,7 +3,7 @@ package repositories.conservation.dao
 import com.google.inject.{Inject, Singleton}
 import models.conservation.events._
 import no.uio.musit.functional.FutureMusitResult
-import no.uio.musit.models.{EventId, ObjectUUID}
+import no.uio.musit.models.{EventId, EventTypeId, ObjectUUID}
 import no.uio.musit.repositories.DbErrorHandlers
 import play.api.db.slick.DatabaseConfigProvider
 import repositories.conservation.DaoUtils
@@ -47,10 +47,27 @@ class ObjectEventDao @Inject()(
   }
 
   def getObjectEventIds(objectUuid: ObjectUUID): FutureMusitResult[Seq[EventId]] = {
-    val action =
-      objectEventTable.filter(oe => oe.objectUuid === objectUuid).map(oe => oe.eventId)
+    val action = for {
+      oe <- objectEventTable
+      e  <- eventTable
+      if oe.objectUuid === objectUuid && oe.eventId === e.eventId && e.eventTypeId =!= ConservationProcess.eventTypeId
+    } yield oe.eventId
     val res = action.result
     daoUtils.dbRun(res, s"An unexpected error occurred fetching object $objectUuid")
+    /* val action =
+      objectEventTable.filter(oe => oe.objectUuid === objectUuid).map(oe => oe.eventId)
+    val res = action.result
+    daoUtils.dbRun(res, s"An unexpected error occurred fetching object $objectUuid")*/
+  }
+
+  def getEventObjects(eventId: EventId): FutureMusitResult[Seq[ObjectUUID]] = {
+    val action =
+      objectEventTable.filter(oe => oe.eventId === eventId).map(oids => oids.objectUuid)
+    val res = action.result
+    daoUtils.dbRun(
+      res,
+      s"An unexpected error occurred fetching objects in getEventObjects for event $eventId"
+    )
   }
 
   /**

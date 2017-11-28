@@ -11,7 +11,6 @@ sealed trait ConservationModuleEvent extends ModernMusitEvent {
   val partOf: Option[EventId]
   val note: Option[String]
   val caseNumber: Option[String]
-  //val doneByActors: Option[Seq[ActorId]]
   val actorsAndRoles: Option[Seq[ActorRoleDate]]
   val affectedThings: Option[Seq[ObjectUUID]]
 
@@ -97,7 +96,6 @@ sealed trait ConservationEvent extends ConservationModuleEvent {
   val updatedDate: Option[DateTime]
   val completedBy: Option[ActorId]
   val completedDate: Option[DateTime]
-  //val doneByActors: Option[Seq[ActorId],
   val actorsAndRoles: Option[Seq[ActorRoleDate]]
   val affectedThings: Option[Seq[ObjectUUID]]
   // todo val extraAttributes: Option[ExtraAttributes]
@@ -126,11 +124,10 @@ sealed trait ConservationEvent extends ConservationModuleEvent {
 object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatters {
 
   override protected val missingEventTypeMsg =
-    "Type must be either Analysis or AnalysisCollection"
+    "Type must be a subevent of Conservation"
+  // "Type must be either Analysis or AnalysisCollection"
 
   val reads: Reads[ConservationEvent] = Reads { jsv =>
-    // implicit val ar = ConservationEvent.reads
-    // implicit val ac = AnalysisCollection.reads
     implicit val _t   = Treatment.reads
     implicit val _td  = TechnicalDescription.reads
     implicit val _sah = StorageAndHandling.reads
@@ -196,8 +193,6 @@ case class ConservationProcess(
     caseNumber: Option[String],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
-    //responsible: Option[ActorId],
-    //administrator: Option[ActorId],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
     completedBy: Option[ActorId],
@@ -231,6 +226,11 @@ case class ConservationProcess(
 
   override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
     copy(actorsAndRoles = actorsAndRoles)
+
+  def withoutAfftectedThings = copy(affectedThings = None)
+
+  def withAffectedThings(objects: Option[Seq[ObjectUUID]]): ConservationProcess =
+    copy(affectedThings = objects)
 
 }
 object ConservationProcess extends WithDateTimeFormatters {

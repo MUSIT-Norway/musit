@@ -128,9 +128,13 @@ class ConservationProcessDao @Inject()(
       s"An unexpected error occurred fetching conservation process event $id"
     )
     val res = for {
-      event  <- futCp
-      actors <- actorRoleDateDao.getEventActorRoleDates(id)
-    } yield event.map(m => m.withActorRoleAndDates(Some(actors)))
+      event   <- futCp
+      actors  <- actorRoleDateDao.getEventActorRoleDates(id)
+      objects <- objectEventDao.getEventObjects(id)
+    } yield
+      event
+        .map(m => m.withActorRoleAndDates(Some(actors)))
+        .map(nr => nr.withAffectedThings(Some(objects)))
     res
   }
 
@@ -228,18 +232,17 @@ class ConservationProcessDao @Inject()(
           createInsertSubEventAction(mid, partOf, subEvent.asPartOf(Some(partOf)))
         }
       )
-
-    val actorsAndRoles  = ce.actorsAndRoles.getOrElse(Seq.empty)
-    val objectIds       = ce.affectedThings.getOrElse(Seq.empty)
-    val cpToInsert      = ce.withoutEvents
-    val cpWithoutActors = cpToInsert.withoutActorRoleAndDates
-    //val cpWithoutObjects = cpWithoutActors.withAffectedThings(None)
+    val actorsAndRoles   = ce.actorsAndRoles.getOrElse(Seq.empty)
+    val objectIds        = ce.affectedThings.getOrElse(Seq.empty)
+    val cpToInsert       = ce.withoutEvents
+    val cpWithoutActors  = cpToInsert.withoutActorRoleAndDates
+    val cpWithoutObjects = cpWithoutActors.withoutAfftectedThings
 
     val actions: DBIO[EventId] = for {
-      cpId   <- insertAction(asRow(mid, cpWithoutActors))
-      actors <- actorRoleDateDao.insertActorRoleDateAction(cpId, actorsAndRoles)
-      //objects <- objectEventDao.insertObjectEventAction(cpId, objectIds)
-      _ <- DBIO.sequence(subEventActions(cpId)).map(_ => cpId)
+      cpId    <- insertAction(asRow(mid, cpWithoutObjects))
+      actors  <- actorRoleDateDao.insertActorRoleDateAction(cpId, actorsAndRoles)
+      objects <- objectEventDao.insertObjectEventAction(cpId, objectIds)
+      _       <- DBIO.sequence(subEventActions(cpId)).map(_ => cpId)
 
     } yield cpId
 
@@ -265,6 +268,7 @@ class ConservationProcessDao @Inject()(
   ): FutureMusitResult[Unit] = {
     val subEvents = cp.events.getOrElse(Seq.empty)
     val actors    = cp.actorsAndRoles.getOrElse(Seq.empty)
+    val objects   = cp.affectedThings.getOrElse(Seq.empty)
 
     def subEventActions(partOf: EventId): Seq[DBIO[EventId]] = {
       subEvents.map(
@@ -277,10 +281,12 @@ class ConservationProcessDao @Inject()(
     //We "clear" the children so that we don't get them embedded in the json-blob for the process
     val cpToInsert              = cp.withoutEvents
     val cpWithoutActorsToInsert = cpToInsert.withoutActorRoleAndDates
+    val cpWithoutAffectedThings = cpWithoutActorsToInsert.withoutAfftectedThings
 
     val actions: DBIO[Int] = for {
-      numUpdated <- updateAction(mid, id, cpWithoutActorsToInsert)
+      numUpdated <- updateAction(mid, id, cpWithoutAffectedThings)
       _          <- actorRoleDateDao.updateActorRoleDateAction(id, actors)
+      _          <- objectEventDao.updateObjectEventAction(id, objects)
       _          <- DBIO.sequence(subEventActions(id)).map(_ => 1)
     } yield numUpdated
 

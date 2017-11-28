@@ -1,7 +1,11 @@
 package repositories.conservation.dao
 
 import com.google.inject.Inject
-import models.conservation.events.ConservationEvent
+import models.conservation.events.{
+  ConservationEvent,
+  ConservationModuleEvent,
+  ConservationProcess
+}
 import no.uio.musit.MusitResults.MusitValidationError
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models._
@@ -77,7 +81,40 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
 
   }
 
+  protected def localFindByIdAction(
+      mid: MuseumId,
+      id: EventId
+  ): DBIO[Option[EventRow]] =
+    eventTable.filter { e =>
+      e.museumId === mid &&
+      e.eventId === id &&
+      e.eventTypeId =!= ConservationProcess.eventTypeId
+    }.result.headOption
+
   def findConservationEventByIdAction(
+      mid: MuseumId,
+      id: EventId
+  )(implicit currUsr: AuthenticatedUser): DBIO[Option[ConservationEvent]] = {
+    val q1 = localFindByIdAction(mid, id).map { mayBeRow =>
+      mayBeRow.map { row =>
+        interpretRow(row)
+      }
+    }
+    q1.flatMap {
+      case (Some(event)) => {
+        val futObjectList = getEventObjectsAction(id)
+        val futObj = futObjectList.map { ol =>
+          val lista = Some(event.withAffectedThings(Some(ol)))
+          lista
+        }
+        futObj
+      }
+      case None =>
+        DBIO.successful(None)
+    }
+  }
+
+  /*def findConservationEventByIdAction(
       mid: MuseumId,
       id: EventId
   )(implicit currUsr: AuthenticatedUser): DBIO[Option[ConservationEvent]] = {
@@ -99,7 +136,7 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
         DBIO.successful(None)
     }
   }
-
+   */
   /**
    * Locates a given conservation event by its EventId.
    *
@@ -160,9 +197,7 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
   ): FutureMusitResult[Seq[ConservationEvent]] = {
 
     def localFindById(id: EventId) = findConservationEventById(mid, id)
-
     for {
-
       ids <- getObjectEventIds(objectUuid)
       events <- {
         FutureMusitResult.collectAllOrFail[EventId, ConservationEvent](

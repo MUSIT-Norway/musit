@@ -89,14 +89,13 @@ class ConservationProcessDaoSpec
         cp.value.registeredBy must not be None
         cp.value.actorsAndRoles.isDefined mustBe true
         cp.value.actorsAndRoles.get.length mustBe 1
-
+        cp.value.affectedThings.get.length mustBe 2
         //check that actorsAndRoles and affectedThings are removed for json column in db
         val cpRow =
           dao.getEventRowFromEventTable(cp.value.id.get).value.futureValue.successValue
         val json = EventAccessors.valJson(cpRow).asInstanceOf[JsObject]
 
-        // (json \ "affectedThings").isDefined mustBe false
-        // println("objects is false ")
+        (json \ "affectedThings").isDefined mustBe false
         (json \ "actorsAndRoles").isDefined mustBe false
       }
     }
