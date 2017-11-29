@@ -19,7 +19,6 @@ trait ConservationEventRowMappers extends EventRowMappers[ConservationModuleEven
       currUsr: AuthenticatedUser
   ): EventRow = {
     val js = Json.toJson[ConservationModuleEvent](e)
-    //println("inni ASROW " + e.registeredDate)
 
     require(e.registeredDate.isDefined)
     require(e.registeredBy.isDefined)
@@ -58,43 +57,5 @@ trait ConservationEventRowMappers extends EventRowMappers[ConservationModuleEven
     throw new IllegalStateException(
       "Internal error, ConservationEventRowMappers.fromRow is not supposed to be called anymore"
     )
-    /*
-    // println(Json.prettyPrint(rowAsJson))
-    /*Json.fromJson[ConservationModuleEvent](rowAsJson).asOpt.map { row =>
-      row
-        .withId(maybeEventId)
-        .withDoneDate(maybeDoneDate)
-        .withAffectedThing(maybeAffectedThing)
-        .asInstanceOf[ConservationModuleEvent]
-    }*/
-    Json.fromJson[ConservationModuleEvent](rowAsJson).asEither match {
-      case Right(row) =>
-        val x = row
-          .withId(maybeEventId)
-          .withAffectedThing(maybeAffectedThing)
-          .asInstanceOf[ConservationModuleEvent]
-//TODO?          .asPartOf(maybePartOf)
-
-        Some(x)
-
-      case Left(err) =>
-        println(err)
-        assert(false, "Noe gikk galt i fromRow. " + err)
-        None
-
-    }
-   */
   }
-
-  /* protected def toConservationEvent(
-      maybeEventId: Option[EventId],
-      maybeDoneDate: Option[DateTime],
-      maybeAffectedThing: Option[MusitUUID],
-      rowAsJson: JsValue
-  ): Option[ConservationEvent] =
-    fromRow(maybeEventId, maybeDoneDate, maybeAffectedThing, rowAsJson).flatMap {
-      case a: ConservationEvent => Some(a)
-      case _                    => None
-    }*/
-
 }

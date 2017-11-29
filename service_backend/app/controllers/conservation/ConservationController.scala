@@ -1,16 +1,15 @@
 package controllers.conservation
 
 import com.google.inject.{Inject, Singleton}
-import controllers.{internalErr, _}
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
+import controllers.conservation.MusitResultUtils._
 import no.uio.musit.models.{CollectionUUID, MuseumId}
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.security.{Authenticator, CollectionManagement}
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.mvc.ControllerComponents
-import MusitResultUtils._
 import services.conservation.{
+  ConditionAssessmentService,
   ConservationProcessService,
   ConservationService,
   TreatmentService
@@ -21,7 +20,8 @@ class ConservationController @Inject()(
     val authService: Authenticator,
     val cpService: ConservationProcessService,
     val conservationService: ConservationService,
-    val treatmentService: TreatmentService
+    val treatmentService: TreatmentService,
+    val conditionAssessmentService: ConditionAssessmentService
 ) extends MusitController {
 
   val logger = Logger(classOf[ConservationController])
@@ -53,6 +53,10 @@ class ConservationController @Inject()(
 
   def getRoleList = MusitSecureAction().async { implicit request =>
     futureMusitResultSeqToPlayResult(conservationService.getRoleList)
+  }
+
+  def getConditionCodeList = MusitSecureAction().async { implicit request =>
+    futureMusitResultSeqToPlayResult(conditionAssessmentService.getConditionCodeList)
   }
 
 }

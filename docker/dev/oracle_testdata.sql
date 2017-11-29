@@ -71,6 +71,34 @@ INSERT INTO musark_auth.auth_group VALUES ('86f5ba4f-2e5b-4471-b3b5-be5d68817772
 INSERT INTO musark_auth.auth_group VALUES ('8bfd2765-58f2-4f5b-b15a-dbba862bcff7', 'TestCmWrite', 2, 20, 99, 'Write access to collection management for TEST');
 INSERT INTO musark_auth.auth_group VALUES ('aa66d5e8-e102-464f-ad41-900b2cf99489', 'TestCmAdmin', 2, 30, 99, 'Admin access to scollection management for TEST');
 
+
+-- auth groups for document module
+INSERT INTO musark_auth.auth_group VALUES ('73367f36-0e9a-4ef9-8164-886bd582adc9', 'AmDmRead'   , 3, 10, 1 , 'Read access to document module for AM');
+INSERT INTO musark_auth.auth_group VALUES ('58f4c712-a66b-460e-a70f-333d465c4349', 'AmDmWrite'  , 3, 20, 1 , 'Write access to document module for AM');
+INSERT INTO musark_auth.auth_group VALUES ('18d1bf6f-afc6-4d62-a55a-7736d86d5abf', 'AmDmAdmin'  , 3, 30, 1 , 'Admin access to document module for AM');
+INSERT INTO musark_auth.auth_group VALUES ('52185e0d-8876-4342-9329-084f3bb01216', 'UmDmRead'   , 3, 10, 2 , 'Read access to document module for UM');
+INSERT INTO musark_auth.auth_group VALUES ('9c0b963f-4ea1-4814-9369-a0f71816873b', 'UmDmWrite'  , 3, 20, 2 , 'Write access to document module for UM');
+INSERT INTO musark_auth.auth_group VALUES ('0ce4e5c3-53ef-4bcc-a388-1a5710967966', 'UmDmAdmin'  , 3, 30, 2 , 'Admin access to document module for UM');
+INSERT INTO musark_auth.auth_group VALUES ('a9fa1ab7-ab62-44f3-aa3b-91470e2123f1', 'KhmDmRead'  , 3, 10, 3 , 'Read access to document module for KHM');
+INSERT INTO musark_auth.auth_group VALUES ('918f161e-2d1d-431d-b903-8d315f70165a', 'KhmDmWrite' , 3, 20, 3 , 'Write access to document module for KHM');
+INSERT INTO musark_auth.auth_group VALUES ('d06d9c74-85ce-4b18-b15c-6395cbc5a874', 'KhmDmAdmin' , 3, 30, 3 , 'Admin access to document module for KHM');
+INSERT INTO musark_auth.auth_group VALUES ('22c93f16-fae2-4b93-a574-5b40fbeea4f3', 'NhmDmRead'  , 3, 10, 4 , 'Read access to document module for NHM');
+INSERT INTO musark_auth.auth_group VALUES ('d4ea5037-a8d0-45f6-b15e-534f702f507f', 'NhmDmWrite' , 3, 20, 4 , 'Write access to document module for NHM');
+INSERT INTO musark_auth.auth_group VALUES ('716adceb-6b54-4f8e-887d-f7612c347614', 'NhmDmAdmin' , 3, 30, 4 , 'Admin access to document module for NHM');
+INSERT INTO musark_auth.auth_group VALUES ('f8a2a480-afdf-426e-a9b7-7d4fc2944a3f', 'VmDmRead'   , 3, 10, 5 , 'Read access to document module for VM');
+INSERT INTO musark_auth.auth_group VALUES ('c166094d-0d54-47f0-a8e3-91348acfe329', 'VmDmWrite'  , 3, 20, 5 , 'Write access to document module for VM');
+INSERT INTO musark_auth.auth_group VALUES ('94d2f793-cc2c-4573-b190-b55a06d25836', 'VmDmAdmin'  , 3, 30, 5 , 'Admin access to document module for VM');
+INSERT INTO musark_auth.auth_group VALUES ('26ae0cfe-5bb3-4ede-8025-8d3b1e2b0ae3', 'TmuDmRead'  , 3, 10, 6 , 'Read access to document module for TMU');
+INSERT INTO musark_auth.auth_group VALUES ('59f07127-da64-4106-b716-3d88a428b15b', 'TmuDmWrite' , 3, 20, 6 , 'Write access to document module for TMU');
+INSERT INTO musark_auth.auth_group VALUES ('68381fe7-b6ab-455a-b57e-1e959ecdef00', 'TmuDmAdmin' , 3, 30, 6 , 'Admin access to document module for TMU');
+INSERT INTO musark_auth.auth_group VALUES ('62dfb712-7524-4917-86c2-4b7cd7440dd8', 'KmnDmRead'  , 3, 10, 7 , 'Read access to document module for KMN');
+INSERT INTO musark_auth.auth_group VALUES ('093b1751-0c18-4426-89ec-1f22baf6f47a', 'KmnDmWrite' , 3, 20, 7 , 'Write access to document module for KMN');
+INSERT INTO musark_auth.auth_group VALUES ('bd8d1872-da0d-45aa-af7e-37067b3cac2b', 'KmnDmAdmin' , 3, 30, 7 , 'Admin access to document module for KMN');
+INSERT INTO musark_auth.auth_group VALUES ('a5dba794-e2a3-4dab-b5a4-71400c107dda', 'TestDmRead' , 3, 10, 99, 'Read access to document module for TEST');
+INSERT INTO musark_auth.auth_group VALUES ('cc823554-b34d-45d3-8e16-03d4a79014e3', 'TestDmWrite', 3, 20, 99, 'Write access to document module for TEST');
+INSERT INTO musark_auth.auth_group VALUES ('38907655-4908-4ab6-b4e9-fbee63fb2d34', 'TestDmAdmin', 3, 30, 99, 'Admin access to document module for TEST');
+
+
 -- event types
 INSERT INTO musark_storage.event_type (name) VALUES ('MoveObject');
 INSERT INTO musark_storage.event_type (name) VALUES ('MovePlace');
@@ -475,6 +503,7 @@ INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('teknisk beskrivelse', 'technical description',NULL, NULL, NULL);
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('oppvevaring og håndtering', 'storage and handling',NULL, NULL, NULL);
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('HMS-risikoangivelse', 'HSE risk assessment', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
+INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('tilstandsvurdering', 'condition assessment', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
 
 
 -- INSERTING TREATMENT MATERIALS
@@ -576,3 +605,10 @@ INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(no_keyword, en_keyword) VALUES
 -- INSERTING EVENT ROLES/ CONSERVATION ACTOR ROLE DATE
 INSERT INTO MUSARK_CONSERVATION.ROLE(no_role, en_role,role_for) VALUES ('Utført av', 'Done by', 'actor');
 INSERT INTO MUSARK_CONSERVATION.ROLE(no_role, en_role,role_for) VALUES ('Deltatt i', 'Participated in','actor');
+
+--INSERTING CONDITION CODES FOR THE CONDITION ASSESSMENT EVENT
+
+INSERT INTO MUSARK_CONSERVATION.CONDITION_CODE(condition_code,no_condition, en_condition) VALUES(0,'svært god','very good');
+INSERT INTO MUSARK_CONSERVATION.CONDITION_CODE(condition_code,no_condition, en_condition) VALUES(1,'god','good');
+INSERT INTO MUSARK_CONSERVATION.CONDITION_CODE(condition_code,no_condition, en_condition) VALUES(2,'mindre god','less good');
+INSERT INTO MUSARK_CONSERVATION.CONDITION_CODE(condition_code,no_condition, en_condition) VALUES(3,'dårlig/kritisk','badly/critical');

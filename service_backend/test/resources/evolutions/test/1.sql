@@ -972,6 +972,14 @@ PRIMARY KEY (role_id)
 );
 
 
+CREATE TABLE MUSARK_CONSERVATION.CONDITION_CODE(
+condition_code INTEGER NOT NULL,
+no_condition VARCHAR2(100),
+en_condition VARCHAR2(100),
+PRIMARY KEY (condition_code)
+);
+
+
 -- INSERTING EVENT ROLES/ CONSERVATION ACTOR ROLE DATE
 INSERT INTO MUSARK_CONSERVATION.ROLE(no_role, en_role,role_for) VALUES ('Utført av', 'Done by', 'actor');
 INSERT INTO MUSARK_CONSERVATION.ROLE(no_role, en_role,role_for) VALUES ('Deltatt i', 'Participated in','actor');
@@ -983,6 +991,7 @@ INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('teknisk beskrivelse', 'technical description', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('oppbevaring og håndtering', 'Storage and handling', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('HMS-risikoangivelse', 'HSE risk assessment', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
+INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('tilstandsvurdering', 'condition assessment', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
 
 -- INSERTING TREATMENT MATERIALS
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_material) VALUES(1,'Sitronsyre','Sitronsyre');
@@ -1077,3 +1086,9 @@ INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(keyword_id, no_keyword, en_key
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(keyword_id, no_keyword, en_keyword) VALUES(14,'Slipt (maskinelt)','Slipt (maskinelt)');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(keyword_id, no_keyword, en_keyword) VALUES(15,'Avstøpning','Avstøpning');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(keyword_id, no_keyword, en_keyword) VALUES(16,'Lakkert','Lakkert');
+
+
+INSERT INTO MUSARK_CONSERVATION.CONDITION_CODE(condition_code,no_condition, en_condition) VALUES(0,'svært god','very good');
+INSERT INTO MUSARK_CONSERVATION.CONDITION_CODE(condition_code,no_condition, en_condition) VALUES(1,'god','good');
+INSERT INTO MUSARK_CONSERVATION.CONDITION_CODE(condition_code,no_condition, en_condition) VALUES(2,'mindre god','less good');
+INSERT INTO MUSARK_CONSERVATION.CONDITION_CODE(condition_code,no_condition, en_condition) VALUES(3,'dårlig/kritisk','badly/critical');

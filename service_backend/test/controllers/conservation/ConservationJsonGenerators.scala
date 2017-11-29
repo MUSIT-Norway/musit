@@ -1,6 +1,6 @@
 package controllers.conservation
 
-import models.conservation.events.ConservationProcess
+import models.conservation.events._
 import no.uio.musit.models.{ActorId, EventId, ObjectUUID}
 import no.uio.musit.test.matchers.DateTimeMatchers
 import no.uio.musit.test.{FakeUsers, MusitSpec}
@@ -10,11 +10,12 @@ import org.joda.time.DateTime
 import play.api.libs.json._
 
 trait ConservationJsonGenerators { // test data
-  val conservationProcessEventTypeId  = 1
-  val treatmentEventTypeId            = 2
-  val technicalDescriptionEventTypeId = 3
-  val storageAndHandlingEventTypeId   = 4
-  val hseRiskAssessmentEventTypeId    = 5
+  val conservationProcessEventTypeId  = ConservationProcess.eventTypeId.underlying
+  val treatmentEventTypeId            = Treatment.eventTypeId.underlying
+  val technicalDescriptionEventTypeId = TechnicalDescription.eventTypeId.underlying
+  val storageAndHandlingEventTypeId   = StorageAndHandling.eventTypeId.underlying
+  val hseRiskAssessmentEventTypeId    = HseRiskAssessment.eventTypeId.underlying
+  val conditionAssessmentEventTypeID  = ConditionAssessment.eventTypeId.underlying
 
   val validObjectUUIDs = Seq(
     ObjectUUID.unsafeFromString("baab2f60-4f49-40fe-99c8-174b13b12d46"),
@@ -68,12 +69,7 @@ trait ConservationJsonGenerators { // test data
     val js3 = doneDate.map { d =>
       js2 ++ Json.obj("doneDate" -> Json.toJson[DateTime](d))
     }.getOrElse(js2)
-    /* val js4 =
-      js3 ++ Json.obj("registeredDate" -> Json.toJson[DateTime](dateTimeNow))
 
-    val js5 =
-      js3 ++ Json.obj("updatedDate" -> Json.toJson[DateTime](dateTimeNow))
-     */
     val js6 =
       js3 ++ Json.obj("caseNumber" -> Json.toJson(caseNumber))
     val js7 = affectedThings
@@ -104,23 +100,4 @@ trait ConservationJsonValidators {
     (actual \ "extraAttributes").asOpt[Map[String, String]] mustBe expectedName
   }
 
-  /*def validateConservationProcess(
-      expectedId: Long,
-      expectedTypeId: Int,
-      expectedDoneDate: Option[DateTime],
-      expectedNote: Option[String],
-      expectedThings: Option[Seq[ObjectUUID]],
-      actual: JsValue
-  ) = {
-    (actual \ "type").as[String] mustBe ConservationProcess.discriminator
-    (actual \ "id").as[Long] mustBe expectedId
-    (actual \ "eventTypeId").as[Int] mustBe expectedTypeId
-    (actual \ "doneDate").asOpt[DateTime] mustApproximate expectedDoneDate
-    (actual \ "affectedThings").asOpt[Seq[String]] mustBe expectedThings.map(
-      _.map(m => m.asString)
-    )
-    (actual \ "note").asOpt[String] mustBe expectedNote
-    (actual \ "registeredBy").asOpt[String] must not be empty
-    (actual \ "registeredDate").asOpt[DateTime] must not be empty
-  }*/
 }

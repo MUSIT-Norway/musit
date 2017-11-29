@@ -1,6 +1,6 @@
 package repositories.conservation.dao
 
-import models.conservation.{TreatmentKeyword, TreatmentMaterial}
+import models.conservation.{ConditionCode, TreatmentKeyword, TreatmentMaterial}
 import models.conservation.events.ConservationType
 import no.uio.musit.models.{CollectionUUID, EventTypeId}
 import play.api.db.slick.HasDatabaseConfigProvider
@@ -21,6 +21,7 @@ trait ConservationTables
   val conservationTypeTable  = TableQuery[ConservationTypeTable]
   val treatmentMaterialTable = TableQuery[TreatmentMaterialTable]
   val treatmentKeywordTable  = TableQuery[TreatmentKeywordTable]
+  val conditionCode          = TableQuery[ConditionCodeTable]
 
   // scalastyle:off line.size.limit
   type ConservationTypeRow =
@@ -121,6 +122,23 @@ trait ConservationTables
     // scalastyle:off method.name
     def * =
       (id, noTerm, enTerm) <> ((TreatmentKeyword.apply _).tupled, TreatmentKeyword.unapply)
+
+    // scalastyle:on method.name
+  }
+
+  class ConditionCodeTable(val tag: Tag)
+      extends Table[ConditionCode](
+        tag,
+        Some(SchemaName),
+        ConditionCodeTableName
+      ) {
+    val conditionCode = column[Int]("CONDITION_CODE")
+    val noCondition   = column[String]("NO_CONDITION")
+    val enCondition   = column[String]("EN_CONDITION")
+
+    // scalastyle:off method.name
+    def * =
+      (conditionCode, noCondition, enCondition) <> ((ConditionCode.apply _).tupled, ConditionCode.unapply)
 
     // scalastyle:on method.name
   }

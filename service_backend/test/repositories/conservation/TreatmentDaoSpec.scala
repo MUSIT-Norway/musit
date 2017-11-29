@@ -182,35 +182,5 @@ class TreatmentDaoSpec
 
     }
 
-    /* "updating an treatment event" should {
-      "successfully save the modified fields" in {
-        val eid = EventId(1L)
-        val cp = dao
-          .findById(defaultMid, eid)
-          .value.futureValue
-          .successValue
-          .value
-          .asInstanceOf[Treatment]
-
-        val upd = cp.copy(
-          updatedBy = Some(dummyActorId),
-          updatedDate = Some(dateTimeNow),
-          note = Some("I was just updated")
-        )
-
-        val res = dao.update(defaultMid, eid, upd).value.futureValue.successValue.value
-
-        res.note mustBe upd.note
-        res.updatedBy mustBe Some(dummyActorId)
-        res.updatedDate mustApproximate Some(dateTimeNow)
-      }
-      "fail if the treatment doesn't exist" in {
-        val eid  = EventId(200)
-        val oids = Seq(oid1, oid2)
-        val cp   = dummyTreatment(Some(oids)).copy(id = Some(eid))
-
-        dao.update(defaultMid, eid, cp).value.futureValue.isFailure mustBe true
-      }
-    }*/
   }
 }

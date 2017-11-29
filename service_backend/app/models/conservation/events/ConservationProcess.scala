@@ -84,6 +84,11 @@ object ConservationModuleEvent extends TypedConservationEvent {
       HseRiskAssessment.writes.writes(hsera).as[JsObject] ++ Json.obj(
         discriminatorAttributeName -> HseRiskAssessment.eventTypeId
       )
+
+    case ca: ConditionAssessment =>
+      ConditionAssessment.writes.writes(ca).as[JsObject] ++ Json.obj(
+        discriminatorAttributeName -> ConditionAssessment.eventTypeId
+      )
   }
 }
 
@@ -132,6 +137,7 @@ object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatt
     implicit val _td  = TechnicalDescription.reads
     implicit val _sah = StorageAndHandling.reads
     implicit val _hse = HseRiskAssessment.reads
+    implicit val _ca  = ConditionAssessment.reads
 
     (jsv \ discriminatorAttributeName).validateOpt[EventTypeId] match {
       case JsSuccess(maybeType, path) =>
@@ -150,6 +156,9 @@ object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatt
 
                 case HseRiskAssessment =>
                   jsv.validate[HseRiskAssessment]
+
+                case ConditionAssessment =>
+                  jsv.validate[ConditionAssessment]
               }
             case None =>
               JsError(path, s"$eventTypeId is not a valid type. $missingEventTypeMsg")
@@ -176,6 +185,9 @@ object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatt
     case hsera: HseRiskAssessment =>
       ConservationEvent.writes.writes(hsera).as[JsObject] ++
         Json.obj(discriminatorAttributeName -> HseRiskAssessment.eventTypeId)
+    case ca: ConditionAssessment =>
+      ConservationEvent.writes.writes(ca).as[JsObject] ++
+        Json.obj(discriminatorAttributeName -> ConditionAssessment.eventTypeId)
   }
 }
 
@@ -238,8 +250,6 @@ object ConservationProcess extends WithDateTimeFormatters {
 
   implicit val readsConsEvents: Reads[Seq[ConservationEvent]] =
     Reads.seq(ConservationEvent.reads)
-  //val writesConsEvent = ConservationEvent.writes
-  //implicit val writesConsEvents: Writes[Seq[ConservationEvent]] = Writes.seq(writesConsEvent)
 
   // The below formatters cannot be implicit due to undesirable implicit ambiguities
   val reads: Reads[ConservationProcess]   = Json.reads[ConservationProcess]
@@ -258,6 +268,7 @@ object ConservationEventType {
       case TechnicalDescription.eventTypeId => Some(TechnicalDescription)
       case StorageAndHandling.eventTypeId   => Some(StorageAndHandling)
       case HseRiskAssessment.eventTypeId    => Some(HseRiskAssessment)
+      case ConditionAssessment.eventTypeId  => Some(ConditionAssessment)
       case _                                => None
     }
   }
@@ -472,5 +483,57 @@ object HseRiskAssessment extends WithDateTimeFormatters with ConservationEventTy
   // The below formatters cannot be implicit due to undesirable implicit ambiguities
   val reads: Reads[HseRiskAssessment]   = Json.reads[HseRiskAssessment]
   val writes: Writes[HseRiskAssessment] = Json.writes[HseRiskAssessment]
+
+}
+
+/**
+ * Representation of a typical subevent related to a conservationProcess of museum objects.
+ * The specific event types are encoded as {{{EventTypeId}}}.
+ */
+case class ConditionAssessment(
+    id: Option[EventId],
+    eventTypeId: EventTypeId,
+    caseNumber: Option[String],
+    registeredBy: Option[ActorId],
+    registeredDate: Option[DateTime],
+    updatedBy: Option[ActorId],
+    updatedDate: Option[DateTime],
+    completedBy: Option[ActorId],
+    completedDate: Option[DateTime],
+    partOf: Option[EventId],
+    note: Option[String],
+    conditionCode: Option[Int],
+    actorsAndRoles: Option[Seq[ActorRoleDate]],
+    affectedThings: Option[Seq[ObjectUUID]]
+) extends ConservationEvent {
+  // These fields are not relevant for the ConservationProcess type
+  //override val affectedThing: Option[ObjectUUID] = None
+
+  override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withUpdatedInfo(
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
+
+  override def withRegisteredInfo(
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
+
+  override def asPartOf(partOf: Option[EventId]) = copy(partOf = partOf)
+
+  override def withAffectedThings(objects: Option[Seq[ObjectUUID]]): ConservationEvent =
+    copy(affectedThings = objects)
+
+  override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
+    copy(actorsAndRoles = actorsAndRoles)
+}
+
+object ConditionAssessment extends WithDateTimeFormatters with ConservationEventType {
+  val eventTypeId = EventTypeId(6)
+  // The below formatters cannot be implicit due to undesirable implicit ambiguities
+  val reads: Reads[ConditionAssessment]   = Json.reads[ConditionAssessment]
+  val writes: Writes[ConditionAssessment] = Json.writes[ConditionAssessment]
 
 }

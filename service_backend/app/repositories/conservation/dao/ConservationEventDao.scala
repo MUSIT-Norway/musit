@@ -182,7 +182,6 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
         case x =>
           val expectedClassName = classTag[T].runtimeClass.getName()
           val foundClassName    = x.getClass().getName()
-//            println("fant: " + foundClassName + " forventet: " + expectedClassName)
           throw new IllegalStateException(
             s"findEventById, expected to find an event of a given type: ${expectedClassName}" +
               s", but it had another type: ${foundClassName}"
@@ -312,7 +311,6 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     val updatedEvent = event.withUpdatedInfo(Some(currUsr.id), Some(dateTimeNow))
 
     val action = createUpdateAction(mid, updatedEvent).transactionally
-    //println("inniUpdate-dao " + event)
 
     daoUtils
       .dbRun(action, "An unexpected error occurred updating the conservation event")

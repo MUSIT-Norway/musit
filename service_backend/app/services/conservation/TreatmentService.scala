@@ -1,13 +1,12 @@
 package services.conservation
 
 import com.google.inject.Inject
-import models.conservation.{TreatmentKeyword, TreatmentMaterial}
 import models.conservation.events.Treatment
-import no.uio.musit.MusitResults.MusitResult
+import models.conservation.{TreatmentKeyword, TreatmentMaterial}
 import no.uio.musit.functional.FutureMusitResult
 import repositories.conservation.dao.TreatmentDao
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class TreatmentService @Inject()(
     implicit

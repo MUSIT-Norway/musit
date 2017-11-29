@@ -19,6 +19,7 @@ package object dao {
   val TreatmentKeywordTableName      = "TREATMENT_KEYWORD"
   val EventActorsRolesTableName      = "EVENT_ACTOR_ROLE_DATE"
   val RolesTableName                 = "ROLE"
+  val ConditionCodeTableName         = "CONDITION_CODE"
 }
 @Singleton
 class DaoUtils @Inject()(

@@ -154,6 +154,7 @@ GET           /:mid/conservation/types                      controllers.conserva
 GET           /conservation/treatmentMaterials              controllers.conservation.ConservationController.getMaterialList
 GET           /conservation/treatmentKeywords               controllers.conservation.ConservationController.getKeywordList
 GET           /conservation/roles                           controllers.conservation.ConservationController.getRoleList
+GET           /conservation/conditionCodes                  controllers.conservation.ConservationController.getConditionCodeList
 
 # ConservationProcess endpoints
 POST          /:mid/conservation/events                     controllers.conservation.ConservationModuleEventController.addEvent(mid: Int)

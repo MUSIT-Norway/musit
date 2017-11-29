@@ -109,7 +109,7 @@ class ConservationProcessControllerSpec
           wsUrl(typesUrl(mid)).withHttpHeaders(tokenRead.asHeader).get().futureValue
 
         res.status mustBe OK
-        res.json.as[JsArray].value.size mustBe 5
+        res.json.as[JsArray].value.size mustBe 6
       }
     }
     "working with conservationProcess" should {
@@ -160,7 +160,6 @@ class ConservationProcessControllerSpec
         (updRes.json \ "id").as[Int] mustBe 2
         (updRes.json \ "eventTypeId").as[Int] mustBe 1
         (updRes.json \ "note").as[String] must include("Updated")
-
         (updRes.json \ "completedBy").asOpt[ActorId] mustBe Some(testUserId)
         (updRes.json \ "completedDate").asOpt[DateTime] mustApproximate Some(mdatetime)
         (updRes.json \ "caseNumber").asOpt[String] mustBe Some("666")
@@ -815,6 +814,78 @@ class ConservationProcessControllerSpec
         )
         newSubHseRiskAss.actorsAndRoles.get.length mustBe 0
       }
+      "Post a new condition assessment event to our cp compositeConservationProcessEventId" in {
+        val caJson = Json.obj(
+          "eventTypeId"    -> conditionAssessmentEventTypeID,
+          "note"           -> "den nyeste og fineste tilstandsvurderingen",
+          "conditionCode"  -> 2,
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 1,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(20)
+            )
+          )
+        )
+        val json = Json.obj(
+          "id"             -> compositeConservationProcessEventId,
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "doneBy"         -> adminId,
+          "completedBy"    -> adminId,
+          "events"         -> Json.arr(caJson),
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+
+        val updRes = putEvent(compositeConservationProcessEventId, json)
+        updRes.status mustBe OK
+
+        val newSubCondAssessment =
+          getEventObject(hseRiskAssessmentId + 2).asInstanceOf[ConditionAssessment]
+        newSubCondAssessment.note mustBe Some(
+          "den nyeste og fineste tilstandsvurderingen"
+        )
+        newSubCondAssessment.updatedBy mustBe None
+        newSubCondAssessment.updatedDate mustBe None
+        newSubCondAssessment.registeredDate mustApproximate Some(edate)
+        newSubCondAssessment.registeredBy mustBe Some(adminId)
+        newSubCondAssessment.conditionCode mustBe Some(2)
+
+        val cpe = getEventObject(compositeConservationProcessEventId)
+          .asInstanceOf[ConservationProcess]
+        cpe.events.get.exists(
+          m => m.eventTypeId.underlying === compositeConservationProcessEventId
+        ) mustBe true
+
+      }
+      "update the conditionAssessment event in our cp compositeConservationProcessEventId" in {
+        val sahJson = Json.obj(
+          "id"             -> (hseRiskAssessmentId + 2),
+          "eventTypeId"    -> conditionAssessmentEventTypeID,
+          "note"           -> "endring av Tilstandsvurderingen",
+          "conditionCode"  -> 0,
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+        val json = Json.obj(
+          "id"             -> compositeConservationProcessEventId,
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "doneBy"         -> adminId,
+          "completedBy"    -> adminId,
+          "events"         -> Json.arr(sahJson),
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+
+        val updRes = putEvent(compositeConservationProcessEventId, json)
+        updRes.status mustBe OK
+        val newSubCondAss =
+          getEventObject(hseRiskAssessmentId + 2).asInstanceOf[ConditionAssessment]
+        newSubCondAss.note mustBe Some(
+          "endring av Tilstandsvurderingen"
+        )
+        newSubCondAss.actorsAndRoles.get.length mustBe 0
+        newSubCondAss.conditionCode mustBe Some(0)
+      }
+
     }
   }
 }
