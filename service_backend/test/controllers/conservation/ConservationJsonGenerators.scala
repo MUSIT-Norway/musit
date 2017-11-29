@@ -16,6 +16,7 @@ trait ConservationJsonGenerators { // test data
   val storageAndHandlingEventTypeId   = StorageAndHandling.eventTypeId.underlying
   val hseRiskAssessmentEventTypeId    = HseRiskAssessment.eventTypeId.underlying
   val conditionAssessmentEventTypeID  = ConditionAssessment.eventTypeId.underlying
+  val reportEventTypeId               = Report.eventTypeId.underlying
 
   val validObjectUUIDs = Seq(
     ObjectUUID.unsafeFromString("baab2f60-4f49-40fe-99c8-174b13b12d46"),

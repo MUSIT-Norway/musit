@@ -89,6 +89,11 @@ object ConservationModuleEvent extends TypedConservationEvent {
       ConditionAssessment.writes.writes(ca).as[JsObject] ++ Json.obj(
         discriminatorAttributeName -> ConditionAssessment.eventTypeId
       )
+    case re: Report =>
+      Report.writes.writes(re).as[JsObject] ++ Json.obj(
+        discriminatorAttributeName -> Report.eventTypeId
+      )
+
   }
 }
 
@@ -138,6 +143,7 @@ object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatt
     implicit val _sah = StorageAndHandling.reads
     implicit val _hse = HseRiskAssessment.reads
     implicit val _ca  = ConditionAssessment.reads
+    implicit val _re  = Report.reads
 
     (jsv \ discriminatorAttributeName).validateOpt[EventTypeId] match {
       case JsSuccess(maybeType, path) =>
@@ -159,6 +165,8 @@ object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatt
 
                 case ConditionAssessment =>
                   jsv.validate[ConditionAssessment]
+                case Report =>
+                  jsv.validate[Report]
               }
             case None =>
               JsError(path, s"$eventTypeId is not a valid type. $missingEventTypeMsg")
@@ -188,6 +196,9 @@ object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatt
     case ca: ConditionAssessment =>
       ConservationEvent.writes.writes(ca).as[JsObject] ++
         Json.obj(discriminatorAttributeName -> ConditionAssessment.eventTypeId)
+    case re: Report =>
+      ConservationEvent.writes.writes(re).as[JsObject] ++
+        Json.obj(discriminatorAttributeName -> Report.eventTypeId)
   }
 }
 
@@ -269,6 +280,7 @@ object ConservationEventType {
       case StorageAndHandling.eventTypeId   => Some(StorageAndHandling)
       case HseRiskAssessment.eventTypeId    => Some(HseRiskAssessment)
       case ConditionAssessment.eventTypeId  => Some(ConditionAssessment)
+      case Report.eventTypeId               => Some(Report)
       case _                                => None
     }
   }
@@ -535,5 +547,56 @@ object ConditionAssessment extends WithDateTimeFormatters with ConservationEvent
   // The below formatters cannot be implicit due to undesirable implicit ambiguities
   val reads: Reads[ConditionAssessment]   = Json.reads[ConditionAssessment]
   val writes: Writes[ConditionAssessment] = Json.writes[ConditionAssessment]
+
+}
+
+/**
+ * Representation of a typical subevent related to a conservationProcess of museum objects.
+ * The specific event types are encoded as {{{EventTypeId}}}.
+ */
+case class Report(
+    id: Option[EventId],
+    eventTypeId: EventTypeId,
+    caseNumber: Option[String],
+    registeredBy: Option[ActorId],
+    registeredDate: Option[DateTime],
+    updatedBy: Option[ActorId],
+    updatedDate: Option[DateTime],
+    completedBy: Option[ActorId],
+    completedDate: Option[DateTime],
+    partOf: Option[EventId],
+    note: Option[String],
+    actorsAndRoles: Option[Seq[ActorRoleDate]],
+    affectedThings: Option[Seq[ObjectUUID]]
+) extends ConservationEvent {
+  // These fields are not relevant for the ConservationProcess type
+  //override val affectedThing: Option[ObjectUUID] = None
+
+  override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withUpdatedInfo(
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
+
+  override def withRegisteredInfo(
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
+
+  override def asPartOf(partOf: Option[EventId]) = copy(partOf = partOf)
+
+  override def withAffectedThings(objects: Option[Seq[ObjectUUID]]): ConservationEvent =
+    copy(affectedThings = objects)
+
+  override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
+    copy(actorsAndRoles = actorsAndRoles)
+}
+
+object Report extends WithDateTimeFormatters with ConservationEventType {
+  val eventTypeId = EventTypeId(7)
+  // The below formatters cannot be implicit due to undesirable implicit ambiguities
+  val reads: Reads[Report]   = Json.reads[Report]
+  val writes: Writes[Report] = Json.writes[Report]
 
 }

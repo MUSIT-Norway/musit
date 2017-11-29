@@ -28,7 +28,8 @@ class ConservationModuleEventController @Inject()(
     val technicalDescriptionController: TechnicalDescriptionController,
     val storageAndHandlingController: StorageAndHandlingController,
     val hseRiskAssessmentController: HseRiskAssessmentController,
-    val conditionAssessmentController: ConditionAssessmentController
+    val conditionAssessmentController: ConditionAssessmentController,
+    val reportController: ReportController
 ) extends MusitController {
 
   val logger = Logger(classOf[ConservationController])
@@ -55,6 +56,8 @@ class ConservationModuleEventController @Inject()(
       case ConditionAssessment =>
         conditionAssessmentController.service
           .asInstanceOf[ConservationEventService[ConservationEvent]]
+      case Report =>
+        reportController.service.asInstanceOf[ConservationEventService[ConservationEvent]]
     }
   }
 

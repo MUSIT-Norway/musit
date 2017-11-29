@@ -23,6 +23,7 @@ class ConservationProcessDao @Inject()(
     val storageAndHandlingDao: StorageAndHandlingDao,
     val hseRiskAssessmentDao: HseRiskAssessmentDao,
     val conditionAssessmentDao: ConditionAssessmentDao,
+    val reportDao: ReportDao,
     val daoUtils: DaoUtils,
     val actorRoleDateDao: ActorRoleDateDao,
     val objectEventDao: ObjectEventDao
@@ -76,6 +77,7 @@ class ConservationProcessDao @Inject()(
       case sah: StorageAndHandling  => storageAndHandlingDao
       case hsera: HseRiskAssessment => hseRiskAssessmentDao
       case ca: ConditionAssessment  => conditionAssessmentDao
+      case re: Report               => reportDao
     }
   }
 
@@ -178,6 +180,7 @@ class ConservationProcessDao @Inject()(
       case StorageAndHandling   => storageAndHandlingDao
       case HseRiskAssessment    => hseRiskAssessmentDao
       case ConditionAssessment  => conditionAssessmentDao
+      case Report               => reportDao
     }
     val subEvent = dao.findConservationEventById(mid, eventId)
     subEvent

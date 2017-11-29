@@ -43,7 +43,7 @@ class GeoLocationServiceSpec
 
       }
 
-      "return a list of results that contains street number with house letter" in {
+      "return a list of results that contains street number with house letter" ignore {
         val res = service.searchGeoNorway("Kirkegata 11, Hønefoss").futureValue
 
         res.isSuccess mustBe true
