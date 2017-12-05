@@ -30,8 +30,12 @@ class ModuleAttachmentsControllerIntegrationSpec
 
   val baseUrl                = (mid: Int) => s"/museum/$mid"
   val analysesAttachmentsUrl = (mid: Int) => s"${baseUrl(mid)}/analyses/attachments"
-  val downloadAnalysisAttachmentUrl = (mid: Int, fid: String) =>
-    s"${analysesAttachmentsUrl(mid)}/$fid"
+  val collectionManagementsUrl = (mid: Int) =>
+    s"${baseUrl(mid)}/collectionManagement/attachments"
+  val conservationAttachmentsUrl = (mid: Int) =>
+    s"${baseUrl(mid)}/conservations/attachments"
+  val downloadAttachmentUrl = (mid: Int, fid: String) =>
+    s"${collectionManagementsUrl(mid)}/$fid"
 
   def validateJsonRes(
       mid: MuseumId,
@@ -59,14 +63,28 @@ class ModuleAttachmentsControllerIntegrationSpec
 
   def testUploadFile(
       filename: String,
-      analysisId: EventId,
+      eventId: EventId,
       tok: BearerToken
   ): WSResponse = {
     val fp = createFilePart(filename, fileSource)
 
     wsUrl(analysesAttachmentsUrl(defaultMuseumId))
       .withHttpHeaders(tok.asHeader)
-      .withQueryStringParameters("analysisId" -> s"${analysisId.underlying}")
+      .withQueryStringParameters("eventId" -> s"${eventId.underlying}")
+      .post(fp)
+      .futureValue
+  }
+
+  def testConservationUploadFile(
+      filename: String,
+      eventId: EventId,
+      tok: BearerToken
+  ): WSResponse = {
+    val fp = createFilePart(filename, fileSource)
+
+    wsUrl(conservationAttachmentsUrl(defaultMuseumId))
+      .withHttpHeaders(tok.asHeader)
+      .withQueryStringParameters("eventId" -> s"${eventId.underlying}")
       .post(fp)
       .futureValue
   }
@@ -151,7 +169,7 @@ class ModuleAttachmentsControllerIntegrationSpec
       }
 
       "fetch metadata for a list of file ids" taggedAs PG in {
-        val res = wsUrl(analysesAttachmentsUrl(defaultMuseumId))
+        val res = wsUrl(collectionManagementsUrl(defaultMuseumId))
           .withHttpHeaders(tokenAdmin.asHeader)
           .withQueryStringParameters(
             "fileIds" -> addedFiles.result().map(_.fid).mkString(",")
@@ -184,7 +202,7 @@ class ModuleAttachmentsControllerIntegrationSpec
       }
 
       "prevent listing files without Read access to Collection Mngmt" taggedAs PG in {
-        wsUrl(analysesAttachmentsUrl(defaultMuseumId))
+        wsUrl(collectionManagementsUrl(defaultMuseumId))
           .withHttpHeaders(noAccessToken.asHeader)
           .withQueryStringParameters("fileIds" -> addedFiles.result().mkString(","))
           .get()
@@ -194,7 +212,7 @@ class ModuleAttachmentsControllerIntegrationSpec
 
       "download a file" taggedAs PG in {
         val fid = addedFiles.result()(1).fid
-        val res = wsUrl(downloadAnalysisAttachmentUrl(defaultMuseumId, fid))
+        val res = wsUrl(downloadAttachmentUrl(defaultMuseumId, fid))
           .withHttpHeaders(tokenAdmin.asHeader)
           .get()
           .futureValue
@@ -205,7 +223,7 @@ class ModuleAttachmentsControllerIntegrationSpec
 
       "prevent file download without Read access to Collection Mngmt" taggedAs PG in {
         val fid = addedFiles.result()(1).fid
-        wsUrl(downloadAnalysisAttachmentUrl(defaultMuseumId, fid))
+        wsUrl(downloadAttachmentUrl(defaultMuseumId, fid))
           .withHttpHeaders(noAccessToken.asHeader)
           .get()
           .futureValue
@@ -213,6 +231,55 @@ class ModuleAttachmentsControllerIntegrationSpec
       }
 
     }
+    "working with conservation files" should {
 
+      "upload a file" taggedAs PG in {
+        val res = testConservationUploadFile("Ellentestfile66.pdf", 66L, tokenAdmin)
+
+        res.status mustBe CREATED
+        res.contentType mustBe JSON
+
+        validateJsonRes(
+          defaultMuseumId,
+          "Ellentestfile66.pdf",
+          1,
+          "/root/Modules/Conservation/66",
+          FakeUsers.testAdminId,
+          res.json
+        )
+      }
+      "upload a another conservation file" taggedAs PG in {
+        val res = testConservationUploadFile("Ellentestfile66.pdf", 77L, tokenAdmin)
+
+        res.status mustBe CREATED
+        res.contentType mustBe JSON
+
+        validateJsonRes(
+          defaultMuseumId,
+          "Ellentestfile66.pdf",
+          1,
+          "/root/Modules/Conservation/77",
+          FakeUsers.testAdminId,
+          res.json
+        )
+      }
+      "fetch metadata for a list of file ids both analysis and collectionmanagment" taggedAs PG in {
+        val res = wsUrl(collectionManagementsUrl(defaultMuseumId))
+          .withHttpHeaders(tokenAdmin.asHeader)
+          .withQueryStringParameters(
+            "fileIds" -> addedFiles.result().map(_.fid).mkString(",")
+          )
+          .get()
+          .futureValue
+
+        res.status mustBe OK
+        res.contentType mustBe JSON
+
+        (res.json.head \ "path").as[String] must include("Analysis")
+        (res.json.head \ "title").as[String] mustBe "testfile1.pdf"
+        (res.json \ 9 \ "path").as[String] must include("Conservation")
+        (res.json \ 9 \ "title").as[String] mustBe "Ellentestfile66.pdf"
+      }
+    }
   }
 }

@@ -140,7 +140,11 @@ class ModuleAttachmentsController @Inject()(
         )
     }
 
-  def getFilesForAnalysisResult(mid: Int, fileIds: String) =
+  // ---------------------------------------------------------------------------
+  // Attachments for CollectionManagement
+  // ---------------------------------------------------------------------------
+
+  def getFilesForCollectionManagement(mid: Int, fileIds: String) =
     MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
       implicit val ctx = ArchiveContext(request.user, mid)
 
@@ -150,12 +154,27 @@ class ModuleAttachmentsController @Inject()(
       }
     }
 
-  def downloadAnalysisResult(mid: Int, fileId: String) = {
+  def downloadCollectionManagementFile(mid: Int, fileId: String) = {
     MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
       implicit val ctx = ArchiveContext(request.user, mid)
 
       downloadFile(fileId)
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // Attachments for Conservation
+  // ---------------------------------------------------------------------------
+
+  def uploadConservationDocument(mid: Int, eventId: String) =
+    MusitSecureAction(mid, CollectionManagement, Write).async(parse.multipartFormData) {
+      implicit request =>
+        uploadFile(
+          mid = mid,
+          dataIdentifier = eventId,
+          module = CollectionManagement,
+          modulePath = BaseFolders.ConservationFolder.path(mid)
+        )
+    }
 
 }

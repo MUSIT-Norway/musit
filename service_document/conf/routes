@@ -36,8 +36,22 @@ PUT         /museum/:mid/files/:fileId/unlock                controllers.Documen
 PUT         /museum/:mid/files/:fileId/move                  controllers.DocumentArchiveController.moveFileTo(mid: Int, fileId: String, to: String)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CollectionManageMent spesific endpoints
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+GET         /museum/:mid/collectionManagement/attachments                controllers.ModuleAttachmentsController.getFilesForCollectionManagement(mid: Int, fileIds: String)
+GET         /museum/:mid/collectionManagement/attachments/:fileId        controllers.ModuleAttachmentsController.downloadCollectionManagementFile(mid: Int, fileId: String)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Analysis Module endpoints
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-POST        /museum/:mid/analyses/attachments                controllers.ModuleAttachmentsController.uploadAnalysisResult(mid: Int, analysisId: String)
-GET         /museum/:mid/analyses/attachments                controllers.ModuleAttachmentsController.getFilesForAnalysisResult(mid: Int, fileIds: String)
-GET         /museum/:mid/analyses/attachments/:fileId        controllers.ModuleAttachmentsController.downloadAnalysisResult(mid: Int, fileId: String)
+POST        /museum/:mid/analyses/attachments                controllers.ModuleAttachmentsController.uploadAnalysisResult(mid: Int, eventId: String)
+GET         /museum/:mid/analyses/attachments                controllers.ModuleAttachmentsController.getFilesForCollectionManagement(mid: Int, fileIds: String)
+GET         /museum/:mid/analyses/attachments/:fileId        controllers.ModuleAttachmentsController.downloadCollectionManagementFile(mid: Int, fileId: String)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Conservation Module endpoints
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+POST        /museum/:mid/conservations/attachments                controllers.ModuleAttachmentsController.uploadConservationDocument(mid: Int, eventId: String)
