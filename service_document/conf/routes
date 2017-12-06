@@ -47,8 +47,6 @@ GET         /museum/:mid/collectionManagement/attachments/:fileId        control
 # Analysis Module endpoints
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 POST        /museum/:mid/analyses/attachments                controllers.ModuleAttachmentsController.uploadAnalysisResult(mid: Int, eventId: String)
-GET         /museum/:mid/analyses/attachments                controllers.ModuleAttachmentsController.getFilesForCollectionManagement(mid: Int, fileIds: String)
-GET         /museum/:mid/analyses/attachments/:fileId        controllers.ModuleAttachmentsController.downloadCollectionManagementFile(mid: Int, fileId: String)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
