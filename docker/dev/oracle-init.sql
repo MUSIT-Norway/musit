@@ -590,6 +590,12 @@ PRIMARY KEY (condition_code)
 );
 
 
+CREATE TABLE MUSARK_CONSERVATION.EVENT_DOCUMENT(
+event_id  NUMBER(20) NOT NULL,
+file_id varchar2(36) NOT NULL,
+PRIMARY KEY (event_id,file_id)
+);
+
 -- Grant all rights on tables to musit user
 BEGIN
   FOR x IN (SELECT owner || '.' || table_name ownertab

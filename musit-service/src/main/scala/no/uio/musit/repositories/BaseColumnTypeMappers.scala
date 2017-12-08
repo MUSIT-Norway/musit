@@ -1,6 +1,7 @@
 package no.uio.musit.repositories
 
 import java.sql.{Timestamp => JSqlTimestamp}
+import java.util.UUID
 
 import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.models.ObjectTypes.ObjectType
@@ -184,6 +185,12 @@ trait BaseColumnTypeMappers extends ColumnTypesImplicits {
     MappedColumnType.base[BearerToken, String](
       bt => bt.underlying,
       str => BearerToken(str)
+    )
+
+  implicit val fileIdMapper: BaseColumnType[FileId] =
+    MappedColumnType.base[FileId, UUID](
+      fileId => fileId.underlying,
+      uuid => FileId.fromUUID(uuid)
     )
 
 }

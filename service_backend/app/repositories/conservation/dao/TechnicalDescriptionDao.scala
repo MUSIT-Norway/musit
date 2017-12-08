@@ -15,7 +15,8 @@ class TechnicalDescriptionDao @Inject()(
     override val ec: ExecutionContext,
     override val objectEventDao: ObjectEventDao,
     override val daoUtils: DaoUtils,
-    override val actorRoleDao: ActorRoleDateDao
+    override val actorRoleDao: ActorRoleDateDao,
+    override val eventDocumentDao: EventDocumentDao
 ) extends ConservationEventDao[TechnicalDescription] {
 
   override val logger = Logger(classOf[TechnicalDescriptionDao])

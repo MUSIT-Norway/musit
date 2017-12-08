@@ -1,5 +1,7 @@
 package repositories.shared.dao
 
+import java.util.UUID
+
 import models.analysis.AnalysisStatuses.AnalysisStatus
 import models.analysis.LeftoverSamples.LeftoverSample
 import models.analysis.SampleStatuses.SampleStatus
@@ -7,6 +9,7 @@ import models.analysis.SampleTypeId
 import models.analysis.events.{Category, EventCategories}
 import models.loan.{LoanEventTypes, LoanType}
 import models.storage.nodes.StorageType
+import no.uio.musit.models.FileId
 import no.uio.musit.repositories.{BaseColumnTypeMappers, ColumnTypesImplicits}
 import play.api.db.slick.HasDatabaseConfig
 import slick.jdbc.JdbcProfile

@@ -108,6 +108,7 @@ sealed trait ConservationEvent extends ConservationModuleEvent {
   val completedDate: Option[DateTime]
   val actorsAndRoles: Option[Seq[ActorRoleDate]]
   val affectedThings: Option[Seq[ObjectUUID]]
+  val documents: Option[Seq[FileId]]
   // todo val extraAttributes: Option[ExtraAttributes]
 
   //A new copy, appropriate when updating the event in the database.
@@ -125,6 +126,8 @@ sealed trait ConservationEvent extends ConservationModuleEvent {
   def asPartOf(partOf: Option[EventId]): ConservationEvent
 
   def withAffectedThings(objects: Option[Seq[ObjectUUID]]): ConservationEvent
+
+  def withDocuments(fileIds: Option[Seq[FileId]]): ConservationEvent
 
   override def withoutActorRoleAndDates: ConservationEvent = withActorRoleAndDates(None)
 
@@ -310,7 +313,8 @@ case class Treatment(
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
     keywords: Option[Seq[Int]],
-    materials: Option[Seq[Int]]
+    materials: Option[Seq[Int]],
+    documents: Option[Seq[FileId]]
 ) extends ConservationEvent {
 
   override def withId(id: Option[EventId]) = copy(id = id)
@@ -329,6 +333,9 @@ case class Treatment(
 
   override def withAffectedThings(objects: Option[Seq[ObjectUUID]]): ConservationEvent =
     copy(affectedThings = objects)
+
+  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationEvent =
+    copy(documents = fileIds)
 
   override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
     copy(actorsAndRoles = actorsAndRoles)
@@ -359,7 +366,8 @@ case class TechnicalDescription(
     partOf: Option[EventId],
     note: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
-    affectedThings: Option[Seq[ObjectUUID]]
+    affectedThings: Option[Seq[ObjectUUID]],
+    documents: Option[Seq[FileId]]
 ) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
@@ -383,6 +391,9 @@ case class TechnicalDescription(
 
   override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
     copy(actorsAndRoles = actorsAndRoles)
+
+  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationEvent =
+    copy(documents = fileIds)
 }
 
 object TechnicalDescription extends WithDateTimeFormatters with ConservationEventType {
@@ -413,7 +424,8 @@ case class StorageAndHandling(
     relativeHumidity: Option[String],
     temperature: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
-    affectedThings: Option[Seq[ObjectUUID]]
+    affectedThings: Option[Seq[ObjectUUID]],
+    documents: Option[Seq[FileId]]
 ) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
@@ -437,6 +449,9 @@ case class StorageAndHandling(
 
   override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
     copy(actorsAndRoles = actorsAndRoles)
+
+  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationEvent =
+    copy(documents = fileIds)
 }
 
 object StorageAndHandling extends WithDateTimeFormatters with ConservationEventType {
@@ -464,7 +479,8 @@ case class HseRiskAssessment(
     partOf: Option[EventId],
     note: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
-    affectedThings: Option[Seq[ObjectUUID]]
+    affectedThings: Option[Seq[ObjectUUID]],
+    documents: Option[Seq[FileId]]
 ) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
@@ -488,6 +504,9 @@ case class HseRiskAssessment(
 
   override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
     copy(actorsAndRoles = actorsAndRoles)
+
+  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationEvent =
+    copy(documents = fileIds)
 }
 
 object HseRiskAssessment extends WithDateTimeFormatters with ConservationEventType {
@@ -516,7 +535,8 @@ case class ConditionAssessment(
     note: Option[String],
     conditionCode: Option[Int],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
-    affectedThings: Option[Seq[ObjectUUID]]
+    affectedThings: Option[Seq[ObjectUUID]],
+    documents: Option[Seq[FileId]]
 ) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
@@ -540,6 +560,9 @@ case class ConditionAssessment(
 
   override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
     copy(actorsAndRoles = actorsAndRoles)
+
+  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationEvent =
+    copy(documents = fileIds)
 }
 
 object ConditionAssessment extends WithDateTimeFormatters with ConservationEventType {
@@ -567,7 +590,8 @@ case class Report(
     partOf: Option[EventId],
     note: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
-    affectedThings: Option[Seq[ObjectUUID]]
+    affectedThings: Option[Seq[ObjectUUID]],
+    documents: Option[Seq[FileId]]
 ) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
@@ -591,6 +615,9 @@ case class Report(
 
   override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
     copy(actorsAndRoles = actorsAndRoles)
+
+  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationEvent =
+    copy(documents = fileIds)
 }
 
 object Report extends WithDateTimeFormatters with ConservationEventType {

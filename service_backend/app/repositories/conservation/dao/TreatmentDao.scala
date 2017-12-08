@@ -20,7 +20,8 @@ class TreatmentDao @Inject()(
     override val ec: ExecutionContext,
     override val objectEventDao: ObjectEventDao,
     override val daoUtils: DaoUtils,
-    override val actorRoleDao: ActorRoleDateDao
+    override val actorRoleDao: ActorRoleDateDao,
+    override val eventDocumentDao: EventDocumentDao
 ) extends ConservationEventDao[Treatment]
     with ConservationEventTableProvider {
 

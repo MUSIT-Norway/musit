@@ -932,7 +932,11 @@ class ConservationProcessControllerSpec
           "id"             -> (hseRiskAssessmentId + 3),
           "eventTypeId"    -> reportEventTypeId,
           "note"           -> "endring av rapporten",
-          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
+          "documents" -> Seq(
+            FileId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"),
+            FileId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b4c")
+          )
         )
         val json = Json.obj(
           "id"             -> compositeConservationProcessEventId,
@@ -950,7 +954,10 @@ class ConservationProcessControllerSpec
         newSubReport.note mustBe Some(
           "endring av rapporten"
         )
+        newSubReport.actorsAndRoles.isDefined mustBe true
         newSubReport.actorsAndRoles.get.length mustBe 0
+        newSubReport.documents.isDefined mustBe true
+        newSubReport.documents.get.length mustBe 2
       }
 
     }

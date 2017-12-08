@@ -980,6 +980,12 @@ PRIMARY KEY (condition_code)
 );
 
 
+CREATE TABLE MUSARK_CONSERVATION.EVENT_DOCUMENT(
+event_id  NUMBER(20) NOT NULL,
+file_id UUID NOT NULL,
+PRIMARY KEY (event_id,file_id)
+);
+
 -- INSERTING EVENT ROLES/ CONSERVATION ACTOR ROLE DATE
 INSERT INTO MUSARK_CONSERVATION.ROLE(no_role, en_role,role_for) VALUES ('Utført av', 'Done by', 'actor');
 INSERT INTO MUSARK_CONSERVATION.ROLE(no_role, en_role,role_for) VALUES ('Deltatt i', 'Participated in','actor');

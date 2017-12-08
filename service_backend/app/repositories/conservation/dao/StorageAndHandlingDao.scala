@@ -15,7 +15,8 @@ class StorageAndHandlingDao @Inject()(
     override val ec: ExecutionContext,
     override val objectEventDao: ObjectEventDao,
     override val daoUtils: DaoUtils,
-    override val actorRoleDao: ActorRoleDateDao
+    override val actorRoleDao: ActorRoleDateDao,
+    override val eventDocumentDao: EventDocumentDao
 ) extends ConservationEventDao[StorageAndHandling] {
 
   override val logger = Logger(classOf[StorageAndHandlingDao])

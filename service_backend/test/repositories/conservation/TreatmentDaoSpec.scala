@@ -50,7 +50,6 @@ class TreatmentDaoSpec
       completedDate = None,
       caseNumber = None,
       partOf = None,
-      //actorsAndRoles = None,
       affectedThings = oids,
       registeredBy = None,
       registeredDate = now,
@@ -66,7 +65,11 @@ class TreatmentDaoSpec
         )
       ),
       keywords = Some(Seq(1, 2)),
-      materials = Some(Seq(3, 4))
+      materials = Some(Seq(3, 4)),
+      //documents = None
+      documents = Some(
+        Seq(FileId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"))
+      )
     )
   }
 
@@ -133,6 +136,8 @@ class TreatmentDaoSpec
         tr.affectedThings.value mustBe oids
         tr.actorsAndRoles.isDefined mustBe true
         tr.actorsAndRoles.get.length mustBe 1
+        tr.documents.isDefined mustBe true
+        tr.documents.get.length mustBe 1
 
         //check that actorsAndRoles and affectedThings are removed for json column in db
         val trt  = dao.getEventRowFromEventTable(tr.id.get).value.futureValue.successValue
@@ -140,6 +145,7 @@ class TreatmentDaoSpec
 
         (json \ "actorsAndRoles").isDefined mustBe false
         (json \ "affectedThings").isDefined mustBe false
+        (json \ "documents").isDefined mustBe false
       }
     }
 
@@ -156,7 +162,12 @@ class TreatmentDaoSpec
         val event = res.successValue.value
 
         val newEvent =
-          event.copy(partOf = Some(EventId(1)), keywords = Some(Seq(1, 2, 3, 4)))
+          event.copy(
+            partOf = Some(EventId(1)),
+            keywords = Some(Seq(1, 2, 3, 4)),
+            documents =
+              Some(Seq(FileId.unsafeFromString("5a928d42-05a6-44db-adef-c6dfe588f016")))
+          )
 
         val updatedRes = dao.update(defaultMid, EventId(2), newEvent).value.futureValue
 
@@ -164,6 +175,9 @@ class TreatmentDaoSpec
 
         updatedEvent.partOf mustBe Some(EventId(1))
         updatedEvent.keywords mustBe Some(Seq(1, 2, 3, 4))
+        updatedEvent.documents mustBe Some(
+          Seq(FileId.unsafeFromString("5a928d42-05a6-44db-adef-c6dfe588f016"))
+        )
       }
 
       "fail on findSpecificById with wrong type" in {

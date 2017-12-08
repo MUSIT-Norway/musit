@@ -49,7 +49,8 @@ class TechnicalDescriptionDaoSpec
       registeredBy = None,
       registeredDate = now,
       updatedBy = None,
-      updatedDate = now
+      updatedDate = now,
+      documents = None
     )
   }
 

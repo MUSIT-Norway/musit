@@ -11,8 +11,8 @@ import play.api.libs.json.{Json, Reads}
  * against the [[Analysis]] associated. This should be done in the service layer.
  *
  * @param objectId The [[ObjectUUID]] of the object to add the result to.
- * @param eventId The [[EventId]] that should reference the above object.
- * @param result The [[AnalysisResult]] to set
+ * @param eventId  The [[EventId]] that should reference the above object.
+ * @param result   The [[AnalysisResult]] to set
  */
 case class ResultForObjectEvent(
     objectId: ObjectUUID,
