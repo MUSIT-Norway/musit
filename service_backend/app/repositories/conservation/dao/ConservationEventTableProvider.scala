@@ -29,8 +29,9 @@ private[dao] trait ConservationEventTableProvider
       Option[DateTime], // 6- UpdatedDate
       Option[EventId], //7 - PartOf
       Option[String], // 8 - Note
-      Option[String], // 9 - CaseNumber
-      JsValue // 10 - EventJson
+      Option[String], // 9 - CaseNumber,
+      JsValue // 10 - EventJson,
+      // Option[Int] // 11 - IsDeleted
   )
 
   def valEventId(row: EventRow)     = row._1
@@ -45,6 +46,8 @@ private[dao] trait ConservationEventTableProvider
 
   def withPartOf(row: EventRow, partOf: Option[EventId]) = row.copy(_7 = partOf)
 
+  //def isDeleted(row: EventRow) = row._11
+
   override lazy val eventTable = TableQuery[ConservationEventTable]
 
   /**
@@ -52,6 +55,7 @@ private[dao] trait ConservationEventTableProvider
    */
   class ConservationEventTable(val t: Tag) extends BaseEventTable[EventRow](t) {
     val caseNumber = column[Option[String]]("CASE_NUMBER")
+    val isDeleted  = column[Option[Int]]("IS_DELETED")
 
     // scalastyle:off method.name
     def * : ProvenShape[EventRow] =
@@ -85,7 +89,7 @@ object EventAccessors {
       Option[EventId], //7 - PartOf
       Option[String], // 8 - Note
       Option[String], // 9 - CaseNumber
-      JsValue // 10 - EventJson
+      JsValue // 10 - EventJson,
   )
   def valJson(row: EventRow) = row._10
 }

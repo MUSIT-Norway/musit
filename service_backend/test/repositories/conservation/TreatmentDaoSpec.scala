@@ -12,11 +12,7 @@ import no.uio.musit.time.dateTimeNow
 import org.scalatest.OptionValues
 import play.api.libs.json.JsObject
 import play.libs.Json
-import repositories.conservation.dao.{
-  EventAccessors,
-  TechnicalDescriptionDao,
-  TreatmentDao
-}
+import repositories.conservation.dao._
 
 class TreatmentDaoSpec
     extends MusitSpecWithAppPerSuite
@@ -26,6 +22,7 @@ class TreatmentDaoSpec
 
   private val dao                     = fromInstanceCache[TreatmentDao]
   private val technicalDescriptionDao = fromInstanceCache[TechnicalDescriptionDao]
+  private val conservationDao         = fromInstanceCache[ConservationDao]
 
   val collections = Seq(
     MuseumCollection(
@@ -191,10 +188,22 @@ class TreatmentDaoSpec
                 .value
                 .futureValue
           }
-
       }
-
     }
-
+    "Delete of subevents" should {
+      "delete an events" in {
+        val res =
+          conservationDao.deleteSubEvent(defaultMid, EventId(2)).value.futureValue
+        res.successValue mustBe (())
+        val eventNotFound =
+          dao.findSpecificConservationEventById(defaultMid, EventId(2)).value.futureValue
+        eventNotFound.successValue mustBe None
+      }
+      "delete an events that not exists" in {
+        val res =
+          conservationDao.deleteSubEvent(defaultMid, EventId(666)).value.futureValue
+        res.isFailure mustBe true
+      }
+    }
   }
 }

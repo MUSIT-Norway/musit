@@ -3,7 +3,7 @@ package repositories.conservation.dao
 import com.google.inject.{Inject, Singleton}
 import models.conservation.TreatmentKeyword
 import models.conservation.events.{ConservationEvent, EventRole}
-import no.uio.musit.MusitResults.{MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models._
 import no.uio.musit.repositories.DbErrorHandlers
@@ -52,4 +52,18 @@ class ConservationDao @Inject()(
 
   }
 
+  def deleteSubEvent(mid: MuseumId, eventId: EventId): FutureMusitResult[Unit] = {
+    val q = eventTable
+      .filter(de => de.museumId === mid && de.eventId === eventId)
+      .map(e => e.isDeleted)
+      .update(Some(1))
+    daoUtils.dbRun(
+      q,
+      s"An unexpected error occurred deleting event for eventId: $eventId"
+    )
+  }.mapAndFlattenMusitResult(
+    m =>
+      if (m == 1) MusitSuccess(())
+      else (MusitValidationError(s"Trying to delete a non-existing eventId $eventId"))
+  )
 }

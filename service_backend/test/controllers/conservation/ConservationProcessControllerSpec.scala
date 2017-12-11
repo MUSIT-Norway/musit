@@ -34,6 +34,9 @@ class ConservationProcessControllerSpec
   val eventsByObjectUuid = (mid: Int) =>
     (id: String) => s"/$mid/conservation/events/object/$id"
 
+  val deleteSubEventsUrl = (mid: Int, eventIds: String) =>
+    baseEventUrl(mid) + s"?eventIds=$eventIds"
+
   def postEvent(json: JsObject, t: BearerToken = token) = {
     wsUrl(baseEventUrl(mid)).withHttpHeaders(t.asHeader).post(json).futureValue
   }
@@ -48,6 +51,13 @@ class ConservationProcessControllerSpec
 
   def getEventForObject(oid: String, t: BearerToken = token) = {
     wsUrl(eventsByObjectUuid(mid)(oid)).withHttpHeaders(t.asHeader).get().futureValue
+  }
+
+  def deleteEvents(eventIds: String, t: BearerToken = token) = {
+    wsUrl(deleteSubEventsUrl(mid, eventIds))
+      .withHttpHeaders(t.asHeader)
+      .delete()
+      .futureValue
   }
 
   implicit val minReads = ConservationModuleEvent.reads
@@ -959,7 +969,30 @@ class ConservationProcessControllerSpec
         newSubReport.documents.isDefined mustBe true
         newSubReport.documents.get.length mustBe 2
       }
-
+      "delete two subevents " in {
+        val eventid   = hseRiskAssessmentId + 2
+        val delEvents = "16," + eventid.toString
+        val de        = deleteEvents(delEvents)
+        de.status mustBe NO_CONTENT
+      }
+      "delete two subevents, one does not exists " in {
+        val eventid   = 999
+        val delEvents = "12," + eventid.toString
+        val de        = deleteEvents(delEvents)
+        de.status mustBe BAD_REQUEST
+      }
+      "delete two subevents but the delimitor is ; and not , " in {
+        val eventid   = hseRiskAssessmentId
+        val delEvents = s"10;$eventid"
+        val de        = deleteEvents(delEvents)
+        de.status mustBe BAD_REQUEST
+      }
+      "delete three subevents but only one exists " in {
+        val eventid   = hseRiskAssessmentId
+        val delEvents = s"$eventid,9999,9998"
+        val de        = deleteEvents(delEvents)
+        de.status mustBe BAD_REQUEST
+      }
     }
   }
 }

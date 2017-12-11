@@ -496,6 +496,7 @@ CREATE TABLE MUSARK_CONSERVATION.EVENT (
   note            VARCHAR2(500),
   case_number    VARCHAR2(1000),
   event_json      CLOB,
+  is_deleted        INTEGER DEFAULT 0 NOT NULL,
   PRIMARY KEY (event_id),
   CONSTRAINT ensure_event_json CHECK (event_json IS JSON)
   );
@@ -587,6 +588,13 @@ condition_code INTEGER NOT NULL,
 no_condition VARCHAR2(100),
 en_condition VARCHAR2(100),
 PRIMARY KEY (condition_code)
+);
+
+
+CREATE TABLE MUSARK_CONSERVATION.EVENT_DOCUMENT(
+event_id  NUMBER(20) NOT NULL,
+file_id varchar2(36) NOT NULL,
+PRIMARY KEY (event_id,file_id)
 );
 
 

@@ -4,7 +4,7 @@ import controllers._
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.FutureMusitResult
 import play.api.libs.json.{Json, Writes}
-import play.api.mvc.Result
+import play.api.mvc.{Result, Results}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -34,6 +34,22 @@ object MusitResultUtils {
     }
   }
 
+  def musitResultToPlayResult[T](musitResult: MusitResult[T])(
+      implicit w: Writes[T]
+  ): Result = {
+    musitResult match {
+      case MusitSuccess(tt) => Results.Ok(Json.toJson(tt))
+      case err: MusitError  => defaultErrorTranslator(err)
+    }
+  }
+
+  def musitResultUnitToPlayResult(musitResult: MusitResult[Unit]): Result = {
+    musitResult match {
+      case MusitSuccess(_) => Results.NoContent
+      case err: MusitError => defaultErrorTranslator(err)
+    }
+  }
+
   def musitResultSeqToPlayResult[T](musitResult: MusitResult[Seq[T]])(
       implicit w: Writes[T]
   ): Result = {
@@ -50,6 +66,25 @@ object MusitResultUtils {
       ec: ExecutionContext
   ): Future[Result] = {
     futMusitResult.value.map(musitResultSeqToPlayResult(_)(w))
+  }
+
+  /** Results in a 204 (NO_Content) if success */
+  def futureMusitResultUnitToPlayResult(
+      futMusitResult: FutureMusitResult[Unit]
+  )(
+      implicit
+      ec: ExecutionContext
+  ): Future[Result] = {
+    futMusitResult.value.map(musitResultUnitToPlayResult(_))
+  }
+
+  def futureMusitResultToPlayResult[T](
+      futMusitResult: FutureMusitResult[T]
+  )(
+      implicit w: Writes[T],
+      ec: ExecutionContext
+  ): Future[Result] = {
+    futMusitResult.value.map(musitResultToPlayResult(_)(w))
   }
 
   implicit class MusitResultHelpers[T](val musitResult: MusitResult[T]) {

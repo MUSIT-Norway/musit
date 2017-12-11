@@ -917,7 +917,7 @@ CREATE TABLE MUSARK_CONSERVATION.EVENT (
   affected_uuid   VARCHAR2(36),
   note            VARCHAR2(500),
   case_number     VARCHAR2(1000),
-  is_deleted      INTEGER,
+  is_deleted      INTEGER DEFAULT 0 NOT NULL,
   event_json      CLOB,
   PRIMARY KEY (event_id)
   --CONSTRAINT ensure_event_json CHECK (event_json IS JSON)

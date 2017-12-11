@@ -16,6 +16,7 @@ import play.api.mvc.{ControllerComponents, Result}
 import services.conservation.{ConservationProcessService, _}
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 @Singleton
 class ConservationModuleEventController @Inject()(
     val controllerComponents: ControllerComponents,
@@ -233,4 +234,29 @@ class ConservationModuleEventController @Inject()(
         }
     }
 
+  def parseStringListToSeqLong(strings: String): MusitResult[Seq[Long]] = {
+    val seq = strings
+      .split(",")
+      .map { ss =>
+        val s = ss.trim
+        MusitResult.fromTry(
+          Try(s.toLong),
+          ex => MusitValidationError(s"Not a valid Long: " + ex.getMessage)
+        )
+      }
+      .toSeq
+
+    MusitResult.sequence(seq)
+  }
+
+  def deleteSubEvents(mid: MuseumId, eventIds: String) =
+    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
+      implicit val currUser = request.user
+      futureMusitResultUnitToPlayResult(
+        for {
+          eids <- FutureMusitResult.from(parseStringListToSeqLong(eventIds))
+          res  <- conservationService.deleteSubEvents(mid, eids.map(EventId.fromLong(_)))
+        } yield res
+      )
+    }
 }

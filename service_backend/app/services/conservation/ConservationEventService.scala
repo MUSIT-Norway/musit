@@ -88,13 +88,6 @@ abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Injec
 
     } yield updateRes
 
-    //val eventToWriteToDb = event.withUpdatedInfo(Some(currUser.id), Some(dateTimeNow))
-    //val updateRes        = dao.update(mid, eventId, eventToWriteToDb)
-    //updateRes
-    //TODO: I don't like to return 204-NoContent back to the frontend if something strange happened in the database on reading the event back in from the database!
-    // I rather want 500 error. To fix this, we need a modified variant of updateRequestOpt and something equivalent to the below:
-    //
-    // futureMusitResultFoldNone(updateRes, MusitInternalError("Unable to get the updated event back from the database!"))
-
   }
+
 }

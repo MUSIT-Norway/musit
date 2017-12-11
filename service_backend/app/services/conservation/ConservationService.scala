@@ -2,8 +2,9 @@ package services.conservation
 
 import com.google.inject.Inject
 import models.conservation.events.EventRole
+import no.uio.musit.MusitResults.MusitValidationError
 import no.uio.musit.functional.FutureMusitResult
-import no.uio.musit.models.{EventId, EventTypeId}
+import no.uio.musit.models.{EventId, EventTypeId, MuseumId}
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import repositories.conservation.dao.{ActorRoleDateDao, ConservationDao}
@@ -28,4 +29,18 @@ class ConservationService @Inject()(
   def getRoleList: FutureMusitResult[Seq[EventRole]] = {
     actorRoleDateDao.getRoleList
   }
+
+  def deleteSubEvents(
+      mid: MuseumId,
+      eventIds: Seq[EventId]
+  ): FutureMusitResult[Unit] = {
+    FutureMusitResult
+      .collectAllOrFail[EventId, Unit](
+        eventIds,
+        eid => dao.deleteSubEvent(mid, eid).map(m => Some(m)),
+        eventIds => MusitValidationError(s"Unable to delete eventIds:$eventIds")
+      )
+      .map(m => ())
+  }
+
 }

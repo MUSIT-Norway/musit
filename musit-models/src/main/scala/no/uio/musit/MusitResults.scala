@@ -1,5 +1,7 @@
 package no.uio.musit
 
+import scala.util.{Failure, Success, Try}
+
 object MusitResults {
 
   sealed abstract class MusitResult[+A] {
@@ -45,6 +47,25 @@ object MusitResults {
     def getOrError[T](opt: Option[T], err: MusitError) =
       opt.map(MusitSuccess.apply).getOrElse(err)
 
+    private def handleSequenceErrors(failures: Seq[MusitError]) = {
+      if (failures.size == 1) {
+        failures.head
+      } else {
+        val validationErrors = failures.collect {
+          case valError: MusitValidationError => valError
+        }
+        if (validationErrors.size == failures.size) {
+          MusitValidationError(
+            s"${validationErrors.size} error(s). First error was: ${validationErrors.head}"
+          )
+        } else
+          MusitGeneralError(
+            s"${validationErrors.size} error(s). First error was: ${validationErrors.head}"
+          )
+
+      }
+    }
+
     /**
      * Takes a {{{Seq[MusitResult[T]]}}} and flips it to a {{{Seq[MusitResult[T]]}}}
      *
@@ -53,13 +74,13 @@ object MusitResults {
      * @return A MusitResult with a collection of T's
      */
     def sequence[T](seq: Seq[MusitResult[T]]): MusitResult[Seq[T]] = {
+
       if (seq.exists(_.isFailure)) {
         // If the list contains any errors at all, we bail the processing and
-        // return an error.
-        MusitGeneralError(
-          "Could not sequence Seq[MusitResult[T]] because it" +
-            " contained a MusitError"
-        )
+        // calculates an appropriate error.
+        val failures = seq.collect { case err: MusitError => err }
+        handleSequenceErrors(failures)
+
       } else {
         // We now _know_ all entries in the list are of type MusitSuccess
         seq.foldLeft[MusitResult[Seq[T]]](MusitSuccess(Seq.empty[T])) {
@@ -69,6 +90,16 @@ object MusitResults {
               case err: MusitError     => err
             }
         }
+      }
+    }
+
+    def fromTry[T](
+        value: Try[T],
+        errorFactory: Throwable => MusitError
+    ): MusitResult[T] = {
+      value match {
+        case Success(t)  => MusitSuccess(t)
+        case Failure(ex) => errorFactory(ex)
       }
     }
 

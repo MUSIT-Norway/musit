@@ -50,7 +50,7 @@ class ObjectEventDao @Inject()(
     val action = for {
       oe <- objectEventTable
       e  <- eventTable
-      if oe.objectUuid === objectUuid && oe.eventId === e.eventId && e.eventTypeId =!= ConservationProcess.eventTypeId
+      if oe.objectUuid === objectUuid && oe.eventId === e.eventId && e.isDeleted === 0 && e.eventTypeId =!= ConservationProcess.eventTypeId
     } yield oe.eventId
     val res = action.result
     daoUtils.dbRun(res, s"An unexpected error occurred fetching object $objectUuid")

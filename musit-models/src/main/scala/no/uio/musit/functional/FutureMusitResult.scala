@@ -126,26 +126,8 @@ object FutureMusitResult {
   ): FutureMusitResult[Seq[A]] = {
     FutureMusitResult(
       Future.sequence(seqFutMr.map(_.value)).map { results =>
-        results
-          .find(_.isFailure)
-          .map {
-            case err: MusitError => err
-            case bad =>
-              throw new IllegalStateException(
-                s"Somehow a successful MusitResult managed to sneak its way into " +
-                  s"the failed branch of execution $bad"
-              )
-          }
-          .getOrElse {
-            MusitSuccess(results.map {
-              case MusitSuccess(value) => value
-              case err =>
-                throw new IllegalStateException(
-                  s"Somehow a failed MusitResult managed to sneak its way into " +
-                    s"the successful branch of execution $err"
-                )
-            })
-          }
+        MusitResult.sequence(results)
+
       }
     )
   }
@@ -162,7 +144,7 @@ object FutureMusitResult {
 
   /** Gitt en liste med et eller annet, f.eks. ID-er og en funksjon som tar en slik Id og gir tilbake en
    * FutureMusitResult[Option[T]] (typisk et database-kall ala findById, getById etc), returnerer en liste med par av "id" og evt svar.
-   * Merk at vi feiler om et (eller flere) av f-kallene gir en MusitError. Vi feiler i så fall på første feil.
+   * Merk at vi feiler om et (eller flere) av f-kallene gir en MusitError. Vi kjører uansett alle kallene, så feilene blir akkumulert.
    */
   def pairwise[A, B](
       seq: Seq[A],
@@ -176,7 +158,7 @@ object FutureMusitResult {
 
   /** Gitt en liste med et eller annet, f.eks. ID-er og en funksjon som tar en slik Id og gir tilbake en
    * FutureMusitResult[Option[T]] (typisk et database-kall ala findById, getById etc), returnerer en liste med de som ble funnet.
-   * Merk at vi feiler om et (eller flere) av f-kallene gir en MusitError. Vi feiler i så fall på første feil.
+   * Merk at vi feiler om et (eller flere) av f-kallene gir en MusitError. Vi kjører uansett alle kallene, så feilene blir akkumulert.
    * Og vi feiler også dersom vi ikke finner alle objektene!
    */
   def collectAllOrFail[A, B](

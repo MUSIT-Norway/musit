@@ -90,7 +90,8 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     eventTable.filter { e =>
       e.museumId === mid &&
       e.eventId === id &&
-      e.eventTypeId =!= ConservationProcess.eventTypeId
+      e.eventTypeId =!= ConservationProcess.eventTypeId &&
+      e.isDeleted === 0
     }.result.headOption
 
   def findConservationEventByIdAction(
