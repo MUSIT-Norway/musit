@@ -1,6 +1,10 @@
 package repositories.conservation.dao
 
-import models.conservation.events.{ConservationEvent, ConservationModuleEvent}
+import models.conservation.events.{
+  ConservationEvent,
+  ConservationModuleEvent,
+  ConservationProcess
+}
 import no.uio.musit.models.{EventId, MuseumId, MusitEvent, MusitUUID}
 import no.uio.musit.repositories.events.EventRowMappers
 import no.uio.musit.security.AuthenticatedUser
@@ -32,7 +36,7 @@ trait ConservationEventRowMappers extends EventRowMappers[ConservationModuleEven
       e.updatedDate,
       e.partOf,
       e.note,
-      e.caseNumber,
+      if (e.eventTypeId == ConservationProcess.eventTypeId) e.caseNumber else None,
       js
     )
     row

@@ -10,7 +10,7 @@ sealed trait ConservationModuleEvent extends ModernMusitEvent {
   val eventTypeId: EventTypeId
   val partOf: Option[EventId]
   val note: Option[String]
-  val caseNumber: Option[String]
+  def caseNumber: Option[String]
   val actorsAndRoles: Option[Seq[ActorRoleDate]]
   val affectedThings: Option[Seq[ObjectUUID]]
 
@@ -132,6 +132,10 @@ sealed trait ConservationEvent extends ConservationModuleEvent {
   override def withoutActorRoleAndDates: ConservationEvent = withActorRoleAndDates(None)
 
   def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]): ConservationEvent
+
+  override def caseNumber = throw new IllegalStateException(
+    "Don't use caseNumber in subEvents"
+  )
 }
 
 object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatters {
@@ -301,7 +305,6 @@ object ConservationEventType {
 case class Treatment(
     id: Option[EventId],
     eventTypeId: EventTypeId,
-    caseNumber: Option[String],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
@@ -339,6 +342,7 @@ case class Treatment(
 
   override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
     copy(actorsAndRoles = actorsAndRoles)
+
 }
 
 object Treatment extends WithDateTimeFormatters with ConservationEventType {
@@ -356,7 +360,6 @@ object Treatment extends WithDateTimeFormatters with ConservationEventType {
 case class TechnicalDescription(
     id: Option[EventId],
     eventTypeId: EventTypeId,
-    caseNumber: Option[String],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
@@ -394,6 +397,7 @@ case class TechnicalDescription(
 
   override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationEvent =
     copy(documents = fileIds)
+
 }
 
 object TechnicalDescription extends WithDateTimeFormatters with ConservationEventType {
@@ -411,7 +415,6 @@ object TechnicalDescription extends WithDateTimeFormatters with ConservationEven
 case class StorageAndHandling(
     id: Option[EventId],
     eventTypeId: EventTypeId,
-    caseNumber: Option[String],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
@@ -452,6 +455,7 @@ case class StorageAndHandling(
 
   override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationEvent =
     copy(documents = fileIds)
+
 }
 
 object StorageAndHandling extends WithDateTimeFormatters with ConservationEventType {
@@ -469,7 +473,6 @@ object StorageAndHandling extends WithDateTimeFormatters with ConservationEventT
 case class HseRiskAssessment(
     id: Option[EventId],
     eventTypeId: EventTypeId,
-    caseNumber: Option[String],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
@@ -507,6 +510,7 @@ case class HseRiskAssessment(
 
   override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationEvent =
     copy(documents = fileIds)
+
 }
 
 object HseRiskAssessment extends WithDateTimeFormatters with ConservationEventType {
@@ -524,7 +528,6 @@ object HseRiskAssessment extends WithDateTimeFormatters with ConservationEventTy
 case class ConditionAssessment(
     id: Option[EventId],
     eventTypeId: EventTypeId,
-    caseNumber: Option[String],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
@@ -563,6 +566,7 @@ case class ConditionAssessment(
 
   override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationEvent =
     copy(documents = fileIds)
+
 }
 
 object ConditionAssessment extends WithDateTimeFormatters with ConservationEventType {
@@ -580,7 +584,6 @@ object ConditionAssessment extends WithDateTimeFormatters with ConservationEvent
 case class Report(
     id: Option[EventId],
     eventTypeId: EventTypeId,
-    caseNumber: Option[String],
     registeredBy: Option[ActorId],
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
@@ -618,6 +621,7 @@ case class Report(
 
   override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationEvent =
     copy(documents = fileIds)
+
 }
 
 object Report extends WithDateTimeFormatters with ConservationEventType {

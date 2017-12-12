@@ -42,7 +42,6 @@ class TechnicalDescriptionDaoSpec
       note = Some("eksempel på teknisk beskrivelse"),
       completedBy = None,
       completedDate = None,
-      caseNumber = None,
       partOf = None,
       actorsAndRoles = None,
       affectedThings = oids,

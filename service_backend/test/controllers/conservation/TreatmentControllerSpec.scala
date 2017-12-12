@@ -123,7 +123,6 @@ class TreatmentControllerSpec
           "doneDate"       -> time.dateTimeNow.plusDays(20),
           "completedBy"    -> FakeUsers.testUserId,
           "completedDate"  -> time.dateTimeNow.plusDays(20),
-          "caseNumber"     -> "666",
           "affectedThings" -> oids
         )
         val updRes = putTreatmentResponse(mid, eventId, updJson)
@@ -135,11 +134,8 @@ class TreatmentControllerSpec
         (updRes.json \ "note").as[String] must include("Updated")
         (updRes.json \ "updatedBy").asOpt[ActorId] mustBe Some(adminId)
         (updRes.json \ "updatedDate").asOpt[DateTime] mustApproximate Some(mdatetime)
-//        (updRes.json \ "doneBy").asOpt[ActorId] mustBe Some(testUserId)
-//        (updRes.json \ "doneDate").asOpt[DateTime] mustApproximate Some(mdatetime)
         (updRes.json \ "completedBy").asOpt[ActorId] mustBe Some(testUserId)
         (updRes.json \ "completedDate").asOpt[DateTime] mustApproximate Some(mdatetime)
-        (updRes.json \ "caseNumber").asOpt[String] mustBe Some("666")
         (updRes.json \ "affectedThings")
           .asOpt[Seq[String]]
           .map(s => s.sorted) mustBe Some(

@@ -30,8 +30,7 @@ private[dao] trait ConservationEventTableProvider
       Option[EventId], //7 - PartOf
       Option[String], // 8 - Note
       Option[String], // 9 - CaseNumber,
-      JsValue // 10 - EventJson,
-      // Option[Int] // 11 - IsDeleted
+      JsValue // 10 - EventJson
   )
 
   def valEventId(row: EventRow)     = row._1
@@ -41,12 +40,11 @@ private[dao] trait ConservationEventTableProvider
 
   def valRegisteredBy(row: EventRow)   = row._4
   def valRegisteredDate(row: EventRow) = row._5
-
-  def valJson(row: EventRow) = row._10
+  def valJson(row: EventRow)           = row._10
+  // pga fjerning av caseNumber så blir det annet tall i jsValue
+  //def valJson(row: EventRow) = row._9
 
   def withPartOf(row: EventRow, partOf: Option[EventId]) = row.copy(_7 = partOf)
-
-  //def isDeleted(row: EventRow) = row._11
 
   override lazy val eventTable = TableQuery[ConservationEventTable]
 

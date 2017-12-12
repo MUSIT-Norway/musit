@@ -45,7 +45,6 @@ class TreatmentDaoSpec
       note = Some("hurra note"),
       completedBy = None,
       completedDate = None,
-      caseNumber = None,
       partOf = None,
       affectedThings = oids,
       registeredBy = None,

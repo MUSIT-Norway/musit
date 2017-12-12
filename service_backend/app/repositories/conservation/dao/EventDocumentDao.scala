@@ -67,7 +67,7 @@ class EventDocumentDao @Inject()(
     val res = action.result
     daoUtils.dbRun(
       res,
-      s"An unexpected error occurred fetching objects in getDocuments for event $eventId"
+      s"An unexpected error occurred fetching fileId in getDocuments for event $eventId"
     )
   }
 
