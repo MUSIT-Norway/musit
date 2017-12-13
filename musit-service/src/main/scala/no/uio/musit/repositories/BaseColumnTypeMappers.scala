@@ -188,9 +188,8 @@ trait BaseColumnTypeMappers extends ColumnTypesImplicits {
     )
 
   implicit val fileIdMapper: BaseColumnType[FileId] =
-    MappedColumnType.base[FileId, UUID](
-      fileId => fileId.underlying,
-      uuid => FileId.fromUUID(uuid)
+    MappedColumnType.base[FileId, String](
+      fileId => fileId.asString,
+      uuid => FileId.unsafeFromString(uuid)
     )
-
 }
