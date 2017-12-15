@@ -10,13 +10,14 @@ import org.joda.time.DateTime
 import play.api.libs.json._
 
 trait ConservationJsonGenerators { // test data
-  val conservationProcessEventTypeId  = ConservationProcess.eventTypeId.underlying
-  val treatmentEventTypeId            = Treatment.eventTypeId.underlying
-  val technicalDescriptionEventTypeId = TechnicalDescription.eventTypeId.underlying
-  val storageAndHandlingEventTypeId   = StorageAndHandling.eventTypeId.underlying
-  val hseRiskAssessmentEventTypeId    = HseRiskAssessment.eventTypeId.underlying
-  val conditionAssessmentEventTypeID  = ConditionAssessment.eventTypeId.underlying
-  val reportEventTypeId               = Report.eventTypeId.underlying
+  val conservationProcessEventTypeId   = ConservationProcess.eventTypeId.underlying
+  val treatmentEventTypeId             = Treatment.eventTypeId.underlying
+  val technicalDescriptionEventTypeId  = TechnicalDescription.eventTypeId.underlying
+  val storageAndHandlingEventTypeId    = StorageAndHandling.eventTypeId.underlying
+  val hseRiskAssessmentEventTypeId     = HseRiskAssessment.eventTypeId.underlying
+  val conditionAssessmentEventTypeID   = ConditionAssessment.eventTypeId.underlying
+  val reportEventTypeId                = Report.eventTypeId.underlying
+  val materialDeterminationEventTypeId = MaterialDetermination.eventTypeId.underlying
 
   val validObjectUUIDs = Seq(
     ObjectUUID.unsafeFromString("baab2f60-4f49-40fe-99c8-174b13b12d46"),

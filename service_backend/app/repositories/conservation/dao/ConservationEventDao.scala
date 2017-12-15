@@ -106,6 +106,12 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     q1
   }
 
+  def enrichWithSpecialAttributes(
+      eventId: EventId,
+      event: ConservationEvent
+  ): FutureMusitResult[ConservationEvent] =
+    FutureMusitResult.successful(event)
+
   /**
    * Locates a given conservation event by its EventId.
    *
@@ -128,11 +134,12 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       .flatMapInsideOption { event =>
         {
           for {
-            objects   <- objectEventDao.getEventObjects(id)
-            actors    <- actorRoleDao.getEventActorRoleDates(id)
-            documents <- eventDocumentDao.getDocuments(id)
+            objects       <- objectEventDao.getEventObjects(id)
+            actors        <- actorRoleDao.getEventActorRoleDates(id)
+            documents     <- eventDocumentDao.getDocuments(id)
+            enrichedEvent <- enrichWithSpecialAttributes(id, event)
           } yield
-            event
+            enrichedEvent
               .withAffectedThings(Some(objects))
               .withActorRoleAndDates(Some(actors))
               .withDocuments(Some(documents))
@@ -205,6 +212,18 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     )
   }
 
+  /** Removes special stuff for this event type which we don't want to include in the json-column in the database
+   * (This stuff gets stored in the database separately, probably in another table (likely one-to-many))
+   *
+   */
+  def removeSpecialEventAttributes(event: ConservationEvent): ConservationEvent = event
+
+  def insertSpecialAttributes(eventId: EventId, event: ConservationEvent): DBIO[Unit] =
+    DBIO.successful(())
+
+  def updateSpecialAttributes(eventId: EventId, event: ConservationEvent): DBIO[Unit] =
+    DBIO.successful(())
+
   /**
    * an insert action for inserting a conservationEvent
    * eventWithoutObjects is the event without it's list
@@ -221,6 +240,10 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       partOf: Option[EventId],
       event: ConservationEvent
   )(implicit currUsr: AuthenticatedUser): DBIO[EventId] = {
+    // registered by and date are filled in in the service layer (during copyWithRegDataForProcessAndSubevents)
+    require(event.registeredBy.isDefined)
+    require(event.registeredDate.isDefined)
+
     val objectIds      = event.affectedThings.getOrElse(Seq.empty)
     val actorsAndRoles = event.actorsAndRoles.getOrElse(Seq.empty)
     val documents      = event.documents.getOrElse(Seq.empty)
@@ -228,14 +251,13 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     val eventWithoutActorRoleAndDate = event.withoutActorRoleAndDates
     val eventWithoutObjects          = eventWithoutActorRoleAndDate.withAffectedThings(None)
     val eventWithoutDocument         = eventWithoutObjects.withDocuments(None)
-    // registered by and date are filled in in the service layer (during copyWithRegDataForProcessAndSubevents)
-    require(event.registeredBy.isDefined)
-    require(event.registeredDate.isDefined)
 
-    val row    = asRow(mid, eventWithoutDocument)
-    val newRow = withPartOf(row, partOf)
+    val fullyTrimmedEvent = removeSpecialEventAttributes(eventWithoutDocument)
+    val row               = asRow(mid, fullyTrimmedEvent)
+    val newRow            = withPartOf(row, partOf)
     for {
       eventId <- insertAction(newRow)
+      sa      <- insertSpecialAttributes(eventId, event) //We use event because we need to send in the unmodified event!
       actors  <- actorRoleDao.insertActorRoleDateAction(eventId, actorsAndRoles)
       objects <- objectEventDao.insertObjectEventAction(eventId, objectIds)
       _       <- eventDocumentDao.insertDocumentAction(eventId, documents)
@@ -263,10 +285,12 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     val eventWithoutActorRoleAndDate = event.withoutActorRoleAndDates
     val eventWithoutObjects          = eventWithoutActorRoleAndDate.withAffectedThings(None)
     val eventWithoutDocuments        = eventWithoutObjects.withDocuments(None)
-    val row                          = asRow(mid, eventWithoutDocuments)
+    val fullyTrimmedEvent            = removeSpecialEventAttributes(eventWithoutDocuments)
+    val row                          = asRow(mid, fullyTrimmedEvent)
 
     for {
       numEventRowsUpdated <- updateActionRowOnly(eventId, row)
+      _                   <- updateSpecialAttributes(eventId, event) //We use event because we need to send in the unmodified event!
       _                   <- objectEventDao.updateObjectEventAction(eventId, objectIds)
       _                   <- actorRoleDao.updateActorRoleDateAction(eventId, actors)
       _                   <- eventDocumentDao.updateDocumentAction(eventId, documents)
@@ -315,7 +339,7 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       id: EventId,
       event: EventRow
   )(implicit currUsr: AuthenticatedUser): DBIO[Int] = {
-    eventTable.filter(_.eventId === id).update(event)
+    eventTable.filter(e => e.eventId === id && e.isDeleted === 0).update(event)
   }
 
 }

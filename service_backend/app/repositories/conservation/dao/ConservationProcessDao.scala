@@ -26,7 +26,8 @@ class ConservationProcessDao @Inject()(
     val reportDao: ReportDao,
     val daoUtils: DaoUtils,
     val actorRoleDateDao: ActorRoleDateDao,
-    val objectEventDao: ObjectEventDao
+    val objectEventDao: ObjectEventDao,
+    val materialDeterminationDao: MaterialDeterminationDao
 ) extends ConservationEventTableProvider
     with ConservationTables
     with EventActions
@@ -72,12 +73,13 @@ class ConservationProcessDao @Inject()(
 
   private def getDaoFor(event: ConservationEvent) = {
     event match {
-      case t: Treatment             => treatmentDao
-      case td: TechnicalDescription => technicalDescriptionDao
-      case sah: StorageAndHandling  => storageAndHandlingDao
-      case hsera: HseRiskAssessment => hseRiskAssessmentDao
-      case ca: ConditionAssessment  => conditionAssessmentDao
-      case re: Report               => reportDao
+      case t: Treatment              => treatmentDao
+      case td: TechnicalDescription  => technicalDescriptionDao
+      case sah: StorageAndHandling   => storageAndHandlingDao
+      case hsera: HseRiskAssessment  => hseRiskAssessmentDao
+      case ca: ConditionAssessment   => conditionAssessmentDao
+      case re: Report                => reportDao
+      case md: MaterialDetermination => materialDeterminationDao
     }
   }
 
@@ -175,12 +177,13 @@ class ConservationProcessDao @Inject()(
     )
 
     val dao = subEventType match {
-      case Treatment            => treatmentDao
-      case TechnicalDescription => technicalDescriptionDao
-      case StorageAndHandling   => storageAndHandlingDao
-      case HseRiskAssessment    => hseRiskAssessmentDao
-      case ConditionAssessment  => conditionAssessmentDao
-      case Report               => reportDao
+      case Treatment             => treatmentDao
+      case TechnicalDescription  => technicalDescriptionDao
+      case StorageAndHandling    => storageAndHandlingDao
+      case HseRiskAssessment     => hseRiskAssessmentDao
+      case ConditionAssessment   => conditionAssessmentDao
+      case Report                => reportDao
+      case MaterialDetermination => materialDeterminationDao
     }
     val subEvent = dao.findConservationEventById(mid, eventId)
     subEvent
@@ -202,7 +205,7 @@ class ConservationProcessDao @Inject()(
       //TODO: Er det riktig å filtrere på museumId her?
       // I den grad det gir mening å ha subevents på tvers av museer er det kanskje tryggest å få de med ut her?
 
-      a.partOf === parentEventId && a.museumId === mid
+      a.partOf === parentEventId && a.museumId === mid && a.isDeleted === 0
     }
     val action = query.result.map { res =>
       res.map { row =>
@@ -299,7 +302,7 @@ class ConservationProcessDao @Inject()(
     daoUtils
       .dbRun(
         actions.transactionally,
-        "An unexpected error occurred inserting an conservation process event"
+        "An unexpected error occurred updating an conservation process event"
       )
       .flatMap { numUpdated =>
         if (numUpdated == 1) {

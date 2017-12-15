@@ -21,6 +21,10 @@ package object dao {
   val RolesTableName                 = "ROLE"
   val ConditionCodeTableName         = "CONDITION_CODE"
   val EventDocumentTableName         = "EVENT_DOCUMENT"
+  val MaterialArhaeoTableName        = "MATERIAL_ARCHAEOLOGY"
+  val MaterialEthnoTableName         = "MATERIAL_ETHNOGRAPHY"
+  val MaterialNumisTableName         = "MATERIAL_NUMISMATIC"
+  val EaEventMaterialTableName       = "EA_EVENT_MATERIAL"
 }
 @Singleton
 class DaoUtils @Inject()(

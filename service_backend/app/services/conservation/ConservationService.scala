@@ -1,10 +1,17 @@
 package services.conservation
 
 import com.google.inject.Inject
+import models.conservation.MaterialBase
 import models.conservation.events.EventRole
 import no.uio.musit.MusitResults.MusitValidationError
 import no.uio.musit.functional.FutureMusitResult
-import no.uio.musit.models.{EventId, EventTypeId, MuseumId}
+import no.uio.musit.models.MuseumCollections.{
+  Archeology,
+  Collection,
+  Ethnography,
+  Numismatics
+}
+import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import repositories.conservation.dao.{ActorRoleDateDao, ConservationDao}

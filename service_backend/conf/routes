@@ -150,11 +150,13 @@ GET           /:mid/loans/active                                             con
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ConservationType endpoint
 
-GET           /:mid/conservation/types                      controllers.conservation.ConservationController.getConservationTypes(mid: Int, collectionIds: Option[String])
-GET           /conservation/treatmentMaterials              controllers.conservation.ConservationController.getMaterialList
+GET           /:mid/conservation/types                    controllers.conservation.ConservationController.getConservationTypes(mid: Int, collectionIds: Option[String])
+GET           /:mid/conservation/materials                 controllers.conservation.ConservationController.getMaterialList(mid: Int, collectionId:String)
+GET           /conservation/treatmentMaterials              controllers.conservation.ConservationController.getTreatmentMaterialList
 GET           /conservation/treatmentKeywords               controllers.conservation.ConservationController.getKeywordList
 GET           /conservation/roles                           controllers.conservation.ConservationController.getRoleList
 GET           /conservation/conditionCodes                  controllers.conservation.ConservationController.getConditionCodeList
+
 
 # ConservationProcess endpoints
 POST          /:mid/conservation/events                     controllers.conservation.ConservationModuleEventController.addEvent(mid: Int)

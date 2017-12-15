@@ -142,7 +142,6 @@ class ConservationProcessService @Inject()(
   )(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[Option[ConservationProcess]] = {
-
     def getRegisteredActorDate(localEventId: EventId): FutureMusitResult[ActorDate] = {
       subEventDao
         .findRegisteredActorDate(mid, localEventId)
@@ -152,7 +151,6 @@ class ConservationProcessService @Inject()(
           )
         )
     }
-
     for {
       _ <- FutureMusitResult.requireFromClient(
             Some(eventId) == cp.id,

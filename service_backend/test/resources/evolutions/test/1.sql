@@ -999,6 +999,7 @@ INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('HMS-risikoangivelse', 'HSE risk assessment', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('tilstandsvurdering', 'condition assessment', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('rapport', 'report', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
+INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('materialbestemmelse', 'material determination', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
 -- INSERTING TREATMENT MATERIALS
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_material) VALUES(1,'Sitronsyre','Sitronsyre');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_material) VALUES(2,'Klucel EF','Klucel EF');
@@ -1093,8 +1094,89 @@ INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(keyword_id, no_keyword, en_key
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(keyword_id, no_keyword, en_keyword) VALUES(15,'Avstøpning','Avstøpning');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(keyword_id, no_keyword, en_keyword) VALUES(16,'Lakkert','Lakkert');
 
-
 INSERT INTO MUSARK_CONSERVATION.CONDITION_CODE(condition_code,no_condition, en_condition) VALUES(0,'svært god','very good');
 INSERT INTO MUSARK_CONSERVATION.CONDITION_CODE(condition_code,no_condition, en_condition) VALUES(1,'god','good');
 INSERT INTO MUSARK_CONSERVATION.CONDITION_CODE(condition_code,no_condition, en_condition) VALUES(2,'mindre god','less good');
 INSERT INTO MUSARK_CONSERVATION.CONDITION_CODE(condition_code,no_condition, en_condition) VALUES(3,'dårlig/kritisk','badly/critical');
+
+
+CREATE SEQUENCE MATERIAL_SEQ
+INCREMENT BY 1
+START WITH 1
+NOMAXVALUE
+NOCYCLE
+NOCACHE;
+
+CREATE TABLE MUSARK_CONSERVATION.MATERIAL_COLLECTION
+(
+ material_id   INTEGER NOT NULL DEFAULT MATERIAL_SEQ.NEXTVAL,
+ collection_id INTEGER,
+ old_matrid    INTEGER
+);
+
+CREATE TABLE MUSARK_CONSERVATION.MATERIAL_ARCHAEOLOGY
+(
+ material_id INTEGER NOT NULL,
+ no_material VARCHAR2(200),
+ en_material VARCHAR2(200),
+ hidden INTEGER DEFAULT 0 NOT NULL, // 0 = not hidden, 1 = hidden
+ PRIMARY KEY(MATERIAL_ID),
+ FOREIGN KEY (MATERIAL_ID) REFERENCES MUSARK_CONSERVATION.MATERIAL_COLLECTION (MATERIAL_ID)
+);
+
+CREATE TABLE MUSARK_CONSERVATION.MATERIAL_NUMISMATIC
+(
+ material_id INTEGER NOT NULL,
+ no_material VARCHAR2(200),
+ en_material VARCHAR2(200),
+ hidden INTEGER DEFAULT 0 NOT NULL, // 0 = not hidden, 1 = hidden
+ PRIMARY KEY(MATERIAL_ID),
+ FOREIGN KEY (MATERIAL_ID) REFERENCES MUSARK_CONSERVATION.MATERIAL_COLLECTION (MATERIAL_ID)
+);
+
+CREATE TABLE MUSARK_CONSERVATION.MATERIAL_ETHNOGRAPHY
+(
+ material_id         INTEGER NOT NULL,
+ no_material         VARCHAR2(200),
+ no_material_type    VARCHAR2(200),
+ no_material_element VARCHAR2(200),
+ en_material         VARCHAR2(200),
+ en_material_type    VARCHAR2(200),
+ en_material_element VARCHAR2(200),
+ fr_material         VARCHAR2(200),
+ fr_material_type    VARCHAR2(200),
+ fr_material_element VARCHAR2(200),
+ hidden INTEGER DEFAULT 0 NOT NULL, // 0 = not hidden, 1 = hidden
+ PRIMARY KEY(MATERIAL_ID),
+ FOREIGN KEY (MATERIAL_ID) REFERENCES MUSARK_CONSERVATION.MATERIAL_COLLECTION (MATERIAL_ID)
+);
+
+
+CREATE TABLE MUSARK_CONSERVATION.EA_EVENT_MATERIAL
+(
+ event_id       NUMBER(20) NOT NULL,
+ material_id    INTEGER NOT NULL,
+ spes_material VARCHAR2(255),
+ sorting        INTEGER,
+ PRIMARY KEY(EVENT_ID,MATERIAL_ID),
+ FOREIGN KEY (MATERIAL_ID) REFERENCES MUSARK_CONSERVATION.MATERIAL_COLLECTION (MATERIAL_ID),
+ FOREIGN KEY (EVENT_ID) REFERENCES MUSARK_CONSERVATION.EVENT(EVENT_ID)
+);
+
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) values(1,100);
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) values(1,202);
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) values(1,303);
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) values(3,400);
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) values(3,502);
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) values(2,603);
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) values(2,703);
+
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_ARCHAEOLOGY(material_id,no_material,en_material) values(1,'tre','tree');
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_ARCHAEOLOGY(material_id,no_material,en_material) values(2,'jern','iron');
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_ARCHAEOLOGY(material_id,no_material,en_material, hidden) values(3,'jern','iron',1);
+
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_NUMISMATIC(material_id,no_material,en_material) values(4,'sølv','silver');
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_NUMISMATIC(material_id,no_material,en_material) values(5,'gull','gold');
+
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_ETHNOGRAPHY(material_id,no_material,no_material_type,no_material_element) values(6,'silke','tekstil','element av ull');
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_ETHNOGRAPHY(material_id,no_material,no_material_type,no_material_element) values(7,'ull','tekstil','element av silke');

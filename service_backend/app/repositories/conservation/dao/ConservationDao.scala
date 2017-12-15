@@ -1,9 +1,7 @@
 package repositories.conservation.dao
 
 import com.google.inject.{Inject, Singleton}
-import models.conservation.TreatmentKeyword
-import models.conservation.events.{ConservationEvent, EventRole}
-import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
+import no.uio.musit.MusitResults.{MusitSuccess, MusitValidationError}
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models._
 import no.uio.musit.repositories.DbErrorHandlers
@@ -12,9 +10,8 @@ import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import repositories.conservation.DaoUtils
-import slick.dbio.DBIO
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 @Singleton
 class ConservationDao @Inject()(
     implicit
@@ -66,4 +63,5 @@ class ConservationDao @Inject()(
       if (m == 1) MusitSuccess(())
       else (MusitValidationError(s"Trying to delete a non-existing eventId $eventId"))
   )
+
 }

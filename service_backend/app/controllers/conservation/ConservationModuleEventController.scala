@@ -30,7 +30,8 @@ class ConservationModuleEventController @Inject()(
     val storageAndHandlingController: StorageAndHandlingController,
     val hseRiskAssessmentController: HseRiskAssessmentController,
     val conditionAssessmentController: ConditionAssessmentController,
-    val reportController: ReportController
+    val reportController: ReportController,
+    val materialDeterminationController: MaterialDeterminationController
 ) extends MusitController {
 
   val logger = Logger(classOf[ConservationController])
@@ -59,6 +60,9 @@ class ConservationModuleEventController @Inject()(
           .asInstanceOf[ConservationEventService[ConservationEvent]]
       case Report =>
         reportController.service.asInstanceOf[ConservationEventService[ConservationEvent]]
+      case MaterialDetermination =>
+        materialDeterminationController.service
+          .asInstanceOf[ConservationEventService[ConservationEvent]]
     }
   }
 
@@ -189,10 +193,8 @@ class ConservationModuleEventController @Inject()(
       implicit request =>
         implicit val currUser = implicitly(request.user)
 
-        val jsonBody = request.body
-
+        val jsonBody      = request.body
         val mrEventTypeId = getEventTypeIdInJson(jsonBody)
-
         mrEventTypeId.flatMapToFutureResult {
           case ConservationProcess.eventTypeId => {
             val jsr = jsonBody.validate[ConservationProcess]
@@ -203,7 +205,6 @@ class ConservationModuleEventController @Inject()(
           case conservationEventId => {
             implicit val readsEvent = ConservationEvent.reads
             val jsr                 = jsonBody.validate[ConservationEvent]
-
             val mrService =
               findConservationEventServiceBlameClientIfNotFound(conservationEventId)
 

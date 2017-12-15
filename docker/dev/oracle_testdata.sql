@@ -614,3 +614,23 @@ INSERT INTO MUSARK_CONSERVATION.CONDITION_CODE(condition_code,no_condition, en_c
 INSERT INTO MUSARK_CONSERVATION.CONDITION_CODE(condition_code,no_condition, en_condition) VALUES(1,'god','good');
 INSERT INTO MUSARK_CONSERVATION.CONDITION_CODE(condition_code,no_condition, en_condition) VALUES(2,'mindre god','less good');
 INSERT INTO MUSARK_CONSERVATION.CONDITION_CODE(condition_code,no_condition, en_condition) VALUES(3,'dårlig/kritisk','badly/critical');
+
+-- MATERIAL LIST FOR CULTURE IN MATERIAL DETERMINATION EVENT
+
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) values(1,100);
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) values(1,202);
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) values(1,303);
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) values(3,400);
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) values(3,502);
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) values(2,603);
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) values(2,703);
+
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_ARCHAEOLOGY(material_id,no_material,en_material) values(1,'tre','tree');
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_ARCHAEOLOGY(material_id,no_material,en_material) values(2,'jern','iron');
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_ARCHAEOLOGY(material_id,no_material,en_material, hidden) values(3,'jern','iron',1);
+
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_NUMISMATIC(material_id,no_material,en_material) values(4,'sølv','silver');
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_NUMISMATIC(material_id,no_material,en_material) values(5,'gull','gold');
+
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_ETHNOGRAPHY(material_id,no_material,no_material_type,no_material_element) values(6,'silke','tekstil','element av ull');
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_ETHNOGRAPHY(material_id,no_material,no_material_type,no_material_element) values(7,'ull','tekstil','element av silke');

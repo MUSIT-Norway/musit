@@ -100,4 +100,10 @@ object MusitResultUtils {
       }
     }
   }
+  implicit class MusitErrorHelpers[T](val musitError: MusitError) {
+
+    def toFuturePlayResult: Future[Result] =
+      Future.successful(defaultErrorTranslator(musitError))
+  }
+
 }
