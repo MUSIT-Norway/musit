@@ -89,4 +89,28 @@ class ConservationController @Inject()(
     }
   }
 
+  def getMaterial(materialId: Int, collectionId: String) = {
+    MusitSecureAction().async { implicit request =>
+      val collectionUuid = CollectionUUID.unsafeFromString(collectionId)
+      Collection.fromCollectionUUID(collectionUuid) match {
+        case Archeology =>
+          futureMusitResultToPlayResult(
+            materialDeterminationService.getArchaeologyMaterial(materialId)
+          )
+        case Ethnography =>
+          futureMusitResultToPlayResult(
+            materialDeterminationService.getEthnographyMaterial(materialId)
+          )
+        case Numismatics =>
+          futureMusitResultToPlayResult(
+            materialDeterminationService.getNumismaticMaterial(materialId)
+          )
+        case _ =>
+          MusitValidationError(
+            s"Unable to find the materialId: $materialId for this collection: $collectionUuid "
+          ).toFuturePlayResult
+      }
+    }
+  }
+
 }

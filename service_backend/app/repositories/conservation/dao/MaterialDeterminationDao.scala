@@ -2,12 +2,7 @@ package repositories.conservation.dao
 
 import com.google.inject.{Inject, Singleton}
 import models.conservation.{MaterialEthnography, _}
-import models.conservation.events.{
-  ConservationEvent,
-  EaEventMaterial,
-  MaterialDetermination,
-  SpesMaterialAndSorting
-}
+import models.conservation.events._
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models.EventId
 import play.api.Logger
@@ -44,10 +39,10 @@ class MaterialDeterminationDao @Inject()(
   }
 
   def insertEaEventMaterialAction(
-      spesMatrAndSorting: SpesMaterialAndSorting,
+      materialInfo: MaterialInfo,
       eventId: EventId
   ): DBIO[Int] = {
-    val action = eaEventMaterialTable += EaEventMaterial(eventId, spesMatrAndSorting)
+    val action = eaEventMaterialTable += EaEventMaterial(eventId, materialInfo)
     action
   }
 
@@ -55,7 +50,7 @@ class MaterialDeterminationDao @Inject()(
       eventId: EventId,
       event: ConservationEvent
   ): DBIO[Unit] = {
-    val smss = event.asInstanceOf[MaterialDetermination].spesMaterialsAndSorting
+    val smss = event.asInstanceOf[MaterialDetermination].materialInfo
     smss match {
       case None => DBIO.successful(())
       case Some(seqSms) => {
@@ -83,15 +78,15 @@ class MaterialDeterminationDao @Inject()(
 
   private def getSpecialAttributes(
       eventId: EventId
-  ): FutureMusitResult[Seq[SpesMaterialAndSorting]] = {
+  ): FutureMusitResult[Seq[MaterialInfo]] = {
     val action = {
       eaEventMaterialTable
         .filter(oe => oe.eventId === eventId)
-        .map(sms => (sms.materialId, sms.spesMaterial, sms.sorting))
+        .map(sms => (sms.materialId, sms.materialExtra, sms.sorting))
         .result
         .map(_.map {
-          case (materialId, spesMaterial, sorting) =>
-            SpesMaterialAndSorting(materialId, spesMaterial, sorting)
+          case (materialId, materialExtra, sorting) =>
+            MaterialInfo(materialId, materialExtra, sorting)
         })
     }
     val res = action
@@ -106,7 +101,7 @@ class MaterialDeterminationDao @Inject()(
       event: ConservationEvent
   ): FutureMusitResult[ConservationEvent] = {
     val md = event.asInstanceOf[MaterialDetermination]
-    getSpecialAttributes(eventId).map(m => md.copy(spesMaterialsAndSorting = Some(m)))
+    getSpecialAttributes(eventId).map(m => md.copy(materialInfo = Some(m)))
   }
 
   def getArchaeologyMaterialList: FutureMusitResult[Seq[MaterialArchaeology]] = {
@@ -120,11 +115,31 @@ class MaterialDeterminationDao @Inject()(
       materialEthnTable.filter(mat => mat.hidden === 0).result
     daoUtils.dbRun(action, "getEthnographyMaterialList failed")
   }
+
   def getNumismaticMaterialList: FutureMusitResult[Seq[MaterialNumismatic]] = {
     val action =
       materialNumisTable.filter(mat => mat.hidden === 0).result
     daoUtils.dbRun(action, "getNumismaticMaterialList failed")
   }
+
+  def getArchaeologyMaterial(materialId: Int): FutureMusitResult[MaterialArchaeology] = {
+    val action =
+      materialArchTable.filter(mat => mat.materialId === materialId).result.head
+    daoUtils.dbRun(action, "getArchaeologyMaterial failed")
+  }
+
+  def getEthnographyMaterial(materialId: Int): FutureMusitResult[MaterialEthnography] = {
+    val action =
+      materialEthnTable.filter(mat => mat.materialId === materialId).result.head
+    daoUtils.dbRun(action, "getEthnographyMaterial failed")
+  }
+
+  def getNumismaticMaterial(materialId: Int): FutureMusitResult[MaterialNumismatic] = {
+    val action =
+      materialNumisTable.filter(mat => mat.materialId === materialId).result.head
+    daoUtils.dbRun(action, "getNumismaticMaterial failed")
+  }
+
   private class MaterialArchaeologyTable(tag: Tag)
       extends Table[MaterialArchaeology](
         tag,
@@ -211,35 +226,35 @@ class MaterialDeterminationDao @Inject()(
         Some(SchemaName),
         EaEventMaterialTableName
       ) {
-    val eventId      = column[EventId]("EVENT_ID")
-    val materialId   = column[Int]("MATERIAL_ID")
-    val spesMaterial = column[Option[String]]("SPES_MATERIAL")
-    val sorting      = column[Option[Int]]("SORTING")
+    val eventId       = column[EventId]("EVENT_ID")
+    val materialId    = column[Int]("MATERIAL_ID")
+    val materialExtra = column[Option[String]]("MATERIAL_EXTRA")
+    val sorting       = column[Option[Int]]("SORTING")
 
     val create = (
         eventId: EventId,
         materialId: Int,
-        spesMaterial: Option[String],
+        materialExtra: Option[String],
         sorting: Option[Int]
     ) =>
       EaEventMaterial(
         eventId = eventId,
-        spesMaterialAndSorting = SpesMaterialAndSorting(materialId, spesMaterial, sorting)
+        materialInfo = MaterialInfo(materialId, materialExtra, sorting)
     )
 
     val destroy = (eem: EaEventMaterial) =>
       Some(
         (
           eem.eventId,
-          eem.spesMaterialAndSorting.materialId,
-          eem.spesMaterialAndSorting.spesMaterial,
-          eem.spesMaterialAndSorting.sorting
+          eem.materialInfo.materialId,
+          eem.materialInfo.materialExtra,
+          eem.materialInfo.sorting
         )
     )
 
     // scalastyle:off method.name
     def * =
-      (eventId, materialId, spesMaterial, sorting) <> (create.tupled, destroy)
+      (eventId, materialId, materialExtra, sorting) <> (create.tupled, destroy)
 
     // scalastyle:on method.name
 

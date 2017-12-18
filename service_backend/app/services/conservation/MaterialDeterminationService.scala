@@ -36,4 +36,16 @@ class MaterialDeterminationService @Inject()(
     dao.getNumismaticMaterialList
   }
 
+  def getArchaeologyMaterial(materialId: Int): FutureMusitResult[MaterialArchaeology] = {
+    dao.getArchaeologyMaterial(materialId)
+  }
+
+  def getEthnographyMaterial(materialId: Int): FutureMusitResult[MaterialEthnography] = {
+    dao.getEthnographyMaterial(materialId)
+  }
+
+  def getNumismaticMaterial(materialId: Int): FutureMusitResult[MaterialNumismatic] = {
+    dao.getNumismaticMaterial(materialId)
+  }
+
 }

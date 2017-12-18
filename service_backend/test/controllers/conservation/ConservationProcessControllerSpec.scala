@@ -37,8 +37,8 @@ class ConservationProcessControllerSpec
   val deleteSubEventsUrl = (mid: Int, eventIds: String) =>
     baseEventUrl(mid) + s"?eventIds=$eventIds"
 
-  val materialListUrl = (mid: Int, collectionId: String) =>
-    s"/$mid/conservation/materials?collectionId=$collectionId"
+  /* val materialListUrl = (mid: Int, collectionId: String) =>
+    s"/$mid/conservation/materials?collectionId=$collectionId"*/
 
   def postEvent(json: JsObject, t: BearerToken = token) = {
     wsUrl(baseEventUrl(mid)).withHttpHeaders(t.asHeader).post(json).futureValue
@@ -115,12 +115,12 @@ class ConservationProcessControllerSpec
     cp.json.validate[ConservationProcess].get
   }
 
-  def getMaterialList(mid: MuseumId, collectionId: String, t: BearerToken = token) = {
+  /* def getMaterialList(mid: MuseumId, collectionId: String, t: BearerToken = token) = {
     wsUrl(materialListUrl(mid, collectionId))
       .withHttpHeaders(t.asHeader)
       .get()
       .futureValue
-  }
+  }*/
 
   val standaloneTreatmentId               = 4L
   val compositeConservationProcessEventId = standaloneTreatmentId + 1
@@ -1031,12 +1031,11 @@ class ConservationProcessControllerSpec
         )
 
         val updRes = putEvent(compositeConservationProcessEventId, json)
-        println(updRes.status)
         updRes.status mustBe BAD_REQUEST
       }
     }
     "working with materialdDetermination and Measurement events " should {
-      "get Materiallist for archaeology " in {
+      /*"get Materiallist for archaeology " in {
         val collection = MuseumCollections.Archeology.uuid.asString
         val res        = getMaterialList(mid, collection)
         res.status mustBe OK
@@ -1067,7 +1066,7 @@ class ConservationProcessControllerSpec
         val res        = getMaterialList(mid, collection)
         res.status mustBe BAD_REQUEST
       }
-
+       */
       "Post a new materialDetermination event to our cp compositeConservationProcessEventId" in {
         val mdJson = Json.obj(
           "eventTypeId"    -> materialDeterminationEventTypeId,
@@ -1080,11 +1079,11 @@ class ConservationProcessControllerSpec
               "date"    -> time.dateTimeNow.plusDays(20)
             )
           ),
-          "spesMaterialsAndSorting" -> Seq(
+          "materialInfo" -> Seq(
             Json.obj(
-              "materialId"   -> 1,
-              "spesMaterial" -> "veldig spes tre",
-              "sorting"      -> 1
+              "materialId"    -> 1,
+              "materialExtra" -> "veldig spes tre",
+              "sorting"       -> 1
             )
           )
         )
@@ -1107,13 +1106,13 @@ class ConservationProcessControllerSpec
           "den nyeste og fineste materialbestemmelsen"
         )
 
-        newSubMaterialDet.spesMaterialsAndSorting.map(
+        newSubMaterialDet.materialInfo.map(
           sms => sms.head.materialId mustBe 1
         )
-        newSubMaterialDet.spesMaterialsAndSorting.get.head.spesMaterial mustBe Some(
+        newSubMaterialDet.materialInfo.get.head.materialExtra mustBe Some(
           "veldig spes tre"
         )
-        newSubMaterialDet.spesMaterialsAndSorting.get.head.sorting mustBe Some(1)
+        newSubMaterialDet.materialInfo.get.head.sorting mustBe Some(1)
         val cpe = getEventObject(compositeConservationProcessEventId)
           .asInstanceOf[ConservationProcess]
         cpe.events.get.exists(
@@ -1127,16 +1126,16 @@ class ConservationProcessControllerSpec
           "eventTypeId"    -> materialDeterminationEventTypeId,
           "note"           -> "endring av materialbestemmelsen",
           "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
-          "spesMaterialsAndSorting" -> Seq(
+          "materialInfo" -> Seq(
             Json.obj(
-              "materialId"   -> 2,
-              "spesMaterial" -> "Mye mer spes jern",
-              "sorting"      -> 2
+              "materialId"    -> 2,
+              "materialExtra" -> "Mye mer spes jern",
+              "sorting"       -> 2
             ),
             Json.obj(
-              "materialId"   -> 3,
-              "spesMaterial" -> "Mest spes sølv",
-              "sorting"      -> 3
+              "materialId"    -> 3,
+              "materialExtra" -> "Mest spes sølv",
+              "sorting"       -> 3
             )
           )
         )
@@ -1156,17 +1155,17 @@ class ConservationProcessControllerSpec
         newMdEvent.note mustBe Some(
           "endring av materialbestemmelsen"
         )
-        newMdEvent.spesMaterialsAndSorting.map(sms => sms.length mustBe 2)
-        newMdEvent.spesMaterialsAndSorting.get.head.materialId mustBe 2
-        newMdEvent.spesMaterialsAndSorting.get.head.spesMaterial mustBe Some(
+        newMdEvent.materialInfo.map(sms => sms.length mustBe 2)
+        newMdEvent.materialInfo.get.head.materialId mustBe 2
+        newMdEvent.materialInfo.get.head.materialExtra mustBe Some(
           "Mye mer spes jern"
         )
-        newMdEvent.spesMaterialsAndSorting.get.head.sorting mustBe Some(2)
-        newMdEvent.spesMaterialsAndSorting.get.tail.head.materialId mustBe 3
-        newMdEvent.spesMaterialsAndSorting.get.tail.head.spesMaterial mustBe Some(
+        newMdEvent.materialInfo.get.head.sorting mustBe Some(2)
+        newMdEvent.materialInfo.get.tail.head.materialId mustBe 3
+        newMdEvent.materialInfo.get.tail.head.materialExtra mustBe Some(
           "Mest spes sølv"
         )
-        newMdEvent.spesMaterialsAndSorting.get.tail.head.sorting mustBe Some(3)
+        newMdEvent.materialInfo.get.tail.head.sorting mustBe Some(3)
       }
     }
   }

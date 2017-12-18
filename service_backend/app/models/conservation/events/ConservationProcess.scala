@@ -643,15 +643,15 @@ object Report extends WithDateTimeFormatters with ConservationEventType {
 
 }
 
-case class SpesMaterialAndSorting(
+case class MaterialInfo(
     materialId: Int,
-    spesMaterial: Option[String],
+    materialExtra: Option[String],
     sorting: Option[Int]
 )
 
-object SpesMaterialAndSorting {
-  implicit val format: Format[SpesMaterialAndSorting] =
-    Json.format[SpesMaterialAndSorting]
+object MaterialInfo {
+  implicit val format: Format[MaterialInfo] =
+    Json.format[MaterialInfo]
 }
 
 /**
@@ -672,7 +672,7 @@ case class MaterialDetermination(
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
     documents: Option[Seq[FileId]],
-    spesMaterialsAndSorting: Option[Seq[SpesMaterialAndSorting]]
+    materialInfo: Option[Seq[MaterialInfo]]
 ) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
@@ -702,8 +702,8 @@ case class MaterialDetermination(
 
   def withOutSpesialMatrAndSorting: ConservationEvent = withSpesialMatrAndSorting(None)
 
-  def withSpesialMatrAndSorting(spesMatrAndSort: Option[Seq[SpesMaterialAndSorting]]) =
-    copy(spesMaterialsAndSorting = spesMatrAndSort)
+  def withSpesialMatrAndSorting(materialInfo: Option[Seq[MaterialInfo]]) =
+    copy(materialInfo = materialInfo)
 }
 
 object MaterialDetermination extends WithDateTimeFormatters with ConservationEventType {

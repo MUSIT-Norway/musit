@@ -152,6 +152,8 @@ GET           /:mid/loans/active                                             con
 
 GET           /:mid/conservation/types                    controllers.conservation.ConservationController.getConservationTypes(mid: Int, collectionIds: Option[String])
 GET           /:mid/conservation/materials                 controllers.conservation.ConservationController.getMaterialList(mid: Int, collectionId:String)
+GET           /conservation/materials/:id                 controllers.conservation.ConservationController.getMaterial(id: Int, collectionId:String)
+
 GET           /conservation/treatmentMaterials              controllers.conservation.ConservationController.getTreatmentMaterialList
 GET           /conservation/treatmentKeywords               controllers.conservation.ConservationController.getKeywordList
 GET           /conservation/roles                           controllers.conservation.ConservationController.getRoleList

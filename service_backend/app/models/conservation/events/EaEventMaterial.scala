@@ -5,7 +5,7 @@ import play.api.libs.json.Json
 
 case class EaEventMaterial(
     eventId: EventId,
-    spesMaterialAndSorting: SpesMaterialAndSorting
+    materialInfo: MaterialInfo
 )
 
 object EaEventMaterial {

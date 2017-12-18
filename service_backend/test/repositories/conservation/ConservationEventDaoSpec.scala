@@ -2,11 +2,7 @@ package repositories.conservation
 
 import java.util.UUID
 
-import models.conservation.events.{
-  ActorRoleDate,
-  MaterialDetermination,
-  SpesMaterialAndSorting
-}
+import models.conservation.events.{ActorRoleDate, MaterialDetermination, MaterialInfo}
 import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models._
@@ -102,8 +98,7 @@ class ConservationEventDaoSpec
       documents = Some(
         Seq(FileId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"))
       ),
-      spesMaterialsAndSorting =
-        Some(Seq(SpesMaterialAndSorting(1, Some("veldig spes materiale"), Some(1))))
+      materialInfo = Some(Seq(MaterialInfo(1, Some("veldig spes materiale"), Some(1))))
     )
   }
 
@@ -125,7 +120,7 @@ class ConservationEventDaoSpec
           EventId(1)
         )
       }
-      "return the materialDetermination with spesicif attribures for a spesific EventId" in {
+      "return the materialDetermination with spesific attributes for a spesific EventId" in {
         val res =
           MaterialDeterminationDao
             .findSpecificConservationEventById(defaultMid, EventId(1))
@@ -141,7 +136,7 @@ class ConservationEventDaoSpec
         tr.actorsAndRoles.get.length mustBe 1
         tr.documents.isDefined mustBe true
         tr.documents.get.length mustBe 1
-        tr.spesMaterialsAndSorting.get.length mustBe 1
+        tr.materialInfo.get.length mustBe 1
         //check that actorsAndRoles and affectedThings are removed for json column in db
         val trt  = dao.getEventRowFromEventTable(tr.id.get).value.futureValue.successValue
         val json = EventAccessors.valJson(trt).asInstanceOf[JsObject]
@@ -149,7 +144,7 @@ class ConservationEventDaoSpec
         (json \ "actorsAndRoles").isDefined mustBe false
         (json \ "affectedThings").isDefined mustBe false
         (json \ "documents").isDefined mustBe false
-        (json \ "spesMaterialsAndSorting").isDefined mustBe false
+        (json \ "materialInfo").isDefined mustBe false
       }
     }
   }
