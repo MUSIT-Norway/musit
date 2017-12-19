@@ -104,39 +104,127 @@ class MaterialDeterminationDao @Inject()(
     getSpecialAttributes(eventId).map(m => md.copy(materialInfo = Some(m)))
   }
 
+  private def getMaterialArchaeologyBothNoAndEn(
+      materialArchaeology: MaterialArchaeology
+  ): MaterialArchaeology = {
+    MaterialArchaeology(
+      materialArchaeology.materialId,
+      materialArchaeology.noMaterial,
+      if (materialArchaeology.enMaterial.isEmpty)
+        Some(materialArchaeology.noMaterial + "[NO]")
+      else materialArchaeology.enMaterial
+    )
+  }
+
   def getArchaeologyMaterialList: FutureMusitResult[Seq[MaterialArchaeology]] = {
     val action =
-      materialArchTable.filter(mat => mat.hidden === 0).result
+      materialArchTable
+        .filter(mat => mat.hidden === 0)
+        .result
+        .map(
+          seq =>
+            seq.map(
+              m => getMaterialArchaeologyBothNoAndEn(m)
+          )
+        )
     daoUtils.dbRun(action, "getArchaeologyMaterialList failed")
+  }
+
+  private def getMaterialEthnographyBothNoAndEn(
+      m: MaterialEthnography
+  ): MaterialEthnography = {
+    MaterialEthnography(
+      m.materialId,
+      m.noMaterial,
+      m.noMaterialType,
+      m.noMaterial_element,
+      if (m.enMaterial.isEmpty) Some(m.noMaterial + "[NO]") else m.enMaterial,
+      if (m.enMaterial_type.isEmpty)
+        Some(m.noMaterialType match {
+          case Some(matType) => matType + "[NO]"
+          case None          => "no type"
+        })
+      else m.enMaterial_type,
+      if (m.enMaterial_element.isEmpty)
+        Some(m.noMaterial_element match {
+          case Some(matElem) => matElem + "[NO]"
+          case None          => "no element"
+        })
+      else m.enMaterial_element,
+      m.frMaterial,
+      m.frMaterial_type,
+      m.superior_level
+    )
   }
 
   def getEthnographyMaterialList: FutureMusitResult[Seq[MaterialEthnography]] = {
     val action =
-      materialEthnTable.filter(mat => mat.hidden === 0).result
+      materialEthnTable
+        .filter(mat => mat.hidden === 0)
+        .result
+        .map(
+          seq =>
+            seq.map(
+              m => getMaterialEthnographyBothNoAndEn(m)
+          )
+        )
     daoUtils.dbRun(action, "getEthnographyMaterialList failed")
+  }
+
+  private def getMaterialNumismaticBothNoAndEn(
+      m: MaterialNumismatic
+  ): MaterialNumismatic = {
+    MaterialNumismatic(
+      m.materialId,
+      m.noMaterial,
+      if (m.enMaterial.isEmpty) Some(m.noMaterial + "[NO]")
+      else m.enMaterial
+    )
   }
 
   def getNumismaticMaterialList: FutureMusitResult[Seq[MaterialNumismatic]] = {
     val action =
-      materialNumisTable.filter(mat => mat.hidden === 0).result
+      materialNumisTable
+        .filter(mat => mat.hidden === 0)
+        .result
+        .map(
+          seq =>
+            seq.map(
+              m => getMaterialNumismaticBothNoAndEn(m)
+          )
+        )
     daoUtils.dbRun(action, "getNumismaticMaterialList failed")
   }
 
   def getArchaeologyMaterial(materialId: Int): FutureMusitResult[MaterialArchaeology] = {
     val action =
-      materialArchTable.filter(mat => mat.materialId === materialId).result.head
+      materialArchTable
+        .filter(mat => mat.materialId === materialId)
+        .result
+        .head
+        .map(
+          m => getMaterialArchaeologyBothNoAndEn(m)
+        )
     daoUtils.dbRun(action, "getArchaeologyMaterial failed")
   }
 
   def getEthnographyMaterial(materialId: Int): FutureMusitResult[MaterialEthnography] = {
     val action =
-      materialEthnTable.filter(mat => mat.materialId === materialId).result.head
+      materialEthnTable
+        .filter(mat => mat.materialId === materialId)
+        .result
+        .head
+        .map(m => getMaterialEthnographyBothNoAndEn(m))
     daoUtils.dbRun(action, "getEthnographyMaterial failed")
   }
 
   def getNumismaticMaterial(materialId: Int): FutureMusitResult[MaterialNumismatic] = {
     val action =
-      materialNumisTable.filter(mat => mat.materialId === materialId).result.head
+      materialNumisTable
+        .filter(mat => mat.materialId === materialId)
+        .result
+        .head
+        .map(m => getMaterialNumismaticBothNoAndEn(m))
     daoUtils.dbRun(action, "getNumismaticMaterial failed")
   }
 
@@ -174,7 +262,7 @@ class MaterialDeterminationDao @Inject()(
     val enMaterialElement = column[Option[String]]("EN_MATERIAL_ELEMENT")
     val frMaterial        = column[Option[String]]("FR_MATERIAL")
     val frMaterialType    = column[Option[String]]("FR_MATERIAL_TYPE")
-    val frMaterialElement = column[Option[String]]("FR_MATERIAL_ELEMENT")
+    val superiorLevel     = column[Option[String]]("SUPERIOR_LEVEL")
     val hidden            = column[Int]("HIDDEN")
 
     // scalastyle:off method.name
@@ -189,7 +277,7 @@ class MaterialDeterminationDao @Inject()(
         enMaterialElement,
         frMaterial,
         frMaterialType,
-        frMaterialElement
+        superiorLevel
       ) <> ((MaterialEthnography.apply _).tupled, MaterialEthnography.unapply)
 
     // scalastyle:on method.name

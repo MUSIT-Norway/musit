@@ -46,7 +46,7 @@ case class MaterialEthnography(
     enMaterial_element: Option[String],
     frMaterial: Option[String],
     frMaterial_type: Option[String],
-    frMaterial_element: Option[String]
+    superior_level: Option[String]
 ) extends MaterialBase
 
 object MaterialEthnography {

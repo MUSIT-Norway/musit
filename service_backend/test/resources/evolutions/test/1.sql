@@ -1145,7 +1145,7 @@ CREATE TABLE MUSARK_CONSERVATION.MATERIAL_ETHNOGRAPHY
  en_material_element VARCHAR2(200),
  fr_material         VARCHAR2(200),
  fr_material_type    VARCHAR2(200),
- fr_material_element VARCHAR2(200),
+ superior_level      VARCHAR2(200),
  hidden INTEGER DEFAULT 0 NOT NULL, // 0 = not hidden, 1 = hidden
  PRIMARY KEY(MATERIAL_ID),
  FOREIGN KEY (MATERIAL_ID) REFERENCES MUSARK_CONSERVATION.MATERIAL_COLLECTION (MATERIAL_ID)
@@ -1171,12 +1171,12 @@ INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) va
 INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) values(2,603);
 INSERT INTO MUSARK_CONSERVATION.MATERIAL_COLLECTION(collection_id,old_matrid) values(2,703);
 
-INSERT INTO MUSARK_CONSERVATION.MATERIAL_ARCHAEOLOGY(material_id,no_material,en_material) values(1,'tre','tree');
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_ARCHAEOLOGY(material_id,no_material) values(1,'tre');
 INSERT INTO MUSARK_CONSERVATION.MATERIAL_ARCHAEOLOGY(material_id,no_material,en_material) values(2,'jern','iron');
 INSERT INTO MUSARK_CONSERVATION.MATERIAL_ARCHAEOLOGY(material_id,no_material,en_material, hidden) values(3,'jern','iron',1);
 
 INSERT INTO MUSARK_CONSERVATION.MATERIAL_NUMISMATIC(material_id,no_material,en_material) values(4,'sølv','silver');
-INSERT INTO MUSARK_CONSERVATION.MATERIAL_NUMISMATIC(material_id,no_material,en_material) values(5,'gull','gold');
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_NUMISMATIC(material_id,no_material) values(5,'gull');
 
 INSERT INTO MUSARK_CONSERVATION.MATERIAL_ETHNOGRAPHY(material_id,no_material,no_material_type,no_material_element) values(6,'silke','tekstil','element av ull');
-INSERT INTO MUSARK_CONSERVATION.MATERIAL_ETHNOGRAPHY(material_id,no_material,no_material_type,no_material_element) values(7,'ull','tekstil','element av silke');
+INSERT INTO MUSARK_CONSERVATION.MATERIAL_ETHNOGRAPHY(material_id,no_material,no_material_element,en_material) values(7,'ull','element av silke','wool');

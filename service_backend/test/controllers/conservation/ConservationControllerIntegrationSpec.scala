@@ -99,6 +99,7 @@ class ConservationControllerIntegrationSpec
         val list = res.json.validate[Seq[MaterialArchaeology]].get
         list.length mustBe 2
         list.head.noMaterial mustBe "tre"
+        list.head.enMaterial mustBe Some("tre[NO]") //there is no english term so we return no_term with NO-tag
       }
       "get Materiallist for ethnography " in {
         val collection = MuseumCollections.Ethnography.uuid.asString
@@ -108,7 +109,13 @@ class ConservationControllerIntegrationSpec
         list.length mustBe 2
         list.head.noMaterial mustBe "silke"
         list.head.noMaterialType mustBe Some("tekstil")
+        list.head.enMaterial_type mustBe Some("tekstil[NO]")
         list.head.noMaterial_element mustBe Some("element av ull")
+        list.head.enMaterial_element mustBe Some("element av ull[NO]")
+
+        list.tail.head.enMaterial mustBe Some("wool")
+        list.tail.head.enMaterial_type mustBe Some("no type")
+        list.tail.head.enMaterial_element mustBe Some("element av silke[NO]")
       }
       "get Materiallist for numismatic " in {
         val collection = MuseumCollections.Numismatics.uuid.asString
@@ -117,12 +124,37 @@ class ConservationControllerIntegrationSpec
         val list = res.json.validate[Seq[MaterialNumismatic]].get
         list.length mustBe 2
         list.head.noMaterial mustBe "sølv"
+        list.tail.head.enMaterial mustBe Some("gull[NO]") //there is no english term so we return no_term with NO-tag
       }
       "return bad_request when trying to get a Materiallist for naturalhistory " in {
         val collection = MuseumCollections.Fungi.uuid.asString
         val res        = getMaterialList(mid, collection)
         res.status mustBe BAD_REQUEST
       }
+      "get materialText from ethnography list with a specific materialId " in {
+        val collection      = MuseumCollections.Ethnography.uuid.asString
+        val elist           = getMaterialList(mid, collection)
+        val lista           = elist.json.validate[Seq[MaterialEthnography]].get
+        val materialFirstId = lista.head.materialId
+        val materialLastId  = lista.tail.head.materialId
+        val res             = getSpecificMaterial(materialFirstId, collection)
+        res.status mustBe OK
+        val materialFirst = res.json.validate[MaterialEthnography].get
+        materialFirst.noMaterial mustBe "silke"
+        materialFirst.noMaterialType mustBe Some("tekstil")
+        materialFirst.enMaterial_type mustBe Some("tekstil[NO]")
+        materialFirst.noMaterial_element mustBe Some("element av ull")
+        materialFirst.enMaterial_element mustBe Some("element av ull[NO]")
+        val resLast = getSpecificMaterial(materialLastId, collection)
+        resLast.status mustBe OK
+        val materialLast = resLast.json.validate[MaterialEthnography].get
+        materialLast.noMaterial mustBe "ull"
+        materialLast.enMaterial mustBe Some("wool")
+        materialLast.enMaterial_type mustBe Some("no type")
+        materialLast.enMaterial_element mustBe Some("element av silke[NO]")
+        materialLast.materialId mustBe 7
+      }
+
       "get materialText from numismatic list with a specific materialId" in {
         val collection      = MuseumCollections.Numismatics.uuid.asString
         val materiallist    = getMaterialList(mid, collection) // no one is hidden in this list
@@ -133,11 +165,13 @@ class ConservationControllerIntegrationSpec
         res.status mustBe OK
         val material = res.json.validate[MaterialNumismatic].get
         material.noMaterial mustBe "sølv"
+        material.enMaterial mustBe Some("silver")
         material.materialId mustBe 4
         val resLast = getSpecificMaterial(materialLastId, collection)
         resLast.status mustBe OK
         val materialLast = resLast.json.validate[MaterialNumismatic].get
         materialLast.noMaterial mustBe "gull"
+        materialLast.enMaterial mustBe Some("gull[NO]")
         materialLast.materialId mustBe 5
       }
       "get materialText from archaeology list with a specific materialId" in {
@@ -149,12 +183,14 @@ class ConservationControllerIntegrationSpec
         res.status mustBe OK
         val material = res.json.validate[MaterialArchaeology].get
         material.noMaterial mustBe "tre"
+        material.enMaterial mustBe Some("tre[NO]")
         material.materialId mustBe 1
         val materialLastId = list.tail.head.materialId
         val resLast        = getSpecificMaterial(materialLastId, collection)
         resLast.status mustBe OK
         val materialLast = resLast.json.validate[MaterialNumismatic].get
         materialLast.noMaterial mustBe "jern"
+        materialLast.enMaterial mustBe Some("iron")
         materialLast.materialId mustBe 2 // because the last one is hidden in materialList
 
       }
