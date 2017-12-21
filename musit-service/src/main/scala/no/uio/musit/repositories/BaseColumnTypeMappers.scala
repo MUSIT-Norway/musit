@@ -192,4 +192,15 @@ trait BaseColumnTypeMappers extends ColumnTypesImplicits {
       fileId => fileId.asString,
       uuid => FileId.unsafeFromString(uuid)
     )
+  /* At one point it seemed that the below didn't work, but that the above did.
+   When we put in a proper test, both seemed to work though, so we're not totally sure the above
+   is better than the below version...
+   In the future we perhaps ought to investigate which version is the best
+
+  implicit val fileIdMapper: BaseColumnType[FileId] =
+    MappedColumnType.base[FileId, UUID](
+      fileId => fileId.underlying,
+      uuid => FileId.fromUUID(uuid)
+    )
+ */
 }

@@ -9,6 +9,7 @@ import no.uio.musit.test.matchers.DateTimeMatchers
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import no.uio.musit.time
 import org.joda.time.DateTime
+import org.scalatest.Inspectors.forAll
 import play.api.libs.json._
 import play.api.test.Helpers._
 
@@ -956,16 +957,22 @@ class ConservationProcessControllerSpec
 
       }
       "update the report event in our cp compositeConservationProcessEventId" in {
+        val fileId1 = FileId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c")
+        val fileId2 = FileId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b4c")
+
         val sahJson = Json.obj(
           "id"             -> (hseRiskAssessmentId + 3),
           "eventTypeId"    -> reportEventTypeId,
           "note"           -> "endring av rapporten",
           "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
           "documents" -> Seq(
-            FileId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"),
-            FileId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b4c")
+            fileId1,
+            fileId2
+//            "d63ab290-2fab-42d2-9b57-2475dfbd0b3c",
+//            "d63ab290-2fab-42d2-9b57-2475dfbd0b4c"
           )
         )
+
         val json = Json.obj(
           "id"             -> compositeConservationProcessEventId,
           "eventTypeId"    -> conservationProcessEventTypeId,
@@ -986,6 +993,9 @@ class ConservationProcessControllerSpec
         newSubReport.actorsAndRoles.get.length mustBe 0
         newSubReport.documents.isDefined mustBe true
         newSubReport.documents.get.length mustBe 2
+
+        newSubReport.documents.get.contains(fileId1) mustBe true
+        newSubReport.documents.get.contains(fileId2) mustBe true
         newSubReport.documents.get.head mustBe FileId.unsafeFromString(
           "d63ab290-2fab-42d2-9b57-2475dfbd0b3c"
         )
