@@ -10,11 +10,12 @@ import no.uio.musit.models.MuseumCollections.{
   Ethnography,
   Numismatics
 }
-import no.uio.musit.models.{CollectionUUID, MuseumId}
+import no.uio.musit.models.{CollectionUUID, MuseumId, ObjectUUID}
 import no.uio.musit.security.Permissions.Read
 import no.uio.musit.security.{Authenticator, CollectionManagement}
 import no.uio.musit.service.MusitController
 import play.api.Logger
+import play.api.libs.json.Json
 import play.api.mvc.ControllerComponents
 import services.conservation._
 
@@ -112,5 +113,24 @@ class ConservationController @Inject()(
       }
     }
   }
+
+  /** Return materialId, MaterialExtras from current MaterialDetermination event for a specific object.
+   * This is a generic method so collectionId is not needed. */
+  def getCurrentMaterialDataForObject(mid: MuseumId, oid: String) =
+    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
+      implicit val currUser = request.user
+      ObjectUUID
+        .fromString(oid)
+        .map { oUuid =>
+          futureMusitResultSeqToPlayResult(
+            materialDeterminationService.getCurrentMaterial(mid, oUuid)
+          )
+        }
+        .getOrElse {
+          Future.successful(
+            BadRequest(Json.obj("message" -> s"Invalid object UUID $oid"))
+          )
+        }
+    }
 
 }

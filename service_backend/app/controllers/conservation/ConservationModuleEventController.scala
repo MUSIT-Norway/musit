@@ -4,9 +4,15 @@ import com.google.inject.{Inject, Singleton}
 import controllers.{internalErr, listAsPlayResult, saveRequest, updateRequestOpt}
 import models.conservation.events._
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess, _}
-import no.uio.musit.models.{EventId, EventTypeId, MuseumId, ObjectUUID}
+import no.uio.musit.models._
 import no.uio.musit.functional.Extensions._
 import no.uio.musit.functional.FutureMusitResult
+import no.uio.musit.models.MuseumCollections.{
+  Archeology,
+  Collection,
+  Ethnography,
+  Numismatics
+}
 import no.uio.musit.security.Permissions.{Read, Write}
 import no.uio.musit.security.{AuthenticatedUser, Authenticator, CollectionManagement}
 import no.uio.musit.service.MusitController
@@ -260,4 +266,5 @@ class ConservationModuleEventController @Inject()(
         } yield res
       )
     }
+
 }

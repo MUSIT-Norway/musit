@@ -4,7 +4,7 @@ import com.google.inject.{Inject, Singleton}
 import models.conservation.{MaterialEthnography, _}
 import models.conservation.events._
 import no.uio.musit.functional.FutureMusitResult
-import no.uio.musit.models.EventId
+import no.uio.musit.models.{EventId, MuseumId, ObjectUUID}
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import repositories.conservation.DaoUtils
@@ -76,7 +76,7 @@ class MaterialDeterminationDao @Inject()(
     } yield inserted
   }
 
-  private def getSpecialAttributes(
+  def getSpecialAttributes(
       eventId: EventId
   ): FutureMusitResult[Seq[MaterialInfo]] = {
     val action = {

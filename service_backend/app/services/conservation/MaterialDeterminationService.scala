@@ -1,7 +1,7 @@
 package services.conservation
 
 import com.google.inject.Inject
-import models.conservation.events.{MaterialDetermination, Treatment}
+import models.conservation.events.{MaterialDetermination, MaterialInfo, Treatment}
 import models.conservation._
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models.MuseumCollections.{
@@ -10,7 +10,7 @@ import no.uio.musit.models.MuseumCollections.{
   Ethnography,
   Numismatics
 }
-import no.uio.musit.models.{CollectionUUID, MuseumId}
+import no.uio.musit.models.{CollectionUUID, MuseumId, ObjectUUID}
 import repositories.conservation.dao.{MaterialDeterminationDao, TreatmentDao}
 
 import scala.concurrent.ExecutionContext
@@ -46,6 +46,18 @@ class MaterialDeterminationService @Inject()(
 
   def getNumismaticMaterial(materialId: Int): FutureMusitResult[MaterialNumismatic] = {
     dao.getNumismaticMaterial(materialId)
+  }
+
+  def getCurrentMaterial(
+      mid: MuseumId,
+      oUuid: ObjectUUID
+  ): FutureMusitResult[Seq[MaterialInfo]] = {
+    dao
+      .getCurrentEventForSpecificEventType(oUuid, MaterialDetermination.eventTypeId)
+      .flatMap {
+        case Some(m) => dao.getSpecialAttributes(m)
+        case None    => FutureMusitResult.successful(Seq.empty)
+      }
   }
 
 }

@@ -35,6 +35,9 @@ class ConservationProcessControllerSpec
   val eventsByObjectUuid = (mid: Int) =>
     (id: String) => s"/$mid/conservation/events/object/$id"
 
+  val currentMaterialdataForObjectUuid = (mid: Int) =>
+    (id: String) => s"/$mid/conservation/object/$id/materials"
+
   val deleteSubEventsUrl = (mid: Int, eventIds: String) =>
     baseEventUrl(mid) + s"?eventIds=$eventIds"
 
@@ -55,6 +58,13 @@ class ConservationProcessControllerSpec
 
   def getEventForObject(oid: String, t: BearerToken = token) = {
     wsUrl(eventsByObjectUuid(mid)(oid)).withHttpHeaders(t.asHeader).get().futureValue
+  }
+
+  def getCurrentMaterialDataForObject(oid: String, t: BearerToken = token) = {
+    wsUrl(currentMaterialdataForObjectUuid(mid)(oid))
+      .withHttpHeaders(t.asHeader)
+      .get()
+      .futureValue
   }
 
   def deleteEvents(eventIds: String, t: BearerToken = token) = {
@@ -1045,38 +1055,6 @@ class ConservationProcessControllerSpec
       }
     }
     "working with materialdDetermination and Measurement events " should {
-      /*"get Materiallist for archaeology " in {
-        val collection = MuseumCollections.Archeology.uuid.asString
-        val res        = getMaterialList(mid, collection)
-        res.status mustBe OK
-        val list = res.json.validate[Seq[MaterialArchaeology]].get
-        list.length mustBe 2
-        list.head.noMaterial mustBe "tre"
-      }
-      "get Materiallist for ethnography " in {
-        val collection = MuseumCollections.Ethnography.uuid.asString
-        val res        = getMaterialList(mid, collection)
-        res.status mustBe OK
-        val list = res.json.validate[Seq[MaterialEthnography]].get
-        list.length mustBe 2
-        list.head.noMaterial mustBe "silke"
-        list.head.noMaterialType mustBe Some("tekstil")
-        list.head.noMaterial_element mustBe Some("element av ull")
-      }
-      "get Materiallist for numismatic " in {
-        val collection = MuseumCollections.Numismatics.uuid.asString
-        val res        = getMaterialList(mid, collection)
-        res.status mustBe OK
-        val list = res.json.validate[Seq[MaterialNumismatic]].get
-        list.length mustBe 2
-        list.head.noMaterial mustBe "sølv"
-      }
-      "return bad_request when trying to get a Materiallist for naturalhistory " in {
-        val collection = MuseumCollections.Fungi.uuid.asString
-        val res        = getMaterialList(mid, collection)
-        res.status mustBe BAD_REQUEST
-      }
-       */
       "Post a new materialDetermination event to our cp compositeConservationProcessEventId" in {
         val mdJson = Json.obj(
           "eventTypeId"    -> materialDeterminationEventTypeId,
@@ -1176,6 +1154,49 @@ class ConservationProcessControllerSpec
           "Mest spes sølv"
         )
         newMdEvent.materialInfo.get.tail.head.sorting mustBe Some(3)
+      }
+      "get current materialData from an object" in {
+
+        val res = getCurrentMaterialDataForObject("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        res.status mustBe OK
+        val currentMaterial = res.json.validate[Seq[MaterialInfo]].get
+        currentMaterial.head.materialId mustBe 2
+        currentMaterial.head.materialExtra mustBe Some("Mye mer spes jern")
+
+        //then post another materialDetermination
+        val mdJson = Json.obj(
+          "eventTypeId"    -> materialDeterminationEventTypeId,
+          "note"           -> "den nyeste og fineste materialbestemmelsen",
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
+          "materialInfo" -> Seq(
+            Json.obj(
+              "materialId"    -> 1,
+              "materialExtra" -> "veldig spes tre",
+              "sorting"       -> 1
+            )
+          )
+        )
+        val json = Json.obj(
+          "id"             -> compositeConservationProcessEventId,
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "events"         -> Json.arr(mdJson),
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+
+        val updRes = putEvent(compositeConservationProcessEventId, json)
+        updRes.status mustBe OK
+        //and then check what the new materialdata is now
+        val anotherRes =
+          getCurrentMaterialDataForObject("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        anotherRes.status mustBe OK
+        val currentMatr = anotherRes.json.validate[Seq[MaterialInfo]].get
+        currentMatr.head.materialId mustBe 1
+        currentMatr.head.materialExtra mustBe Some("veldig spes tre")
+
+      }
+      "return NoContent when trying to get materialData from an object that has no materials" in {
+        val res = getCurrentMaterialDataForObject("baab2f60-4f49-40fe-99c8-174b13b12d46")
+        res.status mustBe NO_CONTENT
       }
     }
   }

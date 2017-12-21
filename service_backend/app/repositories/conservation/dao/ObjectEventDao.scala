@@ -25,14 +25,6 @@ class ObjectEventDao @Inject()(
 
   private val objectEventTable = TableQuery[ObjectEventTable]
 
-  /* def dbRun[T](res: DBIO[T], onErrorMsg: String): FutureMusitResult[T] = {
-    db.run(res)
-      .map(MusitSuccess.apply)
-      .recover(
-        nonFatal(onErrorMsg)
-      )
-  }*/
-
   def insertAction(objectUuid: ObjectUUID, eventId: EventId): DBIO[Int] = {
     val action = objectEventTable += ObjectEvent(objectUuid, eventId)
     action

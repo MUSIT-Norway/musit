@@ -153,6 +153,7 @@ GET           /:mid/loans/active                                             con
 GET           /:mid/conservation/types                    controllers.conservation.ConservationController.getConservationTypes(mid: Int, collectionIds: Option[String])
 GET           /:mid/conservation/materials                 controllers.conservation.ConservationController.getMaterialList(mid: Int, collectionId:String)
 GET           /conservation/materials/:id                 controllers.conservation.ConservationController.getMaterial(id: Int, collectionId:String)
+GET           /:mid/conservation/object/:id/materials          controllers.conservation.ConservationController.getCurrentMaterialDataForObject(mid: Int, id: String)
 
 GET           /conservation/treatmentMaterials              controllers.conservation.ConservationController.getTreatmentMaterialList
 GET           /conservation/treatmentKeywords               controllers.conservation.ConservationController.getKeywordList
@@ -167,4 +168,5 @@ GET           /:mid/conservation/events/:id                 controllers.conserva
 
 # Returns _all_ conservation events
 GET           /:mid/conservation/events/object/:id          controllers.conservation.ConservationModuleEventController.getEventsForObject(mid: Int, id: String)
+
 DELETE        /:mid/conservation/events                     controllers.conservation.ConservationModuleEventController.deleteSubEvents(mid: Int, eventIds: String)

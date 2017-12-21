@@ -342,4 +342,19 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     eventTable.filter(e => e.eventId === id && e.isDeleted === 0).update(event)
   }
 
+  def getCurrentEventForSpecificEventType(
+      oUuid: ObjectUUID,
+      eventTypeId: EventTypeId
+  ): FutureMusitResult[Option[EventId]] = {
+    val uuid = oUuid.asString
+    val eventId =
+      sql"""select max(e.event_id) from MUSARK_CONSERVATION.OBJECT_EVENT o, MUSARK_CONSERVATION.event e
+           where o.object_uuid =${uuid} and o.event_id = e.event_id
+           and e.type_id = ${eventTypeId.underlying}
+         """.as[Long].headOption
+    daoUtils
+      .dbRun(eventId, "Unexpected error in getCurrentEventForSpecificEventType")
+      .map(optLong => optLong.map(l => EventId(l)))
+  }
+
 }
