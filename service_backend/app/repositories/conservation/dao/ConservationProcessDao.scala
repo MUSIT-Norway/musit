@@ -27,7 +27,8 @@ class ConservationProcessDao @Inject()(
     val daoUtils: DaoUtils,
     val actorRoleDateDao: ActorRoleDateDao,
     val objectEventDao: ObjectEventDao,
-    val materialDeterminationDao: MaterialDeterminationDao
+    val materialDeterminationDao: MaterialDeterminationDao,
+    val measurementDeterminationDao: MeasurementDeterminationDao
 ) extends ConservationEventTableProvider
     with ConservationTables
     with EventActions
@@ -73,13 +74,14 @@ class ConservationProcessDao @Inject()(
 
   private def getDaoFor(event: ConservationEvent) = {
     event match {
-      case t: Treatment              => treatmentDao
-      case td: TechnicalDescription  => technicalDescriptionDao
-      case sah: StorageAndHandling   => storageAndHandlingDao
-      case hsera: HseRiskAssessment  => hseRiskAssessmentDao
-      case ca: ConditionAssessment   => conditionAssessmentDao
-      case re: Report                => reportDao
-      case md: MaterialDetermination => materialDeterminationDao
+      case t: Treatment                   => treatmentDao
+      case td: TechnicalDescription       => technicalDescriptionDao
+      case sah: StorageAndHandling        => storageAndHandlingDao
+      case hsera: HseRiskAssessment       => hseRiskAssessmentDao
+      case ca: ConditionAssessment        => conditionAssessmentDao
+      case re: Report                     => reportDao
+      case md: MaterialDetermination      => materialDeterminationDao
+      case msmd: MeasurementDetermination => measurementDeterminationDao
     }
   }
 
@@ -177,13 +179,14 @@ class ConservationProcessDao @Inject()(
     )
 
     val dao = subEventType match {
-      case Treatment             => treatmentDao
-      case TechnicalDescription  => technicalDescriptionDao
-      case StorageAndHandling    => storageAndHandlingDao
-      case HseRiskAssessment     => hseRiskAssessmentDao
-      case ConditionAssessment   => conditionAssessmentDao
-      case Report                => reportDao
-      case MaterialDetermination => materialDeterminationDao
+      case Treatment                => treatmentDao
+      case TechnicalDescription     => technicalDescriptionDao
+      case StorageAndHandling       => storageAndHandlingDao
+      case HseRiskAssessment        => hseRiskAssessmentDao
+      case ConditionAssessment      => conditionAssessmentDao
+      case Report                   => reportDao
+      case MaterialDetermination    => materialDeterminationDao
+      case MeasurementDetermination => measurementDeterminationDao
     }
     val subEvent = dao.findConservationEventById(mid, eventId)
     subEvent

@@ -1,5 +1,7 @@
 package no.uio.musit
 
+import play.api.libs.json.{JsError, JsResult, JsSuccess}
+
 import scala.util.{Failure, Success, Try}
 
 object MusitResults {
@@ -100,6 +102,13 @@ object MusitResults {
       value match {
         case Success(t)  => MusitSuccess(t)
         case Failure(ex) => errorFactory(ex)
+      }
+    }
+
+    def fromJsResult[A](jsr: JsResult[A]): MusitResult[A] = {
+      jsr match {
+        case JsSuccess(a, path) => MusitSuccess(a)
+        case JsError(errors)    => MusitValidationError(errors.toString())
       }
     }
 

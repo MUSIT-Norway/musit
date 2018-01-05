@@ -28,7 +28,8 @@ class ConservationController @Inject()(
     val conservationService: ConservationService,
     val treatmentService: TreatmentService,
     val conditionAssessmentService: ConditionAssessmentService,
-    val materialDeterminationService: MaterialDeterminationService
+    val materialDeterminationService: MaterialDeterminationService,
+    val measurementDeterminationService: MeasurementDeterminationService
 ) extends MusitController {
 
   val logger = Logger(classOf[ConservationController])
@@ -124,6 +125,23 @@ class ConservationController @Inject()(
         .map { oUuid =>
           futureMusitResultSeqToPlayResult(
             materialDeterminationService.getCurrentMaterial(mid, oUuid)
+          )
+        }
+        .getOrElse {
+          Future.successful(
+            BadRequest(Json.obj("message" -> s"Invalid object UUID $oid"))
+          )
+        }
+    }
+
+  def getCurrentMeasurementDataForObject(mid: MuseumId, oid: String) =
+    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
+      implicit val currUser = request.user
+      ObjectUUID
+        .fromString(oid)
+        .map { oUuid =>
+          futureMusitResultToPlayResult(
+            measurementDeterminationService.getCurrentMeasurement(mid, oUuid)
           )
         }
         .getOrElse {

@@ -46,10 +46,6 @@ class ObjectEventDao @Inject()(
     } yield oe.eventId
     val res = action.result
     daoUtils.dbRun(res, s"An unexpected error occurred fetching object $objectUuid")
-    /* val action =
-      objectEventTable.filter(oe => oe.objectUuid === objectUuid).map(oe => oe.eventId)
-    val res = action.result
-    daoUtils.dbRun(res, s"An unexpected error occurred fetching object $objectUuid")*/
   }
 
   def getEventObjects(eventId: EventId): FutureMusitResult[Seq[ObjectUUID]] = {

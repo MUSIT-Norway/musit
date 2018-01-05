@@ -2,8 +2,8 @@ package repositories.conservation
 
 import java.util.UUID
 
-import models.conservation.events.{ActorRoleDate, MaterialDetermination, MaterialInfo}
-import no.uio.musit.MusitResults.MusitSuccess
+import models.conservation.events._
+import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models._
 import no.uio.musit.security._
@@ -11,8 +11,10 @@ import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.{DateTimeMatchers, MusitResultValues}
 import no.uio.musit.time.dateTimeNow
 import org.scalatest.OptionValues
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsObject, Json}
 import repositories.conservation.dao._
+
+import scala.collection.script.Include
 
 class ConservationEventDaoSpec
     extends MusitSpecWithAppPerSuite
@@ -20,10 +22,11 @@ class ConservationEventDaoSpec
     with MusitResultValues
     with OptionValues {
 
-  private val MaterialDeterminationDao = fromInstanceCache[MaterialDeterminationDao]
-  private val technicalDescriptionDao  = fromInstanceCache[TechnicalDescriptionDao]
-  private val dao                      = fromInstanceCache[TreatmentDao]
-  private val conservationDao          = fromInstanceCache[ConservationDao]
+  private val materialDeterminationDao    = fromInstanceCache[MaterialDeterminationDao]
+  private val technicalDescriptionDao     = fromInstanceCache[TechnicalDescriptionDao]
+  private val dao                         = fromInstanceCache[TreatmentDao]
+  private val conservationDao             = fromInstanceCache[ConservationDao]
+  private val measurementDeterminationDao = fromInstanceCache[MeasurementDeterminationDao]
 
   val collections = Seq(
     MuseumCollection(
@@ -107,7 +110,7 @@ class ConservationEventDaoSpec
       mid: MuseumId = defaultMid
   ): FutureMusitResult[EventId] = {
     val mde = dummyMaterialDetermination(oids)
-    MaterialDeterminationDao.insert(mid, mde)
+    materialDeterminationDao.insert(mid, mde)
   }
 
   "ConservationEventDao" when {
@@ -122,7 +125,7 @@ class ConservationEventDaoSpec
       }
       "return the materialDetermination with spesific attributes for a spesific EventId" in {
         val res =
-          MaterialDeterminationDao
+          materialDeterminationDao
             .findSpecificConservationEventById(defaultMid, EventId(1))
             .value
             .futureValue
@@ -145,6 +148,16 @@ class ConservationEventDaoSpec
         (json \ "affectedThings").isDefined mustBe false
         (json \ "documents").isDefined mustBe false
         (json \ "materialInfo").isDefined mustBe false
+      }
+    }
+    "MeasurementDetermination test" should {
+      "return error when validate wrong measurementData " in {
+        val res =
+          measurementDeterminationDao.getMeasurementData(EventId(1)).value.futureValue
+        res.isFailure mustBe true
+        res.asInstanceOf[MusitError].message must include(
+          "\'measurementData' is undefined"
+        )
       }
     }
   }

@@ -154,6 +154,7 @@ GET           /:mid/conservation/types                    controllers.conservati
 GET           /:mid/conservation/materials                 controllers.conservation.ConservationController.getMaterialList(mid: Int, collectionId:String)
 GET           /conservation/materials/:id                 controllers.conservation.ConservationController.getMaterial(id: Int, collectionId:String)
 GET           /:mid/conservation/object/:id/materials          controllers.conservation.ConservationController.getCurrentMaterialDataForObject(mid: Int, id: String)
+GET           /:mid/conservation/object/:id/measurements          controllers.conservation.ConservationController.getCurrentMeasurementDataForObject(mid: Int, id: String)
 
 GET           /conservation/treatmentMaterials              controllers.conservation.ConservationController.getTreatmentMaterialList
 GET           /conservation/treatmentKeywords               controllers.conservation.ConservationController.getKeywordList

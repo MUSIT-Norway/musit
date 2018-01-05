@@ -50,7 +50,7 @@ class ConservationControllerIntegrationSpec
           wsUrl(typesUrl(mid)).withHttpHeaders(tokenRead.asHeader).get().futureValue
 
         res.status mustBe OK
-        res.json.as[JsArray].value.size mustBe 8
+        res.json.as[JsArray].value.size mustBe 9
         (res.json \ 0 \ "noName").as[String] mustBe "konserveringsprosess"
         (res.json \ 0 \ "id").as[Int] mustBe 1
       }

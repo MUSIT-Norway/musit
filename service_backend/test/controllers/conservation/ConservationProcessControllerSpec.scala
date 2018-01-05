@@ -38,6 +38,9 @@ class ConservationProcessControllerSpec
   val currentMaterialdataForObjectUuid = (mid: Int) =>
     (id: String) => s"/$mid/conservation/object/$id/materials"
 
+  val currentMeasurementdataForObjectUuid = (mid: Int) =>
+    (id: String) => s"/$mid/conservation/object/$id/measurements"
+
   val deleteSubEventsUrl = (mid: Int, eventIds: String) =>
     baseEventUrl(mid) + s"?eventIds=$eventIds"
 
@@ -62,6 +65,13 @@ class ConservationProcessControllerSpec
 
   def getCurrentMaterialDataForObject(oid: String, t: BearerToken = token) = {
     wsUrl(currentMaterialdataForObjectUuid(mid)(oid))
+      .withHttpHeaders(t.asHeader)
+      .get()
+      .futureValue
+  }
+
+  def getCurrentMeasurementDataForObject(oid: String, t: BearerToken = token) = {
+    wsUrl(currentMeasurementdataForObjectUuid(mid)(oid))
       .withHttpHeaders(t.asHeader)
       .get()
       .futureValue
@@ -149,7 +159,7 @@ class ConservationProcessControllerSpec
           wsUrl(typesUrl(mid)).withHttpHeaders(tokenRead.asHeader).get().futureValue
 
         res.status mustBe OK
-        res.json.as[JsArray].value.size mustBe 8
+        res.json.as[JsArray].value.size mustBe 9
       }
     }
     "working with conservationProcess" should {
@@ -978,8 +988,8 @@ class ConservationProcessControllerSpec
           "documents" -> Seq(
             fileId1,
             fileId2
-//            "d63ab290-2fab-42d2-9b57-2475dfbd0b3c",
-//            "d63ab290-2fab-42d2-9b57-2475dfbd0b4c"
+            //            "d63ab290-2fab-42d2-9b57-2475dfbd0b3c",
+            //            "d63ab290-2fab-42d2-9b57-2475dfbd0b4c"
           )
         )
 
@@ -1054,7 +1064,7 @@ class ConservationProcessControllerSpec
         updRes.status mustBe BAD_REQUEST
       }
     }
-    "working with materialdDetermination and Measurement events " should {
+    "working with materialdDetermination events " should {
       "Post a new materialDetermination event to our cp compositeConservationProcessEventId" in {
         val mdJson = Json.obj(
           "eventTypeId"    -> materialDeterminationEventTypeId,
@@ -1198,6 +1208,161 @@ class ConservationProcessControllerSpec
         val res = getCurrentMaterialDataForObject("baab2f60-4f49-40fe-99c8-174b13b12d46")
         res.status mustBe NO_CONTENT
       }
+    }
+    "working with measurementDetermination events " should {
+      "Post a new measurementDetermination event to our cp compositeConservationProcessEventId" in {
+        val mdJson = Json.obj(
+          "eventTypeId"    -> measurementDeterminationEventTypeId,
+          "note"           -> "det nyeste og fineste målet",
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+        val json = Json.obj(
+          "id"             -> compositeConservationProcessEventId,
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "doneBy"         -> adminId,
+          "completedBy"    -> adminId,
+          "events"         -> Json.arr(mdJson),
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+
+        val updRes = putEvent(compositeConservationProcessEventId, json)
+
+        updRes.status mustBe OK
+
+        val newSubMeasureDet =
+          getEventObject(hseRiskAssessmentId + 6).asInstanceOf[MeasurementDetermination]
+        newSubMeasureDet.note mustBe Some(
+          "det nyeste og fineste målet"
+        )
+        newSubMeasureDet.measurementData.isDefined mustBe false
+        val cpe = getEventObject(compositeConservationProcessEventId)
+          .asInstanceOf[ConservationProcess]
+        cpe.events.get.exists(
+          m => m.eventTypeId.underlying === measurementDeterminationEventTypeId
+        ) mustBe true
+
+      }
+      "update the measurementDetermination event in our cp compositeConservationProcessEventId" in {
+        val sahJson = Json.obj(
+          "id"             -> (hseRiskAssessmentId + 6),
+          "eventTypeId"    -> measurementDeterminationEventTypeId,
+          "note"           -> "endring av målet",
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
+          "measurementData" ->
+            Json.obj(
+              "weight"             -> 2.0,
+              "length"             -> 2.1,
+              "width"              -> 2.2,
+              "thickness"          -> 2.3,
+              "height"             -> 2.4,
+              "largestLength"      -> 2.5,
+              "largestWidth"       -> 2.6,
+              "largestThickness"   -> 2.7,
+              "largestHeight"      -> 2.8,
+              "diameter"           -> 2.9,
+              "tverrmaal"          -> 2.10,
+              "largestMeasurement" -> 2.11,
+              "measurement"        -> "a lot of measurements",
+              "quantity"           -> 2,
+              "quantitySymbols"    -> "<",
+              "fragmentQuantity"   -> 3
+            )
+        )
+        val json = Json.obj(
+          "id"             -> compositeConservationProcessEventId,
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "doneBy"         -> adminId,
+          "completedBy"    -> adminId,
+          "events"         -> Json.arr(sahJson),
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+
+        val updRes = putEvent(compositeConservationProcessEventId, json)
+        println("hit" + updRes.body)
+        updRes.status mustBe OK
+        val newMsDEvent =
+          getEventObject(hseRiskAssessmentId + 6).asInstanceOf[MeasurementDetermination]
+        newMsDEvent.note mustBe Some(
+          "endring av målet"
+        )
+        newMsDEvent.measurementData.isDefined mustBe true
+        newMsDEvent.measurementData.get.weight mustBe Some(2.0)
+        newMsDEvent.measurementData.get.length mustBe Some(2.1)
+        newMsDEvent.measurementData.get.width mustBe Some(2.2)
+        newMsDEvent.measurementData.get.thickness mustBe Some(2.3)
+        newMsDEvent.measurementData.get.height mustBe Some(2.4)
+        newMsDEvent.measurementData.get.largestLength mustBe Some(2.5)
+        newMsDEvent.measurementData.get.largestWidth mustBe Some(2.6)
+        newMsDEvent.measurementData.get.largestThickness mustBe Some(2.7)
+        newMsDEvent.measurementData.get.largestHeight mustBe Some(2.8)
+        newMsDEvent.measurementData.get.diameter mustBe Some(2.9)
+        newMsDEvent.measurementData.get.tverrmaal mustBe Some(2.10)
+        newMsDEvent.measurementData.get.largestMeasurement mustBe Some(2.11)
+        newMsDEvent.measurementData.get.measurement mustBe Some("a lot of measurements")
+        newMsDEvent.measurementData.get.quantity mustBe Some(2)
+        newMsDEvent.measurementData.get.quantitySymbols mustBe Some("<")
+        newMsDEvent.measurementData.get.fragmentQuantity mustBe Some(3)
+
+      }
+      "get current measurement from an object" in {
+
+        val res =
+          getCurrentMeasurementDataForObject("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        res.status mustBe OK
+        val currentMmData = res.json.validate[MeasurementData].get
+        currentMmData.weight mustBe Some(2.0)
+        currentMmData.diameter mustBe Some(2.9)
+
+        //then post another materialDetermination
+        val mdJson = Json.obj(
+          "eventTypeId"    -> measurementDeterminationEventTypeId,
+          "note"           -> "det nyeste og fineste målet",
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
+          "measurementData" ->
+            Json.obj(
+              "weight"             -> 3.0,
+              "length"             -> 3.1,
+              "width"              -> 3.2,
+              "thickness"          -> 3.3,
+              "height"             -> 3.4,
+              "largestLength"      -> 3.5,
+              "largestWidth"       -> 3.6,
+              "largestThickness"   -> 3.7,
+              "largestHeight"      -> 3.8,
+              "diameter"           -> 3.9,
+              "tverrmaal"          -> 3.10,
+              "largestMeasurement" -> 3.11,
+              "measurement"        -> "a lot of new measurements",
+              "quantity"           -> 4,
+              "quantitySymbols"    -> "<",
+              "fragmentQuantity"   -> 5
+            )
+        )
+        val json = Json.obj(
+          "id"             -> compositeConservationProcessEventId,
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "events"         -> Json.arr(mdJson),
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+
+        val updRes = putEvent(compositeConservationProcessEventId, json)
+        updRes.status mustBe OK
+        //and then check what the new measurementData is now
+        val anotherRes =
+          getCurrentMeasurementDataForObject("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        anotherRes.status mustBe OK
+        val currentMm = anotherRes.json.validate[MeasurementData].get
+        currentMm.quantity mustBe Some(4)
+        currentMm.largestHeight mustBe Some(3.8)
+
+      }
+      "return null when trying get current measurement from an object that has no measurements" in {
+        val res =
+          getCurrentMeasurementDataForObject("42b6a92e-de59-4fde-9c46-5c8794be0b33")
+        res.status mustBe OK
+        res.body mustBe "null"
+      }
+
     }
   }
 }

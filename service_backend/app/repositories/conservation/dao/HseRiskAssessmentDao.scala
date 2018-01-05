@@ -20,5 +20,5 @@ class HseRiskAssessmentDao @Inject()(
 ) extends ConservationEventDao[HseRiskAssessment] {
 
   override val logger = Logger(classOf[HseRiskAssessmentDao])
-
+  import profile.api._
 }
