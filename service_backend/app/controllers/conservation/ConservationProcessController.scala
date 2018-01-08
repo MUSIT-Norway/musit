@@ -26,5 +26,5 @@ class ConservationProcessController @Inject()(
     val consService: ConservationProcessService
 ) extends MusitController {
 
-  val logger = Logger(classOf[ConservationController])
+  val logger = Logger(classOf[ConservationProcessController])
 }

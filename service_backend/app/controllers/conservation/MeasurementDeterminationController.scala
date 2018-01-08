@@ -13,5 +13,5 @@ class MeasurementDeterminationController @Inject()(
     val service: MeasurementDeterminationService
 ) extends MusitController {
 
-  val logger = Logger(classOf[ConservationController])
+  val logger = Logger(classOf[MeasurementDeterminationController])
 }

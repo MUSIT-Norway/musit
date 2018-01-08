@@ -20,6 +20,7 @@ trait ConservationJsonGenerators { // test data
   val materialDeterminationEventTypeId = MaterialDetermination.eventTypeId.underlying
   val measurementDeterminationEventTypeId =
     MeasurementDetermination.eventTypeId.underlying
+  val noteEventTypeId = Note.eventTypeId.underlying
 
   val validObjectUUIDs = Seq(
     ObjectUUID.unsafeFromString("baab2f60-4f49-40fe-99c8-174b13b12d46"),

@@ -13,5 +13,5 @@ class StorageAndHandlingController @Inject()(
     val service: StorageAndHandlingService
 ) extends MusitController {
 
-  val logger = Logger(classOf[ConservationController])
+  val logger = Logger(classOf[StorageAndHandlingController])
 }

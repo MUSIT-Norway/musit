@@ -13,5 +13,5 @@ class TechnicalDescriptionController @Inject()(
     val service: TechnicalDescriptionService
 ) extends MusitController {
 
-  val logger = Logger(classOf[ConservationController])
+  val logger = Logger(classOf[TechnicalDescriptionController])
 }

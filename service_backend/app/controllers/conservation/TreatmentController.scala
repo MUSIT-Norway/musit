@@ -13,5 +13,5 @@ class TreatmentController @Inject()(
     val service: TreatmentService
 ) extends MusitController {
 
-  val logger = Logger(classOf[ConservationController])
+  val logger = Logger(classOf[TreatmentController])
 }

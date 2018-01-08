@@ -13,5 +13,5 @@ class ConditionAssessmentController @Inject()(
     val service: ConditionAssessmentService
 ) extends MusitController {
 
-  val logger = Logger(classOf[ConservationController])
+  val logger = Logger(classOf[ConditionAssessmentController])
 }

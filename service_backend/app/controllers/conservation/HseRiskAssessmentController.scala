@@ -13,5 +13,5 @@ class HseRiskAssessmentController @Inject()(
     val service: HseRiskAssessmentService
 ) extends MusitController {
 
-  val logger = Logger(classOf[ConservationController])
+  val logger = Logger(classOf[HseRiskAssessmentController])
 }

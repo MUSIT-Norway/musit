@@ -1001,6 +1001,8 @@ INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('rapport', 'report', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('materialbestemmelse', 'material determination', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('målbestemmelse', 'measurement determination', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
+INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_type, extra_description_attributes) VALUES ('kommentar', 'note', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);
+
 -- INSERTING TREATMENT MATERIALS
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_material) VALUES(1,'Sitronsyre','Sitronsyre');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_material) VALUES(2,'Klucel EF','Klucel EF');

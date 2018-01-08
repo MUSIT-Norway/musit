@@ -28,7 +28,8 @@ class ConservationProcessDao @Inject()(
     val actorRoleDateDao: ActorRoleDateDao,
     val objectEventDao: ObjectEventDao,
     val materialDeterminationDao: MaterialDeterminationDao,
-    val measurementDeterminationDao: MeasurementDeterminationDao
+    val measurementDeterminationDao: MeasurementDeterminationDao,
+    val noteDao: NoteDao
 ) extends ConservationEventTableProvider
     with ConservationTables
     with EventActions
@@ -82,6 +83,7 @@ class ConservationProcessDao @Inject()(
       case re: Report                     => reportDao
       case md: MaterialDetermination      => materialDeterminationDao
       case msmd: MeasurementDetermination => measurementDeterminationDao
+      case note: Note                     => noteDao
     }
   }
 
@@ -187,6 +189,7 @@ class ConservationProcessDao @Inject()(
       case Report                   => reportDao
       case MaterialDetermination    => materialDeterminationDao
       case MeasurementDetermination => measurementDeterminationDao
+      case Note                     => noteDao
     }
     val subEvent = dao.findConservationEventById(mid, eventId)
     subEvent

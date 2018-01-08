@@ -18,7 +18,7 @@ class GeoLocationControllerIntegrationSpec
 
   "Using the GeoLocation API" when {
     "searching for addresses" should {
-      "return a list of results matching the query paramter" ignore {
+      "return a list of results matching the query paramter" in {
         val res = wsUrl(queryParam("Paal Bergsvei 56, Rykkinn"))
           .withHttpHeaders(fakeToken.asHeader)
           .get()
@@ -42,7 +42,7 @@ class GeoLocationControllerIntegrationSpec
         res.json.as[JsArray].value mustBe empty
       }
 
-      "pad with leading 0 for results where zip is a 3 digit integer" ignore {
+      "pad with leading 0 for results where zip is a 3 digit integer" in {
         val res = wsUrl(queryParam("oslo gate 20, oslo"))
           .withHttpHeaders(fakeToken.asHeader)
           .get()

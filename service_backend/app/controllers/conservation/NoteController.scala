@@ -5,13 +5,13 @@ import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import play.api.Logger
 import play.api.mvc.ControllerComponents
-import services.conservation.MaterialDeterminationService
+import services.conservation.NoteService
 @Singleton
-class MaterialDeterminationController @Inject()(
+class NoteController @Inject()(
     val controllerComponents: ControllerComponents,
     val authService: Authenticator,
-    val service: MaterialDeterminationService
+    val service: NoteService
 ) extends MusitController {
 
-  val logger = Logger(classOf[MaterialDeterminationController])
+  val logger = Logger(classOf[NoteController])
 }

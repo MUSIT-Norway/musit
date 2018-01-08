@@ -101,6 +101,10 @@ object ConservationModuleEvent extends TypedConservationEvent {
       MeasurementDetermination.writes.writes(msmd).as[JsObject] ++ Json.obj(
         discriminatorAttributeName -> MeasurementDetermination.eventTypeId
       )
+    case note: Note =>
+      Note.writes.writes(note).as[JsObject] ++ Json.obj(
+        discriminatorAttributeName -> Note.eventTypeId
+      )
   }
 }
 
@@ -159,6 +163,7 @@ object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatt
     implicit val _re   = Report.reads
     implicit val _md   = MaterialDetermination.reads
     implicit val _msmd = MeasurementDetermination.reads
+    implicit val _note = Note.reads
 
     (jsv \ discriminatorAttributeName).validateOpt[EventTypeId] match {
       case JsSuccess(maybeType, path) =>
@@ -186,6 +191,8 @@ object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatt
                   jsv.validate[MaterialDetermination]
                 case MeasurementDetermination =>
                   jsv.validate[MeasurementDetermination]
+                case Note =>
+                  jsv.validate[Note]
               }
             case None =>
               JsError(path, s"$eventTypeId is not a valid type. $missingEventTypeMsg")
@@ -224,6 +231,9 @@ object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatt
     case msmd: MeasurementDetermination =>
       ConservationEvent.writes.writes(msmd).as[JsObject] ++
         Json.obj(discriminatorAttributeName -> MeasurementDetermination.eventTypeId)
+    case note: Note =>
+      ConservationEvent.writes.writes(note).as[JsObject] ++
+        Json.obj(discriminatorAttributeName -> Note.eventTypeId)
   }
 }
 
@@ -308,6 +318,7 @@ object ConservationEventType {
       case Report.eventTypeId                   => Some(Report)
       case MaterialDetermination.eventTypeId    => Some(MaterialDetermination)
       case MeasurementDetermination.eventTypeId => Some(MeasurementDetermination)
+      case Note.eventTypeId                     => Some(Note)
       case _                                    => None
     }
   }
@@ -800,5 +811,58 @@ object MeasurementDetermination
     Json.reads[MeasurementDetermination]
   val writes: Writes[MeasurementDetermination] =
     Json.writes[MeasurementDetermination]
+
+}
+
+case class Note(
+    id: Option[EventId],
+    eventTypeId: EventTypeId,
+    registeredBy: Option[ActorId],
+    registeredDate: Option[DateTime],
+    updatedBy: Option[ActorId],
+    updatedDate: Option[DateTime],
+    completedBy: Option[ActorId],
+    completedDate: Option[DateTime],
+    partOf: Option[EventId],
+    note: Option[String],
+    actorsAndRoles: Option[Seq[ActorRoleDate]],
+    affectedThings: Option[Seq[ObjectUUID]],
+    documents: Option[Seq[FileId]]
+) extends ConservationEvent {
+  // These fields are not relevant for the ConservationProcess type
+  //override val affectedThing: Option[ObjectUUID] = None
+
+  override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withUpdatedInfo(
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
+
+  override def withRegisteredInfo(
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
+
+  override def asPartOf(partOf: Option[EventId]) = copy(partOf = partOf)
+
+  override def withAffectedThings(objects: Option[Seq[ObjectUUID]]): ConservationEvent =
+    copy(affectedThings = objects)
+
+  override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
+    copy(actorsAndRoles = actorsAndRoles)
+
+  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationEvent =
+    copy(documents = fileIds)
+
+}
+
+object Note extends WithDateTimeFormatters with ConservationEventType {
+  val eventTypeId = EventTypeId(10)
+  // The below formatters cannot be implicit due to undesirable implicit ambiguities
+  val reads: Reads[Note] =
+    Json.reads[Note]
+  val writes: Writes[Note] =
+    Json.writes[Note]
 
 }

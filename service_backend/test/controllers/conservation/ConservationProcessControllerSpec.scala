@@ -159,7 +159,7 @@ class ConservationProcessControllerSpec
           wsUrl(typesUrl(mid)).withHttpHeaders(tokenRead.asHeader).get().futureValue
 
         res.status mustBe OK
-        res.json.as[JsArray].value.size mustBe 9
+        res.json.as[JsArray].value.size mustBe 10
       }
     }
     "working with conservationProcess" should {
@@ -1278,7 +1278,6 @@ class ConservationProcessControllerSpec
         )
 
         val updRes = putEvent(compositeConservationProcessEventId, json)
-        println("hit" + updRes.body)
         updRes.status mustBe OK
         val newMsDEvent =
           getEventObject(hseRiskAssessmentId + 6).asInstanceOf[MeasurementDetermination]
@@ -1363,6 +1362,61 @@ class ConservationProcessControllerSpec
         res.body mustBe "null"
       }
 
+    }
+    "working with the subevent Note " should {
+      "Post a new note event to our cp compositeConservationProcessEventId" in {
+        val mdJson = Json.obj(
+          "eventTypeId"    -> noteEventTypeId,
+          "note"           -> "den nyeste og fineste kommentaren",
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+        val json = Json.obj(
+          "id"             -> compositeConservationProcessEventId,
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "doneBy"         -> adminId,
+          "completedBy"    -> adminId,
+          "events"         -> Json.arr(mdJson),
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+
+        val updRes = putEvent(compositeConservationProcessEventId, json)
+
+        updRes.status mustBe OK
+
+        val newSubNote =
+          getEventObject(hseRiskAssessmentId + 8).asInstanceOf[Note]
+        newSubNote.note mustBe Some(
+          "den nyeste og fineste kommentaren"
+        )
+        val cpe = getEventObject(compositeConservationProcessEventId)
+          .asInstanceOf[ConservationProcess]
+        cpe.events.get.exists(
+          m => m.eventTypeId.underlying === noteEventTypeId
+        ) mustBe true
+
+      }
+      "update the note event in our cp compositeConservationProcessEventId" in {
+        val sahJson = Json.obj(
+          "id"             -> (hseRiskAssessmentId + 8),
+          "eventTypeId"    -> noteEventTypeId,
+          "note"           -> "endring av kommentaren",
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+        val json = Json.obj(
+          "id"             -> compositeConservationProcessEventId,
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "doneBy"         -> adminId,
+          "completedBy"    -> adminId,
+          "events"         -> Json.arr(sahJson),
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+
+        val updRes = putEvent(compositeConservationProcessEventId, json)
+        updRes.status mustBe OK
+        val newNoteEvent =
+          getEventObject(hseRiskAssessmentId + 8).asInstanceOf[Note]
+        newNoteEvent.note mustBe Some("endring av kommentaren")
+      }
     }
   }
 }
