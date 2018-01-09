@@ -260,6 +260,11 @@ class ObjectDaoSpec
           dao.findByUUID(mid, uuid, lichenCollections).futureValue.successValue
         res mustBe None
       }
+      "return uuid for an object_id" in {
+        val uuid = dao.uuidsForIds(Seq(ObjectId(1), ObjectId(2)))
+
+        assert(uuid.futureValue.isSuccess)
+      }
     }
 
     "return all children for an object with main object ID" in {

@@ -2,6 +2,7 @@ package no.uio.musit.models
 
 trait MusitId {
   val underlying: Long
+  override def toString(): String = underlying.toString();
 }
 
 object MusitId {
