@@ -124,6 +124,7 @@ class IndexProcessor(
 
     case UpdateIndexFailed(t) =>
       indexStatus = indexStatus.copy(updateIndexStatus = IndexFailed)
+      scheduleNextUpdate()
       log.error(t, s"[$name]: Failed to update index")
 
     case ReindexSuccess(newIndexName) =>
@@ -134,6 +135,7 @@ class IndexProcessor(
 
     case ReindexFailed(t) =>
       indexStatus = indexStatus.copy(reindexStatus = IndexFailed)
+      scheduleNextUpdate()
       log.error(t, s"[$name]: Reindex failed")
 
     case msg =>
