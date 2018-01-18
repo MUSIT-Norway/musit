@@ -667,7 +667,8 @@ class ConservationProcessControllerSpec
           "completedBy"      -> adminId,
           "note"             -> "en ny og fin oppbevaringOgHåndtering",
           "relativeHumidity" -> " >20% ",
-          "lightAndUvLevel"  -> "mye uv",
+          "lightLevel"       -> "mye lys",
+          "uvLevel"          -> "mye uv",
           "temperature"      -> "30+",
           "affectedThings"   -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
           "actorsAndRoles" -> Seq(
@@ -692,7 +693,8 @@ class ConservationProcessControllerSpec
         sah.actorsAndRoles.get.length mustBe 2
         val myActors = sah.actorsAndRoles.get.sortBy(_.roleId)
         sah.relativeHumidity mustBe Some(" >20% ")
-        sah.lightAndUvLevel mustBe Some("mye uv")
+        sah.lightLevel mustBe Some("mye lys")
+        sah.uvLevel mustBe Some("mye uv")
         sah.temperature mustBe Some("30+")
 
         myActors.head.roleId mustBe 1
@@ -702,7 +704,8 @@ class ConservationProcessControllerSpec
           "eventTypeId"      -> storageAndHandlingEventTypeId,
           "note"             -> "den nyeste og fineste oppbevaringOgHåndtering",
           "relativeHumidity" -> " >30% ",
-          "lightAndUvLevel"  -> "mye mer uv",
+          "lightLeven"       -> "mye mere lys",
+          "uvLevel"          -> "mye mer uv",
           "temperature"      -> "30 minus",
           "affectedThings"   -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
           "actorsAndRoles" -> Seq(
@@ -759,7 +762,8 @@ class ConservationProcessControllerSpec
           "eventTypeId"      -> storageAndHandlingEventTypeId,
           "note"             -> "endring av oppbevaringOgHåndtering",
           "relativeHumidity" -> " >30% ",
-          "lightAndUvLevel"  -> "mye mer uv",
+          "lightLevel"       -> "mye mye mer lys",
+          "uvLevel"          -> "mye mer uv",
           "temperature"      -> "30 pluss",
           "affectedThings"   -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
           "actorsAndRoles" -> Seq(
@@ -788,7 +792,8 @@ class ConservationProcessControllerSpec
           "endring av oppbevaringOgHåndtering"
         )
         newSubStorageAndHandle.temperature mustBe Some("30 pluss")
-        newSubStorageAndHandle.lightAndUvLevel mustBe Some("mye mer uv")
+        newSubStorageAndHandle.lightLevel mustBe Some("mye mye mer lys")
+        newSubStorageAndHandle.uvLevel mustBe Some("mye mer uv")
         newSubStorageAndHandle.actorsAndRoles.get.length mustBe 1
       }
 
