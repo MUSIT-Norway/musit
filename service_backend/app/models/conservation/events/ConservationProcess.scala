@@ -626,7 +626,8 @@ case class Report(
     note: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
-    documents: Option[Seq[FileId]]
+    documents: Option[Seq[FileId]],
+    archiveReference: Option[String]
 ) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None

@@ -950,7 +950,8 @@ class ConservationProcessControllerSpec
               "actorId" -> adminId,
               "date"    -> time.dateTimeNow.plusDays(20)
             )
-          )
+          ),
+          "archiveReference" -> "2017/33"
         )
         val json = Json.obj(
           "id"             -> compositeConservationProcessEventId,
@@ -973,6 +974,7 @@ class ConservationProcessControllerSpec
         newSubReport.updatedDate mustBe None
         newSubReport.registeredDate mustApproximate Some(edate)
         newSubReport.registeredBy mustBe Some(adminId)
+        newSubReport.archiveReference mustBe Some("2017/33")
 
         val cpe = getEventObject(compositeConservationProcessEventId)
           .asInstanceOf[ConservationProcess]
@@ -995,7 +997,8 @@ class ConservationProcessControllerSpec
             fileId2
             //            "d63ab290-2fab-42d2-9b57-2475dfbd0b3c",
             //            "d63ab290-2fab-42d2-9b57-2475dfbd0b4c"
-          )
+          ),
+          "archiveReference" -> "2017/66"
         )
 
         val json = Json.obj(
@@ -1018,6 +1021,7 @@ class ConservationProcessControllerSpec
         newSubReport.actorsAndRoles.get.length mustBe 0
         newSubReport.documents.isDefined mustBe true
         newSubReport.documents.get.length mustBe 2
+        newSubReport.archiveReference mustBe Some("2017/66")
 
         newSubReport.documents.get.contains(fileId1) mustBe true
         newSubReport.documents.get.contains(fileId2) mustBe true
