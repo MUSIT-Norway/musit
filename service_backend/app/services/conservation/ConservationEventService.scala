@@ -24,6 +24,7 @@ import no.uio.musit.functional.Extensions._
 abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Inject()(
     implicit
     val dao: ConservationEventDao[T],
+    val conservationService: ConservationService,
     val ec: ExecutionContext
 ) {
 
@@ -35,15 +36,19 @@ abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Injec
   def add(mid: MuseumId, ce: T)(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[Option[ConservationEvent]] = {
-    val event: T =
-      ce.withRegisteredInfo(Some(currUser.id), Some(dateTimeNow)).asInstanceOf[T]
-    val res = for {
-      added <- dao.insert(mid, event)
-      a <- dao
-            .findSpecificConservationEventById(mid, added)
-            .map(m => m.asInstanceOf[Option[ConservationEvent]])
-    } yield a
-    res
+    conservationService
+      .checkTypeOfObjects(ce.affectedThings.getOrElse(Seq.empty))
+      .flatMap { m =>
+        val event: T =
+          ce.withRegisteredInfo(Some(currUser.id), Some(dateTimeNow)).asInstanceOf[T]
+        val res = for {
+          added <- dao.insert(mid, event)
+          a <- dao
+                .findSpecificConservationEventById(mid, added)
+                .map(m => m.asInstanceOf[Option[ConservationEvent]])
+        } yield a
+        res
+      }
   }
 
   /**
@@ -68,25 +73,28 @@ abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Injec
   )(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[Option[ConservationEvent]] = {
+    conservationService
+      .checkTypeOfObjects(event.affectedThings.getOrElse(Seq.empty))
+      .flatMap { m =>
+        val regActorDate = dao
+          .findRegisteredActorDate(mid, eventId)
+          .getOrError(
+            MusitValidationError(
+              s"Unable to find conservation subevent with id (trying to find registered by/date): $eventId"
+            )
+          )
 
-    val regActorDate = dao
-      .findRegisteredActorDate(mid, eventId)
-      .getOrError(
-        MusitValidationError(
-          s"Unable to find conservation subevent with id (trying to find registered by/date): $eventId"
-        )
-      )
+        for {
+          actorDate <- regActorDate
 
-    for {
-      actorDate <- regActorDate
+          eventToWriteToDb = event
+            .withUpdatedInfo(Some(currUser.id), Some(dateTimeNow))
+            .withRegisteredInfo(Some(actorDate.user), Some(actorDate.date))
 
-      eventToWriteToDb = event
-        .withUpdatedInfo(Some(currUser.id), Some(dateTimeNow))
-        .withRegisteredInfo(Some(actorDate.user), Some(actorDate.date))
+          updateRes <- dao.update(mid, eventId, eventToWriteToDb)
 
-      updateRes <- dao.update(mid, eventId, eventToWriteToDb)
-
-    } yield updateRes
+        } yield updateRes
+      }
 
   }
 

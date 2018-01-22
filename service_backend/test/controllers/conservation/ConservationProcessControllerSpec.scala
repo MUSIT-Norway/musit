@@ -113,7 +113,6 @@ class ConservationProcessControllerSpec
         Some("777"),
         Some(testAffectedThings)
       )
-
     postEvent(js)
   }
 
@@ -1425,6 +1424,43 @@ class ConservationProcessControllerSpec
         val newNoteEvent =
           getEventObject(hseRiskAssessmentId + 8).asInstanceOf[Note]
         newNoteEvent.note mustBe Some("endring av kommentaren")
+      }
+    }
+    "checking different stuff with events " should {
+      "return 400 BAD-REQUEST when trying to update an event with an invalid objectUuid " in {
+        val sahJson = Json.obj(
+          "id"             -> (hseRiskAssessmentId + 8),
+          "eventTypeId"    -> noteEventTypeId,
+          "note"           -> "endring av kommentaren",
+          "affectedThings" -> Seq("92b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+        val json = Json.obj(
+          "id"             -> compositeConservationProcessEventId,
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "doneBy"         -> adminId,
+          "completedBy"    -> adminId,
+          "events"         -> Json.arr(sahJson),
+          "affectedThings" -> Seq("92b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+
+        val updRes = putEvent(compositeConservationProcessEventId, json)
+        updRes.status mustBe BAD_REQUEST
+      }
+      "return 400 BAD-REQUEST when adding a standalone treatment with an invalid objectUUid" in {
+
+        val treatmentJson = Json.obj(
+          "eventTypeId"    -> treatmentEventTypeId,
+          "affectedThings" -> Seq("32b6a92e-de59-4fde-9c46-5c8794be0b34"),
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 1,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(20)
+            )
+          )
+        )
+        val res = postEvent(treatmentJson)
+        res.status mustBe BAD_REQUEST
       }
     }
   }

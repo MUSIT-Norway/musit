@@ -64,4 +64,13 @@ class ConservationDao @Inject()(
       else (MusitValidationError(s"Trying to delete a non-existing eventId $eventId"))
   )
 
+  def isValidObject(oid: ObjectUUID): FutureMusitResult[Boolean] = {
+    val uuid = oid.asString
+    val isObject =
+      sql"""select count(*) from MUSIT_MAPPING.MUSITTHING t
+           where t.musitthing_uuid =${uuid}
+         """.as[Int].head
+    daoUtils.dbRun(isObject, "Unexpected error in isValidObject").map(m => m == 1)
+  }
+
 }

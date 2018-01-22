@@ -334,4 +334,5 @@ class ConservationProcessDao @Inject()(
   )(implicit currUsr: AuthenticatedUser): DBIO[Int] = {
     eventTable.filter(_.eventId === id).update(asRow(mid, event))
   }
+
 }

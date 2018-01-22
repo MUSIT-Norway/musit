@@ -18,6 +18,7 @@ import scala.concurrent.ExecutionContext
 class MaterialDeterminationService @Inject()(
     implicit
     override val dao: MaterialDeterminationDao,
+    val consService: ConservationService,
     override val ec: ExecutionContext
 ) extends ConservationEventService[MaterialDetermination] {
 

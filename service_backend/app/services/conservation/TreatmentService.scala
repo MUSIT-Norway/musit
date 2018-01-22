@@ -11,6 +11,7 @@ import scala.concurrent.ExecutionContext
 class TreatmentService @Inject()(
     implicit
     override val dao: TreatmentDao,
+    val consService: ConservationService,
     override val ec: ExecutionContext
 ) extends ConservationEventService[Treatment] {
 

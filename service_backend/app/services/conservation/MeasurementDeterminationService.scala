@@ -11,6 +11,7 @@ import scala.concurrent.ExecutionContext
 class MeasurementDeterminationService @Inject()(
     implicit
     override val dao: MeasurementDeterminationDao,
+    val consService: ConservationService,
     override val ec: ExecutionContext
 ) extends ConservationEventService[MeasurementDetermination] {
 

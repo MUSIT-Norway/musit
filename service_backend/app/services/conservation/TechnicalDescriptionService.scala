@@ -9,5 +9,6 @@ import scala.concurrent.ExecutionContext
 class TechnicalDescriptionService @Inject()(
     implicit
     override val dao: TechnicalDescriptionDao,
+    val consService: ConservationService,
     override val ec: ExecutionContext
 ) extends ConservationEventService[TechnicalDescription] {}

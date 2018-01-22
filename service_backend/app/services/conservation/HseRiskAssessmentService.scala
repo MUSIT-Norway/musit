@@ -9,5 +9,6 @@ import scala.concurrent.ExecutionContext
 class HseRiskAssessmentService @Inject()(
     implicit
     override val dao: HseRiskAssessmentDao,
+    val consService: ConservationService,
     override val ec: ExecutionContext
 ) extends ConservationEventService[HseRiskAssessment] {}

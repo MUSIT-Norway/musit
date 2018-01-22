@@ -23,10 +23,10 @@ trait ConservationJsonGenerators { // test data
   val noteEventTypeId = Note.eventTypeId.underlying
 
   val validObjectUUIDs = Seq(
-    ObjectUUID.unsafeFromString("baab2f60-4f49-40fe-99c8-174b13b12d46"),
-    ObjectUUID.unsafeFromString("376d41e7-c463-45e8-9bde-7a2c9844637e"),
-    ObjectUUID.unsafeFromString("2350578d-0bb0-4601-92d4-817478ad0952"),
-    ObjectUUID.unsafeFromString("c182206b-530c-4a40-b9aa-fba044ecb953"),
+    ObjectUUID.unsafeFromString("37715843-36ab-4f1a-bcfb-dd68a05d0f2c"),
+    ObjectUUID.unsafeFromString("8ae52969-63b8-42be-bfd0-d8ebef2169eb"),
+    ObjectUUID.unsafeFromString("d43e3c5a-8244-4497-bd15-29c844ff8745")
+    /*ObjectUUID.unsafeFromString("c182206b-530c-4a40-b9aa-fba044ecb953"),
     ObjectUUID.unsafeFromString("bf53f481-1db3-4474-98ee-c94df31ec251"),
     ObjectUUID.unsafeFromString("373bb138-ed93-472b-ad57-ccb77ab8c151"),
     ObjectUUID.unsafeFromString("62272640-e29e-4af4-a537-3c49b5f1cf42"),
@@ -47,7 +47,7 @@ trait ConservationJsonGenerators { // test data
     ObjectUUID.unsafeFromString("bbf9a3de-9203-4e90-9b04-4475e4f7f749"),
     ObjectUUID.unsafeFromString("29339044-8696-4c76-9b3e-f153ae63d262"),
     ObjectUUID.unsafeFromString("7ae2521e-904c-432b-998c-bb09810310a9"),
-    ObjectUUID.unsafeFromString("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+    ObjectUUID.unsafeFromString("42b6a92e-de59-4fde-9c46-5c8794be0b34")*/
   )
 
   val testObjectUUID     = validObjectUUIDs.head

@@ -9,5 +9,6 @@ import scala.concurrent.ExecutionContext
 class ReportService @Inject()(
     implicit
     override val dao: ReportDao,
+    val consService: ConservationService,
     override val ec: ExecutionContext
 ) extends ConservationEventService[Report] {}

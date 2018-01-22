@@ -3,7 +3,7 @@ package services.conservation
 import com.google.inject.Inject
 import models.conservation.MaterialBase
 import models.conservation.events.EventRole
-import no.uio.musit.MusitResults.MusitValidationError
+import no.uio.musit.MusitResults.{MusitSuccess, MusitValidationError}
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models.MuseumCollections.{
   Archeology,
@@ -48,6 +48,18 @@ class ConservationService @Inject()(
         eventIds => MusitValidationError(s"Unable to delete eventIds:$eventIds")
       )
       .map(m => ())
+  }
+
+  def checkTypeOfObjects(objects: Seq[ObjectUUID]): FutureMusitResult[Unit] = {
+    val res = objects.map(obj => dao.isValidObject(obj))
+    FutureMusitResult.sequence(res).map(m => m.find(b => !b)).mapAndFlattenMusitResult {
+      case Some(b) => {
+        MusitValidationError("One or more objectIds are not in the object table")
+      }
+      case None => {
+        MusitSuccess(())
+      }
+    }
   }
 
 }

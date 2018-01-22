@@ -11,7 +11,8 @@ import scala.concurrent.ExecutionContext
 class ConditionAssessmentService @Inject()(
     implicit
     override val dao: ConditionAssessmentDao,
-    override val ec: ExecutionContext
+    override val ec: ExecutionContext,
+    val consService: ConservationService
 ) extends ConservationEventService[ConditionAssessment] {
 
   def getConditionCodeList: FutureMusitResult[Seq[ConditionCode]] = {
