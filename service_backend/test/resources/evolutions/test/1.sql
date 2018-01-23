@@ -1052,9 +1052,9 @@ INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_material) VALUES(46,'Salpetersyre','Salpetersyre');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_material) VALUES(47,'Saltsyre','Saltsyre');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_material) VALUES(48,'Skjellakk','Skjellakk');
-INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_material) VALUES(49,'Silikagel','Silikagel');
-INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_material) VALUES(50,'Silikonfett','Silikonfett');
-INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_material) VALUES(51,'Silikongummi','Silikongummi');
+INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material) VALUES(49,'Silikagel');
+INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_material) VALUES(50,'Silikonfett','Silica gel');
+INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material) VALUES(51,'Silikongummi');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_material) VALUES(52,'Silver Polish Wadding','Silver Polish Wadding');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_material) VALUES(53,'Sølvnitrat','Sølvnitrat');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_material) VALUES(54,'Sorbitol','Sorbitol');
@@ -1080,8 +1080,8 @@ INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(material_id, no_material, en_
 
 
 -- INSERTING TREATMENT KEYWORDS
-INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(keyword_id, no_keyword, en_keyword) VALUES(1,'Støvsuget','Støvsuget');
-INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(keyword_id, no_keyword, en_keyword) VALUES(2,'Børstet','Børstet');
+INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(keyword_id, no_keyword, en_keyword) VALUES(1,'Støvsuget','Hoovered');
+INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(keyword_id, no_keyword) VALUES(2,'Børstet',);
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(keyword_id, no_keyword, en_keyword) VALUES(3,'Kjemisk rensing','Kjemisk rensing');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(keyword_id, no_keyword, en_keyword) VALUES(4,'Mekanisk rensing','Mekanisk rensing');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(keyword_id, no_keyword, en_keyword) VALUES(5,'Utvasking','Utvasking');

@@ -5,7 +5,7 @@ import play.api.libs.json.{Format, Json}
 case class TreatmentKeyword(
     id: Int,
     noTerm: String,
-    enTerm: String
+    enTerm: Option[String]
 )
 
 object TreatmentKeyword {

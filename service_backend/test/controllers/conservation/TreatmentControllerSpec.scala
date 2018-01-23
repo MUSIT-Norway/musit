@@ -180,8 +180,12 @@ class TreatmentControllerSpec
             .futureValue
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 73
-        (res.json \ 0 \ "noTerm").as[String] mustBe "Sitronsyre"
-        (res.json \ 0 \ "id").as[Int] mustBe 1
+        (res.json \ 48 \ "noTerm").as[String] mustBe "Silikagel"
+        (res.json \ 48 \ "enTerm").as[String] mustBe "Silikagel[NO]"
+        (res.json \ 48 \ "id").as[Int] mustBe 49
+        (res.json \ 49 \ "noTerm").as[String] mustBe "Silikonfett"
+        (res.json \ 49 \ "enTerm").as[String] mustBe "Silica gel"
+        (res.json \ 49 \ "id").as[Int] mustBe 50
       }
       "return the list of keywords in treatment event" in {
         val res =
@@ -189,7 +193,11 @@ class TreatmentControllerSpec
         res.status mustBe OK
         res.json.as[JsArray].value.size mustBe 16
         (res.json \ 0 \ "noTerm").as[String] mustBe "Støvsuget"
+        (res.json \ 0 \ "enTerm").as[String] mustBe "Hoovered"
         (res.json \ 0 \ "id").as[Int] mustBe 1
+        (res.json \ 1 \ "noTerm").as[String] mustBe "Børstet"
+        (res.json \ 1 \ "enTerm").as[String] mustBe "Børstet[NO]"
+        (res.json \ 1 \ "id").as[Int] mustBe 2
       }
     }
   }

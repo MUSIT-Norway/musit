@@ -100,7 +100,7 @@ trait ConservationTables
       ) {
     val id     = column[Int]("MATERIAL_ID")
     val noTerm = column[String]("NO_MATERIAL")
-    val enTerm = column[String]("EN_MATERIAL")
+    val enTerm = column[Option[String]]("EN_MATERIAL")
 
     // scalastyle:off method.name
     def * =
@@ -117,7 +117,7 @@ trait ConservationTables
       ) {
     val id     = column[Int]("KEYWORD_ID")
     val noTerm = column[String]("NO_KEYWORD")
-    val enTerm = column[String]("EN_KEYWORD")
+    val enTerm = column[Option[String]]("EN_KEYWORD")
 
     // scalastyle:off method.name
     def * =

@@ -559,9 +559,9 @@ INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(no_material, en_material) VAL
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(no_material, en_material) VALUES('Salpetersyre','Salpetersyre');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(no_material, en_material) VALUES('Saltsyre','Saltsyre');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(no_material, en_material) VALUES('Skjellakk','Skjellakk');
-INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(no_material, en_material) VALUES('Silikagel','Silikagel');
+INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(no_material) VALUES('Silikagel');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(no_material, en_material) VALUES('Silikonfett','Silikonfett');
-INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(no_material, en_material) VALUES('Silikongummi','Silikongummi');
+INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(no_material) VALUES('Silikongummi');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(no_material, en_material) VALUES('Silver Polish Wadding','Silver Polish Wadding');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(no_material, en_material) VALUES('Sølvnitrat','Sølvnitrat');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(no_material, en_material) VALUES('Sorbitol','Sorbitol');
@@ -587,8 +587,8 @@ INSERT INTO MUSARK_CONSERVATION.TREATMENT_MATERIAL(no_material, en_material) VAL
 
 
 -- INSERTING TREATMENT KEYWORDS
-INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(no_keyword, en_keyword) VALUES('Støvsuget','Støvsuget');
-INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(no_keyword, en_keyword) VALUES('Børstet','Børstet');
+INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(no_keyword, en_keyword) VALUES('Støvsuget','Hoovered');
+INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(no_keyword) VALUES('Børstet');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(no_keyword, en_keyword) VALUES('Kjemisk rensing','Kjemisk rensing');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(no_keyword, en_keyword) VALUES('Mekanisk rensing','Mekanisk rensing');
 INSERT INTO MUSARK_CONSERVATION.TREATMENT_KEYWORD(no_keyword, en_keyword) VALUES('Utvasking','Utvasking');

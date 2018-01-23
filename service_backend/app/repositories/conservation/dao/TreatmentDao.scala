@@ -29,13 +29,51 @@ class TreatmentDao @Inject()(
 
   import profile.api._
 
+  private def getMaterialBothNoAndEn(
+      material: TreatmentMaterial
+  ): TreatmentMaterial = {
+    TreatmentMaterial(
+      material.id,
+      material.noTerm,
+      if (material.enTerm.isEmpty)
+        Some(material.noTerm + "[NO]")
+      else material.enTerm
+    )
+  }
+
   def getMaterialList: FutureMusitResult[Seq[TreatmentMaterial]] = {
-    daoUtils
-      .dbRun(treatmentMaterialTable.result, "something went wrong in getMaterialList")
+    val action =
+      treatmentMaterialTable.result.map(
+        seq =>
+          seq.map(
+            m => getMaterialBothNoAndEn(m)
+        )
+      )
+    daoUtils.dbRun(action, "getMaterialList failed")
+  }
+
+  private def getKeywordBothNoAndEn(
+      keyword: TreatmentKeyword
+  ): TreatmentKeyword = {
+    TreatmentKeyword(
+      keyword.id,
+      keyword.noTerm,
+      if (keyword.enTerm.isEmpty)
+        Some(keyword.noTerm + "[NO]")
+      else keyword.enTerm
+    )
   }
 
   def getKeywordList: FutureMusitResult[Seq[TreatmentKeyword]] = {
-    daoUtils.dbRun(treatmentKeywordTable.result, "something went wrong in getKeywordList")
+    val action =
+      treatmentKeywordTable.result.map(
+        seq =>
+          seq.map(
+            m => getKeywordBothNoAndEn(m)
+        )
+      )
+    daoUtils.dbRun(action, "something went wrong in getKeywordList")
+    // daoUtils.dbRun(treatmentKeywordTable.result, "something went wrong in getKeywordList")
   }
 
   def getEventRowFromEventTable(eventId: EventId): FutureMusitResult[EventRow] = {
