@@ -2,6 +2,8 @@ package no.uio.musit.models
 
 import java.util.{NoSuchElementException, UUID}
 
+import no.uio.musit.models.EventId.fromLong
+
 import scala.util.Try
 
 trait MusitUUID {
@@ -35,5 +37,4 @@ trait MusitUUIDOps[T <: MusitUUID] {
   def generateAsOpt(): Option[T] = Option(generate())
 
   def fromString(str: String): Option[T] = validate(str).toOption.map(fromUUID)
-
 }

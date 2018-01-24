@@ -2,7 +2,8 @@ package controllers.conservation
 
 import com.google.inject.{Inject, Singleton}
 import controllers.conservation.MusitResultUtils._
-import no.uio.musit.MusitResults.MusitValidationError
+import controllers.{internalErr, parseCollectionIdsParam}
+import no.uio.musit.MusitResults.{MusitError, MusitSuccess, MusitValidationError}
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models.MuseumCollections.{
   Archeology,
@@ -12,16 +13,23 @@ import no.uio.musit.models.MuseumCollections.{
 }
 import no.uio.musit.models.{CollectionUUID, MuseumId, ObjectUUID}
 import no.uio.musit.security.Permissions.Read
-import no.uio.musit.security.{Authenticator, CollectionManagement}
+import no.uio.musit.security.{
+  AccessAll,
+  AuthenticatedUser,
+  Authenticator,
+  CollectionManagement
+}
 import no.uio.musit.service.MusitController
-import play.api.Logger
+import play.api.{Configuration, Logger}
 import play.api.libs.json.Json
 import play.api.mvc.ControllerComponents
 import services.conservation._
+import services.elasticsearch.search.ConservationSearchService
 
 import scala.concurrent.Future
 @Singleton
 class ConservationController @Inject()(
+    val conf: Configuration,
     val controllerComponents: ControllerComponents,
     val authService: Authenticator,
     val cpService: ConservationProcessService,
@@ -29,10 +37,23 @@ class ConservationController @Inject()(
     val treatmentService: TreatmentService,
     val conditionAssessmentService: ConditionAssessmentService,
     val materialDeterminationService: MaterialDeterminationService,
-    val measurementDeterminationService: MeasurementDeterminationService
+    val measurementDeterminationService: MeasurementDeterminationService,
+    val conservationSearchService: ConservationSearchService
 ) extends MusitController {
 
   val logger = Logger(classOf[ConservationController])
+
+  val maxLimitConfKey     = "musit.conservation.search.max-limit"
+  val defaultLimitConfKey = "musit.conservation.search.default-limit"
+
+  private val maxLimit     = conf.getOptional[Int](maxLimitConfKey).getOrElse(100)
+  private val defaultLimit = conf.getOptional[Int](defaultLimitConfKey).getOrElse(25)
+
+  private def calcLimit(l: Int): Int = l match {
+    case lim: Int if lim > maxLimit => maxLimit
+    case lim: Int if lim < 0        => defaultLimit
+    case lim: Int                   => lim
+  }
 
   def getConservationTypes(
       mid: MuseumId,
@@ -151,4 +172,35 @@ class ConservationController @Inject()(
         }
     }
 
+  def search(
+      mid: Int,
+      collectionIds: String,
+      q: Option[String],
+      from: Int,
+      limit: Int
+  ) =
+    MusitSecureAction().async { implicit request =>
+      implicit val currUser: AuthenticatedUser = request.user
+
+      parseCollectionIdsParam(mid, AccessAll, collectionIds) match {
+        case Left(res) => Future.successful(res)
+        case Right(collIds) =>
+          conservationSearchService
+            .restrictedConservationSearch(
+              mid = MuseumId(mid),
+              collectionIds = collIds,
+              from = from,
+              limit = calcLimit(limit),
+              queryStr = q
+            )
+            .map {
+              case MusitSuccess(res) =>
+                Ok(res.raw)
+
+              case err: MusitError =>
+                logger.error(err.message)
+                internalErr(err)
+            }
+      }
+    }
 }

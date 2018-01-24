@@ -83,3 +83,9 @@ trait Indexer {
     IndexConfig(s"${indexAliasName}_${System.currentTimeMillis()}", indexAliasName)
 
 }
+
+object Indexer {
+  val defaultBatchSize              = 1000
+  val defaultConcurrentSourcesCount = 20
+  val defaultFetchsize              = 1000
+}

@@ -41,15 +41,15 @@ class IndexObjects @Inject()(
   private[this] val esBathSize: Int =
     cfg
       .getOptional[Int]("musit.elasticsearch.streams.musitObjects.esBatchSize")
-      .getOrElse(1000)
+      .getOrElse(Indexer.defaultBatchSize)
   private[this] val concurrentSources =
     cfg
       .getOptional[Int]("musit.elasticsearch.streams.musitObjects.concurrentSources")
-      .getOrElse(20)
+      .getOrElse(Indexer.defaultConcurrentSourcesCount)
   private[this] val fetchSize =
     cfg
       .getOptional[Int]("musit.elasticsearch.streams.musitObjects.dbStreamFetchSize")
-      .getOrElse(1000)
+      .getOrElse(Indexer.defaultFetchsize)
 
   override val indexAliasName: String = indexAlias
 

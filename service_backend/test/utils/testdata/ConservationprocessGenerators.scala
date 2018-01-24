@@ -1,6 +1,11 @@
 package utils.testdata
 
-import models.conservation.events.{ActorRoleDate, ConservationProcess}
+import models.conservation.events.{
+  ActorRoleDate,
+  ConservationProcess,
+  MaterialDetermination,
+  MaterialInfo
+}
 import no.uio.musit.models._
 import no.uio.musit.time.dateTimeNow
 
@@ -50,6 +55,40 @@ trait ConservationprocessGenerators {
       completedBy = None,
       completedDate = None,
       events = None
+    )
+  }
+
+  def dummyMaterialDetermination(
+      oids: Option[Seq[ObjectUUID]] = Some(
+        Seq(ObjectUUID.unsafeFromString("35522dc6-d246-4c7b-a23d-501bb34034f7"))
+      )
+  ): MaterialDetermination = {
+    val now = Some(dateTimeNow)
+    MaterialDetermination(
+      id = None,
+      eventTypeId = MaterialDetermination.eventTypeId,
+      registeredBy = None,
+      registeredDate = now,
+      updatedBy = None,
+      updatedDate = now,
+      completedBy = None,
+      completedDate = None,
+      partOf = None,
+      note = Some("hurra note"),
+      actorsAndRoles = Some(
+        Seq(
+          ActorRoleDate(
+            1,
+            ActorId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"),
+            now
+          )
+        )
+      ),
+      affectedThings = oids,
+      documents = Some(
+        Seq(FileId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"))
+      ),
+      materialInfo = Some(Seq(MaterialInfo(1, Some("veldig spes materiale"), Some(1))))
     )
   }
 

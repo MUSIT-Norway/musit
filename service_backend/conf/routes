@@ -161,6 +161,7 @@ GET           /conservation/treatmentKeywords               controllers.conserva
 GET           /conservation/roles                           controllers.conservation.ConservationController.getRoleList
 GET           /conservation/conditionCodes                  controllers.conservation.ConservationController.getConditionCodeList
 
+GET           /:mid/conservation/search                     controllers.conservation.ConservationController.search(mid: Int, collectionIds: String, q: Option[String], from: Int ?= 0, limit: Int ?=25)
 
 # ConservationProcess endpoints
 POST          /:mid/conservation/events                     controllers.conservation.ConservationModuleEventController.addEvent(mid: Int)

@@ -95,6 +95,7 @@ class IndexProcessor(
           log.info(s"[$name]: Updating index")
 
         case _ =>
+          log.warning(s"RequestUpdateIndex Cannot reindex: $name")
           sender() ! NotAccepted
       }
 
@@ -119,30 +120,30 @@ class IndexProcessor(
 
     case UpdateIndexSuccess =>
       indexStatus = indexStatus.copy(updateIndexStatus = IndexSuccess)
-      scheduleNextUpdate()
+      scheduleNextUpdateIndex()
       log.info(s"[$name]: Index is up to date")
 
     case UpdateIndexFailed(t) =>
       indexStatus = indexStatus.copy(updateIndexStatus = IndexFailed)
-      scheduleNextUpdate()
+      scheduleNextUpdateIndex()
       log.error(t, s"[$name]: Failed to update index")
 
     case ReindexSuccess(newIndexName) =>
       indexStatus = indexStatus.copy(reindexStatus = IndexSuccess)
       indexConfig = Some(newIndexName)
-      scheduleNextUpdate()
+      scheduleNextUpdateIndex()
       log.info(s"[$name]: Reindex is done")
 
     case ReindexFailed(t) =>
       indexStatus = indexStatus.copy(reindexStatus = IndexFailed)
-      scheduleNextUpdate()
+      scheduleNextUpdateIndex()
       log.error(t, s"[$name]: Reindex failed")
 
     case msg =>
       unhandled(msg)
   }
-
-  private def scheduleNextUpdate(): Unit = {
+  /*Schedules a RequestUpdateIndex in the future*/
+  private def scheduleNextUpdateIndex(): Unit = {
 
     /*  nextUpdate is cleared at the start of RequestUpdateIndex.
         Alternatively we could perhaps just as well remove this guard and ignore clearing

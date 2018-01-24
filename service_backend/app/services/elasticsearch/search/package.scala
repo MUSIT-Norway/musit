@@ -9,7 +9,8 @@ package object search {
 
   def restrictToCollectionAndMuseumQuery(
       mid: MuseumId,
-      collectionIds: Seq[MuseumCollection]
+      collectionIds: Seq[MuseumCollection],
+      collectionUuidFieldName: String = "collection.uuid"
   )(implicit currUsr: AuthenticatedUser): BoolQueryDefinition = {
     if (currUsr.hasGodMode)
       must(matchQuery("museumId", mid.underlying))
@@ -17,7 +18,7 @@ package object search {
       must(
         should(
           collectionIds.map { c =>
-            matchQuery("collection.uuid", c.uuid.underlying.toString)
+            matchQuery(collectionUuidFieldName, c.uuid.underlying.toString)
           }
         ),
         matchQuery("museumId", mid.underlying)

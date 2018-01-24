@@ -118,3 +118,41 @@ case class AuthenticatedUser(
   }
 
 }
+
+object AuthenticatedUser {
+
+  /* A hack used when the backend needs a user object (when calling backend methods which requires a current user).
+   * Some arbitrary choices here.
+   *
+   * */
+  def createBackendUser(): AuthenticatedUser = {
+    val userSession = UserSession.prepare(None)
+    val userInfo = UserInfo(
+      id = ActorId.fromString("10000000-0000-0000-0000-000000000000").get,
+      secondaryIds = None,
+      name = Some("backend user"),
+      email = None,
+      picture = None
+    )
+
+    /*
+
+TODO: Create (or get) Admin group here when the backend needs to call methods which needs this group/permission
+
+    val adminGroup = GroupInfo(   id = t._1,
+      name = t._2,
+      module = t._3,
+      permission = t._4,
+      museumId = t._5,
+      description = t._6,
+      collections = Seq.empty)
+
+
+     */
+
+    AuthenticatedUser(userSession, userInfo, Seq.empty)
+  }
+
+  val backendUser = createBackendUser()
+
+}

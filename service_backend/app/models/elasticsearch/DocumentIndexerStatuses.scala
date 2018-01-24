@@ -10,5 +10,5 @@ object DocumentIndexerStatuses {
   object NotExecuted  extends DocumentIndexerStatus(true)
   object Executing    extends DocumentIndexerStatus(false)
   object IndexSuccess extends DocumentIndexerStatus(true)
-  object IndexFailed  extends DocumentIndexerStatus(false)
+  object IndexFailed  extends DocumentIndexerStatus(true)
 }

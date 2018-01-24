@@ -11,6 +11,7 @@ import play.api.inject.ApplicationLifecycle
 import services.elasticsearch.index.IndexProcessor.Protocol._
 import services.elasticsearch.index.analysis.IndexAnalysis
 import services.elasticsearch.index.objects.IndexObjects
+import services.elasticsearch.index.conservation.IndexConservation
 
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationDouble
@@ -25,6 +26,7 @@ import scala.concurrent.duration.DurationDouble
 class ElasticsearchIndexService @Inject()(
     indexAnalysis: IndexAnalysis,
     indexMusitObjects: IndexObjects,
+    indexConservation: IndexConservation,
     indexMaintainer: IndexMaintainer,
     lifecycle: ApplicationLifecycle,
     configuration: Configuration
@@ -51,28 +53,29 @@ class ElasticsearchIndexService @Inject()(
     "IndexProcessor-Objects"
   )
 
+  private val conservationActor = as.actorOf(
+    IndexProcessor(indexConservation, indexMaintainer, updateInterval),
+    "IndexProcessor-Conservation"
+  )
+
+  val actors = Array(analysisActor, objectsActor, conservationActor)
+
   lifecycle.addStopHook { () =>
     mat.shutdown()
     as.terminate()
   }
 
-  def reIndexAnalysis(): Future[MusitResult[Unit]] =
-    sendToActor(analysisActor, RequestReindex)
+  def reIndex(actor: ActorRef): Future[MusitResult[Unit]] =
+    sendToActor(actor, RequestReindex)
 
-  def updateIndexAnalysis(): Future[MusitResult[Unit]] =
-    sendToActor(analysisActor, RequestUpdateIndex)
-
-  def reindexObjects(): Future[MusitResult[Unit]] =
-    sendToActor(objectsActor, RequestReindex)
-
-  def updateIndexObjects(): Future[MusitResult[Unit]] =
-    sendToActor(objectsActor, RequestUpdateIndex)
+  def updateIndex(actor: ActorRef): Future[MusitResult[Unit]] =
+    sendToActor(actor, RequestUpdateIndex)
 
   def reindexAll(): Future[Seq[MusitResult[Unit]]] =
-    Future.sequence(List(reIndexAnalysis(), reindexObjects()))
+    Future.sequence(actors.map(actor => reIndex(actor)))
 
   def updateAllIndices(): Future[Seq[MusitResult[Unit]]] =
-    Future.sequence(List(updateIndexAnalysis(), updateIndexObjects()))
+    Future.sequence(actors.map(actor => updateIndex(actor)))
 
   private def sendToActor(actor: ActorRef, cmd: IndexActorCommand) =
     (actor ? cmd).map {
