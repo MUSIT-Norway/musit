@@ -50,17 +50,5 @@ class ConservationTypeDao @Inject()(
       s"A problem occurred fetching conservation types for collection $maybeColl from the DB"
     )
     res.map(ctr => ctr.map(fromConservationTypeRow))
-    /*db.run(collQuery.result)
-      .map { res =>
-        val ats = res.map(fromConservationTypeRow)
-        MusitSuccess(ats)
-      }
-      .recover(
-        nonFatal(
-          s"A problem occurred fetching conservation types for collection $maybeColl from the DB"
-        )
-      )
-  }*/
-
   }
 }

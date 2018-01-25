@@ -170,5 +170,5 @@ GET           /:mid/conservation/events/:id                 controllers.conserva
 
 # Returns _all_ conservation events
 GET           /:mid/conservation/events/object/:id          controllers.conservation.ConservationModuleEventController.getEventsForObject(mid: Int, id: String)
-
+GET           /:mid/conservation/conservations/object/:id   controllers.conservation.ConservationModuleEventController.getConservationWithKeyDataForObject(mid: Int, id: String)
 DELETE        /:mid/conservation/events                     controllers.conservation.ConservationModuleEventController.deleteSubEvents(mid: Int, eventIds: String)

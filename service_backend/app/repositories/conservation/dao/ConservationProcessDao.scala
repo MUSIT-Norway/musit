@@ -1,6 +1,7 @@
 package repositories.conservation.dao
 
 import com.google.inject.{Inject, Singleton}
+import models.conservation.ConservationProcessKeyData
 import models.conservation.events._
 import no.uio.musit.MusitResults.MusitValidationError
 import no.uio.musit.functional.FutureMusitResult
@@ -147,24 +148,6 @@ class ConservationProcessDao @Inject()(
         .map(nr => nr.withAffectedThings(Some(objects)))
     res
   }
-
-  /* def findConservationEventById(
-      mid: MuseumId,
-      id: EventId
-  )(
-      implicit currUsr: AuthenticatedUser
-  ): FutureMusitResult[Option[ConservationEvent]] = {
-    val query = findConservationEventByIdAction(mid, id)
-    val futEvent = daoUtils.dbRun(
-      query,
-      s"An unexpected error occurred fetching event $id (Scala type: ${classTag[T].runtimeClass.getName()}"
-    )
-    val res = for {
-      event  <- futEvent
-      actors <- actorRoleDao.getEventActorRoleDates(id)
-    } yield event.map(m => m.withActorRoleAndDates(Some(actors)))
-    res
-  }*/
 
   def readSubEvent(
       eventTypeId: EventTypeId,

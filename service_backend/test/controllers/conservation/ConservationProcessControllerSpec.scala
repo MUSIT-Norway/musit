@@ -1,7 +1,12 @@
 package controllers.conservation
 
 import models.conservation.events._
-import models.conservation.{MaterialArchaeology, MaterialEthnography, MaterialNumismatic}
+import models.conservation.{
+  ConservationProcessKeyData,
+  MaterialArchaeology,
+  MaterialEthnography,
+  MaterialNumismatic
+}
 import no.uio.musit.formatters.DateTimeFormatters.dateTimeFormatter
 import no.uio.musit.models._
 import no.uio.musit.security.BearerToken
@@ -34,6 +39,9 @@ class ConservationProcessControllerSpec
 
   val eventsByObjectUuid = (mid: Int) =>
     (id: String) => s"/$mid/conservation/events/object/$id"
+
+  val cpsKeyDataByObjectUuid = (mid: Int) =>
+    (id: String) => s"/$mid/conservation/conservations/object/$id"
 
   val currentMaterialdataForObjectUuid = (mid: Int) =>
     (id: String) => s"/$mid/conservation/object/$id/materials"
@@ -135,12 +143,9 @@ class ConservationProcessControllerSpec
     cp.json.validate[ConservationProcess].get
   }
 
-  /* def getMaterialList(mid: MuseumId, collectionId: String, t: BearerToken = token) = {
-    wsUrl(materialListUrl(mid, collectionId))
-      .withHttpHeaders(t.asHeader)
-      .get()
-      .futureValue
-  }*/
+  def getCpsKeyDataForObject(oid: String, t: BearerToken = token) = {
+    wsUrl(cpsKeyDataByObjectUuid(mid)(oid)).withHttpHeaders(t.asHeader).get().futureValue
+  }
 
   val standaloneTreatmentId               = 4L
   val compositeConservationProcessEventId = standaloneTreatmentId + 1
@@ -1412,6 +1417,7 @@ class ConservationProcessControllerSpec
         )
         val json = Json.obj(
           "id"             -> compositeConservationProcessEventId,
+          "caseNumber"     -> "2018/555",
           "eventTypeId"    -> conservationProcessEventTypeId,
           "doneBy"         -> adminId,
           "completedBy"    -> adminId,
@@ -1461,6 +1467,52 @@ class ConservationProcessControllerSpec
         )
         val res = postEvent(treatmentJson)
         res.status mustBe BAD_REQUEST
+      }
+      "get keydata for a conservationprocess for a spesific object" in {
+        val treatment3 = Json.obj(
+          "eventTypeId"    -> treatmentEventTypeId,
+          "doneBy"         -> adminId,
+          "completedBy"    -> adminId,
+          "note"           -> "ny treatment",
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        )
+
+        val json = Json.obj(
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "doneBy"         -> adminId,
+          "completedBy"    -> adminId,
+          "events"         -> Json.arr(treatment3),
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 2,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(5)
+            )
+          )
+        )
+        val newCp = postEvent(json)
+        newCp.status mustBe CREATED
+
+        val res = getCpsKeyDataForObject("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        res.status mustBe OK
+        println(res.body)
+        (res.json \ 0 \ "eventId").as[Long] mustBe 5L
+        (res.json \ 1 \ "eventId").as[Long] mustBe 22L
+        val keyData    = (res.json \ 0 \ "noKeyData").as[JsArray].value.seq
+        val keyData1   = (res.json \ 1 \ "noKeyData").as[JsArray].value.seq
+        val enKeyData  = (res.json \ 0 \ "enKeyData").as[JsArray].value.seq
+        val enKeyData1 = (res.json \ 1 \ "enKeyData").as[JsArray].value.seq
+        keyData.length mustBe 6
+        keyData1.length mustBe 1
+        keyData.exists(p => p.toString() === "\"kommentar\"") mustBe true
+        keyData1.exists(p => p.toString() === "\"behandling\"") mustBe true
+        enKeyData.exists(p => p.toString() === "\"note\"") mustBe true
+        enKeyData1.exists(p => p.toString() === "\"treatment\"") mustBe true
+      }
+      "get 204 No-content when trying to get keydata for a conservationprocess for an invalid ObjectUuid" in {
+        val res = getCpsKeyDataForObject("32b6a92e-de59-4fde-9c46-5c8794be0b34")
+        res.status mustBe NO_CONTENT
       }
     }
   }

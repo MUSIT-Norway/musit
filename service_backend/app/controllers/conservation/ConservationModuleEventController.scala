@@ -2,6 +2,7 @@ package controllers.conservation
 
 import com.google.inject.{Inject, Singleton}
 import controllers.{internalErr, listAsPlayResult, saveRequest, updateRequestOpt}
+import models.conservation.ConservationProcessKeyData
 import models.conservation.events._
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess, _}
 import no.uio.musit.models._
@@ -272,6 +273,25 @@ class ConservationModuleEventController @Inject()(
           res  <- conservationService.deleteSubEvents(mid, eids.map(EventId.fromLong(_)))
         } yield res
       )
+    }
+
+  def getConservationWithKeyDataForObject(mid: Int, oid: String) =
+    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
+      implicit val currUser = request.user
+      ObjectUUID
+        .fromString(oid)
+        .map { uuid =>
+          consService.getConservationWithKeyDataForObject(mid, uuid).value.map {
+            case MusitSuccess(conservationProcessKeyData) =>
+              listAsPlayResult(conservationProcessKeyData)
+            case err: MusitError => internalErr(err)
+          }
+        }
+        .getOrElse {
+          Future.successful(
+            BadRequest(Json.obj("message" -> s"Invalid object UUID $oid"))
+          )
+        }
     }
 
 }

@@ -5,6 +5,7 @@ import models.conservation.events._
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models.{EventId, EventTypeId, ObjectUUID}
 import no.uio.musit.repositories.DbErrorHandlers
+import oracle.net.aso.e
 import play.api.db.slick.DatabaseConfigProvider
 import repositories.conservation.DaoUtils
 import repositories.shared.dao.ColumnTypeMappers
@@ -45,7 +46,23 @@ class ObjectEventDao @Inject()(
       if oe.objectUuid === objectUuid && oe.eventId === e.eventId && e.isDeleted === 0 && e.eventTypeId =!= ConservationProcess.eventTypeId
     } yield oe.eventId
     val res = action.result
-    daoUtils.dbRun(res, s"An unexpected error occurred fetching object $objectUuid")
+    daoUtils
+      .dbRun(res, s"An unexpected error occurred fetching eventIds object $objectUuid")
+  }
+
+  def getConservationProcessIdsAndCaseNumbersForObject(
+      objectUuid: ObjectUUID
+  ): FutureMusitResult[Seq[(EventId, Option[String])]] = {
+    val action = for {
+      oe <- objectEventTable
+      e  <- eventTable
+      if oe.objectUuid === objectUuid && oe.eventId === e.eventId && e.isDeleted === 0 && e.eventTypeId === ConservationProcess.eventTypeId
+    } yield (oe.eventId, e.caseNumber)
+    val res = action.result
+    daoUtils.dbRun(
+      res,
+      s"An unexpected error occurred fetching conservationProcessIds for object $objectUuid"
+    )
   }
 
   def getEventObjects(eventId: EventId): FutureMusitResult[Seq[ObjectUUID]] = {
@@ -55,6 +72,23 @@ class ObjectEventDao @Inject()(
     daoUtils.dbRun(
       res,
       s"An unexpected error occurred fetching objects in getEventObjects for event $eventId"
+    )
+  }
+
+  def getEventsForSpecificCpAndObject(
+      cpId: EventId,
+      objectUuid: ObjectUUID
+  ): FutureMusitResult[Seq[(String, String)]] = {
+    val action = for {
+      oe <- objectEventTable
+      e  <- eventTable
+      et <- conservationTypeTable
+      if oe.objectUuid === objectUuid && oe.eventId === e.eventId && e.isDeleted === 0 && e.partOf === cpId && e.eventTypeId === et.typeId
+    } yield (et.noName, et.enName)
+    val res = action.result
+    daoUtils.dbRun(
+      res,
+      s"An unexpected error occurred fetching conservationEventIds for object $objectUuid"
     )
   }
 

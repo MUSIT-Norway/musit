@@ -1,6 +1,7 @@
 package services.conservation
 
 import com.google.inject.Inject
+import models.conservation.ConservationProcessKeyData
 import models.conservation.events._
 import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
 import no.uio.musit.functional.Extensions._
@@ -10,12 +11,7 @@ import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
 import play.api.Logger
-import repositories.conservation.dao.{
-  ConservationDao,
-  ConservationProcessDao,
-  ConservationTypeDao,
-  TreatmentDao
-}
+import repositories.conservation.dao._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -24,6 +20,7 @@ class ConservationProcessService @Inject()(
     val conservationProcDao: ConservationProcessDao,
     val typeDao: ConservationTypeDao,
     val dao: ConservationDao,
+    val objectDao: ObjectEventDao,
     val subEventDao: TreatmentDao, //Arbitrary choice, to get access to helper functions irrespective of event type
     //Should have been ConservationModuleEventDao (TODO: Make this split)
     val conservationService: ConservationService,
@@ -181,6 +178,47 @@ class ConservationProcessService @Inject()(
 
         } yield maybeUpdated
       }
+  }
+
+  /* def getEventsForObject(mid: MuseumId, objectUuid: ObjectUUID)(
+      implicit currUser: AuthenticatedUser
+  ): FutureMusitResult[Seq[ConservationEvent]] = {
+
+    def localFindById(id: EventId) = findConservationEventById(mid, id)
+    for {
+      ids <- getObjectEventIds(objectUuid)
+      events <- {
+        FutureMusitResult.collectAllOrFail[EventId, ConservationEvent](
+          ids,
+          localFindById,
+          eventIds => MusitValidationError(s"Missing events for these eventIds:$eventIds")
+        )
+      }
+    } yield events
+  }*/
+
+  def getConservationWithKeyDataForObject(mid: MuseumId, objectUuid: ObjectUUID)(
+      implicit currUser: AuthenticatedUser
+  ): FutureMusitResult[Seq[ConservationProcessKeyData]] = {
+
+    val res1 = objectDao.getConservationProcessIdsAndCaseNumbersForObject(objectUuid)
+    val res2 = res1.flatMap { seqTuple =>
+      val res3 = seqTuple.map { m =>
+        objectDao.getEventsForSpecificCpAndObject(m._1, objectUuid).map { eid =>
+          ConservationProcessKeyData(
+            m._1.underlying,
+            m._2,
+            Some(eid.map(_._1)),
+            Some(eid.map(_._2))
+          )
+        }
+
+      }
+      FutureMusitResult.sequence(res3)
+
+    }
+    res2
+
   }
 
 }
