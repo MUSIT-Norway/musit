@@ -1479,6 +1479,7 @@ class ConservationProcessControllerSpec
 
         val json = Json.obj(
           "eventTypeId"    -> conservationProcessEventTypeId,
+          "caseNumber"     -> "2018/666",
           "doneBy"         -> adminId,
           "completedBy"    -> adminId,
           "events"         -> Json.arr(treatment3),
@@ -1493,12 +1494,16 @@ class ConservationProcessControllerSpec
         )
         val newCp = postEvent(json)
         newCp.status mustBe CREATED
-
         val res = getCpsKeyDataForObject("42b6a92e-de59-4fde-9c46-5c8794be0b34")
         res.status mustBe OK
-        println(res.body)
+        val now = time.dateTimeNow
         (res.json \ 0 \ "eventId").as[Long] mustBe 5L
         (res.json \ 1 \ "eventId").as[Long] mustBe 22L
+        (res.json \ 1 \ "caseNumber").as[String] mustBe "2018/666"
+        (res.json \ 0 \ "registeredDate").as[DateTime] mustApproximate (now)
+        (res.json \ 1 \ "registeredBy").as[ActorId] mustBe adminId
+        (res.json \ 0 \ "registeredDate").as[DateTime] mustApproximate (now)
+        (res.json \ 1 \ "registeredBy").as[ActorId] mustBe adminId
         val keyData    = (res.json \ 0 \ "noKeyData").as[JsArray].value.seq
         val keyData1   = (res.json \ 1 \ "noKeyData").as[JsArray].value.seq
         val enKeyData  = (res.json \ 0 \ "enKeyData").as[JsArray].value.seq

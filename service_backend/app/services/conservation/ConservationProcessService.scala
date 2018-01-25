@@ -180,23 +180,6 @@ class ConservationProcessService @Inject()(
       }
   }
 
-  /* def getEventsForObject(mid: MuseumId, objectUuid: ObjectUUID)(
-      implicit currUser: AuthenticatedUser
-  ): FutureMusitResult[Seq[ConservationEvent]] = {
-
-    def localFindById(id: EventId) = findConservationEventById(mid, id)
-    for {
-      ids <- getObjectEventIds(objectUuid)
-      events <- {
-        FutureMusitResult.collectAllOrFail[EventId, ConservationEvent](
-          ids,
-          localFindById,
-          eventIds => MusitValidationError(s"Missing events for these eventIds:$eventIds")
-        )
-      }
-    } yield events
-  }*/
-
   def getConservationWithKeyDataForObject(mid: MuseumId, objectUuid: ObjectUUID)(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[Seq[ConservationProcessKeyData]] = {
@@ -208,6 +191,8 @@ class ConservationProcessService @Inject()(
           ConservationProcessKeyData(
             m._1.underlying,
             m._2,
+            m._3,
+            m._4,
             Some(eid.map(_._1)),
             Some(eid.map(_._2))
           )

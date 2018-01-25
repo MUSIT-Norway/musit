@@ -3,9 +3,10 @@ package repositories.conservation.dao
 import com.google.inject.{Inject, Singleton}
 import models.conservation.events._
 import no.uio.musit.functional.FutureMusitResult
-import no.uio.musit.models.{EventId, EventTypeId, ObjectUUID}
+import no.uio.musit.models.{ActorId, EventId, EventTypeId, ObjectUUID}
 import no.uio.musit.repositories.DbErrorHandlers
 import oracle.net.aso.e
+import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 import repositories.conservation.DaoUtils
 import repositories.shared.dao.ColumnTypeMappers
@@ -52,12 +53,12 @@ class ObjectEventDao @Inject()(
 
   def getConservationProcessIdsAndCaseNumbersForObject(
       objectUuid: ObjectUUID
-  ): FutureMusitResult[Seq[(EventId, Option[String])]] = {
+  ): FutureMusitResult[Seq[(EventId, Option[String], DateTime, ActorId)]] = {
     val action = for {
       oe <- objectEventTable
       e  <- eventTable
       if oe.objectUuid === objectUuid && oe.eventId === e.eventId && e.isDeleted === 0 && e.eventTypeId === ConservationProcess.eventTypeId
-    } yield (oe.eventId, e.caseNumber)
+    } yield (oe.eventId, e.caseNumber, e.registeredDate, e.registeredBy)
     val res = action.result
     daoUtils.dbRun(
       res,
