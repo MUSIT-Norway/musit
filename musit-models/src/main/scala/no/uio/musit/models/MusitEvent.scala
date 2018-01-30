@@ -22,6 +22,8 @@ trait MusitEvent {
 
 trait ModernMusitEvent extends MusitEvent {
 
+  val updatedBy: Option[ActorId]
+
   //These are hacks until we can remove this stuff from MusitEvent,
   // ie until we remodel storage and analysis to the same event data model as conservation
   private def fail(name: String) = {

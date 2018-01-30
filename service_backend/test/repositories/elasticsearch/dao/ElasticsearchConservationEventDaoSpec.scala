@@ -13,6 +13,7 @@ import org.joda.time.DateTime
 import repositories.conservation.dao.MaterialDeterminationDao
 import utils.testdata.BaseDummyData
 import repositories.conservation.dao.TreatmentDao
+import services.conservation.ConservationProcessService
 import services.elasticsearch.index.Indexer
 import utils.testdata.ConservationprocessGenerators
 
@@ -28,11 +29,16 @@ class ElasticsearchConservationEventDaoSpec
   val esEventDao                       = fromInstanceCache[ElasticSearchConservationEventDao]
   private val materialDeterminationDao = fromInstanceCache[MaterialDeterminationDao]
 
+  private val conservationProcessService = fromInstanceCache[ConservationProcessService]
+
   def getEventStream(date: Option[DateTime]) = {
+    val eventTypes =
+      conservationProcessService.getAllEventTypes().value.futureValue.successValue
 
     esEventDao.conservationEventStream(
       date,
       Indexer.defaultFetchsize,
+      eventTypes,
       esEventDao.defaultEventProvider
     )
   }

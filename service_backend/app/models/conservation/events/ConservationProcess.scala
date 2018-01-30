@@ -128,13 +128,13 @@ sealed trait ConservationEvent extends ConservationModuleEvent {
       updatedDate: Option[DateTime]
   ): ConservationEvent
 
+  def asPartOf(partOf: Option[EventId]): ConservationEvent
+
   //A new copy, appropriate when adding/inserting the event in the database.
   def withRegisteredInfo(
       registeredBy: Option[ActorId],
       registeredDate: Option[DateTime]
   ): ConservationEvent
-
-  def asPartOf(partOf: Option[EventId]): ConservationEvent
 
   def withAffectedThings(objects: Option[Seq[ObjectUUID]]): ConservationEvent
 

@@ -1,12 +1,20 @@
 package services.elasticsearch.index
 
+import akka.NotUsed
 import akka.actor.{ActorRef, ActorSystem}
+import akka.stream.scaladsl.Source
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.testkit.{ImplicitSender, TestKit, TestProbe}
+import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
+import com.sksamuel.elastic4s.http.HttpClient
+import com.sksamuel.elastic4s.indexes.CreateIndexDefinition
 import models.elasticsearch.{IndexCallback, IndexConfig}
+import no.uio.musit.functional.FutureMusitResult
+import org.joda.time.DateTime
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import org.scalatest.{BeforeAndAfterAll, MustMatchers, WordSpecLike}
+import repositories.core.dao.IndexStatusDao
 import services.elasticsearch.index.IndexProcessor.Protocol._
 
 import scala.concurrent.duration.DurationInt
@@ -28,11 +36,14 @@ class IndexProcessorSpec
     shutdown(system)
   }
 
+  def createDummyIndexer(maintainer: IndexMaintainer) =
+    new DummyIndexer(maintainer, null)
+
   "IndexProcessor" should {
 
     "give `Indexing` status when reindexing is running" in {
       val maintainer = new DummyIndexMaintainer(false)
-      val indexer    = new DummyIndexer(maintainer)
+      val indexer    = createDummyIndexer(maintainer)
       val ref        = system.actorOf(IndexProcessor(indexer, maintainer, None, 1 millis))
 
       eventuallyStatus(ref, Indexing)
@@ -40,7 +51,7 @@ class IndexProcessorSpec
 
     "give `Ready` status when indexing is done" in {
       val maintainer = new DummyIndexMaintainer(false)
-      val indexer    = new DummyIndexer(maintainer)
+      val indexer    = createDummyIndexer(maintainer)
       val ref        = system.actorOf(IndexProcessor(indexer, maintainer, None, 1 millis))
 
       eventuallyStatus(ref, Indexing)
@@ -50,7 +61,7 @@ class IndexProcessorSpec
 
     "give `Ready` status when index exists" in {
       val maintainer = new DummyIndexMaintainer(true)
-      val indexer    = new DummyIndexer(maintainer)
+      val indexer    = createDummyIndexer(maintainer)
       val ref        = system.actorOf(IndexProcessor(indexer, maintainer, None, 1 millis))
 
       eventuallyStatus(ref, Indexing)
@@ -60,7 +71,7 @@ class IndexProcessorSpec
 
     "give `Accepted` status when not indexing on `RequestReindex` command" in {
       val maintainer = new DummyIndexMaintainer(false)
-      val indexer    = new DummyIndexer(maintainer)
+      val indexer    = createDummyIndexer(maintainer)
       val ref        = system.actorOf(IndexProcessor(indexer, maintainer, None, 1 millis))
 
       eventuallyStatus(ref, Indexing)
@@ -73,7 +84,7 @@ class IndexProcessorSpec
 
     "give `NotAccepted` status when indexing on `RequestReindex` command" in {
       val maintainer = new DummyIndexMaintainer(false)
-      val indexer    = new DummyIndexer(maintainer)
+      val indexer    = createDummyIndexer(maintainer)
       val ref        = system.actorOf(IndexProcessor(indexer, maintainer, None, 1 millis))
 
       eventuallyStatus(ref, Indexing)
@@ -84,7 +95,7 @@ class IndexProcessorSpec
 
     "give `Accepted` status when not indexing on `RequestUpdateIndex` command" in {
       val maintainer = new DummyIndexMaintainer(true)
-      val indexer    = new DummyIndexer(maintainer)
+      val indexer    = createDummyIndexer(maintainer)
       val ref        = system.actorOf(IndexProcessor(indexer, maintainer, None, 1 millis))
 
       eventuallyStatus(ref, Indexing)
@@ -97,7 +108,7 @@ class IndexProcessorSpec
 
     "give `NotAccepted` status when indexing on `RequestUpdateIndex` command" in {
       val maintainer = new DummyIndexMaintainer(true)
-      val indexer    = new DummyIndexer(maintainer)
+      val indexer    = createDummyIndexer(maintainer)
       val ref        = system.actorOf(IndexProcessor(indexer, maintainer, None, 1 millis))
 
       eventuallyStatus(ref, Indexing)
@@ -108,7 +119,7 @@ class IndexProcessorSpec
 
     "give `ScheduleUpdate` status when scheduled" in {
       val maintainer = new DummyIndexMaintainer(true)
-      val indexer    = new DummyIndexer(maintainer)
+      val indexer    = createDummyIndexer(maintainer)
       val ref =
         system.actorOf(IndexProcessor(indexer, maintainer, Some(1 minute), 1 millis))
 
@@ -127,8 +138,12 @@ class IndexProcessorSpec
     }
   }
 
-  class DummyIndexer(val indexMaintainer: IndexMaintainer) extends Indexer {
+  class DummyIndexer(
+      val indexMaintainer: IndexMaintainer,
+      override val indexStatusDao: IndexStatusDao
+  ) extends Indexer {
     override val indexAliasName: String = "dummy"
+    override val client: HttpClient     = null
 
     private[this] var indexCallbackOpt: Option[IndexCallback]  = None
     private[this] var updateCallbackOpt: Option[IndexCallback] = None
@@ -138,8 +153,8 @@ class IndexProcessorSpec
     }
 
     override def reindexDocuments(
-        indexCallback: IndexCallback,
-        indexConfig: IndexConfig
+        indexConfig: IndexConfig,
+        indexCallback: IndexCallback
     )(implicit ec: ExecutionContext, mat: Materializer, as: ActorSystem): Unit = {
       indexCallbackOpt = Some(indexCallback)
     }
@@ -160,6 +175,23 @@ class IndexProcessorSpec
       updateCallbackOpt.foreach(_.onSuccess(IndexConfig("dummy_index", indexAliasName)))
       updateCallbackOpt = None
     }
+
+    def createIndexMapping(indexName: String)(
+        implicit ec: ExecutionContext
+    ): CreateIndexDefinition =
+      throw new IllegalStateException(
+        "Not meant to be calling DummyIndexer.createIndexMapping"
+      )
+
+    def createElasticSearchBulkSource(
+        config: IndexConfig,
+        eventsAfter: Option[DateTime]
+    )(
+        implicit ec: ExecutionContext
+    ): FutureMusitResult[Source[BulkCompatibleDefinition, NotUsed]] =
+      throw new IllegalStateException(
+        "Not meant to be calling DummyIndexer.createElasticSearchBulkSource"
+      )
   }
 
   class DummyIndexMaintainer(hasIndex: Boolean) extends IndexMaintainer(null) {

@@ -65,18 +65,17 @@ class ElasticsearchIndexService @Inject()(
     as.terminate()
   }
 
-  def reIndex(actor: ActorRef): Future[MusitResult[Unit]] =
-    sendToActor(actor, RequestReindex)
+  /* Jeg kan ikke se at denne koden brukes noe sted. Jeg har kommentert den ut for å tydeliggjøre dette.
+  Vet ikke om det var noe som var i bruk en gang i tiden eller var tenkt som en del av noe fremtidig?
 
-  def updateIndex(actor: ActorRef): Future[MusitResult[Unit]] =
-    sendToActor(actor, RequestUpdateIndex)
 
-  def reindexAll(): Future[Seq[MusitResult[Unit]]] =
-    Future.sequence(actors.map(actor => reIndex(actor)))
+  def reindexAll(): Future[Seq[MusitResult[Unit]]] = {
+    Future.sequence(actors.map(actor => sendToActor(actor, RequestReindex)))
+  }
 
-  def updateAllIndices(): Future[Seq[MusitResult[Unit]]] =
-    Future.sequence(actors.map(actor => updateIndex(actor)))
-
+  def updateAllIndices(): Future[Seq[MusitResult[Unit]]] = {
+    Future.sequence(actors.map(actor => sendToActor(actor, RequestUpdateIndex)))
+  }
   private def sendToActor(actor: ActorRef, cmd: IndexActorCommand) =
     (actor ? cmd).map {
       case Accepted => MusitSuccess(())
@@ -85,4 +84,5 @@ class ElasticsearchIndexService @Inject()(
         MusitGeneralError(other.toString)
       }
     }
+ */
 }

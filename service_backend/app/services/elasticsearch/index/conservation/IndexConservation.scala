@@ -1,114 +1,60 @@
 package services.elasticsearch.index.conservation
 
 import akka.NotUsed
-import akka.actor.ActorSystem
-import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, Merge, Source}
-import akka.stream.{Materializer, SourceShape}
+import akka.stream.scaladsl.Source
 import com.google.inject.Inject
-import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
 import com.sksamuel.elastic4s.http.HttpClient
-import com.sksamuel.elastic4s.indexes.IndexDefinition
-import com.sksamuel.elastic4s.playjson._
-import models.conservation.events.ConservationEvent
+import com.sksamuel.elastic4s.indexes.CreateIndexDefinition
 import models.elasticsearch._
-import models.musitobject.MusitObject
-import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
+import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.functional.FutureMusitResult
-import no.uio.musit.models.{EventId, EventTypeId, MuseumId}
 import org.joda.time.DateTime
 import play.api.{Configuration, Logger}
-import repositories.conservation.dao.ConservationProcessDao
 import repositories.core.dao.IndexStatusDao
-import repositories.elasticsearch.dao.{
-  ElasticSearchConservationEventDao,
-  ElasticsearchEventDao,
-  ElasticsearchObjectsDao
-}
+import repositories.elasticsearch.dao.ElasticSearchConservationEventDao
 import services.actor.ActorService
-import services.elasticsearch.index.IndexerBase
-//import services.elasticsearch.index
-import services.elasticsearch.index.shared.{
-  DatabaseMaintainedElasticSearchIndexSink,
-  DatabaseMaintainedElasticSearchUpdateIndexSink
-}
-import services.elasticsearch.index.{IndexMaintainer, Indexer, TypeFlow}
+import services.conservation.ConservationProcessService
+import services.elasticsearch.index.{IndexMaintainer, Indexer}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class IndexConservation @Inject()(
     elasticsearchEventDao: ElasticSearchConservationEventDao,
-    indexStatusDao: IndexStatusDao,
+    override val indexStatusDao: IndexStatusDao,
     actorService: ActorService,
-    client: HttpClient,
+    conservationProcessService: ConservationProcessService,
+    override val client: HttpClient,
     cfg: Configuration,
     override val indexMaintainer: IndexMaintainer
-) extends IndexerBase(indexStatusDao) {
+) extends Indexer {
 
   val logger = Logger(classOf[IndexConservation])
 
   override val indexAliasName: String = indexAlias
 
-  override def createIndex()(implicit ec: ExecutionContext): Future[IndexConfig] = {
-    val config = createIndexConfig()
-    client.execute(ConservationIndexConfig.config(config.name)).flatMap { res =>
-      if (res.acknowledged) Future.successful(config)
-      else Future.failed(new IllegalStateException("Unable to setup index"))
-    }
-  }
+  override def createIndexMapping(
+      indexName: String
+  )(implicit ec: ExecutionContext): CreateIndexDefinition =
+    ConservationIndexConfig.config(indexName)
 
-  override def reindexDocuments(indexCallback: IndexCallback, config: IndexConfig)(
-      implicit ec: ExecutionContext,
-      mat: Materializer,
-      as: ActorSystem
-  ): Unit = {
-
-    val dbSource = elasticsearchEventDao.conservationEventStream(
-      None,
-      Indexer.defaultFetchsize,
-      elasticsearchEventDao.defaultEventProvider
-    )
-    val esBulkSource = createFlow(dbSource, config)
-    val es = new DatabaseMaintainedElasticSearchIndexSink(
-      client,
-      indexMaintainer,
-      indexStatusDao,
-      config,
-      indexCallback
-    ).toElasticsearchSink
-
-    esBulkSource.runWith(es)
-  }
-
-  override def updateExistingIndex(
-      indexConfig: IndexConfig,
-      indexCallback: IndexCallback
+  override def createElasticSearchBulkSource(
+      config: IndexConfig,
+      eventsAfter: Option[DateTime]
   )(
-      implicit ec: ExecutionContext,
-      mat: Materializer,
-      as: ActorSystem
-  ): Unit = {
+      implicit ec: ExecutionContext
+  ): FutureMusitResult[Source[BulkCompatibleDefinition, NotUsed]] = {
 
-    findLastIndexDateTime().map {
-      _.map { dt =>
-        elasticsearchEventDao.conservationEventStream(
-          Some(dt),
-          Indexer.defaultFetchsize,
-          elasticsearchEventDao.defaultEventProvider
-        )
-      }.getOrElse(Source.empty)
-    }.map { dbSource =>
-      val esBulkSource = createFlow(dbSource, indexConfig)
+    val futEventTypes = conservationProcessService.getAllEventTypes()
 
-      val es = new DatabaseMaintainedElasticSearchUpdateIndexSink(
-        client,
-        indexMaintainer,
-        indexStatusDao,
-        indexConfig,
-        indexCallback
-      ).toElasticsearchSink
-
-      esBulkSource.runWith(es)
+    futEventTypes.map { eventTypes =>
+      val dbSource = elasticsearchEventDao.conservationEventStream(
+        eventsAfter,
+        Indexer.defaultFetchsize,
+        eventTypes,
+        elasticsearchEventDao.defaultEventProvider
+      )
+      createFlow(dbSource, config, actorService)
     }
 
   }
@@ -118,37 +64,15 @@ class IndexConservation @Inject()(
    * When the pipeline is done it will be merged to a source that's sent to an
    * elasticsearch sink
    */
-  //: Flow[MusitResult[ConservationEvent], IndexDefinition, NotUsed]
-  ///Creates a flow which logs and removes errors and puts the successful events into ES
   private def createFlow(
       in: Source[MusitResult[ConservationSearch], NotUsed],
-      config: IndexConfig
-  ) /*: Flow[MusitResult[ConservationEvent], BulkCompatibleDefinition, NotUsed]*/ = {
+      config: IndexConfig,
+      actorService: ActorService
+  )(
+      implicit ec: ExecutionContext
+  ) = {
 
-    val logAndRemoveErrorsFlow
-      : Flow[MusitResult[ConservationSearch], ConservationSearch, NotUsed] =
-      Flow[MusitResult[ConservationSearch]].map { element =>
-        val res = element match {
-          case x: MusitSuccess[ConservationSearch] =>
-            x
-          case err: MusitError =>
-            println(s"ES indexing error: ${err.message}")
-            logger.error(s"ES indexing error: ${err.message}")
-            err
-        }
-        res
-      }.collect {
-        case mr: MusitSuccess[ConservationSearch] => mr.value
-      }
-
-    val intoEsFlow: Flow[ConservationSearch, BulkCompatibleDefinition, NotUsed] =
-      Flow[ConservationSearch].map { thing =>
-        val res =
-          indexInto(config.name, conservationType).id(thing.event.id.get).doc(thing)
-        //println(s"indexInto res:$res")
-        res
-      }
-
-    in.via(logAndRemoveErrorsFlow.via(intoEsFlow))
+    val res = new ConservationTypeFlow(actorService, config)(ec)
+    res.createFlow(in)
   }
 }

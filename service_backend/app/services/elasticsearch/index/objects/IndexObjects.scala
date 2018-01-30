@@ -1,27 +1,23 @@
 package services.elasticsearch.index.objects
 
 import akka.NotUsed
-import akka.actor.ActorSystem
 import akka.stream.scaladsl.{GraphDSL, Merge, Source}
 import akka.stream.{Materializer, SourceShape}
 import com.google.inject.Inject
 import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
-import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.HttpClient
+import com.sksamuel.elastic4s.indexes.CreateIndexDefinition
 import models.analysis.SampleObject
-import models.elasticsearch.{IndexCallback, IndexConfig}
+import models.elasticsearch.IndexConfig
 import models.musitobject.MusitObject
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.functional.FutureMusitResult
+import no.uio.musit.functional.Extensions._
 import org.joda.time.DateTime
 import play.api.Configuration
 import repositories.core.dao.IndexStatusDao
 import repositories.elasticsearch.dao.ElasticsearchObjectsDao
 import services.actor.ActorService
 import services.elasticsearch.index.{IndexMaintainer, Indexer}
-import services.elasticsearch.index.shared.{
-  DatabaseMaintainedElasticSearchIndexSink,
-  DatabaseMaintainedElasticSearchUpdateIndexSink
-}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -30,9 +26,9 @@ import scala.concurrent.{ExecutionContext, Future}
  */
 class IndexObjects @Inject()(
     elasticsearchObjectsDao: ElasticsearchObjectsDao,
-    indexStatusDao: IndexStatusDao,
+    override val indexStatusDao: IndexStatusDao,
     actorService: ActorService,
-    client: HttpClient,
+    override val client: HttpClient,
     cfg: Configuration,
     override val indexMaintainer: IndexMaintainer
 )(implicit ec: ExecutionContext, mat: Materializer)
@@ -53,72 +49,38 @@ class IndexObjects @Inject()(
 
   override val indexAliasName: String = indexAlias
 
-  override def createIndex()(implicit ec: ExecutionContext) = {
-    val config = createIndexConfig()
-    client.execute(MusitObjectsIndexConfig.config(config.name)).flatMap { res =>
-      if (res.acknowledged) Future.successful(config)
-      else Future.failed(new IllegalStateException("Unable to setup index"))
-    }
-  }
+  override def createIndexMapping(
+      indexName: String
+  )(implicit ec: ExecutionContext): CreateIndexDefinition =
+    MusitObjectsIndexConfig.config(indexName)
 
-  override def reindexDocuments(indexCallback: IndexCallback, config: IndexConfig)(
-      implicit ec: ExecutionContext,
-      mat: Materializer,
-      as: ActorSystem
-  ): Unit = {
-
-    val sampleSourceFuture = Future.successful(
-      elasticsearchObjectsDao.sampleStream(fetchSize, None)
-    )
-    val sources = for {
-      objSources   <- elasticsearchObjectsDao.objectStreams(concurrentSources, fetchSize)
-      sampleSource <- sampleSourceFuture
-    } yield (objSources, sampleSource)
-
-    sources.map {
-      case (objSources, sampleSource) =>
-        val es = new DatabaseMaintainedElasticSearchIndexSink(
-          client,
-          indexMaintainer,
-          indexStatusDao,
-          config,
-          indexCallback
-        ).toElasticsearchSink
-
-        val esBulkSource = createFlow(config, objSources, sampleSource)
-        esBulkSource.runWith(es)
-    }
-  }
-
-  override def updateExistingIndex(
-      indexConfig: IndexConfig,
-      indexCallback: IndexCallback
+  override def createElasticSearchBulkSource(
+      config: IndexConfig,
+      eventsAfter: Option[DateTime]
   )(
-      implicit ec: ExecutionContext,
-      mat: Materializer,
-      as: ActorSystem
-  ): Unit = {
-    findLastIndexDateTime().map { mdt =>
-      mdt.map { dt =>
+      implicit ec: ExecutionContext
+  ): FutureMusitResult[Source[BulkCompatibleDefinition, NotUsed]] = {
+    val sampleSource =
+      elasticsearchObjectsDao.sampleStream(fetchSize, eventsAfter)
+
+    //We do quite different things on a full reindex vs update for objects
+    val res = eventsAfter match {
+      case Some(dt) =>
         val objectSource =
           elasticsearchObjectsDao.objectsChangedAfterTimestampStream(fetchSize, dt)
-        val sampleSource = elasticsearchObjectsDao.sampleStream(fetchSize, Some(dt))
-        (objectSource, sampleSource)
-      }.getOrElse((Source.empty, Source.empty))
-    }.map {
-      case (objectSource, sampleSource) => {
-        val es = new DatabaseMaintainedElasticSearchUpdateIndexSink(
-          client,
-          indexMaintainer,
-          indexStatusDao,
-          indexConfig,
-          indexCallback
-        ).toElasticsearchSink
 
-        val esBulkSource = createFlow(indexConfig, Seq(objectSource), sampleSource)
-        esBulkSource.runWith(es)
+        Future.successful(createFlow(config, Seq(objectSource), sampleSource))
+
+      case None => {
+        for {
+          objSources <- elasticsearchObjectsDao
+                         .objectStreams(concurrentSources, fetchSize)
+          localSampleSource <- Future.successful(sampleSource)
+
+        } yield createFlow(config, objSources, localSampleSource)
       }
     }
+    res.toMusitFuture()
   }
 
   private def createFlow(
@@ -141,12 +103,4 @@ class IndexObjects @Inject()(
       SourceShape.of(mergeToEs.out)
     })
   }
-
-  private def findLastIndexDateTime(): Future[Option[DateTime]] = {
-    indexStatusDao.findLastIndexed(indexAliasName).map {
-      case MusitSuccess(v) => v.map(s => s.updated.getOrElse(s.indexed))
-      case err: MusitError => None
-    }
-  }
-
 }

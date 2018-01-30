@@ -1,27 +1,22 @@
 package services.elasticsearch.index.analysis
 
 import akka.NotUsed
-import akka.actor.ActorSystem
+import akka.stream.SourceShape
 import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, Merge, Source}
-import akka.stream.{Materializer, SourceShape}
 import com.google.inject.Inject
 import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
-import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.HttpClient
+import com.sksamuel.elastic4s.indexes.CreateIndexDefinition
 import models.elasticsearch._
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.functional.FutureMusitResult
 import org.joda.time.DateTime
 import play.api.{Configuration, Logger}
 import repositories.core.dao.IndexStatusDao
 import repositories.elasticsearch.dao.{ElasticsearchEventDao, ElasticsearchObjectsDao}
 import services.actor.ActorService
 import services.elasticsearch.index.{IndexMaintainer, Indexer, TypeFlow}
-import services.elasticsearch.index.shared.{
-  DatabaseMaintainedElasticSearchIndexSink,
-  DatabaseMaintainedElasticSearchUpdateIndexSink
-}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 /**
  * Index documents into the events index
@@ -29,9 +24,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class IndexAnalysis @Inject()(
     elasticsearchEventDao: ElasticsearchEventDao,
     elasticsearchObjectsDao: ElasticsearchObjectsDao,
-    indexStatusDao: IndexStatusDao,
+    override val indexStatusDao: IndexStatusDao,
     actorService: ActorService,
-    client: HttpClient,
+    override val client: HttpClient,
     cfg: Configuration,
     override val indexMaintainer: IndexMaintainer
 ) extends Indexer {
@@ -40,61 +35,19 @@ class IndexAnalysis @Inject()(
 
   override val indexAliasName: String = indexAlias
 
-  override def createIndex()(implicit ec: ExecutionContext): Future[IndexConfig] = {
-    val config = createIndexConfig()
-    client.execute(AnalysisIndexConfig.config(config.name)).flatMap { res =>
-      if (res.acknowledged) Future.successful(config)
-      else Future.failed(new IllegalStateException("Unable to setup index"))
-    }
-  }
+  override def createIndexMapping(
+      indexName: String
+  )(implicit ec: ExecutionContext): CreateIndexDefinition =
+    AnalysisIndexConfig.config(indexName)
 
-  override def reindexDocuments(indexCallback: IndexCallback, config: IndexConfig)(
-      implicit ec: ExecutionContext,
-      mat: Materializer,
-      as: ActorSystem
-  ): Unit = {
-
-    val dbSource     = elasticsearchEventDao.analysisEventsStream()
-    val esBulkSource = createFlow(dbSource, config)
-
-    val es = new DatabaseMaintainedElasticSearchIndexSink(
-      client,
-      indexMaintainer,
-      indexStatusDao,
-      config,
-      indexCallback
-    ).toElasticsearchSink
-
-    esBulkSource.runWith(es)
-  }
-
-  override def updateExistingIndex(
-      indexConfig: IndexConfig,
-      indexCallback: IndexCallback
+  override def createElasticSearchBulkSource(
+      config: IndexConfig,
+      eventsAfter: Option[DateTime]
   )(
-      implicit ec: ExecutionContext,
-      mat: Materializer,
-      as: ActorSystem
-  ): Unit = {
-
-    findLastIndexDateTime().map {
-      _.map { dt =>
-        elasticsearchEventDao.analysisEventsStream(Some(dt))
-      }.getOrElse(Source.empty)
-    }.map { dbSource =>
-      val esBulkSource = createFlow(dbSource, indexConfig)
-
-      val es = new DatabaseMaintainedElasticSearchUpdateIndexSink(
-        client,
-        indexMaintainer,
-        indexStatusDao,
-        indexConfig,
-        indexCallback
-      ).toElasticsearchSink
-
-      esBulkSource.runWith(es)
-    }
-
+      implicit ec: ExecutionContext
+  ): FutureMusitResult[Source[BulkCompatibleDefinition, NotUsed]] = {
+    val dbSource = elasticsearchEventDao.analysisEventsStream(eventsAfter)
+    FutureMusitResult.successful(createFlow(dbSource, config))
   }
 
   /**
@@ -146,15 +99,6 @@ class IndexAnalysis @Inject()(
       pf: PartialFunction[AnalysisModuleEventSearch, I]
   ) = {
     Flow[AnalysisModuleEventSearch].collect[I](pf).via(typeFlow.flow(config))
-  }
-
-  private def findLastIndexDateTime()(
-      implicit ec: ExecutionContext
-  ): Future[Option[DateTime]] = {
-    indexStatusDao.findLastIndexed(indexAliasName).map {
-      case MusitSuccess(v) => v.map(s => s.updated.getOrElse(s.indexed))
-      case _: MusitError   => None
-    }
   }
 
 }

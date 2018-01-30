@@ -1,52 +1,72 @@
 package models.elasticsearch
 
-import java.util.UUID
-
-import models.conservation.events.{
-  ActorRoleDate,
-  ConservationEvent,
-  ConservationModuleEvent
-}
-import models.elasticsearch.Actors.{ActorSearch, ActorSearchStamp}
-import no.uio.musit.formatters.DateTimeFormatters._
-import no.uio.musit.models.MuseumCollections.Collection
-import no.uio.musit.models.ObjectTypes.ObjectType
+import models.conservation.events.{ConservationModuleEvent, ConservationType}
 import no.uio.musit.models._
-import org.joda.time.DateTime
 import play.api.libs.json._
-import models.conservation.events.ConservationEvent._
 
-/* At the moment we don't have a custom/specific ES-type for the conservationEvents, we just store the whole event (as JSON).
-If that turns out to be suboptimal in the future, then we make a custom ConservationSearch type containing
-what we want from the (sub)events.
+/* At the moment we just store the whole event (as JSON). (But for ConservationProcesses, we ignore the children)
  */
 object Constants {
   val collectionUuid = "collectionUuid"
   val museumId       = "museumId"
+  val eventTypeEn    = "eventTypeEn"
+  val eventTypeNo    = "eventTypeNo"
+  val actors         = "actors"
 }
 
 case class ConservationSearch(
     museumId: MuseumId,
     collectionUuid: Option[CollectionUUID],
-    event: ConservationModuleEvent
-)
+    event: ConservationModuleEvent,
+    eventType: ConservationType,
+    actorNames: Option[Seq[String]]
+) {
+
+  def collectMentionedActorIds() = {
+    val innerActors = event.actorsAndRoles.map(_.map(_.actorId))
+    val outerActors = Set(event.registeredBy, event.updatedBy).flatten
+    val res = innerActors match {
+      case Some(actorSeq) => actorSeq.toSet.union(outerActors)
+      case None           => outerActors
+    }
+    res
+  }
+
+  def withActorNames(actorNames: ActorNames) = {
+    val names =
+      collectMentionedActorIds().map(actorId => actorNames.nameFor(actorId)).flatten
+    val optSeqNames = if (names.isEmpty) None else (Some(names.toSeq))
+
+    //println(s"ActorIds: ${collectMentionedActorIds()}")
+    //println(s"Actors: $optSeqNames")
+
+    this.copy(actorNames = optSeqNames)
+  }
+}
 
 object ConservationSearch {
-//  type ConservationSearch = ConservationEvent
   implicit val readsEvent = models.conservation.events.ConservationModuleEvent.reads
+
+  /* The reason I did a custom writer instead of a fully automatic one is to keep the object stored in ES as flat/efficient as possible.
+  (Also, when I started writing it it only had the museumId and collectionUuid in addition to the event.)
+   */
 
   implicit val conservationSearchWrites = new Writes[ConservationSearch] {
     def writes(conservationSearch: ConservationSearch) = {
+      val eventType = conservationSearch.eventType
       val jsObj = Json.obj(
         Constants.museumId       -> conservationSearch.museumId,
-        Constants.collectionUuid -> conservationSearch.collectionUuid
+        Constants.collectionUuid -> conservationSearch.collectionUuid,
+        Constants.eventTypeEn    -> eventType.enName,
+        Constants.eventTypeNo    -> eventType.noName,
+        Constants.actors         -> conservationSearch.actorNames
       )
 
       val jsObj2 = Json.toJson(conservationSearch.event).as[JsObject]
       jsObj ++ jsObj2
     }
   }
-
+  /* At the moment we don't need to read in ConservationSearch objects. This code can likely be deleted.
   implicit val conservationSearchReads: Reads[ConservationSearch] =
     new Reads[ConservationSearch] {
       def reads(json: JsValue): JsResult[ConservationSearch] = {
@@ -54,38 +74,9 @@ object ConservationSearch {
           museumId          <- (json \ Constants.museumId).validate[MuseumId]
           collectionUuid    <- (json \ Constants.collectionUuid).validateOpt[CollectionUUID]
           conservationEvent <- json.validate[ConservationModuleEvent]
-        } yield ConservationSearch(museumId, collectionUuid, conservationEvent)
+          ..handle eventTypeEn and eventTypeNo and actors..
+        } yield ConservationSearch(museumId, collectionUuid, conservationEvent, None)
       }
     }
-}
-
-/*
-case class ConservationSearch(
-    id: EventId,
-    museumId: Option[MuseumId],
-    collection: Option[CollectionSearch],
-    caseNumber: Option[String],
-    actorsAndRoles: Option[Seq[ActorRoleDate]]
-//val affectedThings: Option[Seq[ObjectUUID]]
-) extends Searchable {
-  override val docId       = id.underlying.toString
-  override val docParentId = None
-}
-
-object ConservationSearch {
-  implicit val writes: Writes[ConservationSearch] = Json.writes[ConservationSearch]
-
-  def apply(
-      e: ConservationEvent,
-      actorNames: ActorNames,
-      midAndColl: Option[(MuseumId, MuseumCollections.Collection)]
-  ): ConservationSearch =
-    ConservationSearch(
-      id = e.id.get,
-      museumId = midAndColl.map(_._1),
-      collection = midAndColl.map(mc => CollectionSearch(mc._2)),
-      caseNumber = e.caseNumber,
-      actorsAndRoles = None
-    )
-}
  */
+}

@@ -3,14 +3,10 @@ package repositories.elasticsearch.dao
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.google.inject.{Inject, Singleton}
-import models.conservation.events.{
-  ConservationEvent,
-  ConservationModuleEvent,
-  ConservationProcess
-}
+import models.conservation.events._
 import models.elasticsearch.ConservationSearch
 import models.elasticsearch.ConservationSearch._
-import no.uio.musit.MusitResults.{MusitInternalError, MusitResult}
+import no.uio.musit.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
 import no.uio.musit.functional.Extensions._
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models._
@@ -55,13 +51,21 @@ class ElasticSearchConservationEventDao @Inject()(
       EventId.fromLong(p.nextLong()),
       EventTypeId(p.nextInt()),
       MuseumId(p.nextInt()),
-      CollectionId.fromOptInt(p.nextIntOption())
+      p.nextIntOption().map(CollectionId(_))
     )
+  }
+
+  private def makeEventTypeProvider(eventTypes: Seq[ConservationType]) = {
+    val eventTypeMap: Map[EventTypeId, ConservationType] =
+      eventTypes.map(eventType => eventType.id -> eventType).toMap
+    (eventTypeId: EventTypeId) =>
+      eventTypeMap.get(eventTypeId)
   }
 
   def conservationEventStream(
       eventsAfterDate: Option[DateTime],
       fetchSize: Int,
+      eventTypes: Seq[ConservationType],
       eventProvider: (
           EventId,
           EventTypeId,
@@ -87,6 +91,8 @@ class ElasticSearchConservationEventDao @Inject()(
       | GROUP BY ev.event_id, ev.type_id, ev.MUSEUM_ID""".stripMargin
         .as[ConservationEventStreamRow]
 
+    val eventTypeProvider = makeEventTypeProvider(eventTypes)
+
     Source
       .fromPublisher(
         db.stream(
@@ -105,7 +111,21 @@ class ElasticSearchConservationEventDao @Inject()(
           val optCollectionUuid = optCollectionId.map(Collection.fromInt(_)).map(_.uuid)
 
           eventProvider(x._1, x._2, x._3)
-            .map(evt => ConservationSearch(x._3, optCollectionUuid, evt))
+            .mapAndFlattenMusitResult(
+              event => {
+                val eventTypeId = event.eventTypeId
+                eventTypeProvider(eventTypeId) match {
+                  case Some(eventType) =>
+                    MusitSuccess(
+                      ConservationSearch(x._3, optCollectionUuid, event, eventType, None)
+                    )
+                  case None =>
+                    MusitInternalError(
+                      s"Event with unknown event typeId: $eventTypeId for event with id: ${event.id}"
+                    )
+                }
+              }
+            )
             .value
         }
       }

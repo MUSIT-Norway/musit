@@ -31,23 +31,15 @@ class ConservationTypeDao @Inject()(
   def allFor(
       maybeColl: Option[CollectionUUID]
   )(implicit currUser: AuthenticatedUser): FutureMusitResult[Seq[ConservationType]] = {
-    val query = conservationTypeTable
-    val collQuery = {
-      if (currUser.hasGodMode) {
-        maybeColl
-          .map(coll => {
-            query.filter { at =>
-              at.collections.isEmpty || (at.collections like s"%,${coll.asString},%")
-            }
-          })
-          .getOrElse(query)
-      } else {
-        query
-      }
-    }
+    //At the moment no filtering on user or collection is done, so we can reuse allEventTypes
+    allEventTypes()
+  }
+
+  /*All event types, irrespective of user. Used by the system itself.  */
+  def allEventTypes(): FutureMusitResult[Seq[ConservationType]] = {
     val res = daoUtils.dbRun(
-      collQuery.result,
-      s"A problem occurred fetching conservation types for collection $maybeColl from the DB"
+      conservationTypeTable.result,
+      s"A problem occurred fetching conservation types from the DB"
     )
     res.map(ctr => ctr.map(fromConservationTypeRow))
   }

@@ -11,7 +11,4 @@ object CollectionId {
   implicit def fromInt(id: Int): CollectionId = CollectionId(id)
 
   implicit def toInt(mid: CollectionId): Int = mid.underlying
-
-  def fromOptInt(optId: Option[Int]) = optId.map(fromInt)
-
 }

@@ -96,6 +96,15 @@ object Extensions {
       }
     }
   }
+
+  implicit class FutureExtensions[T](val value: Future[T]) extends AnyVal {
+
+    def toMusitFuture()(implicit ec: ExecutionContext): FutureMusitResult[T] = {
+      val temp = FutureMusitResult(value.map(MusitSuccess[T](_)))
+      temp
+    }
+  }
+
 }
 object FutureMusitResult {
   def successful[A](

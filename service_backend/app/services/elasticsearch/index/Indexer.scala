@@ -1,8 +1,22 @@
 package services.elasticsearch.index
 
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.Materializer
+import akka.stream.scaladsl.Source
+import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
+import com.sksamuel.elastic4s.http.HttpClient
+import com.sksamuel.elastic4s.indexes.CreateIndexDefinition
+import com.sksamuel.elastic4s.http.ElasticDsl._
 import models.elasticsearch.{IndexCallback, IndexConfig}
+import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
+import no.uio.musit.functional.FutureMusitResult
+import org.joda.time.DateTime
+import repositories.core.dao.IndexStatusDao
+import services.elasticsearch.index.shared.{
+  DatabaseMaintainedElasticSearchIndexSink,
+  DatabaseMaintainedElasticSearchUpdateIndexSink
+}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
@@ -26,7 +40,7 @@ import scala.util.control.NonFatal
  * differently based on if it's a reindex or update of the index. The flow step must be
  * the same regardless of how the {{{Source}}} is created.
  *
- * The Indexer instance will be managed by the {{{IndexProcessor}}} trough the
+ * The Indexer instance will be managed by the {{{IndexProcessor}}} through the
  * {{{ElasticsearchService}}}. This is because it need to be executed on it's own
  * actor system to isolate it from the rest of the application.
  */
@@ -37,30 +51,88 @@ trait Indexer {
    */
   val indexAliasName: String
 
-  /**
-   * Swaps the old alias with the new index.
-   */
   val indexMaintainer: IndexMaintainer
+
+  val indexStatusDao: IndexStatusDao
+
+  val client: HttpClient
+
+  def createIndexMapping(indexName: String)(
+      implicit ec: ExecutionContext
+  ): CreateIndexDefinition
+
+  /**Create a source (flow), which we will put into ES.
+   We need future here because object-indexing needs that.
+   */
+  def createElasticSearchBulkSource(
+      config: IndexConfig,
+      eventsAfter: Option[DateTime]
+  )(
+      implicit ec: ExecutionContext
+  ): FutureMusitResult[Source[BulkCompatibleDefinition, NotUsed]]
 
   /**
    * Create a new index with the correct mapping
    */
-  def createIndex()(implicit ec: ExecutionContext): Future[IndexConfig]
+  def createIndex()(implicit ec: ExecutionContext): Future[IndexConfig] = {
+    val config  = createIndexConfig()
+    val mapping = createIndexMapping(config.name)
+    client.execute(mapping).flatMap { res =>
+      if (res.acknowledged) Future.successful(config)
+      else Future.failed(new IllegalStateException("Unable to setup index"))
+    }
+  }
 
-  def reindexDocuments(indexCallback: IndexCallback, config: IndexConfig)(
+  /**
+   * Reindex all documents
+   */
+  def reindexDocuments(indexConfig: IndexConfig, indexCallback: IndexCallback)(
       implicit ec: ExecutionContext,
       mat: Materializer,
       as: ActorSystem
-  ): Unit
+  ): Unit = {
+
+    val futEsBulkSource = createElasticSearchBulkSource(indexConfig, None)
+
+    futEsBulkSource.map { esBulkSource =>
+      val es = new DatabaseMaintainedElasticSearchIndexSink(
+        client,
+        indexMaintainer,
+        indexStatusDao,
+        indexConfig,
+        indexCallback
+      ).toElasticsearchSink
+      esBulkSource.runWith(es)
+    }
+  }
 
   /**
    * Update the existing index with updated and new documents
    */
-  def updateExistingIndex(index: IndexConfig, indexCallback: IndexCallback)(
+  def updateExistingIndex(indexConfig: IndexConfig, indexCallback: IndexCallback)(
       implicit ec: ExecutionContext,
       mat: Materializer,
       as: ActorSystem
-  ): Unit
+  ): Unit = {
+
+    findLastIndexDateTime().map {
+      _.map { dt =>
+        val futEsBulkSource = createElasticSearchBulkSource(indexConfig, None)
+        futEsBulkSource.map { esBulkSource =>
+          val es = new DatabaseMaintainedElasticSearchUpdateIndexSink(
+            client,
+            indexMaintainer,
+            indexStatusDao,
+            indexConfig,
+            indexCallback
+          ).toElasticsearchSink
+
+          esBulkSource.runWith(es)
+        }
+//Log a warning if we're not able to find the lastIndexDate?
+      }
+    }
+  }
 
   /**
    * Reindex all documents to index with a new fresh index.
@@ -70,7 +142,7 @@ trait Indexer {
       mat: Materializer,
       as: ActorSystem
   ): Unit = {
-    createIndex().map(reindexDocuments(indexCallback, _)).recover {
+    createIndex().map(reindexDocuments(_, indexCallback)).recover {
       case NonFatal(t) => indexCallback.onFailure(t)
     }
   }
@@ -82,6 +154,14 @@ trait Indexer {
   protected def createIndexConfig(): IndexConfig =
     IndexConfig(s"${indexAliasName}_${System.currentTimeMillis()}", indexAliasName)
 
+  protected def findLastIndexDateTime()(
+      implicit ec: ExecutionContext
+  ): Future[Option[DateTime]] = {
+    indexStatusDao.findLastIndexed(indexAliasName).map {
+      case MusitSuccess(v) => v.map(s => s.updated.getOrElse(s.indexed))
+      case _: MusitError   => None
+    }
+  }
 }
 
 object Indexer {

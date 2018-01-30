@@ -35,6 +35,9 @@ class ConservationProcessService @Inject()(
     typeDao.allFor(coll)
   }
 
+  //Only used from the Elastic Search indexing.
+  def getAllEventTypes() = typeDao.allEventTypes()
+
   def addConservationProcess(
       mid: MuseumId,
       cp: ConservationProcess

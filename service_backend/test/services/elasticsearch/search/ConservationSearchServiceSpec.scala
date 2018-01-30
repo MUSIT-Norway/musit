@@ -14,6 +14,7 @@ import no.uio.musit.time.dateTimeNow
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.Eventually
+import services.conservation.ConservationProcessService
 import services.elasticsearch.index.conservation.ConservationIndexConfig
 import services.elasticsearch.index.{IndexMaintainer, conservation}
 import utils.testdata.BaseDummyData
@@ -41,6 +42,8 @@ class ConservationSearchServiceSpec
   private[this] val client          = fromInstanceCache[HttpClient]
   private[this] val indexMaintainer = fromInstanceCache[IndexMaintainer]
   private[this] val service         = fromInstanceCache[ConservationSearchService]
+  private[this] val conservationProcessService =
+    fromInstanceCache[ConservationProcessService]
 
   private[this] implicit val ec = fromInstanceCache[ExecutionContext]
 
@@ -63,6 +66,9 @@ class ConservationSearchServiceSpec
 
   val collection1 = Ethnography
   val collection2 = Moss
+
+  val allEventTypes =
+    conservationProcessService.getAllEventTypes().value.futureValue.successValue
 
   "ConservationEventSearchService" should {
 
@@ -146,7 +152,7 @@ class ConservationSearchServiceSpec
   }
 
   override def afterAll(): Unit = {
-    //client.execute(deleteIndex(indexName)).futureValue
+    client.execute(deleteIndex(indexName)).futureValue
   }
 
   private def indexConservationEventDoc(
@@ -158,7 +164,9 @@ class ConservationSearchServiceSpec
     val d = ConservationSearch(
       mid,
       optCol.map(_.uuid),
-      event
+      event,
+      allEventTypes.find(_.id == event.eventTypeId).get,
+      None
     )
     val dId = id.underlying.toString
     indexInto(indexName, conservation.conservationType) id dId doc d
