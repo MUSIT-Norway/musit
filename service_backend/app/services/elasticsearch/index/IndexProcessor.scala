@@ -64,7 +64,7 @@ class IndexProcessor(
       )
       .recover {
         case NonFatal(t) =>
-          log.error(t, s"[$name]: Failed initialise index, will try again later")
+          log.error(t, s"[$name]: Failed to initialise index, will try again later")
           as.scheduler.scheduleOnce(2 minutes) { initIndex() }
       }
   }
@@ -140,7 +140,7 @@ class IndexProcessor(
       log.error(t, s"[$name]: Reindex failed")
 
     case msg =>
-      log.info(s"Unhandled message: $msg")
+      log.debug(s"Unhandled message: $msg")
       unhandled(msg)
   }
   /*Schedules a RequestUpdateIndex in the future*/

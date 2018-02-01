@@ -115,7 +115,7 @@ class DatabaseMaintainedElasticSearchUpdateIndexSink(
 
   override def onError: (Throwable) => Unit =
     t => {
-      logger.error(s"onError for alias ${indexConfig.alias} ${t.getMessage}")
+      logger.error(s"onError for alias ${indexConfig.alias} ${t.getMessage()}")
 
       indexCallback.onFailure(t)
     }

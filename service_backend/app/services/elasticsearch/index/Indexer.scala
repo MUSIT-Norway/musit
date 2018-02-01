@@ -117,7 +117,7 @@ trait Indexer {
 
     findLastIndexDateTime().map {
       _.map { dt =>
-        val futEsBulkSource = createElasticSearchBulkSource(indexConfig, None)
+        val futEsBulkSource = createElasticSearchBulkSource(indexConfig, Some(dt))
         futEsBulkSource.map { esBulkSource =>
           val es = new DatabaseMaintainedElasticSearchUpdateIndexSink(
             client,
@@ -148,7 +148,7 @@ trait Indexer {
   }
 
   /**
-   * Tha actual index that we will use. We will hide this behind an alias. That's why
+   * The actual index that we will use. We will hide this behind an alias. That's why
    * we prefix it with the alias name.
    */
   protected def createIndexConfig(): IndexConfig =
