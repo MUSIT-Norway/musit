@@ -108,12 +108,17 @@ class DatabaseMaintainedElasticSearchUpdateIndexSink(
         indexMaintainer.indexNameForAlias(indexConfig.alias)
         indexStatusDao.update(indexConfig.alias, startTime)
         indexCallback.onSuccess(indexConfig)
+      } else {
+        logger.info(s"Indexing maybe done with errors for alias ${indexConfig.alias}")
       }
-
     }
 
   override def onError: (Throwable) => Unit =
-    t => indexCallback.onFailure(t)
+    t => {
+      logger.error(s"onError for alias ${indexConfig.alias} ${t.getMessage}")
+
+      indexCallback.onFailure(t)
+    }
 
   override def responseListener = this
 }

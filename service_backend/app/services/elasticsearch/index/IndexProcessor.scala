@@ -140,6 +140,7 @@ class IndexProcessor(
       log.error(t, s"[$name]: Reindex failed")
 
     case msg =>
+      log.info(s"Unhandled message: $msg")
       unhandled(msg)
   }
   /*Schedules a RequestUpdateIndex in the future*/
