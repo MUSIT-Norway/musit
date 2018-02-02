@@ -26,10 +26,10 @@ class TreatmentControllerIntegrationSpec
       treatments.size mustBe 24
     }
 
-    "return 403 Forbidden when trying to list all treatments without access to the module" in {
+    /* "return 403 Forbidden when trying to list all treatments without access to the module" in {
       val res = wsUrl(treatmentUrl).withHttpHeaders(tokenTest.asHeader).get().futureValue
       res.status mustBe FORBIDDEN
-    }
+    }*/
 
   }
 

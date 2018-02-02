@@ -15,7 +15,7 @@ class PurposeController @Inject()(
     val authService: Authenticator
 ) extends MusitController {
 
-  def listPurposes = MusitSecureAction(CollectionManagement) { implicit request =>
+  def listPurposes = MusitSecureAction() { implicit request =>
     Ok(Json.toJson(Purposes.purposes.map(Purpose.toJson)))
 
   }

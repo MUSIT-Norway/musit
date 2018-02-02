@@ -26,10 +26,10 @@ class StorageMediumControllerSpec
       treatments.size mustBe 28
     }
 
-    "return 403 Forbidden when trying to list all storage mediums without access to the module" in {
+    /*"return 403 Forbidden when trying to list all storage mediums without access to the module" in {
       val res = wsUrl(smUrl).withHttpHeaders(tokenTest.asHeader).get().futureValue
       res.status mustBe FORBIDDEN
-    }
+    }*/
 
   }
 

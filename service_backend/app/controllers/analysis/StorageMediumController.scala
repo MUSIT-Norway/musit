@@ -16,7 +16,7 @@ class StorageMediumController @Inject()(
 ) extends MusitController {
 
   def getStorageMediumList =
-    MusitSecureAction(CollectionManagement).async { implicit request =>
+    MusitSecureAction().async { implicit request =>
       smService.getStorageMediumList.map {
         case MusitSuccess(t) => listAsPlayResult(t)
         case err: MusitError => internalErr(err)

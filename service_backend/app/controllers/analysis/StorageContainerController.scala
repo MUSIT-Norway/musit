@@ -16,7 +16,7 @@ class StorageContainerController @Inject()(
 ) extends MusitController {
 
   def getStorageContainerList =
-    MusitSecureAction(CollectionManagement).async { implicit request =>
+    MusitSecureAction().async { implicit request =>
       scService.getStorageContainerList.map {
         case MusitSuccess(t) => listAsPlayResult(t)
         case err: MusitError => internalErr(err)

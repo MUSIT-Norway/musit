@@ -16,7 +16,7 @@ class TreatmentController @Inject()(
 ) extends MusitController {
 
   def getTreatmentList =
-    MusitSecureAction(CollectionManagement).async { implicit request =>
+    MusitSecureAction().async { implicit request =>
       treatService.getTreatmentList.map {
         case MusitSuccess(t) => listAsPlayResult(t)
         case err: MusitError => internalErr(err)

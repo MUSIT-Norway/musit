@@ -53,7 +53,7 @@ class AnalysisController @Inject()(
       categoryId: Option[Int],
       collectionIds: Option[String]
   ) =
-    MusitSecureAction(mid, CollectionManagement).async { implicit request =>
+    MusitSecureAction(mid).async { implicit request =>
       implicit val currUser: AuthenticatedUser = request.user
 
       val maybeCat  = categoryId.flatMap(EventCategories.fromId)
@@ -65,7 +65,7 @@ class AnalysisController @Inject()(
     }
 
   def getAllAnalysisCategories(mid: MuseumId) =
-    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
+    MusitSecureAction(mid).async { implicit request =>
       Future.successful(
         listAsPlayResult(EventCategories.values)(Category.richWrites)
       )

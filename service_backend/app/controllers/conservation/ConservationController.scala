@@ -59,7 +59,7 @@ class ConservationController @Inject()(
       mid: MuseumId,
       collectionIds: Option[String]
   ) =
-    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
+    MusitSecureAction(mid).async { implicit request =>
       implicit val currUser = request.user
 
       val maybeColl = collectionIds.flatMap(CollectionUUID.fromString)
