@@ -12,7 +12,12 @@ import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
 import play.api.Logger
 import repositories.conservation.dao._
-
+import services.conservation.EventSituation.{
+  EventSituation,
+  Insert,
+  PreserveDates,
+  UpdateSelf
+}
 import scala.concurrent.{ExecutionContext, Future}
 
 class ConservationProcessService @Inject()(
@@ -42,10 +47,18 @@ class ConservationProcessService @Inject()(
       mid: MuseumId,
       cp: ConservationProcess
   )(implicit currUser: AuthenticatedUser): FutureMusitResult[EventId] = {
-    val event = copyWithRegDataForProcessAndSubEvents(cp, currUser.id, dateTimeNow)
-    conservationService
-      .checkTypeOfObjects(cp.affectedThings.getOrElse(Seq.empty))
-      .flatMap(m => conservationProcDao.insert(mid, event))
+    val event =
+      fillInAppropriateActorDatesAndExcludeNonUpdatedSubEvents(
+        mid,
+        cp,
+        ActorDate(currUser.id, dateTimeNow),
+        true
+      )
+    event.flatMap { ev =>
+      conservationService
+        .checkTypeOfObjects(cp.affectedThings.getOrElse(Seq.empty))
+        .flatMap(m => conservationProcDao.insert(mid, ev))
+    }
   }
 
   /**
@@ -77,68 +90,49 @@ class ConservationProcessService @Inject()(
     }
   }
 
-  /*** Fill in registered by and date both in the process and in all subevents */
-  def copyWithRegDataForProcessAndSubEvents(
-      conservationProcess: ConservationProcess,
-      currUser: ActorId,
-      currDate: DateTime
-  ): ConservationProcess = {
+  /*
+   *This method filters on the attribute isUpdated(for the conservationProcess and its subEvents) for setting
+   * the currentDate and currentUser in updated_date and updated_by in the subEvents that is updated.
+   * This method returns the whole conservationprocess with the filtered subEvents with its updated
+   * info. Since FrontEnd doesn't have a clue about registered_date, -by and
+   * updated_date and by, we have to get some date/actors from the database.
+   * */
 
-    val someCurrUser = Some(currUser)
-    val someCurrDate = Some(currDate)
-
-    val cp = conservationProcess.withRegisteredInfo(someCurrUser, someCurrDate)
-
-    val subEvents = cp.events
-      .getOrElse(Seq.empty)
-      .map(subEvent => subEvent.withRegisteredInfo(someCurrUser, someCurrDate))
-
-    cp.withEvents(subEvents)
-
-  }
-
-  /***
-   *  Fill in updated by and date in the process and set updated and
-   *  registered by/date as appropriate in the subevents */
-  def copyWithUpdateAndRegDataToProcessAndSubEvents(
-      conservationProcess: ConservationProcess,
-      currUser: ActorId,
-      currDate: DateTime,
-      findRegisteredActorDate: EventId => FutureMusitResult[ActorDate]
+  def fillInAppropriateActorDatesAndExcludeNonUpdatedSubEvents(
+      mid: MuseumId,
+      cp: ConservationProcess,
+      actorDate: ActorDate,
+      isInsert: Boolean
+  )(
+      implicit currUsr: AuthenticatedUser
   ): FutureMusitResult[ConservationProcess] = {
-    val cp = conservationProcess.withUpdatedInfo(Some(currUser), Some(currDate))
-    val subevents = cp.events
-      .getOrElse(Seq.empty)
-      .map(event => {
-        event.id match {
-          case Some(id) =>
-            findRegisteredActorDate(id).map { dbEventActorDate =>
-              event
-                .withUpdatedInfo(Some(currUser), Some(currDate))
-                .withRegisteredInfo(
-                  Some(dbEventActorDate.user),
-                  Some(dbEventActorDate.date)
-                )
-            }
-          case None =>
-            FutureMusitResult
-              .from(event.withRegisteredInfo(Some(currUser), Some(currDate)))
+    val situation =
+      cp.isUpdated match {
+        case true  => if (isInsert) Insert else UpdateSelf
+        case false => PreserveDates
+      }
+    val newCp =
+      conservationService.updateProcessWithDateAndActor(mid, cp, situation, actorDate)
+    val origChildren = cp.events.getOrElse(Seq.empty)
+
+    val newSubEvents = newCp.flatMap { cp =>
+      val newChildren =
+        origChildren.filter(subEvent => subEvent.isUpdated).map { subEvent =>
+          val situation = subEvent.id.isDefined match {
+            case true  => UpdateSelf
+            case false => Insert
+          }
+          conservationService
+            .updateSubEventWithDateAndActor(mid, subEvent, situation, actorDate)
         }
-      })
+      FutureMusitResult.sequence(newChildren)
 
-    val newSubevents = FutureMusitResult.sequence(subevents)
-    val res = for {
-      processActorDate <- findRegisteredActorDate(cp.id.get)
-      events           <- newSubevents
-
-    } yield
-      cp.withRegisteredInfo(Some(processActorDate.user), Some(processActorDate.date))
-        .withEvents(events)
-    res
+    }
+    newCp.flatMap(ncp => newSubEvents.map(subEventList => ncp.withEvents(subEventList)))
   }
 
   /**
-   * Update an conservationProcess
+   * Update a conservationProcess
    */
   def update(
       mid: MuseumId,
@@ -148,39 +142,22 @@ class ConservationProcessService @Inject()(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[Option[ConservationProcess]] = {
 
-    conservationService
-      .checkTypeOfObjects(cp.affectedThings.getOrElse(Seq.empty))
-      .flatMap { m =>
-        def getRegisteredActorDate(
-            localEventId: EventId
-        ): FutureMusitResult[ActorDate] = {
-          subEventDao
-            .findRegisteredActorDate(mid, localEventId)
-            .getOrError(
-              MusitValidationError(
-                s"Unable to find conservation subevent with id (trying to find registered by/date): $eventId"
+    for {
+      _ <- FutureMusitResult.requireFromClient(
+            Some(eventId) == cp.id,
+            s"Inconsistent eventid in url($eventId) vs body (${cp.id})"
+          )
+      _ <- conservationService.checkTypeOfObjects(cp.affectedThings.getOrElse(Seq.empty))
+      newCp <- fillInAppropriateActorDatesAndExcludeNonUpdatedSubEvents(
+                mid,
+                cp,
+                ActorDate(currUser.id, dateTimeNow),
+                false
               )
-            )
-        }
+      _            <- { conservationProcDao.update(mid, eventId, newCp) }
+      maybeUpdated <- findConservationProcessById(mid, eventId)
 
-        for {
-          _ <- FutureMusitResult.requireFromClient(
-                Some(eventId) == cp.id,
-                s"Inconsistent eventid in url($eventId) vs body (${cp.id})"
-              )
-
-          eventToWriteToDb <- copyWithUpdateAndRegDataToProcessAndSubEvents(
-                               cp,
-                               currUser.id,
-                               dateTimeNow,
-                               getRegisteredActorDate
-                             )
-
-          _            <- conservationProcDao.update(mid, eventId, eventToWriteToDb)
-          maybeUpdated <- findConservationProcessById(mid, eventId)
-
-        } yield maybeUpdated
-      }
+    } yield maybeUpdated
   }
 
   def getConservationWithKeyDataForObject(mid: MuseumId, objectUuid: ObjectUUID)(

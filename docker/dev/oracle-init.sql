@@ -482,21 +482,21 @@ NOCYCLE
 NOCACHE;
 
 
+
 CREATE TABLE MUSARK_CONSERVATION.EVENT (
   event_id        NUMBER(20) DEFAULT MUSARK_CONSERVATION.event_eventid_seq.nextval,
   type_id         INTEGER                  NOT NULL,
   museum_id       INTEGER                  NOT NULL,
-  done_by         VARCHAR2(512),
-  done_date       TIMESTAMP WITH TIME ZONE,
+  updated_by      VARCHAR2(36),
   updated_date    TIMESTAMP WITH TIME ZONE,
   registered_by   VARCHAR2(36)             NOT NULL,
   registered_date TIMESTAMP WITH TIME ZONE NOT NULL,
   part_of         NUMBER(20),
   affected_uuid   VARCHAR2(36),
-  note            VARCHAR2(500),
-  case_number    VARCHAR2(1000),
+  note            VARCHAR2(4000),
+  case_number     VARCHAR2(1000),
   event_json      CLOB,
-  is_deleted        INTEGER DEFAULT 0 NOT NULL,
+  is_deleted      INTEGER DEFAULT 0 NOT NULL,
   PRIMARY KEY (event_id),
   CONSTRAINT ensure_event_json CHECK (event_json IS JSON)
   );

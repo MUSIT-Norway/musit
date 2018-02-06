@@ -52,9 +52,10 @@ trait ConservationprocessGenerators {
       registeredDate = now,
       updatedBy = None,
       updatedDate = None,
-      completedBy = None,
-      completedDate = None,
-      events = None
+      /*completedBy = None,
+      completedDate = None,*/
+      events = None,
+      isUpdated = false
     )
   }
 
@@ -72,8 +73,8 @@ trait ConservationprocessGenerators {
       registeredDate = now,
       updatedBy = Some(ActorId.unsafeFromString("5224f873-5fe1-44ec-9aaf-b9313db410c6")),
       updatedDate = now,
-      completedBy = None,
-      completedDate = None,
+      /* completedBy = None,
+      completedDate = None,*/
       partOf = None,
       note = Some("hurra note"),
       actorsAndRoles = Some(
@@ -94,7 +95,8 @@ trait ConservationprocessGenerators {
       documents = Some(
         Seq(FileId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"))
       ),
-      materialInfo = Some(Seq(MaterialInfo(1, Some("veldig spes materiale"), Some(1))))
+      materialInfo = Some(Seq(MaterialInfo(1, Some("veldig spes materiale"), Some(1)))),
+      isUpdated = false
     )
   }
 

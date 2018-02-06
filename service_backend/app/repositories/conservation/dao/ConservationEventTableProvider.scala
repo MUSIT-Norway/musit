@@ -31,7 +31,8 @@ trait ConservationEventTableProvider
       Option[EventId], //7 - PartOf
       Option[String], // 8 - Note
       Option[String], // 9 - CaseNumber,
-      JsValue // 10 - EventJson
+      Option[ActorId], // 10 - updatedBy
+      JsValue // 11 - EventJson
   )
 
   def valEventId(row: EventRow)     = row._1
@@ -41,7 +42,10 @@ trait ConservationEventTableProvider
 
   def valRegisteredBy(row: EventRow)   = row._4
   def valRegisteredDate(row: EventRow) = row._5
-  def valJson(row: EventRow)           = row._10
+  def valUpdatedDate(row: EventRow)    = row._6
+  def valUpdatedBy(row: EventRow)      = row._10
+  def valJson(row: EventRow)           = row._11
+
   // pga fjerning av caseNumber så blir det annet tall i jsValue
   //def valJson(row: EventRow) = row._9
 
@@ -55,6 +59,7 @@ trait ConservationEventTableProvider
   class ConservationEventTable(val t: Tag) extends BaseEventTable[EventRow](t) {
     val caseNumber = column[Option[String]]("CASE_NUMBER")
     val isDeleted  = column[Option[Int]]("IS_DELETED")
+    val updatedBy  = column[Option[ActorId]]("UPDATED_BY")
 
     // scalastyle:off method.name
     def * : ProvenShape[EventRow] =
@@ -68,6 +73,7 @@ trait ConservationEventTableProvider
         partOf,
         note,
         caseNumber,
+        updatedBy,
         eventJson
       )
     // scalastyle:on method.name
@@ -88,7 +94,8 @@ object EventAccessors {
       Option[EventId], //7 - PartOf
       Option[String], // 8 - Note
       Option[String], // 9 - CaseNumber
-      JsValue // 10 - EventJson,
+      Option[ActorId], //10 - updatedBy
+      JsValue // 11 - EventJson,
   )
-  def valJson(row: EventRow) = row._10
+  def valJson(row: EventRow) = row._11
 }

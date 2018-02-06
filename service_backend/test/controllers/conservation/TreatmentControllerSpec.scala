@@ -41,10 +41,10 @@ class TreatmentControllerSpec
     val js =
       dummyEventJSON(
         treatmentEventTypeId,
-        Some(dateTimeNow),
         Some("testKommentar"),
         Some("777"),
-        Some(testAffectedThings)
+        Some(testAffectedThings),
+        true
       )
     wsUrl(addTreatmentUrl(mid)).withHttpHeaders(t.asHeader).post(js).futureValue
   }
@@ -119,11 +119,8 @@ class TreatmentControllerSpec
         val updJson = jso.json.as[JsObject] ++ Json.obj(
           "note"           -> "Updated note",
           "eventTypeId"    -> treatmentEventTypeId, // Should not be modified by the server.
-          "doneBy"         -> FakeUsers.testUserId,
-          "doneDate"       -> time.dateTimeNow.plusDays(20),
-          "completedBy"    -> FakeUsers.testUserId,
-          "completedDate"  -> time.dateTimeNow.plusDays(20),
-          "affectedThings" -> oids
+          "affectedThings" -> oids,
+          "isUpdated"      -> true
         )
         val updRes = putTreatmentResponse(mid, eventId, updJson)
         updRes.status mustBe OK
@@ -134,8 +131,6 @@ class TreatmentControllerSpec
         (updRes.json \ "note").as[String] must include("Updated")
         (updRes.json \ "updatedBy").asOpt[ActorId] mustBe Some(adminId)
         (updRes.json \ "updatedDate").asOpt[DateTime] mustApproximate Some(mdatetime)
-        (updRes.json \ "completedBy").asOpt[ActorId] mustBe Some(testUserId)
-        (updRes.json \ "completedDate").asOpt[DateTime] mustApproximate Some(mdatetime)
         (updRes.json \ "affectedThings")
           .asOpt[Seq[String]]
           .map(s => s.sorted) mustBe Some(
@@ -148,7 +143,8 @@ class TreatmentControllerSpec
       "return FORBIDDEN when trying to update a treatment without permissions" in {
 
         val updJson = Json.obj(
-          "note" -> "Updated2 note"
+          "note"      -> "Updated2 note",
+          "isUpdated" -> true
         )
         val updRes = putTreatmentResponse(mid, 2L, updJson, tokenRead)
         updRes.status mustBe FORBIDDEN
@@ -163,8 +159,7 @@ class TreatmentControllerSpec
           "id"          -> 300,
           "note"        -> "Updated note",
           "eventTypeId" -> treatmentEventTypeId, // Should not be modified by the server.
-          "updatedBy"   -> adminId,
-          "updatedDate" -> time.dateTimeNow.plusDays(20)
+          "isUpdated"   -> true
         )
 
         val updRes = putTreatmentResponse(mid, 4L, updJson)
@@ -199,6 +194,7 @@ class TreatmentControllerSpec
         (res.json \ 1 \ "enTerm").as[String] mustBe "Børstet[NO]"
         (res.json \ 1 \ "id").as[Int] mustBe 2
       }
+
     }
   }
 }

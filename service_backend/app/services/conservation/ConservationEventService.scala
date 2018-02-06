@@ -1,25 +1,19 @@
 package services.conservation
 
 import com.google.inject.Inject
-import models.conservation.events.{ConservationEvent, ConservationModuleEvent}
-import no.uio.musit.MusitResults.{
-  MusitInternalError,
-  MusitResult,
-  MusitSuccess,
-  MusitValidationError
-}
+import models.conservation.events.ConservationEvent
+import no.uio.musit.MusitResults.MusitValidationError
+import no.uio.musit.functional.Extensions._
 import no.uio.musit.functional.FutureMusitResult
-import no.uio.musit.functional.Implicits.futureMonad
-import no.uio.musit.functional.MonadTransformers.MusitResultT
-import no.uio.musit.models.{EventId, MuseumId}
+import no.uio.musit.models.{ActorDate, EventId, MuseumId}
 import no.uio.musit.security.AuthenticatedUser
+import no.uio.musit.time.dateTimeNow
 import play.api.Logger
 import repositories.conservation.dao.ConservationEventDao
+import services.conservation.EventSituation._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import scala.reflect.ClassTag
-import no.uio.musit.time.dateTimeNow
-import no.uio.musit.functional.Extensions._
 
 abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Inject()(
     implicit
@@ -36,19 +30,21 @@ abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Injec
   def add(mid: MuseumId, ce: T)(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[Option[ConservationEvent]] = {
-    conservationService
-      .checkTypeOfObjects(ce.affectedThings.getOrElse(Seq.empty))
-      .flatMap { m =>
-        val event: T =
-          ce.withRegisteredInfo(Some(currUser.id), Some(dateTimeNow)).asInstanceOf[T]
-        val res = for {
-          added <- dao.insert(mid, event)
-          a <- dao
-                .findSpecificConservationEventById(mid, added)
-                .map(m => m.asInstanceOf[Option[ConservationEvent]])
-        } yield a
-        res
-      }
+    for {
+
+      _ <- conservationService.checkTypeOfObjects(ce.affectedThings.getOrElse(Seq.empty))
+
+      newEvent <- conservationService.updateSubEventWithDateAndActor(
+                   mid,
+                   ce,
+                   Insert,
+                   ActorDate(currUser.id, dateTimeNow)
+                 )
+      added <- dao.insert(mid, newEvent.asInstanceOf[T])
+      a <- dao
+            .findSpecificConservationEventById(mid, added)
+            .map(m => m.asInstanceOf[Option[ConservationEvent]])
+    } yield a
   }
 
   /**
@@ -73,29 +69,22 @@ abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Injec
   )(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[Option[ConservationEvent]] = {
-    conservationService
-      .checkTypeOfObjects(event.affectedThings.getOrElse(Seq.empty))
-      .flatMap { m =>
-        val regActorDate = dao
-          .findRegisteredActorDate(mid, eventId)
-          .getOrError(
-            MusitValidationError(
-              s"Unable to find conservation subevent with id (trying to find registered by/date): $eventId"
-            )
+    for {
+      _ <- conservationService.checkTypeOfObjects(
+            event.affectedThings.getOrElse(Seq.empty)
           )
-
-        for {
-          actorDate <- regActorDate
-
-          eventToWriteToDb = event
-            .withUpdatedInfo(Some(currUser.id), Some(dateTimeNow))
-            .withRegisteredInfo(Some(actorDate.user), Some(actorDate.date))
-
-          updateRes <- dao.update(mid, eventId, eventToWriteToDb)
-
-        } yield updateRes
-      }
-
+      _ <- FutureMusitResult.requireFromClient(
+            Some(eventId) == event.id,
+            s"Inconsistent eventid in url($eventId) vs body (${event.id})"
+          )
+      newEvent <- conservationService.updateSubEventWithDateAndActor(
+                   mid,
+                   event,
+                   UpdateSelf,
+                   ActorDate(currUser.id, dateTimeNow)
+                 )
+      updateRes <- dao.update(mid, eventId, newEvent)
+    } yield updateRes
   }
 
 }

@@ -43,8 +43,8 @@ class TreatmentDaoSpec
       id = None,
       eventTypeId = Treatment.eventTypeId,
       note = Some("hurra note"),
-      completedBy = None,
-      completedDate = None,
+      /*completedBy = None,
+      completedDate = None,*/
       partOf = None,
       affectedThings = oids,
       registeredBy = None,
@@ -65,7 +65,8 @@ class TreatmentDaoSpec
       //documents = None
       documents = Some(
         Seq(FileId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"))
-      )
+      ),
+      isUpdated = false
     )
   }
 

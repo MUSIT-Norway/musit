@@ -48,12 +48,34 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     val query = super.findByIdAction(mid, id).map { mayBeRow =>
       mayBeRow.map { row =>
         ActorDate(valRegisteredBy(row), valRegisteredDate(row))
-
       }
     }
     daoUtils.dbRun(
       query,
       s"An unexpected error occurred fetching registered by/date for event $id"
+    )
+  }
+
+  /** Gets the updated by and date fields. Handles both processed and subevents. */
+  def findUpdatedActorDate(
+      mid: MuseumId,
+      id: EventId
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): FutureMusitResult[Option[ActorDate]] = {
+
+    val query = super.findByIdAction(mid, id).map { mayBeRow =>
+      mayBeRow.flatMap { row =>
+        valUpdatedBy(row) match {
+          case Some(actor) =>
+            Some(ActorDate(valUpdatedBy(row).get, valUpdatedDate(row).get))
+          case None => None
+        }
+      }
+    }
+    daoUtils.dbRun(
+      query,
+      s"An unexpected error occurred fetching updated by/date for event $id"
     )
   }
 
@@ -240,7 +262,7 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
       partOf: Option[EventId],
       event: ConservationEvent
   )(implicit currUsr: AuthenticatedUser): DBIO[EventId] = {
-    // registered by and date are filled in in the service layer (during copyWithRegDataForProcessAndSubevents)
+    // registered by and date are filled in in the service layer (during fillAppropriateblablabla)
     require(event.registeredBy.isDefined)
     require(event.registeredDate.isDefined)
 
@@ -273,7 +295,8 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
 
     //updated and registered are filled in during copyWithUpdateAndRegDataToProcessAndSubevents
     //or otherwise in the service layer (update on single subevent)
-    require(event.updatedBy.get == currUsr.id)
+    //require(event.updatedBy.get == currUsr.id)
+    require(event.updatedBy.isDefined)
     require(event.updatedDate.isDefined)
 
     require(event.registeredBy.isDefined)
@@ -287,7 +310,6 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     val eventWithoutDocuments        = eventWithoutObjects.withDocuments(None)
     val fullyTrimmedEvent            = removeSpecialEventAttributes(eventWithoutDocuments)
     val row                          = asRow(mid, fullyTrimmedEvent)
-
     for {
       numEventRowsUpdated <- updateActionRowOnly(eventId, row)
       _                   <- updateSpecialAttributes(eventId, event) //We use event because we need to send in the unmodified event!

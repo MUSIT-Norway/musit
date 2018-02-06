@@ -11,9 +11,9 @@ sealed trait ConservationModuleEvent extends ModernMusitEvent {
   val partOf: Option[EventId]
   val note: Option[String]
   def caseNumber: Option[String]
+  val updatedBy: Option[ActorId]
   val actorsAndRoles: Option[Seq[ActorRoleDate]]
   val affectedThings: Option[Seq[ObjectUUID]]
-
   def withoutActorRoleAndDates: ConservationModuleEvent = withActorRoleAndDates(None)
 
   def withActorRoleAndDates(
@@ -115,11 +115,10 @@ object ConservationModuleEvent extends TypedConservationEvent {
 sealed trait ConservationEvent extends ConservationModuleEvent {
   val updatedBy: Option[ActorId]
   val updatedDate: Option[DateTime]
-  val completedBy: Option[ActorId]
-  val completedDate: Option[DateTime]
   val actorsAndRoles: Option[Seq[ActorRoleDate]]
   val affectedThings: Option[Seq[ObjectUUID]]
   val documents: Option[Seq[FileId]]
+  val isUpdated: Boolean
   // todo val extraAttributes: Option[ExtraAttributes]
 
   //A new copy, appropriate when updating the event in the database.
@@ -135,6 +134,11 @@ sealed trait ConservationEvent extends ConservationModuleEvent {
       registeredBy: Option[ActorId],
       registeredDate: Option[DateTime]
   ): ConservationEvent
+
+  def withUpdatedInfoEx(actorDate: ActorDate) =
+    withUpdatedInfo(Some(actorDate.user), Some(actorDate.date))
+  def withRegisteredInfoEx(actorDate: ActorDate) =
+    withRegisteredInfo(Some(actorDate.user), Some(actorDate.date))
 
   def withAffectedThings(objects: Option[Seq[ObjectUUID]]): ConservationEvent
 
@@ -253,13 +257,14 @@ case class ConservationProcess(
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
-    completedBy: Option[ActorId],
-    completedDate: Option[DateTime],
+    //completedBy: Option[ActorId],
+    //completedDate: Option[DateTime],
     partOf: Option[EventId],
     note: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
-    events: Option[Seq[ConservationEvent]]
+    events: Option[Seq[ConservationEvent]],
+    isUpdated: Boolean
 ) extends ConservationModuleEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
@@ -272,6 +277,11 @@ case class ConservationProcess(
       updatedBy: Option[ActorId],
       updatedDate: Option[DateTime]
   ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
+
+  def withUpdatedInfoEx(actorDate: ActorDate) =
+    withUpdatedInfo(Some(actorDate.user), Some(actorDate.date))
+  def withRegisteredInfoEx(actorDate: ActorDate) =
+    withRegisteredInfo(Some(actorDate.user), Some(actorDate.date))
 
   def withRegisteredInfo(
       registeredBy: Option[ActorId],
@@ -340,15 +350,16 @@ case class Treatment(
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
-    completedBy: Option[ActorId],
-    completedDate: Option[DateTime],
+    //completedBy: Option[ActorId],
+    //completedDate: Option[DateTime],
     partOf: Option[EventId],
     note: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
     keywords: Option[Seq[Int]],
     materials: Option[Seq[Int]],
-    documents: Option[Seq[FileId]]
+    documents: Option[Seq[FileId]],
+    isUpdated: Boolean
 ) extends ConservationEvent {
 
   override def withId(id: Option[EventId]) = copy(id = id)
@@ -395,13 +406,14 @@ case class TechnicalDescription(
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
-    completedBy: Option[ActorId],
-    completedDate: Option[DateTime],
+    //completedBy: Option[ActorId],
+    //completedDate: Option[DateTime],
     partOf: Option[EventId],
     note: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
-    documents: Option[Seq[FileId]]
+    documents: Option[Seq[FileId]],
+    isUpdated: Boolean
 ) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
@@ -450,8 +462,8 @@ case class StorageAndHandling(
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
-    completedBy: Option[ActorId],
-    completedDate: Option[DateTime],
+    // completedBy: Option[ActorId],
+    // completedDate: Option[DateTime],
     partOf: Option[EventId],
     note: Option[String],
     lightLevel: Option[String],
@@ -460,7 +472,8 @@ case class StorageAndHandling(
     temperature: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
-    documents: Option[Seq[FileId]]
+    documents: Option[Seq[FileId]],
+    isUpdated: Boolean
 ) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
@@ -509,13 +522,14 @@ case class HseRiskAssessment(
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
-    completedBy: Option[ActorId],
-    completedDate: Option[DateTime],
+    // completedBy: Option[ActorId],
+    // completedDate: Option[DateTime],
     partOf: Option[EventId],
     note: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
-    documents: Option[Seq[FileId]]
+    documents: Option[Seq[FileId]],
+    isUpdated: Boolean
 ) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
@@ -564,14 +578,15 @@ case class ConditionAssessment(
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
-    completedBy: Option[ActorId],
-    completedDate: Option[DateTime],
+    //completedBy: Option[ActorId],
+    //completedDate: Option[DateTime],
     partOf: Option[EventId],
     note: Option[String],
     conditionCode: Option[Int],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
-    documents: Option[Seq[FileId]]
+    documents: Option[Seq[FileId]],
+    isUpdated: Boolean
 ) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
@@ -620,14 +635,15 @@ case class Report(
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
-    completedBy: Option[ActorId],
-    completedDate: Option[DateTime],
+    //completedBy: Option[ActorId],
+    //completedDate: Option[DateTime],
     partOf: Option[EventId],
     note: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
     documents: Option[Seq[FileId]],
-    archiveReference: Option[String]
+    archiveReference: Option[String],
+    isUpdated: Boolean
 ) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
@@ -687,14 +703,13 @@ case class MaterialDetermination(
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
-    completedBy: Option[ActorId],
-    completedDate: Option[DateTime],
     partOf: Option[EventId],
     note: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
     documents: Option[Seq[FileId]],
-    materialInfo: Option[Seq[MaterialInfo]]
+    materialInfo: Option[Seq[MaterialInfo]],
+    isUpdated: Boolean
 ) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
@@ -767,14 +782,15 @@ case class MeasurementDetermination(
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
-    completedBy: Option[ActorId],
-    completedDate: Option[DateTime],
+    //completedBy: Option[ActorId],
+    //completedDate: Option[DateTime],
     partOf: Option[EventId],
     note: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
     documents: Option[Seq[FileId]],
-    measurementData: Option[MeasurementData]
+    measurementData: Option[MeasurementData],
+    isUpdated: Boolean
 ) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
@@ -823,13 +839,14 @@ case class Note(
     registeredDate: Option[DateTime],
     updatedBy: Option[ActorId],
     updatedDate: Option[DateTime],
-    completedBy: Option[ActorId],
-    completedDate: Option[DateTime],
+    //completedBy: Option[ActorId],
+    //completedDate: Option[DateTime],
     partOf: Option[EventId],
     note: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
-    documents: Option[Seq[FileId]]
+    documents: Option[Seq[FileId]],
+    isUpdated: Boolean
 ) extends ConservationEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None

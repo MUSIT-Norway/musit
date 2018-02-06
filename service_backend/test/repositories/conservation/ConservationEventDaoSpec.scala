@@ -84,8 +84,8 @@ class ConservationEventDaoSpec
       registeredDate = now,
       updatedBy = None,
       updatedDate = now,
-      completedBy = None,
-      completedDate = None,
+      /* completedBy = None,
+      completedDate = None,*/
       partOf = None,
       note = Some("hurra note"),
       actorsAndRoles = Some(
@@ -101,7 +101,8 @@ class ConservationEventDaoSpec
       documents = Some(
         Seq(FileId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"))
       ),
-      materialInfo = Some(Seq(MaterialInfo(1, Some("veldig spes materiale"), Some(1))))
+      materialInfo = Some(Seq(MaterialInfo(1, Some("veldig spes materiale"), Some(1)))),
+      isUpdated = false
     )
   }
 

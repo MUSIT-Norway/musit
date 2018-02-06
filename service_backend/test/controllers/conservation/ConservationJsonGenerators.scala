@@ -60,23 +60,20 @@ trait ConservationJsonGenerators { // test data
 
   def dummyEventJSON(
       typeId: Int,
-      doneDate: Option[DateTime],
       note: Option[String],
       caseNumber: Option[String],
-      affectedThings: Option[Seq[ObjectUUID]]
+      affectedThings: Option[Seq[ObjectUUID]],
+      isUpdated: Boolean
   ): JsObject = {
     val js1 = Json.obj(
-      "eventTypeId" -> typeId,
-      "doneBy"      -> adminId,
-      "completedBy" -> adminId
+      "eventTypeId" -> typeId
     )
-    val js2 = note.map(n => js1 ++ Json.obj("note" -> n)).getOrElse(js1)
-    val js3 = doneDate.map { d =>
-      js2 ++ Json.obj("doneDate" -> Json.toJson[DateTime](d))
-    }.getOrElse(js2)
+    val base = Json
+      .obj("caseNumber" -> Json.toJson(caseNumber), "isUpdated" -> Json.toJson(isUpdated))
 
+    val js2 = note.map(n => js1 ++ Json.obj("note" -> n)).getOrElse(js1)
     val js6 =
-      js3 ++ Json.obj("caseNumber" -> Json.toJson(caseNumber))
+      js2 ++ base
     val js7 = affectedThings
       .map(
         o =>

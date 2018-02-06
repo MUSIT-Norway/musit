@@ -37,6 +37,7 @@ trait ConservationEventRowMappers extends EventRowMappers[ConservationModuleEven
       e.partOf,
       e.note,
       if (e.eventTypeId == ConservationProcess.eventTypeId) e.caseNumber else None,
+      e.updatedBy,
       js
     )
     row

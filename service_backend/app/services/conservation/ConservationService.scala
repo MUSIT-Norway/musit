@@ -1,27 +1,33 @@
 package services.conservation
 
 import com.google.inject.Inject
-import models.conservation.MaterialBase
-import models.conservation.events.EventRole
+import models.conservation.events.{ConservationEvent, ConservationProcess, EventRole}
 import no.uio.musit.MusitResults.{MusitSuccess, MusitValidationError}
 import no.uio.musit.functional.FutureMusitResult
-import no.uio.musit.models.MuseumCollections.{
-  Archeology,
-  Collection,
-  Ethnography,
-  Numismatics
-}
 import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
+import no.uio.musit.functional.Extensions._
 import play.api.Logger
-import repositories.conservation.dao.{ActorRoleDateDao, ConservationDao}
+import repositories.conservation.dao.{ActorRoleDateDao, ConservationDao, TreatmentDao}
+import services.conservation.EventSituation.{
+  EventSituation,
+  Insert,
+  PreserveDates,
+  UpdateSelf
+}
 
 import scala.concurrent.ExecutionContext
+
+object EventSituation extends Enumeration {
+  type EventSituation = Value
+  val Insert, UpdateSelf, PreserveDates = Value
+}
 
 class ConservationService @Inject()(
     implicit
     val dao: ConservationDao,
     val actorRoleDateDao: ActorRoleDateDao,
+    val subEventDao: TreatmentDao, //Arbitrary choice, to get access to helper functions irrespective of event type
     val ec: ExecutionContext
 ) {
 
@@ -58,6 +64,105 @@ class ConservationService @Inject()(
       }
       case None => {
         MusitSuccess(())
+      }
+    }
+  }
+
+  private def findUpdatedInfo(
+      mid: MuseumId,
+      eventId: EventId
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): FutureMusitResult[Option[ActorDate]] = {
+    subEventDao.findUpdatedActorDate(mid, eventId)
+  }
+
+  private def findRegisteredInfo(
+      mid: MuseumId,
+      eventId: EventId
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): FutureMusitResult[Option[ActorDate]] = {
+    subEventDao.findRegisteredActorDate(mid, eventId)
+  }
+
+  def updateProcessWithDateAndActor(
+      mid: MuseumId,
+      event: ConservationProcess,
+      situation: EventSituation,
+      currentTimeAndActor: ActorDate
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): FutureMusitResult[ConservationProcess] = {
+    situation match {
+
+      case Insert =>
+        FutureMusitResult.from(event.withRegisteredInfoEx(currentTimeAndActor))
+      case UpdateSelf => {
+        val eventId = event.id.get
+        findRegisteredInfo(mid, eventId)
+          .getOrError(
+            MusitValidationError(
+              s"Unable to find conservation event registeredInfo: $eventId"
+            )
+          )
+          .map(
+            actorDate =>
+              event.withRegisteredInfoEx(actorDate).withUpdatedInfoEx(currentTimeAndActor)
+          )
+      }
+
+      case PreserveDates => {
+        val eventId = event.id.get
+        for {
+
+          registeredInfo <- findRegisteredInfo(mid, eventId).getOrError(
+                             MusitValidationError(
+                               s"Unable to find conservation event registeredIinfo: $eventId"
+                             )
+                           )
+
+          maybeUpdatedInfo <- findUpdatedInfo(mid, eventId)
+        } yield {
+          val regInfoEvent = event.withRegisteredInfoEx(registeredInfo)
+          maybeUpdatedInfo.fold(regInfoEvent)(
+            updatedInfo => regInfoEvent.withRegisteredInfoEx(updatedInfo)
+          )
+        }
+      }
+    }
+  }
+
+  def updateSubEventWithDateAndActor(
+      mid: MuseumId,
+      event: ConservationEvent,
+      situation: EventSituation,
+      currentTimeAndActor: ActorDate
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): FutureMusitResult[ConservationEvent] = {
+    require(situation != PreserveDates) // an illegal situation for subEvents
+    situation match {
+
+      case Insert =>
+        FutureMusitResult.from(event.withRegisteredInfoEx(currentTimeAndActor))
+      case UpdateSelf => {
+        //update
+        val eventId = event.id.get
+        findRegisteredInfo(mid, eventId)
+          .getOrError(
+            MusitValidationError(
+              s"Unable to find conservation event registeredIinfo: $eventId"
+            )
+          )
+          .map(
+            actorDate =>
+              event.withRegisteredInfoEx(actorDate).withUpdatedInfoEx(currentTimeAndActor)
+          )
+      }
+
+      case PreserveDates => {
+        throw new IllegalArgumentException("impossible situation for subEvents")
       }
     }
   }

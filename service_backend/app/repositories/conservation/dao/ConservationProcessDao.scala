@@ -235,7 +235,6 @@ class ConservationProcessDao @Inject()(
     val cpToInsert       = ce.withoutEvents
     val cpWithoutActors  = cpToInsert.withoutActorRoleAndDates
     val cpWithoutObjects = cpWithoutActors.withoutAfftectedThings
-
     val actions: DBIO[EventId] = for {
       cpId    <- insertAction(asRow(mid, cpWithoutObjects))
       actors  <- actorRoleDateDao.insertActorRoleDateAction(cpId, actorsAndRoles)
@@ -270,9 +269,8 @@ class ConservationProcessDao @Inject()(
 
     def subEventActions(partOf: EventId): Seq[DBIO[EventId]] = {
       subEvents.map(
-        subEvent => {
+        subEvent =>
           createInsertOrUpdateSubEventAction(mid, partOf, subEvent.asPartOf(Some(partOf)))
-        }
       )
     }
 

@@ -40,8 +40,8 @@ class TechnicalDescriptionDaoSpec
       id = None,
       eventTypeId = TechnicalDescription.eventTypeId,
       note = Some("eksempel på teknisk beskrivelse"),
-      completedBy = None,
-      completedDate = None,
+      /* completedBy = None,
+      completedDate = None,*/
       partOf = None,
       actorsAndRoles = None,
       affectedThings = oids,
@@ -49,7 +49,8 @@ class TechnicalDescriptionDaoSpec
       registeredDate = now,
       updatedBy = None,
       updatedDate = now,
-      documents = None
+      documents = None,
+      isUpdated = false
     )
   }
 
