@@ -180,7 +180,8 @@ class ConservationSearchServiceSpec
     MaterialDetermination(
       id = None,
       eventTypeId = MaterialDetermination.eventTypeId,
-      registeredBy = None,
+      registeredBy =
+        Some(ActorId.unsafeFromString("5224f873-5fe1-44ec-9aaf-b9313db410c6")),
       registeredDate = now,
       updatedBy = None,
       updatedDate = now,

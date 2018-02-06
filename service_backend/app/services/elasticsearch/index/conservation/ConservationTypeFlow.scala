@@ -5,6 +5,7 @@ import akka.stream.scaladsl.{Flow, Source}
 import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
 import com.sksamuel.elastic4s.http.ElasticDsl.indexInto
 import com.sksamuel.elastic4s.playjson._
+import models.conservation.events.{ConservationType, EventRole}
 import models.elasticsearch._
 import no.uio.musit.MusitResults.{MusitError, MusitResult, MusitSuccess}
 import no.uio.musit.models.ActorId
@@ -25,6 +26,7 @@ import scala.concurrent.ExecutionContext
  */
 class ConservationTypeFlow(
     actorService: ActorService,
+    allEventRoles: Seq[EventRole],
     config: IndexConfig
 )(implicit ec: ExecutionContext) {
 
@@ -54,7 +56,7 @@ class ConservationTypeFlow(
       override def mergeWithActors(
           a: ConservationSearch,
           actors: Set[(ActorId, String)]
-      ): ConservationSearch = a.withActorNames(ActorNames(actors))
+      ): ConservationSearch = a.withActorNames(ActorNames(actors), allEventRoles)
 
     }.flow(actorService, ec)
 

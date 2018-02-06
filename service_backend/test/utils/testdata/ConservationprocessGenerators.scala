@@ -68,9 +68,9 @@ trait ConservationprocessGenerators {
       id = None,
       eventTypeId = MaterialDetermination.eventTypeId,
       registeredBy =
-        Some(ActorId.unsafeFromString("12345678-adb2-4b49-bce3-320ddfe6c90f")),
+        Some(ActorId.unsafeFromString("41ede78c-a6f6-4744-adad-02c25fb1c97c")),
       registeredDate = now,
-      updatedBy = None,
+      updatedBy = Some(ActorId.unsafeFromString("5224f873-5fe1-44ec-9aaf-b9313db410c6")),
       updatedDate = now,
       completedBy = None,
       completedDate = None,
@@ -80,7 +80,7 @@ trait ConservationprocessGenerators {
         Seq(
           ActorRoleDate(
             1,
-            ActorId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"),
+            ActorId.unsafeFromString("5224f873-5fe1-44ec-9aaf-b9313db410c6"),
             now
           ),
           ActorRoleDate(

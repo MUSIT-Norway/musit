@@ -6,6 +6,7 @@ import com.google.inject.Inject
 import com.sksamuel.elastic4s.bulk.BulkCompatibleDefinition
 import com.sksamuel.elastic4s.http.HttpClient
 import com.sksamuel.elastic4s.indexes.CreateIndexDefinition
+import models.conservation.events.EventRole
 import models.elasticsearch._
 import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.functional.FutureMusitResult
@@ -14,7 +15,7 @@ import play.api.{Configuration, Logger}
 import repositories.core.dao.IndexStatusDao
 import repositories.elasticsearch.dao.ElasticSearchConservationEventDao
 import services.actor.ActorService
-import services.conservation.ConservationProcessService
+import services.conservation.{ConservationProcessService, ConservationService}
 import services.elasticsearch.index.{IndexMaintainer, Indexer}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -24,6 +25,7 @@ class IndexConservation @Inject()(
     override val indexStatusDao: IndexStatusDao,
     actorService: ActorService,
     conservationProcessService: ConservationProcessService,
+    conservationService: ConservationService,
     override val client: HttpClient,
     cfg: Configuration,
     override val indexMaintainer: IndexMaintainer
@@ -45,18 +47,19 @@ class IndexConservation @Inject()(
       implicit ec: ExecutionContext
   ): FutureMusitResult[Source[BulkCompatibleDefinition, NotUsed]] = {
 
-    val futEventTypes = conservationProcessService.getAllEventTypes()
+    for {
+      eventTypes <- conservationProcessService.getAllEventTypes()
 
-    futEventTypes.map { eventTypes =>
-      val dbSource = elasticsearchEventDao.conservationEventStream(
+      allEventRoles <- conservationService.getRoleList //Bør getRoleList være en funksjon i stedet for en verdi?
+
+      dbSource = elasticsearchEventDao.conservationEventStream(
         eventsAfter,
         Indexer.defaultFetchsize,
         eventTypes,
         elasticsearchEventDao.defaultEventProvider
       )
-      createFlow(dbSource, config, actorService)
-    }
 
+    } yield createFlow(dbSource, allEventRoles, config, actorService)
   }
 
   /**
@@ -66,13 +69,17 @@ class IndexConservation @Inject()(
    */
   private def createFlow(
       in: Source[MusitResult[ConservationSearch], NotUsed],
+      allEventRoles: Seq[EventRole],
       config: IndexConfig,
       actorService: ActorService
   )(
       implicit ec: ExecutionContext
   ) = {
 
-    val res = new ConservationTypeFlow(actorService, config)(ec)
+    val res =
+      new ConservationTypeFlow(actorService, allEventRoles, config)(
+        ec
+      )
     res.createFlow(in)
   }
 }
