@@ -95,7 +95,7 @@ class IndexProcessor(
           log.info(s"[$name]: Updating index")
 
         case _ =>
-          log.warning(s"RequestUpdateIndex Cannot reindex: $name")
+          log.warning(s"RequestUpdateIndex Cannot update index: $name")
           sender() ! NotAccepted
       }
 

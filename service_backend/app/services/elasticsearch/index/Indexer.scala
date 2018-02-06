@@ -12,6 +12,7 @@ import models.elasticsearch.{IndexCallback, IndexConfig}
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
 import no.uio.musit.functional.FutureMusitResult
 import org.joda.time.DateTime
+import play.api.Logger
 import repositories.core.dao.IndexStatusDao
 import services.elasticsearch.index.shared.{
   DatabaseMaintainedElasticSearchIndexSink,
@@ -129,9 +130,17 @@ trait Indexer {
 
           esBulkSource.runWith(es)
         }
-//Log a warning if we're not able to find the lastIndexDate?
       }
+    }.map { _ =>
+      () // A hack to get rid of a compiler warning:
+    // ("a type was inferred to be `Any`; this may indicate a programming error.")
+    }.recover {
+      //Får ikke så lett tak i et logger objekt, ellers ville vi gjort:
+      // logger.error(s"Unable to update existing index: ${indexConfig.name}, error: ${error.getMessage()}")
+
+      case NonFatal(t) => indexCallback.onFailure(t)
     }
+
   }
 
   /**
