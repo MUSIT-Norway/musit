@@ -989,6 +989,10 @@ PRIMARY KEY (event_id,file_id)
 INSERT INTO MUSARK_CONSERVATION.ROLE(no_role, en_role,role_for) VALUES ('Utført av', 'Done by', 'actor');
 INSERT INTO MUSARK_CONSERVATION.ROLE(no_role, en_role,role_for) VALUES ('Deltatt i', 'Participated in','actor');
 
+INSERT INTO MUSARK_CONSERVATION.EVENT(event_id,type_id,museum_id,registered_by,registered_date,event_json)
+ values(-1,1,99,'12ad8425-386c-4d6c-8f4a-0fe3fde3564c', TO_DATE('2018-02-05', 'YYYY-MM-DD'),
+ '{"id" : -1,"eventTypeId" : 1,"caseNumber" : "esag77","registeredBy" : "12ad8425-386c-4d6c-8f4a-0fe3fde3564c","registeredDate" : "2018-02-05T10:25:29+00:00"
+}');
 
 -- INSERTING EVENT TYPES / CONSERVATION TYPES
 INSERT INTO MUSARK_CONSERVATION.EVENT_TYPE (no_name, en_name, collections, extra_description_attributes, extra_description_type) VALUES ('konserveringsprosess', 'conservation process', 'ba3d4d30-810b-4c07-81b3-37751f2196f0', NULL, NULL);

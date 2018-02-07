@@ -3,7 +3,13 @@ package services.conservation
 import com.google.inject.Inject
 import models.conservation.ConservationProcessKeyData
 import models.conservation.events._
-import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
+import no.uio.musit.MusitResults
+import no.uio.musit.MusitResults.{
+  MusitError,
+  MusitResult,
+  MusitSuccess,
+  MusitValidationError
+}
 import no.uio.musit.functional.Extensions._
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models._
@@ -18,6 +24,7 @@ import services.conservation.EventSituation.{
   PreserveDates,
   UpdateSelf
 }
+
 import scala.concurrent.{ExecutionContext, Future}
 
 class ConservationProcessService @Inject()(
@@ -53,7 +60,7 @@ class ConservationProcessService @Inject()(
         cp,
         ActorDate(currUser.id, dateTimeNow),
         true
-      )
+      ).map(_.cleanupBeforeInsertIntoDatabase)
     event.flatMap { ev =>
       conservationService
         .checkTypeOfObjects(cp.affectedThings.getOrElse(Seq.empty))
@@ -106,29 +113,45 @@ class ConservationProcessService @Inject()(
   )(
       implicit currUsr: AuthenticatedUser
   ): FutureMusitResult[ConservationProcess] = {
-    val situation =
+    val mrSituation =
       cp.isUpdated match {
-        case true  => if (isInsert) Insert else UpdateSelf
-        case false => PreserveDates
+        case Some(true)  => MusitSuccess(if (isInsert) Insert else UpdateSelf)
+        case Some(false) => MusitSuccess(PreserveDates)
+        case None =>
+          MusitValidationError("Missing property isUpdated on conservation process")
       }
-    val newCp =
-      conservationService.updateProcessWithDateAndActor(mid, cp, situation, actorDate)
-    val origChildren = cp.events.getOrElse(Seq.empty)
 
-    val newSubEvents = newCp.flatMap { cp =>
-      val newChildren =
-        origChildren.filter(subEvent => subEvent.isUpdated).map { subEvent =>
-          val situation = subEvent.id.isDefined match {
-            case true  => UpdateSelf
-            case false => Insert
-          }
-          conservationService
-            .updateSubEventWithDateAndActor(mid, subEvent, situation, actorDate)
+    mrSituation match {
+      case MusitSuccess(situation) =>
+        val newCp =
+          conservationService.updateProcessWithDateAndActor(mid, cp, situation, actorDate)
+        val origChildren = cp.events.getOrElse(Seq.empty)
+
+        val newSubEvents = newCp.flatMap { cp =>
+          val newChildren =
+            origChildren
+              .filter(
+                subEvent => subEvent.isUpdated.isDefined && subEvent.isUpdated.get == true
+              )
+              .map { subEvent =>
+                val situation = subEvent.id.isDefined match {
+                  case true  => UpdateSelf
+                  case false => Insert
+                }
+                conservationService
+                  .updateSubEventWithDateAndActor(mid, subEvent, situation, actorDate)
+              }
+          FutureMusitResult.sequence(newChildren)
+
         }
-      FutureMusitResult.sequence(newChildren)
+        newCp.flatMap(
+          ncp => newSubEvents.map(subEventList => ncp.withEvents(subEventList))
+        )
 
+      //case err: MusitValidationError => FutureMusitResult.from(err)
+      case err: MusitError => FutureMusitResult.from[ConservationProcess](err)
     }
-    newCp.flatMap(ncp => newSubEvents.map(subEventList => ncp.withEvents(subEventList)))
+
   }
 
   /**
@@ -153,7 +176,7 @@ class ConservationProcessService @Inject()(
                 cp,
                 ActorDate(currUser.id, dateTimeNow),
                 false
-              )
+              ).map(_.cleanupBeforeInsertIntoDatabase)
       _            <- { conservationProcDao.update(mid, eventId, newCp) }
       maybeUpdated <- findConservationProcessById(mid, eventId)
 

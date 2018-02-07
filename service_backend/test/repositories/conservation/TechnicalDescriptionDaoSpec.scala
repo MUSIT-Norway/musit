@@ -50,7 +50,7 @@ class TechnicalDescriptionDaoSpec
       updatedBy = None,
       updatedDate = now,
       documents = None,
-      isUpdated = false
+      isUpdated = Some(false)
     )
   }
 

@@ -80,7 +80,7 @@ class IndexConservationSpec
         val docCount =
           esClient.execute(count(conservation.indexAlias, conservation.conservationType))
 
-        docCount.futureValue.count mustBe 1
+        docCount.futureValue.count mustBe 2
       }
     }
 

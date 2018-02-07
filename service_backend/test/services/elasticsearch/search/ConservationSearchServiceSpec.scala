@@ -201,7 +201,7 @@ class ConservationSearchServiceSpec
         Seq(FileId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"))
       ),
       materialInfo = Some(Seq(MaterialInfo(1, Some("veldig spes materiale"), Some(1)))),
-      isUpdated = false
+      isUpdated = Some(false)
     )
   }
 

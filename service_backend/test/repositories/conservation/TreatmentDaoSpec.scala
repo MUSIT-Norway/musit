@@ -66,7 +66,7 @@ class TreatmentDaoSpec
       documents = Some(
         Seq(FileId.unsafeFromString("d63ab290-2fab-42d2-9b57-2475dfbd0b3c"))
       ),
-      isUpdated = false
+      isUpdated = Some(false)
     )
   }
 

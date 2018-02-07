@@ -167,7 +167,6 @@ class ConservationModuleEventController @Inject()(
       implicit currUser: AuthenticatedUser
   ): Future[Result] = {
     val futMrOptEventTypeId = conservationService.getEventTypeId(id)
-
     val futMrEventTypeId = futMrOptEventTypeId.getOrError(
       //Todo: This may be a client/validation error, if it passes in an invalided eventId
       MusitInternalError(s"Unable to find event type id for event with id: $id")

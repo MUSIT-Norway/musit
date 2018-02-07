@@ -166,6 +166,24 @@ class ConservationProcessControllerSpec
         res.json.as[JsArray].value.size mustBe 10
       }
     }
+
+    /*
+    "should return NOT_FOUND on an not-existing id" in {
+      val res = getEvent(999, token)
+      println(s"res: $res")
+      res.status mustBe NOT_FOUND
+    }
+     */
+    "should be able to get existing event without isUpdated in json" in {
+      //First we tried some special eventId like 666, but then the next eventId became 667, which ruined most of our tests,
+      //so then we instead used -1 as the test-event inserted in the database
+      //val cp = getEventObject(-1).asInstanceOf[ConservationProcess]
+      println("her")
+      val res = getEvent(-1, token)
+      println(s"res: $res")
+      res.status mustBe OK
+    }
+
     "working with conservationProcess" should {
 
       "add a new conservationProcess" in {
@@ -1536,8 +1554,8 @@ class ConservationProcessControllerSpec
           "id"          -> cpId,
           "eventTypeId" -> conservationProcessEventTypeId,
           "caseNumber"  -> "2018/777",
-          "events"      -> Json.arr(treatment1),
-          "isUpdated"   -> true
+          "events"      -> Json.arr(treatment1)
+//          "isUpdated"   -> true
         )
         val updRes = putEvent(cpId, json)
         updRes.status mustBe BAD_REQUEST
@@ -1581,6 +1599,7 @@ class ConservationProcessControllerSpec
 
         val newSubEvent = getEventObject(cpId + 2).asInstanceOf[Treatment]
         newSubEvent.note mustBe Some("ny subEvent som skal inn")
+        //newSubEvent.registeredBy mustBe Some("d63ab290-2fab-42d2-9b57-2475dfbd0b3c")
       }
     }
   }

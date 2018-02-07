@@ -19,7 +19,7 @@ trait DbErrorHandlers {
     case NonFatal(ex) =>
       logger.error(msg, ex)
       //println(ex)
-      MusitDbError(msg, Option(ex))
+      MusitDbError(msg + s" ex: ${ex.getLocalizedMessage()}", Option(ex))
   }
 
 }

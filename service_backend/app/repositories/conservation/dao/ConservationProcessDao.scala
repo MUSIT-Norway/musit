@@ -3,7 +3,7 @@ package repositories.conservation.dao
 import com.google.inject.{Inject, Singleton}
 import models.conservation.ConservationProcessKeyData
 import models.conservation.events._
-import no.uio.musit.MusitResults.MusitValidationError
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models._
 import no.uio.musit.repositories.events.EventActions
@@ -50,7 +50,7 @@ class ConservationProcessDao @Inject()(
       .getOrError(MusitValidationError("didn't find record"))*/
   }
 
-  def interpretConservationProcessRow(row: EventRow): ConservationProcess = {
+  def interpretConservationProcessRow(row: EventRow): MusitResult[ConservationProcess] = {
     require(
       valEventTypeId(row) == ConservationProcess.eventTypeId,
       s"didn't get proper conservationProcess eventTypeId, expected: ${ConservationProcess.eventTypeId}, found: ${valEventTypeId(row)}"
@@ -59,19 +59,25 @@ class ConservationProcessDao @Inject()(
     fromConservationRow(
       valEventId(row),
       valJson(row)
-    ).get.asInstanceOf[ConservationProcess]
+    ).map(x => x.asInstanceOf[ConservationProcess])
   }
 
   private def findConservationProcessByIdAction(
       mid: MuseumId,
       id: EventId
-  )(implicit currUsr: AuthenticatedUser): DBIO[Option[ConservationProcess]] = {
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): DBIO[MusitResult[Option[ConservationProcess]]] = {
     val q1 = super.findByIdAction(mid, id).map { mayBeRow =>
       mayBeRow.map { row =>
         interpretConservationProcessRow(row)
       }
     }
-    q1
+    q1.map {
+      case Some(mr) => mr.map(cp => Some(cp))
+      case None     => MusitSuccess(None)
+
+    }
   }
 
   private def getDaoFor(event: ConservationEvent) = {
@@ -133,7 +139,6 @@ class ConservationProcessDao @Inject()(
       implicit currUsr: AuthenticatedUser
   ): FutureMusitResult[Option[ConservationProcess]] = {
     val query = findConservationProcessByIdAction(mid, id)
-
     val futCp = daoUtils.dbRun(
       query,
       s"An unexpected error occurred fetching conservation process event $id"
@@ -143,10 +148,13 @@ class ConservationProcessDao @Inject()(
       actors  <- actorRoleDateDao.getEventActorRoleDates(id)
       objects <- objectEventDao.getEventObjects(id)
     } yield
-      event
-        .map(m => m.withActorRoleAndDates(Some(actors)))
-        .map(nr => nr.withAffectedThings(Some(objects)))
-    res
+      event.map(
+        _.map(m => m.withActorRoleAndDates(Some(actors)))
+          .map(nr => nr.withAffectedThings(Some(objects)))
+      )
+
+    //res.mapAndFlattenMusitResult{_.map(_.map(m => m.withActorRoleAndDates(Some(actors))).map(nr => nr.withAffectedThings(Some(objects))))}
+    res.mapAndFlattenMusitResult(x => x)
   }
 
   def readSubEvent(

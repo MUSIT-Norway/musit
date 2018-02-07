@@ -5,12 +5,13 @@ import models.conservation.events.{
   ConservationModuleEvent,
   ConservationProcess
 }
+import no.uio.musit.MusitResults.{MusitInternalError, MusitResult, MusitSuccess}
 import no.uio.musit.models.{EventId, MuseumId, MusitEvent, MusitUUID}
 import no.uio.musit.repositories.events.EventRowMappers
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
-import play.api.libs.json.{JsValue, Json, Reads, Writes}
+import play.api.libs.json._
 
 trait ConservationEventRowMappers extends EventRowMappers[ConservationModuleEvent] {
   self: ConservationEventTableProvider =>
@@ -46,11 +47,27 @@ trait ConservationEventRowMappers extends EventRowMappers[ConservationModuleEven
   protected def fromConservationRow(
       maybeEventId: Option[EventId],
       rowAsJson: JsValue
-  )(implicit jsr: Reads[ConservationModuleEvent]): Option[ConservationModuleEvent] = {
-    // println(Json.prettyPrint(rowAsJson))
+  )(
+      implicit jsr: Reads[ConservationModuleEvent]
+  ): MusitResult[ConservationModuleEvent] = {
+    //println(Json.prettyPrint(rowAsJson))
+    require(maybeEventId.isDefined)
+    val eventFromJson = Json.fromJson[ConservationModuleEvent](rowAsJson)
+    eventFromJson match {
+      case JsSuccess(event, path) =>
+        MusitSuccess(event.withId(maybeEventId).asInstanceOf[ConservationModuleEvent])
+
+      case JsError(err) =>
+        MusitInternalError(
+          s"Problems parsing json in fromConservationRow: $rowAsJson, errorMsg: $err"
+        )
+
+    }
+    /*
     Json.fromJson[ConservationModuleEvent](rowAsJson).asOpt.map { row =>
       row.withId(maybeEventId).asInstanceOf[ConservationModuleEvent]
     }
+   */
   }
 
   override protected def fromRow(

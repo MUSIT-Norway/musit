@@ -118,7 +118,7 @@ sealed trait ConservationEvent extends ConservationModuleEvent {
   val actorsAndRoles: Option[Seq[ActorRoleDate]]
   val affectedThings: Option[Seq[ObjectUUID]]
   val documents: Option[Seq[FileId]]
-  val isUpdated: Boolean
+  val isUpdated: Option[Boolean]
   // todo val extraAttributes: Option[ExtraAttributes]
 
   //A new copy, appropriate when updating the event in the database.
@@ -151,6 +151,9 @@ sealed trait ConservationEvent extends ConservationModuleEvent {
   override def caseNumber = throw new IllegalStateException(
     "Don't use caseNumber in subEvents"
   )
+
+  def cleanupBeforeInsertIntoDatabase: ConservationEvent
+
 }
 
 object ConservationEvent extends TypedConservationEvent with WithDateTimeFormatters {
@@ -264,12 +267,18 @@ case class ConservationProcess(
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
     events: Option[Seq[ConservationEvent]],
-    isUpdated: Boolean
+    isUpdated: Option[Boolean]
 ) extends ConservationModuleEvent {
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
 
   override def withId(id: Option[EventId]) = copy(id = id)
+
+  def cleanupBeforeInsertIntoDatabase =
+    copy(
+      isUpdated = None,
+      events = events.map(_.map(child => child.cleanupBeforeInsertIntoDatabase))
+    )
 
   def withoutEvents = copy(events = None)
 
@@ -359,8 +368,10 @@ case class Treatment(
     keywords: Option[Seq[Int]],
     materials: Option[Seq[Int]],
     documents: Option[Seq[FileId]],
-    isUpdated: Boolean
+    isUpdated: Option[Boolean]
 ) extends ConservationEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
 
   override def withId(id: Option[EventId]) = copy(id = id)
 
@@ -413,8 +424,10 @@ case class TechnicalDescription(
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
     documents: Option[Seq[FileId]],
-    isUpdated: Boolean
+    isUpdated: Option[Boolean]
 ) extends ConservationEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
 
@@ -473,8 +486,10 @@ case class StorageAndHandling(
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
     documents: Option[Seq[FileId]],
-    isUpdated: Boolean
+    isUpdated: Option[Boolean]
 ) extends ConservationEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
 
@@ -529,8 +544,10 @@ case class HseRiskAssessment(
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
     documents: Option[Seq[FileId]],
-    isUpdated: Boolean
+    isUpdated: Option[Boolean]
 ) extends ConservationEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
 
@@ -586,8 +603,10 @@ case class ConditionAssessment(
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
     documents: Option[Seq[FileId]],
-    isUpdated: Boolean
+    isUpdated: Option[Boolean]
 ) extends ConservationEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
 
@@ -643,8 +662,10 @@ case class Report(
     affectedThings: Option[Seq[ObjectUUID]],
     documents: Option[Seq[FileId]],
     archiveReference: Option[String],
-    isUpdated: Boolean
+    isUpdated: Option[Boolean]
 ) extends ConservationEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
 
@@ -709,8 +730,10 @@ case class MaterialDetermination(
     affectedThings: Option[Seq[ObjectUUID]],
     documents: Option[Seq[FileId]],
     materialInfo: Option[Seq[MaterialInfo]],
-    isUpdated: Boolean
+    isUpdated: Option[Boolean]
 ) extends ConservationEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
 
@@ -790,8 +813,10 @@ case class MeasurementDetermination(
     affectedThings: Option[Seq[ObjectUUID]],
     documents: Option[Seq[FileId]],
     measurementData: Option[MeasurementData],
-    isUpdated: Boolean
+    isUpdated: Option[Boolean]
 ) extends ConservationEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
 
@@ -846,8 +871,10 @@ case class Note(
     actorsAndRoles: Option[Seq[ActorRoleDate]],
     affectedThings: Option[Seq[ObjectUUID]],
     documents: Option[Seq[FileId]],
-    isUpdated: Boolean
+    isUpdated: Option[Boolean]
 ) extends ConservationEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
   // These fields are not relevant for the ConservationProcess type
   //override val affectedThing: Option[ObjectUUID] = None
 

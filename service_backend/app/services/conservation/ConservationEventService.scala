@@ -34,12 +34,14 @@ abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Injec
 
       _ <- conservationService.checkTypeOfObjects(ce.affectedThings.getOrElse(Seq.empty))
 
-      newEvent <- conservationService.updateSubEventWithDateAndActor(
-                   mid,
-                   ce,
-                   Insert,
-                   ActorDate(currUser.id, dateTimeNow)
-                 )
+      newEvent <- conservationService
+                   .updateSubEventWithDateAndActor(
+                     mid,
+                     ce,
+                     Insert,
+                     ActorDate(currUser.id, dateTimeNow)
+                   )
+                   .map(_.cleanupBeforeInsertIntoDatabase)
       added <- dao.insert(mid, newEvent.asInstanceOf[T])
       a <- dao
             .findSpecificConservationEventById(mid, added)
@@ -77,12 +79,14 @@ abstract class ConservationEventService[T <: ConservationEvent: ClassTag] @Injec
             Some(eventId) == event.id,
             s"Inconsistent eventid in url($eventId) vs body (${event.id})"
           )
-      newEvent <- conservationService.updateSubEventWithDateAndActor(
-                   mid,
-                   event,
-                   UpdateSelf,
-                   ActorDate(currUser.id, dateTimeNow)
-                 )
+      newEvent <- conservationService
+                   .updateSubEventWithDateAndActor(
+                     mid,
+                     event,
+                     UpdateSelf,
+                     ActorDate(currUser.id, dateTimeNow)
+                   )
+                   .map(_.cleanupBeforeInsertIntoDatabase)
       updateRes <- dao.update(mid, eventId, newEvent)
     } yield updateRes
   }
