@@ -1601,6 +1601,39 @@ class ConservationProcessControllerSpec
         newSubEvent.note mustBe Some("ny subEvent som skal inn")
         //newSubEvent.registeredBy mustBe Some("d63ab290-2fab-42d2-9b57-2475dfbd0b3c")
       }
+      "check for updatedDate is not removed from CP when a subEvents " in {
+        val treatment1 = Json.obj(
+          "id"             -> (cpId + 1),
+          "eventTypeId"    -> treatmentEventTypeId,
+          "note"           -> "ny treatmentsssss",
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
+          "isUpdated"      -> true
+        )
+
+        val json = Json.obj(
+          "id"             -> (cpId),
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "caseNumber"     -> "2018/66",
+          "events"         -> Json.arr(treatment1),
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 2,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(5)
+            )
+          ),
+          "isUpdated" -> false
+        )
+        val newCp = putEvent(cpId, json)
+        newCp.status mustBe OK
+        val now = time.dateTimeNow
+        val newMsDEvent =
+          getEventObject(cpId).asInstanceOf[ConservationProcess]
+        newMsDEvent.updatedDate.isDefined mustBe true
+        newMsDEvent.updatedDate mustApproximate Some(now)
+        newMsDEvent.updatedBy mustBe Some(adminId)
+      }
     }
   }
 }

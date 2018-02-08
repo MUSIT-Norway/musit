@@ -126,7 +126,7 @@ class ConservationService @Inject()(
         } yield {
           val regInfoEvent = event.withRegisteredInfoEx(registeredInfo)
           maybeUpdatedInfo.fold(regInfoEvent)(
-            updatedInfo => regInfoEvent.withRegisteredInfoEx(updatedInfo)
+            updatedInfo => regInfoEvent.withUpdatedInfoEx(updatedInfo)
           )
         }
       }
