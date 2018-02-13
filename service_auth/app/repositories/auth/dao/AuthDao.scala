@@ -191,6 +191,21 @@ class AuthDao @Inject()(
     }
   }
 
+  def findRoleInfoForUser(
+      feideEmail: Email,
+      mid: MuseumId,
+      cid: String
+  ): Future[MusitResult[Seq[GroupInfo]]] = {
+    val collectionUuid = CollectionUUID.unsafeFromString(cid)
+    findRoleInfoForUsr(usrGrpTable.filter { ug =>
+      ug.feideEmail.toLowerCase === feideEmail &&
+      ug.collectionId === collectionUuid
+    }, mid).recover {
+      case NonFatal(ex) =>
+        handleError(s"An error occurred trying find Roles for user $feideEmail", ex)
+    }
+  }
+
   def revokeGroup(
       feideEmail: Email,
       groupId: GroupId

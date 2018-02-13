@@ -9,6 +9,7 @@ import no.uio.musit.test.MusitSpecWithAppPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
 import org.scalatest.BeforeAndAfterAll
 
+// test-only repositories.auth.dao.AuthDaoSpec
 class AuthDaoSpec
     extends MusitSpecWithAppPerSuite
     with BeforeAndAfterAll
@@ -174,7 +175,30 @@ class AuthDaoSpec
         res.successValue.size mustBe 1
       }
     }
+    "finding all the roles for a user" should {
+      "return all the roles for user email" in {
+        val email = Email("test@test.no")
 
+        val res =
+          dao
+            .findRoleInfoForUser(email, 99, "2e4f2455-1b3b-4a04-80a1-ba92715ff613")
+            .futureValue
+
+        res.successValue.toList.head.permission.toString mustBe "Admin"
+
+        res.successValue.size mustBe 1
+      }
+      "should be zero for false museum" in {
+        val email = Email("foobar@baz.com")
+
+        val res =
+          dao
+            .findRoleInfoForUser(email, 98, "2e4f2455-1b3b-4a04-80a1-ba92715ff613")
+            .futureValue
+
+        res.successValue.size mustBe 0
+      }
+    }
   }
 
 }

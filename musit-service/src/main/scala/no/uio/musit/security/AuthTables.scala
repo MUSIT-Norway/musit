@@ -51,6 +51,7 @@ trait AuthTables
 
     // scalastyle:off
     override def * = (id, name, module, permission, museumId, description)
+
     // scalastyle:on
 
   }
@@ -156,6 +157,7 @@ trait AuthTables
         tokenExpiry,
         client
       ) <> (create.tupled, destroy)
+
     // scalastyle:on
 
   }
@@ -187,6 +189,7 @@ trait AuthTables
         groupId,
         collectionId
       ) <> (create.tupled, destroy)
+
     // scalastyle:on
   }
 
@@ -211,6 +214,22 @@ trait AuthTables
     val query = for (((_, grp), col) <- q2) yield (grp, col)
 
     db.run(query.distinct.result).map(gc => MusitSuccess(foldGroupCol(gc)))
+  }
+
+  def findRoleInfoForUsr(
+      q: Query[UserGroupTable, UserGroupMembership, Seq],
+      mid: MuseumId
+  )(implicit ec: ExecutionContext): Future[MusitResult[Seq[GroupInfo]]] = {
+    val qGroupsForMuseum = grpTable.filter(_.museumId === mid)
+    val q1               = q join qGroupsForMuseum on (_.groupId === _.id)
+
+    val q2 = q1 join musColTable on { (ugg, col) =>
+      ugg._1.collectionId === col.uuid || ugg._1.collectionId.isEmpty
+    }
+    val query = for (((_, grp), col) <- q2) yield (grp, col)
+
+    db.run(query.distinct.result).map(gc => MusitSuccess(foldGroupCol(gc)))
+
   }
 
   def convertColGrpTuples(tuples: GrpColTuples): Seq[(GroupInfo, MuseumCollection)] = {

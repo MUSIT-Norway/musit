@@ -35,6 +35,7 @@ GET         /rest/authenticate                     controllers.rest.Authenticati
 GET         /rest/logout                           controllers.rest.AuthenticationController.logout
 GET         /rest/museums                          controllers.rest.MuseumController.listMuseums
 GET         /rest/groups/:feideEmail               controllers.rest.GroupController.groupsForUser(feideEmail: String)
+GET         /rest/:mid/roles/:feideEmail           controllers.rest.GroupController.rolesForUser(feideEmail: String,mid: Int, collectionId:String)
 # TODO: Add the remaining REST endpoings
 
 
