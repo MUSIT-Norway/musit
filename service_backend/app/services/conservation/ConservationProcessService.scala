@@ -138,15 +138,32 @@ class ConservationProcessService @Inject()(
                   case true  => UpdateSelf
                   case false => Insert
                 }
-                conservationService
-                  .updateSubEventWithDateAndActor(mid, subEvent, situation, actorDate)
+                conservationService.updateSubEventWithDateAndActor(
+                  mid,
+                  subEvent,
+                  situation,
+                  actorDate
+                )
               }
           FutureMusitResult.sequence(newChildren)
 
         }
-        newCp.flatMap(
-          ncp => newSubEvents.map(subEventList => ncp.withEvents(subEventList))
-        )
+        newSubEvents
+          .flatMap(subEvents => {
+            newCp.flatMap { m =>
+              if (!subEvents.isEmpty) {
+                val localSituation = if (isInsert) Insert else UpdateSelf
+                conservationService
+                  .updateProcessWithDateAndActor(mid, m, localSituation, actorDate)
+              } else FutureMusitResult.from(m)
+            }
+          })
+          .flatMap(
+            ncp =>
+              newSubEvents.map(subEventList => {
+                ncp.withEvents(subEventList)
+              })
+          )
 
       //case err: MusitValidationError => FutureMusitResult.from(err)
       case err: MusitError => FutureMusitResult.from[ConservationProcess](err)

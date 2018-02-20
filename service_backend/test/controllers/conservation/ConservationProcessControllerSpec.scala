@@ -178,9 +178,7 @@ class ConservationProcessControllerSpec
       //First we tried some special eventId like 666, but then the next eventId became 667, which ruined most of our tests,
       //so then we instead used -1 as the test-event inserted in the database
       //val cp = getEventObject(-1).asInstanceOf[ConservationProcess]
-      println("her")
       val res = getEvent(-1, token)
-      println(s"res: $res")
       res.status mustBe OK
     }
 
@@ -1601,7 +1599,7 @@ class ConservationProcessControllerSpec
         newSubEvent.note mustBe Some("ny subEvent som skal inn")
         //newSubEvent.registeredBy mustBe Some("d63ab290-2fab-42d2-9b57-2475dfbd0b3c")
       }
-      "check for updatedDate is not removed from CP when a subEvents " in {
+      "check for updatedDate is not removed from CP when a subEvents is updated" in {
         val treatment1 = Json.obj(
           "id"             -> (cpId + 1),
           "eventTypeId"    -> treatmentEventTypeId,
@@ -1625,14 +1623,55 @@ class ConservationProcessControllerSpec
           ),
           "isUpdated" -> false
         )
+        val Cp = putEvent(cpId, json)
+        Cp.status mustBe OK
+        val now = time.dateTimeNow
+        val newCp =
+          getEventObject(cpId).asInstanceOf[ConservationProcess]
+        newCp.updatedDate.isDefined mustBe true
+        newCp.updatedDate mustApproximate Some(now)
+        newCp.updatedBy mustBe Some(adminId)
+      }
+      "check that the amount of subEvents to be updated is ok, and compare with " +
+        "and do not update CP when isUpdated is false. But updatedDate and actor" +
+        "must be changed in CP when one of the subEvents is updated. " in {
+        val treatment1 = Json.obj(
+          "id"          -> (cpId + 1),
+          "eventTypeId" -> treatmentEventTypeId,
+          "note"        -> "nyeste merknaden",
+          "isUpdated"   -> true
+        )
+        val treatment2 = Json.obj(
+          "eventTypeId" -> treatmentEventTypeId,
+          "note"        -> "ny subEvent som ikke skal insertes",
+          "isUpdated"   -> false
+        )
+
+        val json = Json.obj(
+          "id"          -> cpId,
+          "eventTypeId" -> conservationProcessEventTypeId,
+          "events"      -> Json.arr(treatment1, treatment2),
+          "caseNumber"  -> "2018/55555",
+          "isUpdated"   -> false
+        )
+        val cp =
+          getEventObject(cpId).asInstanceOf[ConservationProcess]
+        cp.events.map(m => m.length mustBe 2)
+        val oldDate = cp.updatedDate
+        cp.caseNumber mustBe None // old value
+        Thread.sleep(1002)
         val newCp = putEvent(cpId, json)
         newCp.status mustBe OK
-        val now = time.dateTimeNow
-        val newMsDEvent =
-          getEventObject(cpId).asInstanceOf[ConservationProcess]
-        newMsDEvent.updatedDate.isDefined mustBe true
-        newMsDEvent.updatedDate mustApproximate Some(now)
-        newMsDEvent.updatedBy mustBe Some(adminId)
+        val updatedCp = getEventObject(cpId).asInstanceOf[ConservationProcess]
+        updatedCp.caseNumber mustBe None //not updated
+        updatedCp.events.map(events => events.length mustBe 2)
+        val subEvent1 = getEventObject(cpId + 1).asInstanceOf[Treatment]
+        val subEvent2 = getEventObject(cpId + 2).asInstanceOf[Treatment]
+        subEvent1.note mustBe Some("nyeste merknaden")
+        subEvent2.note must not be Some("ny subEvent som ikke skal insertes") // not updated
+        updatedCp.updatedDate.isDefined mustBe true
+        updatedCp.updatedDate must not be oldDate
+
       }
     }
   }

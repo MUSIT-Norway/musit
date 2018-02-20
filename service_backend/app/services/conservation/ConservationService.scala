@@ -8,7 +8,12 @@ import no.uio.musit.models._
 import no.uio.musit.security.AuthenticatedUser
 import no.uio.musit.functional.Extensions._
 import play.api.Logger
-import repositories.conservation.dao.{ActorRoleDateDao, ConservationDao, TreatmentDao}
+import repositories.conservation.dao.{
+  ActorRoleDateDao,
+  ConservationDao,
+  ConservationProcessDao,
+  TreatmentDao
+}
 import services.conservation.EventSituation.{
   EventSituation,
   Insert,
@@ -28,6 +33,7 @@ class ConservationService @Inject()(
     val dao: ConservationDao,
     val actorRoleDateDao: ActorRoleDateDao,
     val subEventDao: TreatmentDao, //Arbitrary choice, to get access to helper functions irrespective of event type
+    val cpDao: ConservationProcessDao,
     val ec: ExecutionContext
 ) {
 
@@ -123,11 +129,14 @@ class ConservationService @Inject()(
                            )
 
           maybeUpdatedInfo <- findUpdatedInfo(mid, eventId)
+          oldCp            <- cpDao.findConservationProcessIgnoreSubEvents(mid, eventId)
         } yield {
           val regInfoEvent = event.withRegisteredInfoEx(registeredInfo)
-          maybeUpdatedInfo.fold(regInfoEvent)(
-            updatedInfo => regInfoEvent.withUpdatedInfoEx(updatedInfo)
-          )
+          maybeUpdatedInfo
+            .fold(regInfoEvent)(
+              updatedInfo => regInfoEvent.withUpdatedInfoEx(updatedInfo)
+            )
+            .copy(caseNumber = oldCp.flatMap(m => m.caseNumber))
         }
       }
     }
@@ -143,7 +152,6 @@ class ConservationService @Inject()(
   ): FutureMusitResult[ConservationEvent] = {
     require(situation != PreserveDates) // an illegal situation for subEvents
     situation match {
-
       case Insert =>
         FutureMusitResult.from(event.withRegisteredInfoEx(currentTimeAndActor))
       case UpdateSelf => {
