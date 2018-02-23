@@ -1264,7 +1264,7 @@ class ConservationProcessControllerSpec
               "largestMeasurement" -> 2.11,
               "measurement"        -> "a lot of measurements",
               "quantity"           -> 2,
-              "quantitySymbols"    -> "<",
+              "quantitySymbol"     -> "<",
               "fragmentQuantity"   -> 3
             ),
           "isUpdated" -> true
@@ -1299,7 +1299,7 @@ class ConservationProcessControllerSpec
         newMsDEvent.measurementData.get.largestMeasurement mustBe Some(2.11)
         newMsDEvent.measurementData.get.measurement mustBe Some("a lot of measurements")
         newMsDEvent.measurementData.get.quantity mustBe Some(2)
-        newMsDEvent.measurementData.get.quantitySymbols mustBe Some("<")
+        newMsDEvent.measurementData.get.quantitySymbol mustBe Some("<")
         newMsDEvent.measurementData.get.fragmentQuantity mustBe Some(3)
 
       }
@@ -1333,7 +1333,7 @@ class ConservationProcessControllerSpec
               "largestMeasurement" -> 3.11,
               "measurement"        -> "a lot of new measurements",
               "quantity"           -> 4,
-              "quantitySymbols"    -> "<",
+              "quantitySymbol"     -> "<",
               "fragmentQuantity"   -> 5
             ),
           "isUpdated" -> true

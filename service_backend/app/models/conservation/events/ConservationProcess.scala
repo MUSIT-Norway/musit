@@ -789,7 +789,7 @@ case class MeasurementData(
     largestMeasurement: Option[Double],
     measurement: Option[String],
     quantity: Option[Int],
-    quantitySymbols: Option[String],
+    quantitySymbol: Option[String],
     fragmentQuantity: Option[Int]
 )
 
