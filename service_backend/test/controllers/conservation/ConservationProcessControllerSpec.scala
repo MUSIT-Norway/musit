@@ -1312,7 +1312,7 @@ class ConservationProcessControllerSpec
         currentMmData.weight mustBe Some(2.0)
         currentMmData.diameter mustBe Some(2.9)
 
-        //then post another materialDetermination
+        //then post another measurement
         val mdJson = Json.obj(
           "eventTypeId"    -> measurementDeterminationEventTypeId,
           "note"           -> "det nyeste og fineste målet",
@@ -1363,6 +1363,75 @@ class ConservationProcessControllerSpec
         res.status mustBe OK
         res.body mustBe "null"
       }
+      "get previous measurement from an object if the last one is deleted" in {
+
+        val res =
+          getCurrentMeasurementDataForObject("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        res.status mustBe OK
+        val currentMmData = res.json.validate[MeasurementData].get
+        currentMmData.quantity mustBe Some(4)
+        currentMmData.largestHeight mustBe Some(3.8)
+
+        //then post another measurement
+        val mdJson = Json.obj(
+          "eventTypeId"    -> measurementDeterminationEventTypeId,
+          "note"           -> "kjempefint mål",
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
+          "measurementData" ->
+            Json.obj(
+              "weight"             -> 5.0,
+              "length"             -> 5.1,
+              "width"              -> 5.2,
+              "thickness"          -> 5.3,
+              "height"             -> 5.4,
+              "largestLength"      -> 5.5,
+              "largestWidth"       -> 5.6,
+              "largestThickness"   -> 5.7,
+              "largestHeight"      -> 5.8,
+              "diameter"           -> 5.9,
+              "tverrmaal"          -> 5.10,
+              "largestMeasurement" -> 5.11,
+              "measurement"        -> "super measurements",
+              "quantity"           -> 5,
+              "quantitySymbol"     -> "<",
+              "fragmentQuantity"   -> 6
+            ),
+          "isUpdated" -> true
+        )
+        val json = Json.obj(
+          "id"             -> compositeConservationProcessEventId,
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "events"         -> Json.arr(mdJson),
+          "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
+          "isUpdated"      -> true
+        )
+
+        val updRes = putEvent(compositeConservationProcessEventId, json)
+        updRes.status mustBe OK
+        //and then check what the new measurementData is now
+        val anotherRes =
+          getCurrentMeasurementDataForObject("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        anotherRes.status mustBe OK
+        val currentMm = anotherRes.json.validate[MeasurementData].get
+        currentMm.quantity mustBe Some(5)
+        currentMm.largestHeight mustBe Some(5.8)
+        val subevent =
+          getEventObject(hseRiskAssessmentId + 8).asInstanceOf[MeasurementDetermination]
+        subevent.measurementData.get.quantity mustBe Some(5)
+        subevent.measurementData.get.largestHeight mustBe Some(5.8)
+
+        //the delete the last measurementDetermination
+        val eventid = hseRiskAssessmentId + 8
+        val de      = deleteEvents(eventid.toString)
+        de.status mustBe NO_CONTENT
+
+        val getCurrentMd =
+          getCurrentMeasurementDataForObject("42b6a92e-de59-4fde-9c46-5c8794be0b34")
+        getCurrentMd.status mustBe OK
+        val currentMdAgain = getCurrentMd.json.validate[MeasurementData].get
+        currentMdAgain.quantity mustBe Some(4)
+        currentMdAgain.largestHeight mustBe Some(3.8)
+      }
 
     }
     "working with the subevent Note " should {
@@ -1386,7 +1455,7 @@ class ConservationProcessControllerSpec
         updRes.status mustBe OK
 
         val newSubNote =
-          getEventObject(hseRiskAssessmentId + 8).asInstanceOf[Note]
+          getEventObject(hseRiskAssessmentId + 9).asInstanceOf[Note]
         newSubNote.note mustBe Some(
           "den nyeste og fineste kommentaren"
         )
@@ -1399,7 +1468,7 @@ class ConservationProcessControllerSpec
       }
       "update the note event in our cp compositeConservationProcessEventId" in {
         val sahJson = Json.obj(
-          "id"             -> (hseRiskAssessmentId + 8),
+          "id"             -> (hseRiskAssessmentId + 9),
           "eventTypeId"    -> noteEventTypeId,
           "note"           -> "endring av kommentaren",
           "affectedThings" -> Seq("42b6a92e-de59-4fde-9c46-5c8794be0b34"),
@@ -1417,14 +1486,14 @@ class ConservationProcessControllerSpec
         val updRes = putEvent(compositeConservationProcessEventId, json)
         updRes.status mustBe OK
         val newNoteEvent =
-          getEventObject(hseRiskAssessmentId + 8).asInstanceOf[Note]
+          getEventObject(hseRiskAssessmentId + 9).asInstanceOf[Note]
         newNoteEvent.note mustBe Some("endring av kommentaren")
       }
     }
     "checking different stuff with events " should {
       "return 400 BAD-REQUEST when trying to update an event with an invalid objectUuid " in {
         val sahJson = Json.obj(
-          "id"             -> (hseRiskAssessmentId + 8),
+          "id"             -> (hseRiskAssessmentId + 9),
           "eventTypeId"    -> noteEventTypeId,
           "note"           -> "endring av kommentaren",
           "affectedThings" -> Seq("92b6a92e-de59-4fde-9c46-5c8794be0b34"),
@@ -1486,7 +1555,7 @@ class ConservationProcessControllerSpec
         res.status mustBe OK
         val now = time.dateTimeNow
         (res.json \ 0 \ "eventId").as[Long] mustBe 5L
-        (res.json \ 1 \ "eventId").as[Long] mustBe 22L
+        (res.json \ 1 \ "eventId").as[Long] mustBe 23L
         (res.json \ 1 \ "caseNumber").as[String] mustBe "2018/666"
         (res.json \ 0 \ "registeredDate").as[DateTime] mustApproximate (now)
         (res.json \ 1 \ "registeredBy").as[ActorId] mustBe adminId
@@ -1510,10 +1579,10 @@ class ConservationProcessControllerSpec
     }
 
     "check ActorDates when updating Cp and subEvents " should {
-      val cpId = 24L
+      val cpId = 25L
       "return OK when updating both Cp and subEvents " in {
         val res = addDummyConservationProcess()
-        res.status mustBe CREATED // creates id 24 to 25
+        res.status mustBe CREATED // creates id 25 to 26
         (res.json \ "id").as[Int] mustBe cpId
         val treatment1 = Json.obj(
           "eventTypeId"    -> treatmentEventTypeId,

@@ -371,7 +371,7 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
     val uuid = oUuid.asString
     val eventId =
       sql"""select max(e.event_id) from MUSARK_CONSERVATION.OBJECT_EVENT o, MUSARK_CONSERVATION.event e
-           where o.object_uuid =${uuid} and o.event_id = e.event_id
+           where o.object_uuid =${uuid} and o.event_id = e.event_id and e.is_deleted = 0
            and e.type_id = ${eventTypeId.underlying}
          """.as[Long].headOption
     daoUtils
