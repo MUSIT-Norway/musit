@@ -193,15 +193,21 @@ class TreatmentDaoSpec
     "Delete of subevents" should {
       "delete an events" in {
         val res =
-          conservationDao.deleteSubEvent(defaultMid, EventId(2)).value.futureValue
-        res.successValue mustBe (())
+          conservationDao
+            .updateCpAndDeleteSubEvent(defaultMid, EventId(2))
+            .value
+            .futureValue
+        res.successValue mustBe 1
         val eventNotFound =
           dao.findSpecificConservationEventById(defaultMid, EventId(2)).value.futureValue
         eventNotFound.successValue mustBe None
       }
       "delete an events that not exists" in {
         val res =
-          conservationDao.deleteSubEvent(defaultMid, EventId(666)).value.futureValue
+          conservationDao
+            .updateCpAndDeleteSubEvent(defaultMid, EventId(666))
+            .value
+            .futureValue
         res.isFailure mustBe true
       }
     }

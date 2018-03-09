@@ -111,7 +111,6 @@ class ConservationProcessDao @Inject()(
       partOf: EventId,
       event: ConservationEvent
   )(implicit currUsr: AuthenticatedUser): DBIO[EventId] = {
-
     val dao = getDaoFor(event)
     event.id match {
       case Some(id) =>
@@ -274,7 +273,6 @@ class ConservationProcessDao @Inject()(
     val subEvents = cp.events.getOrElse(Seq.empty)
     val actors    = cp.actorsAndRoles.getOrElse(Seq.empty)
     val objects   = cp.affectedThings.getOrElse(Seq.empty)
-
     def subEventActions(partOf: EventId): Seq[DBIO[EventId]] = {
       subEvents.map(
         subEvent =>
@@ -286,7 +284,6 @@ class ConservationProcessDao @Inject()(
     val cpToInsert              = cp.withoutEvents
     val cpWithoutActorsToInsert = cpToInsert.withoutActorRoleAndDates
     val cpWithoutAffectedThings = cpWithoutActorsToInsert.withoutAfftectedThings
-
     val actions: DBIO[Int] = for {
       numUpdated <- updateAction(mid, id, cpWithoutAffectedThings)
       _          <- actorRoleDateDao.updateActorRoleDateAction(id, actors)

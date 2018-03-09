@@ -266,12 +266,13 @@ class ConservationModuleEventController @Inject()(
   def deleteSubEvents(mid: MuseumId, eventIds: String) =
     MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
       implicit val currUser = request.user
-      futureMusitResultUnitToPlayResult(
+      val results = futureMusitResultSeqToPlayResult(
         for {
           eids <- FutureMusitResult.from(parseStringListToSeqLong(eventIds))
           res  <- conservationService.deleteSubEvents(mid, eids.map(EventId.fromLong(_)))
         } yield res
       )
+      results
     }
 
   def getConservationWithKeyDataForObject(mid: Int, oid: String) =

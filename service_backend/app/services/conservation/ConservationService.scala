@@ -52,14 +52,14 @@ class ConservationService @Inject()(
   def deleteSubEvents(
       mid: MuseumId,
       eventIds: Seq[EventId]
-  ): FutureMusitResult[Unit] = {
-    FutureMusitResult
-      .collectAllOrFail[EventId, Unit](
-        eventIds,
-        eid => dao.deleteSubEvent(mid, eid).map(m => Some(m)),
-        eventIds => MusitValidationError(s"Unable to delete eventIds:$eventIds")
-      )
-      .map(m => ())
+  )(
+      implicit currUser: AuthenticatedUser
+  ): FutureMusitResult[Seq[Int]] = {
+    FutureMusitResult.collectAllOrFail[EventId, Int](
+      eventIds,
+      eid => dao.updateCpAndDeleteSubEvent(mid, eid).map(m => Some(m)),
+      eventIds => MusitValidationError(s"Unable to delete eventIds:$eventIds")
+    )
   }
 
   def checkTypeOfObjects(objects: Seq[ObjectUUID]): FutureMusitResult[Unit] = {

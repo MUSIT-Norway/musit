@@ -140,5 +140,6 @@ class ConservationProcessDaoSpec
         dao.update(defaultMid, eid, cp).value.futureValue.isFailure mustBe true
       }
     }
+
   }
 }

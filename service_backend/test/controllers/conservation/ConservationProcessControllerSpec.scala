@@ -13,6 +13,7 @@ import no.uio.musit.security.BearerToken
 import no.uio.musit.test.matchers.DateTimeMatchers
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import no.uio.musit.time
+import no.uio.musit.time.dateTimeNow
 import org.joda.time.DateTime
 import org.scalatest.Inspectors.forAll
 import play.api.libs.json._
@@ -131,6 +132,7 @@ class ConservationProcessControllerSpec
   ): ConservationProcess = {
     val cp = getEvent(eventId, t)
 
+    cp.json.validate[ConservationProcess].get
     cp.json.validate[ConservationProcess].get
   }
 
@@ -1019,10 +1021,34 @@ class ConservationProcessControllerSpec
         )
       }
       "delete two subevents " in {
-        val eventid   = hseRiskAssessmentId + 2
+        val eventid = hseRiskAssessmentId + 2
+        val sub1    = getEventObject(eventid).asInstanceOf[ConservationEvent]
+        val sub2    = getEventObject(16).asInstanceOf[ConservationEvent]
+
         val delEvents = "16," + eventid.toString
-        val de        = deleteEvents(delEvents)
-        de.status mustBe NO_CONTENT
+        val oldCp = getEventObject(compositeConservationProcessEventId)
+          .asInstanceOf[ConservationProcess]
+
+        oldCp.updatedDate must not be None
+        oldCp.updatedDate mustApproximate Some(dateTimeNow)
+
+        Thread.sleep(1002)
+        val de = deleteEvents(delEvents)
+        de.status mustBe OK
+
+        val sub1AfterDelete = MaybeGetEventObject(eventid)
+        sub1AfterDelete.isDefined mustBe false
+
+        val sub2AfterDelete = MaybeGetEventObject(16)
+        sub2AfterDelete.isDefined mustBe false
+
+        val cp = getEventObject(compositeConservationProcessEventId)
+          .asInstanceOf[ConservationProcess]
+
+        cp.updatedDate must not be None
+        cp.updatedDate must not be oldCp.updatedDate
+        cp.updatedDate mustApproximate Some(dateTimeNow)
+
       }
       "delete two subevents, one does not exists " in {
         val eventid   = 999
@@ -1423,7 +1449,7 @@ class ConservationProcessControllerSpec
         //the delete the last measurementDetermination
         val eventid = hseRiskAssessmentId + 8
         val de      = deleteEvents(eventid.toString)
-        de.status mustBe NO_CONTENT
+        de.status mustBe OK
 
         val getCurrentMd =
           getCurrentMeasurementDataForObject("42b6a92e-de59-4fde-9c46-5c8794be0b34")

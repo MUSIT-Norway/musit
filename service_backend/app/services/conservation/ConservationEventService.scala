@@ -2,8 +2,6 @@ package services.conservation
 
 import com.google.inject.Inject
 import models.conservation.events.ConservationEvent
-import no.uio.musit.MusitResults.MusitValidationError
-import no.uio.musit.functional.Extensions._
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models.{ActorDate, EventId, MuseumId}
 import no.uio.musit.security.AuthenticatedUser

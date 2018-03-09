@@ -1,14 +1,10 @@
 package repositories.conservation.dao
 
 import com.google.inject.Inject
-import models.conservation.events.{
-  ConservationEvent,
-  ConservationModuleEvent,
-  ConservationProcess
-}
+import models.conservation.events.{ConservationEvent, ConservationProcess}
 import no.uio.musit.MusitResults.MusitValidationError
-import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.functional.Extensions._
+import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models._
 import no.uio.musit.repositories.events.EventActions
 import no.uio.musit.security.AuthenticatedUser
@@ -292,7 +288,6 @@ class ConservationEventDao[T <: ConservationEvent: ClassTag] @Inject()(
   )(implicit currUsr: AuthenticatedUser): DBIO[Int] = {
     require(event.id.isDefined)
     val eventId = event.id.get
-
     //updated and registered are filled in during copyWithUpdateAndRegDataToProcessAndSubevents
     //or otherwise in the service layer (update on single subevent)
     //require(event.updatedBy.get == currUsr.id)

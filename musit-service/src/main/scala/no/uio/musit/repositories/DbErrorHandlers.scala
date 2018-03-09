@@ -13,12 +13,12 @@ trait DbErrorHandlers {
   def nonFatal[A](msg: String): PartialFunction[Throwable, MusitResult[A]] = {
     case ex: MusitSlickClientError => {
       logger.error(msg, ex)
-      //println(ex)
+      //println("nonfatal musitvalidationError" + ex)
       MusitValidationError(msg, Option(ex))
     }
     case NonFatal(ex) =>
       logger.error(msg, ex)
-      //println(ex)
+      //println("nonfatal musitDBerror" + ex)
       MusitDbError(msg + s" ex: ${ex.getLocalizedMessage()}", Option(ex))
   }
 
