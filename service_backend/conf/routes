@@ -168,6 +168,9 @@ POST          /:mid/conservation/events                     controllers.conserva
 PUT           /:mid/conservation/events/:id                 controllers.conservation.ConservationModuleEventController.updateEvent(mid: Int, id: Long)
 GET           /:mid/conservation/events/:id                 controllers.conservation.ConservationModuleEventController.getEventById(mid: Int, id: Long)
 
+# Reports for Conservation module
+GET           /:mid/conservation/conservationReport/:id     controllers.conservation.ConservationModuleEventController.getConservationReport(mid: Int, collectionId: String, id: Long)
+
 # Returns _all_ conservation events
 GET           /:mid/conservation/events/object/:id          controllers.conservation.ConservationModuleEventController.getEventsForObject(mid: Int, id: String)
 GET           /:mid/conservation/conservations/object/:id   controllers.conservation.ConservationModuleEventController.getConservationWithKeyDataForObject(mid: Int, id: String)

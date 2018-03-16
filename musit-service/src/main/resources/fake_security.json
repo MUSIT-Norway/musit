@@ -65,7 +65,8 @@
       "museumId": 10000,
       "description": "Application administrator with access to all functionality",
       "collections": [
-        "925748d6-bf49-4733-afd1-0e127d639f18"
+        "925748d6-bf49-4733-afd1-0e127d639f18",
+        "2e4f2455-1b3b-4a04-80a1-ba92715ff613"
       ]
     },
     {
