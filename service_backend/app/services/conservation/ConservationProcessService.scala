@@ -107,7 +107,7 @@ class ConservationProcessService @Inject()(
   }
 
   /**
-   * Locate an event with the given EventId.
+   * Get the person name details
    */
   def getPersonName(actor: Option[ActorId]): FutureMusitResult[Option[String]] = {
     val ofoPerson =
@@ -139,7 +139,45 @@ class ConservationProcessService @Inject()(
         maybeMainEventType = conservationTypes.find(t => t.id == process.eventTypeId)
       } yield maybeMainEventType
 
+    // su event type is added
+    val frmMaybeSubEventType =
+      for {
+        conservationTypes <- fmrConservationTypes
+        maybeMainEventType = conservationTypes.find(t => t.id == process.eventTypeId)
+      } yield maybeMainEventType
+
     // affectedThingsDetails for main event
+    val fmrEventsDetails =
+      process.events
+        .getOrElse(Seq.empty)
+        .map(
+          e =>
+            e.eventTypeId match {
+              case Treatment.eventTypeId => {
+                val treatment = e.asInstanceOf[Treatment]
+                TreatmentReport(
+                  id = e.id,
+                  eventTypeId = e.eventTypeId,
+                  eventType = None,
+                  registeredBy = e.registeredBy,
+                  registeredByName = None,
+                  registeredDate = e.registeredDate,
+                  updatedBy = e.updatedBy,
+                  updatedByName = None,
+                  updatedDate = e.updatedDate,
+                  partOf = e.partOf,
+                  note = e.note,
+                  actorsAndRoles = e.actorsAndRoles,
+                  affectedThings = e.affectedThings,
+                  affectedThingsDetails = Seq.empty,
+                  keywords = treatment.keywords,
+                  materials = treatment.materials,
+                  documents = e.documents,
+                  isUpdated = e.isUpdated
+                ).asInstanceOf[ConservationReportSubEvent]
+              }
+          }
+        )
 
     def localFindByUUID(o: ObjectUUID) =
       FutureMusitResult(objService.findByUUID(mid, o, colId))
@@ -150,33 +188,35 @@ class ConservationProcessService @Inject()(
       objectIds => MusitValidationError(s"Missing objects for these objectIds:$objectIds")
     )
 
-    for {
-      affectedThingsDetails <- fmrObjectDetails
-      maybeMainEventType    <- frmMaybeMainEventType
-      updatedByName         <- fmrUpdatedByName
-      registeredByName      <- fmrRegisteredByName
-    } yield
-      ConservationProcessForReport(
-        id = process.id,
-        eventTypeId = process.eventTypeId,
-        eventType = maybeMainEventType,
-        caseNumber = process.caseNumber,
-        registeredBy = process.registeredBy,
-        registeredByName = registeredByName,
-        registeredDate = process.registeredDate,
-        updatedBy = process.updatedBy,
-        updatedByName = updatedByName,
-        updatedDate = process.updatedDate,
-        partOf = process.partOf,
-        note = process.note,
-        actorsAndRoles = process.actorsAndRoles.getOrElse(Seq.empty),
-        affectedThings = process.affectedThings.getOrElse(Seq.empty),
-        events = process.events.getOrElse(Seq.empty),
-        eventsDetails = Seq.empty[ConservationSubEvent],
-        isUpdated = process.isUpdated,
-        affectedThingsDetails = affectedThingsDetails
-      )
-
+    val obj =
+      for {
+        affectedThingsDetails <- fmrObjectDetails
+        maybeMainEventType    <- frmMaybeMainEventType
+        updatedByName         <- fmrUpdatedByName
+        registeredByName      <- fmrRegisteredByName
+        //eventsDetails         <- fmrEventsDetails
+      } yield
+        ConservationProcessForReport(
+          id = process.id,
+          eventTypeId = process.eventTypeId,
+          eventType = maybeMainEventType,
+          caseNumber = process.caseNumber,
+          registeredBy = process.registeredBy,
+          registeredByName = registeredByName,
+          registeredDate = process.registeredDate,
+          updatedBy = process.updatedBy,
+          updatedByName = updatedByName,
+          updatedDate = process.updatedDate,
+          partOf = process.partOf,
+          note = process.note,
+          actorsAndRoles = process.actorsAndRoles.getOrElse(Seq.empty),
+          affectedThings = process.affectedThings.getOrElse(Seq.empty),
+          events = process.events.getOrElse(Seq.empty),
+          eventsDetails = fmrEventsDetails, //Seq.empty[ConservationSubEvent],
+          isUpdated = process.isUpdated,
+          affectedThingsDetails = affectedThingsDetails
+        )
+    obj
   }
 
   def getConservationReportService(

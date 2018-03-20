@@ -7,7 +7,7 @@ import play.api.libs.json._
 import models.musitobject._
 import models.conservation.events.ConservationEvent.{discriminatorAttributeName, _}
 
-sealed trait ConservationSubEvent extends ModernMusitEvent {
+sealed trait ConservationReportSubEvent extends ModernMusitEvent {
 
   val eventTypeId: EventTypeId
   val partOf: Option[EventId]
@@ -19,50 +19,50 @@ sealed trait ConservationSubEvent extends ModernMusitEvent {
   val updatedDate: Option[DateTime]
   val documents: Option[Seq[FileId]]
   val isUpdated: Option[Boolean]
-  def withoutActorRoleAndDates: ConservationSubEvent = withActorRoleAndDates(None)
+  def withoutActorRoleAndDates: ConservationReportSubEvent = withActorRoleAndDates(None)
 
   def withActorRoleAndDates(
       actorsAndRoles: Option[Seq[ActorRoleDate]]
-  ): ConservationSubEvent
+  ): ConservationReportSubEvent
   def withUpdatedInfo(
       updatedBy: Option[ActorId],
       updatedDate: Option[DateTime]
-  ): ConservationSubEvent
+  ): ConservationReportSubEvent
 
-  def asPartOf(partOf: Option[EventId]): ConservationSubEvent
+  def asPartOf(partOf: Option[EventId]): ConservationReportSubEvent
 
   //A new copy, appropriate when adding/inserting the event in the database.
   def withRegisteredInfo(
       registeredBy: Option[ActorId],
       registeredDate: Option[DateTime]
-  ): ConservationSubEvent
+  ): ConservationReportSubEvent
 
   def withUpdatedInfoEx(actorDate: ActorDate) =
     withUpdatedInfo(Some(actorDate.user), Some(actorDate.date))
   def withRegisteredInfoEx(actorDate: ActorDate) =
     withRegisteredInfo(Some(actorDate.user), Some(actorDate.date))
 
-  def withAffectedThings(objects: Option[Seq[ObjectUUID]]): ConservationSubEvent
+  def withAffectedThings(objects: Option[Seq[ObjectUUID]]): ConservationReportSubEvent
 
-  def withDocuments(fileIds: Option[Seq[FileId]]): ConservationSubEvent
+  def withDocuments(fileIds: Option[Seq[FileId]]): ConservationReportSubEvent
 
-  //def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]): ConservationSubEvent
+  //def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]): ConservationReportSubEvent
 
 //  override def caseNumber = throw new IllegalStateException(
 //    "Don't use caseNumber in subEvents"
 //  )
 
-  def cleanupBeforeInsertIntoDatabase: ConservationSubEvent
+  def cleanupBeforeInsertIntoDatabase: ConservationReportSubEvent
 }
 
-object ConservationSubEvent extends TypedConservationEvent {
+object ConservationReportSubEvent extends TypedConservationEvent {
 
   /**
    * The implicit Reads for all events in the conservation module. It ensures that
    * the JSON message aligns with one of the types defined in
    * eventTypes in Conservation. If not the parsing will (and should) fail.
    */
-  /*  implicit val reads: Reads[ConservationSubEvent] = Reads { jsv =>
+  /*  implicit val reads: Reads[ConservationReportSubEvent] = Reads { jsv =>
     (jsv \ "eventTypeId").validateOpt[EventTypeId] match {
       case JsSuccess(maybeType, path) =>
         maybeType.map {
@@ -85,7 +85,7 @@ object ConservationSubEvent extends TypedConservationEvent {
    * is written with their specific type discriminator. This ensure that the
    * JSON message is readable on the other end.
    */
-  /* implicit val writes: Writes[ConservationSubEvent] = Writes {
+  /* implicit val writes: Writes[ConservationReportSubEvent] = Writes {
     case cpe: ConservationProcess =>
       ConservationProcess.writes.writes(cpe).as[JsObject] ++ Json.obj(
         discriminatorAttributeName -> ConservationProcess.eventTypeId
@@ -133,36 +133,48 @@ object ConservationSubEvent extends TypedConservationEvent {
       )*/
   // }
 
-  implicit val writes: Writes[ConservationSubEvent] = Writes {
-    case pres: TreatmentReport =>
-      ConservationSubEvent.writes.writes(pres).as[JsObject] ++
-        Json.obj(discriminatorAttributeName -> TreatmentReport.eventTypeId)
-    /* case prep: TechnicalDescription =>
-      ConservationEvent.writes.writes(prep).as[JsObject] ++
-        Json.obj(discriminatorAttributeName -> TechnicalDescription.eventTypeId)
-    case sahe: StorageAndHandling =>
-      ConservationEvent.writes.writes(sahe).as[JsObject] ++
-        Json.obj(discriminatorAttributeName -> StorageAndHandling.eventTypeId)
-    case hsera: HseRiskAssessment =>
-      ConservationEvent.writes.writes(hsera).as[JsObject] ++
-        Json.obj(discriminatorAttributeName -> HseRiskAssessment.eventTypeId)
-    case ca: ConditionAssessment =>
-      ConservationEvent.writes.writes(ca).as[JsObject] ++
-        Json.obj(discriminatorAttributeName -> ConditionAssessment.eventTypeId)
-    case re: Report =>
-      ConservationEvent.writes.writes(re).as[JsObject] ++
-        Json.obj(discriminatorAttributeName -> Report.eventTypeId)
-    case md: MaterialDetermination =>
-      ConservationEvent.writes.writes(md).as[JsObject] ++
-        Json.obj(discriminatorAttributeName -> MaterialDetermination.eventTypeId)
-    case msmd: MeasurementDetermination =>
-      ConservationEvent.writes.writes(msmd).as[JsObject] ++
-        Json.obj(discriminatorAttributeName -> MeasurementDetermination.eventTypeId)
-    case note: Note =>
-      ConservationEvent.writes.writes(note).as[JsObject] ++
-        Json.obj(discriminatorAttributeName -> Note.eventTypeId)*/
-  }
+  implicit val writes: Writes[ConservationReportSubEvent] = Writes {
+    case cpe: ConservationProcessForReport =>
+      ConservationProcessForReport.writes.writes(cpe).as[JsObject] ++ Json.obj(
+        discriminatorAttributeName -> ConservationProcessForReport.eventTypeId
+      )
 
+    case te: TreatmentReport =>
+      TreatmentReport.writes.writes(te).as[JsObject] ++ Json.obj(
+        discriminatorAttributeName -> TreatmentReport.eventTypeId
+      )
+  }
+  /*
+    implicit val writes: Writes[ConservationReportSubEvent] = Writes {
+      case pres: TreatmentReport =>
+        ConservationReportSubEvent.writes.writes(pres).as[JsObject] ++
+          Json.obj(discriminatorAttributeName -> TreatmentReport.eventTypeId)
+       case prep: TechnicalDescription =>
+        ConservationEvent.writes.writes(prep).as[JsObject] ++
+          Json.obj(discriminatorAttributeName -> TechnicalDescription.eventTypeId)
+      case sahe: StorageAndHandling =>
+        ConservationEvent.writes.writes(sahe).as[JsObject] ++
+          Json.obj(discriminatorAttributeName -> StorageAndHandling.eventTypeId)
+      case hsera: HseRiskAssessment =>
+        ConservationEvent.writes.writes(hsera).as[JsObject] ++
+          Json.obj(discriminatorAttributeName -> HseRiskAssessment.eventTypeId)
+      case ca: ConditionAssessment =>
+        ConservationEvent.writes.writes(ca).as[JsObject] ++
+          Json.obj(discriminatorAttributeName -> ConditionAssessment.eventTypeId)
+      case re: Report =>
+        ConservationEvent.writes.writes(re).as[JsObject] ++
+          Json.obj(discriminatorAttributeName -> Report.eventTypeId)
+      case md: MaterialDetermination =>
+        ConservationEvent.writes.writes(md).as[JsObject] ++
+          Json.obj(discriminatorAttributeName -> MaterialDetermination.eventTypeId)
+      case msmd: MeasurementDetermination =>
+        ConservationEvent.writes.writes(msmd).as[JsObject] ++
+          Json.obj(discriminatorAttributeName -> MeasurementDetermination.eventTypeId)
+      case note: Note =>
+        ConservationEvent.writes.writes(note).as[JsObject] ++
+          Json.obj(discriminatorAttributeName -> Note.eventTypeId)
+  }
+ */
 }
 
 case class TreatmentReport(
@@ -186,7 +198,7 @@ case class TreatmentReport(
     materials: Option[Seq[Int]],
     documents: Option[Seq[FileId]],
     isUpdated: Option[Boolean]
-) extends ConservationSubEvent {
+) extends ConservationReportSubEvent {
 
   override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
 
@@ -206,10 +218,10 @@ case class TreatmentReport(
 
   override def withAffectedThings(
       objects: Option[Seq[ObjectUUID]]
-  ): ConservationSubEvent =
+  ): ConservationReportSubEvent =
     copy(affectedThings = objects)
 
-  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationSubEvent =
+  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationReportSubEvent =
     copy(documents = fileIds)
 
   override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
@@ -250,8 +262,8 @@ object ConservationSubEventType {
 object TreatmentReport extends WithDateTimeFormatters with ConservationSubEventType {
   val eventTypeId = EventTypeId(2)
 
-  val reads: Reads[Treatment]   = Json.reads[Treatment]
-  val writes: Writes[Treatment] = Json.writes[Treatment]
+  //val reads: Reads[TreatmentReport]   = Json.reads[TreatmentReport]
+  val writes: Writes[TreatmentReport] = Json.writes[TreatmentReport]
 
 }
 
@@ -273,16 +285,17 @@ case class ConservationProcessForReport(
     actorsAndRoles: Seq[ActorRoleDate],
     affectedThings: Seq[ObjectUUID],
     events: Seq[ConservationEvent],
-    eventsDetails: Seq[ConservationSubEvent],
+    eventsDetails: Seq[ConservationReportSubEvent],
     isUpdated: Option[Boolean],
     affectedThingsDetails: Seq[MusitObject]
 );
 
 object ConservationProcessForReport extends WithDateTimeFormatters {
   implicit val writes3 = MusitObject.writes
+  val eventTypeId      = EventTypeId(1)
 
   // implicit val reads2 = ConservationEvent.reads
-  val writes2 = ConservationSubEvent.writes
+  val writes2 = ConservationReportSubEvent.writes
   // implicit val reads: Reads[ConservationProcessForReport]   = Json.reads[ConservationProcessForReport]
   implicit val writes: Writes[ConservationProcessForReport] =
     Json.writes[ConservationProcessForReport]
