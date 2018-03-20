@@ -33,6 +33,7 @@ import controllers._
 import models.actor.Person
 import models.musitobject.MusitObject
 import play.api.libs.json.Json
+import scalatags.Text.all._
 
 class ConservationProcessService @Inject()(
     implicit
@@ -151,11 +152,9 @@ class ConservationProcessService @Inject()(
           isUpdated = process.isUpdated,
           affectedThingsDetails = o
         )
-        println("inside map obj " + obj.toString())
         obj
 
       }
-    println("inside map futObjectDetails " + futObjectDetails.toString())
 
     // registeredByName for main event
 
@@ -197,6 +196,9 @@ class ConservationProcessService @Inject()(
 
   }
 
+
+
+
   def getConservationReportService(
       mid: MuseumId,
       collectionId: String,
@@ -210,7 +212,6 @@ class ConservationProcessService @Inject()(
     val colId = currUser
       .collectionsFor(mid)
       .filter(mc => mc.uuid.underlying.toString == collectionId)
-    println("colId " + colId);
 
     val conservationReportProcess =
       findConservationProcessById(mid: MuseumId, id: EventId)
@@ -219,16 +220,6 @@ class ConservationProcessService @Inject()(
       conservationReportFromConservationProcess(p, mid, colId, maybeColl)
     }
 
-    conservationReport.map(o1 => {
-      println("obj1 " + o1)
-      o1.map(o2 => {
-        println("obj2 " + o2.toString)
-        println("obj3 " + o2.affectedThingsDetails.toString)
-        println("registeredByName " + o2.registeredByName.toString)
-
-        //o2.map(o3 => println("obj3 " + o3))
-      })
-    })
 
     /*
     val conservationReport = conservationReportProcess.map(

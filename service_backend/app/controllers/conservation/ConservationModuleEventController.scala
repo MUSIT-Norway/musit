@@ -31,6 +31,7 @@ class ConservationModuleEventController @Inject()(
     val authService: Authenticator,
     val consService: ConservationProcessService,
     val conservationService: ConservationService,
+    val conservationReportService: ConservationReportService,
     val objectEventService: ObjectEventService,
     val conservationProcessController: ConservationProcessController,
     val treatmentController: TreatmentController,
@@ -295,6 +296,27 @@ class ConservationModuleEventController @Inject()(
         }
     }
 
+  def getConservationReportHTML(mid: MuseumId, collectionId: String, id: EventId) =
+    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
+      implicit val currUser = request.user
+
+      val futMrOptEvent = {
+        // consService.getConservationReportService(mid, collectionId, id)
+        val res = conservationReportService.getConservationReportAsHTML(mid, collectionId, id)
+
+        res.map(optEvent => optEvent.map(event => event))
+      }
+
+      futMrOptEvent.value map {
+        case MusitSuccess(ma) =>
+          ma.map { ae =>
+            Ok(ae)
+          }.getOrElse(NotFound)
+        case err: MusitError => internalErr(err)
+      }
+
+    }
+
   def getConservationReport(mid: MuseumId, collectionId: String, id: EventId) =
     MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
       implicit val currUser = request.user
@@ -313,20 +335,9 @@ class ConservationModuleEventController @Inject()(
       res.map(optEvent => optEvent.map(event => event))
     }
 
-    futMrOptEvent.map(o1 => {
-      println("futMrOptEvent 1 " + o1)
-      o1.map(o2 => {
-        println("futMrOptEvent 2 " + o2.toString)
-        println("futMrOptEvent 3 " + o2.affectedThingsDetails.toString)
-
-        //o2.map(o3 => println("obj3 " + o3))
-      })
-    })
-
     futMrOptEvent.value map {
       case MusitSuccess(ma) =>
         ma.map { ae =>
-          println("futMrOptEvent ae " + ae.toString)
           Ok(Json.toJson(ae))
         }.getOrElse(NotFound)
       case err: MusitError => internalErr(err)

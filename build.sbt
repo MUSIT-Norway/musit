@@ -103,6 +103,7 @@ lazy val serviceBackend = (
   PlayProject("service_backend")
     settings (libraryDependencies ++= testablePlayWithPersistenceDependencies)
     settings (libraryDependencies ++= enumeratumDeps ++ elastic4s)
+    settings (libraryDependencies ++= Seq(scalatags))
     settings (routesGenerator := InjectedRoutesGenerator)
     settings (packageName in Docker := "musit_service_backend")
 ) dependsOn (musitService, musitTest % Test)

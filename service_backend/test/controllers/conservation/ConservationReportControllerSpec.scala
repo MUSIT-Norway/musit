@@ -50,6 +50,9 @@ class ConservationReportControllerSpec
   val conservationReportUrl = (mid: Int, collectionId: String, EventId: Long) =>
     s"${baseUrl(mid)}/conservationReport/$EventId?collectionId=$collectionId"
 
+  val conservationReportHTMLUrl = (mid: Int, collectionId: String, EventId: Long) =>
+    s"${baseUrl(mid)}/conservationReportHTML/$EventId?collectionId=$collectionId"
+
   /* val materialListUrl = (mid: Int, collectionId: String) =>
     s"/$mid/conservation/materials?collectionId=$collectionId"*/
 
@@ -96,12 +99,24 @@ class ConservationReportControllerSpec
       collectionId: String,
       t: BearerToken = token
   ) = {
-    println("sadsdas" + conservationReportUrl(mid, collectionId, eventId))
     wsUrl(conservationReportUrl(mid, collectionId, eventId))
       .withHttpHeaders(t.asHeader)
       .get()
       .futureValue
   }
+
+  def getConservationReportHTML(
+                             eventId: Long,
+                             mid: Int,
+                             collectionId: String,
+                             t: BearerToken = token
+                           ) = {
+    wsUrl(conservationReportHTMLUrl(mid, collectionId, eventId))
+      .withHttpHeaders(t.asHeader)
+      .get()
+      .futureValue
+  }
+
 
   implicit val minReads = ConservationModuleEvent.reads
   implicit val cpReads  = ConservationProcess.reads
@@ -162,6 +177,7 @@ class ConservationReportControllerSpec
   val compositeConservationProcessEventId = standaloneTreatmentId + 1
   val treatmentId                         = compositeConservationProcessEventId + 2 //The second child
   val treatmentIdWithActors               = treatmentId + 2 // one spesific treatment to check for later
+  val compositeConservationProcessSingleObjectEventId = 8L
 
   val edate = DateTime.now
 
@@ -420,9 +436,113 @@ class ConservationReportControllerSpec
         )
       }
 
+      "add composite ConservationProcess with single object (ie with children)" in {
+
+        val treatment1 = Json.obj(
+          "eventTypeId"    -> treatmentEventTypeId,
+          "note"           -> "en fin treatment",
+          "affectedThings" -> Seq("c182206b-530c-4a40-b9aa-fba044ecb953"),
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 1,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(1)
+            ),
+            Json.obj(
+              "roleId"  -> 1,
+              "actorId" -> testUserId,
+              "date"    -> time.dateTimeNow.plusDays(2)
+            )
+          ),
+          "isUpdated" -> true
+        )
+
+        val treatment2 = Json.obj(
+          "eventTypeId"    -> treatmentEventTypeId,
+          "note"           -> "en annen fin treatment",
+          "materials"      -> Seq(1, 2, 3),
+          "affectedThings" -> Seq("c182206b-530c-4a40-b9aa-fba044ecb953"),
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 2,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(3)
+            ),
+            Json.obj(
+              "roleId"  -> 2,
+              "actorId" -> testUserId,
+              "date"    -> time.dateTimeNow.plusDays(4)
+            )
+          ),
+          "isUpdated" -> true
+        )
+
+        val json = Json.obj(
+          "eventTypeId"    -> conservationProcessEventTypeId,
+          "events"         -> Json.arr(treatment1, treatment2),
+          "affectedThings" -> Seq("c182206b-530c-4a40-b9aa-fba044ecb953"),
+          "actorsAndRoles" -> Seq(
+            Json.obj(
+              "roleId"  -> 2,
+              "actorId" -> adminId,
+              "date"    -> time.dateTimeNow.plusDays(5)
+            ),
+            Json.obj(
+              "roleId"  -> 1,
+              "actorId" -> testUserId,
+              "date"    -> time.dateTimeNow.plusDays(6)
+            )
+          ),
+          "isUpdated" -> true
+        )
+
+        val res = postEvent(json)
+        res.status mustBe CREATED
+        val eventId = (res.json \ "id").as[EventId]
+        eventId.underlying mustBe compositeConservationProcessSingleObjectEventId
+
+        val cpr = getEventObject(compositeConservationProcessSingleObjectEventId).asInstanceOf[ConservationProcess]
+        cpr.actorsAndRoles.get.length mustBe 2
+        val cprActors = cpr.actorsAndRoles.get.sortBy(_.roleId)
+        cprActors.head.roleId mustBe 1
+
+        val trm1 = cpr.events.map { m =>
+          val first = m.head.id
+          first.map(eventId => {
+            val trm = getEventObject(eventId)
+            trm.actorsAndRoles.get.length mustBe 2
+            val trmActors = trm.actorsAndRoles.get.sortBy(_.roleId)
+            trmActors.head.roleId mustBe 1
+          })
+        }
+        val trm2 = cpr.events.map { m =>
+          val second = m.tail.head.id
+          second.map(eventId => {
+            val trm = getEventObject(eventId)
+            trm.actorsAndRoles.get.length mustBe 2
+            val trmActors = trm.actorsAndRoles.get.sortBy(_.roleId)
+            trmActors.head.roleId mustBe 2
+          })
+        }
+
+      }
+
+      "get composite ConservationProcess with single object (ie with children)" in {
+        val res = getEvent(compositeConservationProcessEventId)
+        res.status mustBe OK
+        val consProcess = res.json.validate[ConservationProcess].get
+        consProcess.events.get.length must be >= 2
+        consProcess.registeredBy must not be None
+        //consProcess.affectedThings mustBe Some(oids)
+        consProcess.affectedThings.get.length mustBe 3
+        val firstEvent = consProcess.events.get.head
+        firstEvent.affectedThings mustBe Some(
+          Seq(ObjectUUID.unsafeFromString("c182206b-530c-4a40-b9aa-fba044ecb953"))
+        )
+      }
+
       "get Conservation Report" in {
         val res = getConservationReport(compositeConservationProcessEventId, 99, cid)
-        println("res  " + res)
         res.status mustBe OK
         /*  val consProcess = res.json.validate[ConservationProcessForReport].get
         consProcess.events.get.length must be >= 2
@@ -434,6 +554,35 @@ class ConservationReportControllerSpec
           Seq(ObjectUUID.unsafeFromString("c182206b-530c-4a40-b9aa-fba044ecb953"))
         )*/
       }
+
+      "get Conservation Report HTML" in {
+        val res = getConservationReportHTML(compositeConservationProcessEventId, 99, cid)
+        res.status mustBe OK
+        /*  val consProcess = res.json.validate[ConservationProcessForReport].get
+        consProcess.events.get.length must be >= 2
+        consProcess.registeredBy must not be None
+        //consProcess.affectedThings mustBe Some(oids)
+        consProcess.affectedThings.get.length mustBe 3
+        val firstEvent = consProcess.events.get.head
+        firstEvent.affectedThings mustBe Some(
+          Seq(ObjectUUID.unsafeFromString("c182206b-530c-4a40-b9aa-fba044ecb953"))
+        )*/
+      }
+
+      "get Conservation Report HTML with single object" in {
+        val res = getConservationReportHTML(compositeConservationProcessSingleObjectEventId, 99, cid)
+        res.status mustBe OK
+        /*  val consProcess = res.json.validate[ConservationProcessForReport].get
+        consProcess.events.get.length must be >= 2
+        consProcess.registeredBy must not be None
+        //consProcess.affectedThings mustBe Some(oids)
+        consProcess.affectedThings.get.length mustBe 3
+        val firstEvent = consProcess.events.get.head
+        firstEvent.affectedThings mustBe Some(
+          Seq(ObjectUUID.unsafeFromString("c182206b-530c-4a40-b9aa-fba044ecb953"))
+        )*/
+      }
+
 
     }
   }
