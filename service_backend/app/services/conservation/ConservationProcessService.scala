@@ -109,6 +109,15 @@ class ConservationProcessService @Inject()(
   /**
    * Locate an event with the given EventId.
    */
+  def getPersonName(actor: Option[ActorId]): FutureMusitResult[Option[String]] = {
+    val ofoPerson =
+      actor.map(actorId => actorService.findByActorId(actorId))
+    val foPerson = ofoPerson.getOrElse(Future.successful(None))
+    val fPersonName =
+      foPerson.map(person => person.map(_.fn))
+    FutureMusitResult(fPersonName.map(MusitSuccess(_)))
+  }
+
   def conservationReportFromConservationProcess(
       process: ConservationProcess,
       mid: MuseumId,
@@ -118,23 +127,8 @@ class ConservationProcessService @Inject()(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[ConservationProcessForReport] = {
 
-    val fmrRegisteredByName = {
-      val ofoPerson =
-        process.registeredBy.map(actorId => actorService.findByActorId(actorId))
-      val foPerson = ofoPerson.getOrElse(Future.successful(None))
-      val fPersonName =
-        foPerson.map(person => person.map(_.fn))
-      FutureMusitResult(fPersonName.map(MusitSuccess(_)))
-    }
-
-    val fmrUpdatedByName = {
-      val ofoPerson =
-        process.updatedBy.map(actorId => actorService.findByActorId(actorId))
-      val foPerson = ofoPerson.getOrElse(Future.successful(None))
-      val fPersonName =
-        foPerson.map(person => person.map(_.fn))
-      FutureMusitResult(fPersonName.map(MusitSuccess(_)))
-    }
+    val fmrRegisteredByName = getPersonName(process.registeredBy)
+    val fmrUpdatedByName    = getPersonName(process.updatedBy)
 
     val fmrConservationTypes = typeDao.allFor(maybeColl)
 
