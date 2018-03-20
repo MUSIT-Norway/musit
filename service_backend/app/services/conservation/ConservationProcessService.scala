@@ -260,7 +260,7 @@ class ConservationProcessService @Inject()(
     val conservationReport = conservationReportProcess.flatMapInsideOption { p =>
       conservationReportFromConservationProcess(p, mid, colId, maybeColl)
     }
-
+    /*
     conservationReport.map(o1 => {
       println("obj1 " + o1)
       o1.map(o2 => {
@@ -270,7 +270,7 @@ class ConservationProcessService @Inject()(
 
         //o2.map(o3 => println("obj3 " + o3))
       })
-    })
+    })*/
 
     /*
     val conservationReport = conservationReportProcess.map(
