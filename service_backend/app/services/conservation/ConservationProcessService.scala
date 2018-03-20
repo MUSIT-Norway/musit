@@ -118,22 +118,23 @@ class ConservationProcessService @Inject()(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[ConservationProcessForReport] = {
 
-
     val fmrRegisteredByName = {
-      val ofoPerson = process.registeredBy.map(actorId => actorService.findByActorId(actorId))
+      val ofoPerson =
+        process.registeredBy.map(actorId => actorService.findByActorId(actorId))
       val foPerson = ofoPerson.getOrElse(Future.successful(None))
       val fPersonName =
         foPerson.map(person => person.map(_.fn))
       FutureMusitResult(fPersonName.map(MusitSuccess(_)))
     }
 
-  val fmrUpdatedByName = {
-    val ofoPerson = process.updatedBy.map(actorId => actorService.findByActorId(actorId))
-    val foPerson = ofoPerson.getOrElse(Future.successful(None))
-    val fPersonName =
-      foPerson.map(person => person.map(_.fn))
-    FutureMusitResult(fPersonName.map(MusitSuccess(_)))
-  }
+    val fmrUpdatedByName = {
+      val ofoPerson =
+        process.updatedBy.map(actorId => actorService.findByActorId(actorId))
+      val foPerson = ofoPerson.getOrElse(Future.successful(None))
+      val fPersonName =
+        foPerson.map(person => person.map(_.fn))
+      FutureMusitResult(fPersonName.map(MusitSuccess(_)))
+    }
 
     val fmrConservationTypes = typeDao.allFor(maybeColl)
 
@@ -149,43 +150,40 @@ class ConservationProcessService @Inject()(
     def localFindByUUID(o: ObjectUUID) =
       FutureMusitResult(objService.findByUUID(mid, o, colId))
     val ids = process.affectedThings.getOrElse(Seq.empty)
-    val fmrObjectDetails = FutureMusitResult
-      .collectAllOrFail[ObjectUUID, MusitObject](
+    val fmrObjectDetails = FutureMusitResult.collectAllOrFail[ObjectUUID, MusitObject](
       ids,
       localFindByUUID,
-      objectIds =>
-        MusitValidationError(s"Missing objects for these objectIds:$objectIds")
+      objectIds => MusitValidationError(s"Missing objects for these objectIds:$objectIds")
     )
 
     for {
       affectedThingsDetails <- fmrObjectDetails
-      maybeMainEventType <- frmMaybeMainEventType
-      updatedByName <- fmrUpdatedByName
-      registeredByName <- fmrRegisteredByName
+      maybeMainEventType    <- frmMaybeMainEventType
+      updatedByName         <- fmrUpdatedByName
+      registeredByName      <- fmrRegisteredByName
     } yield
-    ConservationProcessForReport(
-      id = process.id,
-      eventTypeId = process.eventTypeId,
-      eventType = maybeMainEventType,
-      caseNumber = process.caseNumber,
-      registeredBy = process.registeredBy,
-      registeredByName = registeredByName,
-      registeredDate = process.registeredDate,
-      updatedBy = process.updatedBy,
-      updatedByName = updatedByName,
-      updatedDate = process.updatedDate,
-      partOf = process.partOf,
-      note = process.note,
-      actorsAndRoles = process.actorsAndRoles.getOrElse(Seq.empty),
-      affectedThings = process.affectedThings.getOrElse(Seq.empty),
-      events = process.events.getOrElse(Seq.empty),
-      eventsDetails = Seq.empty[ConservationSubEvent],
-      isUpdated = process.isUpdated,
-      affectedThingsDetails = affectedThingsDetails
-    )
+      ConservationProcessForReport(
+        id = process.id,
+        eventTypeId = process.eventTypeId,
+        eventType = maybeMainEventType,
+        caseNumber = process.caseNumber,
+        registeredBy = process.registeredBy,
+        registeredByName = registeredByName,
+        registeredDate = process.registeredDate,
+        updatedBy = process.updatedBy,
+        updatedByName = updatedByName,
+        updatedDate = process.updatedDate,
+        partOf = process.partOf,
+        note = process.note,
+        actorsAndRoles = process.actorsAndRoles.getOrElse(Seq.empty),
+        affectedThings = process.affectedThings.getOrElse(Seq.empty),
+        events = process.events.getOrElse(Seq.empty),
+        eventsDetails = Seq.empty[ConservationSubEvent],
+        isUpdated = process.isUpdated,
+        affectedThingsDetails = affectedThingsDetails
+      )
 
   }
-
 
   def getConservationReportService(
       mid: MuseumId,
