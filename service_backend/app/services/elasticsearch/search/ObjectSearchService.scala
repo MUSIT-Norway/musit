@@ -28,15 +28,17 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
       museumNo: Option[MuseumNo],
       subNo: Option[SubNo],
       term: Option[String],
-      queryStr: Option[String]
+      queryStr: Option[String],
+      ignoreSamples: Boolean = false
   )(
       implicit currUsr: AuthenticatedUser
   ): Future[MusitResult[MusitESResponse[SearchResponse]]] = {
     val qry = createSearchQuery(mid, collectionIds, museumNo, subNo, term, queryStr)
-
+    val searchInTypes =
+      if (ignoreSamples) Seq(objectType) else Seq(objectType, sampleType)
     client
       .execute(
-        search(IndexAndTypes(indexAlias, Seq(objectType, sampleType)))
+        search(IndexAndTypes(indexAlias, searchInTypes))
           query qry
           limit limit
           from from
