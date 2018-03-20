@@ -42,7 +42,7 @@ class GeoLocationControllerIntegrationSpec
         res.json.as[JsArray].value mustBe empty
       }
 
-      "pad with leading 0 for results where zip is a 3 digit integer" in {
+      "pad with leading 0 for results where zip is a 3 digit integer" ignore {
         val res = wsUrl(queryParam("oslo gate 20, oslo"))
           .withHttpHeaders(fakeToken.asHeader)
           .get()
