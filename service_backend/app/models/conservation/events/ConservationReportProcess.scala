@@ -22,20 +22,20 @@ sealed trait ConservationSubEvent extends ModernMusitEvent {
   def withoutActorRoleAndDates: ConservationSubEvent = withActorRoleAndDates(None)
 
   def withActorRoleAndDates(
-                             actorsAndRoles: Option[Seq[ActorRoleDate]]
-                           ): ConservationSubEvent
+      actorsAndRoles: Option[Seq[ActorRoleDate]]
+  ): ConservationSubEvent
   def withUpdatedInfo(
-                       updatedBy: Option[ActorId],
-                       updatedDate: Option[DateTime]
-                     ): ConservationSubEvent
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ): ConservationSubEvent
 
   def asPartOf(partOf: Option[EventId]): ConservationSubEvent
 
   //A new copy, appropriate when adding/inserting the event in the database.
   def withRegisteredInfo(
-                          registeredBy: Option[ActorId],
-                          registeredDate: Option[DateTime]
-                        ): ConservationSubEvent
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ): ConservationSubEvent
 
   def withUpdatedInfoEx(actorDate: ActorDate) =
     withUpdatedInfo(Some(actorDate.user), Some(actorDate.date))
@@ -46,7 +46,6 @@ sealed trait ConservationSubEvent extends ModernMusitEvent {
 
   def withDocuments(fileIds: Option[Seq[FileId]]): ConservationSubEvent
 
-
   //def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]): ConservationSubEvent
 
 //  override def caseNumber = throw new IllegalStateException(
@@ -56,16 +55,14 @@ sealed trait ConservationSubEvent extends ModernMusitEvent {
   def cleanupBeforeInsertIntoDatabase: ConservationSubEvent
 }
 
-
 object ConservationSubEvent extends TypedConservationEvent {
 
   /**
-    * The implicit Reads for all events in the conservation module. It ensures that
-    * the JSON message aligns with one of the types defined in
-    * eventTypes in Conservation. If not the parsing will (and should) fail.
-    */
-
-/*  implicit val reads: Reads[ConservationSubEvent] = Reads { jsv =>
+   * The implicit Reads for all events in the conservation module. It ensures that
+   * the JSON message aligns with one of the types defined in
+   * eventTypes in Conservation. If not the parsing will (and should) fail.
+   */
+  /*  implicit val reads: Reads[ConservationSubEvent] = Reads { jsv =>
     (jsv \ "eventTypeId").validateOpt[EventTypeId] match {
       case JsSuccess(maybeType, path) =>
         maybeType.map {
@@ -84,11 +81,11 @@ object ConservationSubEvent extends TypedConservationEvent {
   }*/
 
   /**
-    * Implicit Writes for conservation module events. Ensures that each type
-    * is written with their specific type discriminator. This ensure that the
-    * JSON message is readable on the other end.
-    */
- /* implicit val writes: Writes[ConservationSubEvent] = Writes {
+   * Implicit Writes for conservation module events. Ensures that each type
+   * is written with their specific type discriminator. This ensure that the
+   * JSON message is readable on the other end.
+   */
+  /* implicit val writes: Writes[ConservationSubEvent] = Writes {
     case cpe: ConservationProcess =>
       ConservationProcess.writes.writes(cpe).as[JsObject] ++ Json.obj(
         discriminatorAttributeName -> ConservationProcess.eventTypeId
@@ -99,7 +96,7 @@ object ConservationSubEvent extends TypedConservationEvent {
         discriminatorAttributeName -> Treatment.eventTypeId
       )*/
 
-   /* case tde: TechnicalDescription =>
+  /* case tde: TechnicalDescription =>
       TechnicalDescription.writes.writes(tde).as[JsObject] ++ Json.obj(
         discriminatorAttributeName -> TechnicalDescription.eventTypeId
       )
@@ -140,7 +137,7 @@ object ConservationSubEvent extends TypedConservationEvent {
     case pres: TreatmentReport =>
       ConservationSubEvent.writes.writes(pres).as[JsObject] ++
         Json.obj(discriminatorAttributeName -> TreatmentReport.eventTypeId)
-   /* case prep: TechnicalDescription =>
+    /* case prep: TechnicalDescription =>
       ConservationEvent.writes.writes(prep).as[JsObject] ++
         Json.obj(discriminatorAttributeName -> TechnicalDescription.eventTypeId)
     case sahe: StorageAndHandling =>
@@ -169,45 +166,47 @@ object ConservationSubEvent extends TypedConservationEvent {
 }
 
 case class TreatmentReport(
-                      id: Option[EventId],
-                      eventTypeId: EventTypeId,
-                      eventType: Option[ConservationType],
-                      registeredBy: Option[ActorId],
-                      registeredByName: Option[String],
-                      registeredDate: Option[DateTime],
-                      updatedBy: Option[ActorId],
-                      updatedByName: Option[String],
-                      updatedDate: Option[DateTime],
-                      //completedBy: Option[ActorId],
-                      //completedDate: Option[DateTime],
-                      partOf: Option[EventId],
-                      note: Option[String],
-                      actorsAndRoles: Option[Seq[ActorRoleDate]],
-                      affectedThings: Option[Seq[ObjectUUID]],
-                      affectedThingsDetails: Seq[MusitObject],
-                      keywords: Option[Seq[Int]],
-                      materials: Option[Seq[Int]],
-                      documents: Option[Seq[FileId]],
-                      isUpdated: Option[Boolean]
-                    ) extends ConservationSubEvent {
+    id: Option[EventId],
+    eventTypeId: EventTypeId,
+    eventType: Option[ConservationType],
+    registeredBy: Option[ActorId],
+    registeredByName: Option[String],
+    registeredDate: Option[DateTime],
+    updatedBy: Option[ActorId],
+    updatedByName: Option[String],
+    updatedDate: Option[DateTime],
+    //completedBy: Option[ActorId],
+    //completedDate: Option[DateTime],
+    partOf: Option[EventId],
+    note: Option[String],
+    actorsAndRoles: Option[Seq[ActorRoleDate]],
+    affectedThings: Option[Seq[ObjectUUID]],
+    affectedThingsDetails: Seq[MusitObject],
+    keywords: Option[Seq[Int]],
+    materials: Option[Seq[Int]],
+    documents: Option[Seq[FileId]],
+    isUpdated: Option[Boolean]
+) extends ConservationSubEvent {
 
   override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
 
   override def withId(id: Option[EventId]) = copy(id = id)
 
   override def withUpdatedInfo(
-                                updatedBy: Option[ActorId],
-                                updatedDate: Option[DateTime]
-                              ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
 
   override def withRegisteredInfo(
-                                   registeredBy: Option[ActorId],
-                                   registeredDate: Option[DateTime]
-                                 ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
 
   override def asPartOf(partOf: Option[EventId]) = copy(partOf = partOf)
 
-  override def withAffectedThings(objects: Option[Seq[ObjectUUID]]): ConservationSubEvent =
+  override def withAffectedThings(
+      objects: Option[Seq[ObjectUUID]]
+  ): ConservationSubEvent =
     copy(affectedThings = objects)
 
   override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationSubEvent =
@@ -218,7 +217,6 @@ case class TreatmentReport(
 
 }
 
-
 sealed trait ConservationSubEventType {
   val eventTypeId: EventTypeId
 }
@@ -226,7 +224,7 @@ sealed trait ConservationSubEventType {
 object ConservationSubEventType {
   def apply(eventTypeId: EventTypeId): Option[ConservationSubEventType] = {
     eventTypeId match {
-      case TreatmentReport.eventTypeId                => Some(TreatmentReport)
+      case TreatmentReport.eventTypeId => Some(TreatmentReport)
       /*case TechnicalDescription.eventTypeId     => Some(TechnicalDescription)
       case StorageAndHandling.eventTypeId       => Some(StorageAndHandling)
       case HseRiskAssessment.eventTypeId        => Some(HseRiskAssessment)
@@ -235,7 +233,7 @@ object ConservationSubEventType {
       case MaterialDetermination.eventTypeId    => Some(MaterialDetermination)
       case MeasurementDetermination.eventTypeId => Some(MeasurementDetermination)
       case Note.eventTypeId                     => Some(Note)*/
-      case _                                    => None
+      case _ => None
     }
   }
   def mustFind(eventTypeId: EventTypeId): ConservationSubEventType = {
@@ -248,7 +246,6 @@ object ConservationSubEventType {
     }
   }
 }
-
 
 object TreatmentReport extends WithDateTimeFormatters with ConservationSubEventType {
   val eventTypeId = EventTypeId(2)
