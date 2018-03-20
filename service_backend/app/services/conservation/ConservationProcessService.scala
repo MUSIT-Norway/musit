@@ -118,84 +118,74 @@ class ConservationProcessService @Inject()(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[ConservationProcessForReport] = {
 
+
+    val fmrRegisteredByName = {
+      val ofoPerson = process.registeredBy.map(actorId => actorService.findByActorId(actorId))
+      val foPerson = ofoPerson.getOrElse(Future.successful(None))
+      val fPersonName =
+        foPerson.map(person => person.map(_.fn))
+      FutureMusitResult(fPersonName.map(MusitSuccess(_)))
+    }
+
+  val fmrUpdatedByName = {
+    val ofoPerson = process.updatedBy.map(actorId => actorService.findByActorId(actorId))
+    val foPerson = ofoPerson.getOrElse(Future.successful(None))
+    val fPersonName =
+      foPerson.map(person => person.map(_.fn))
+    FutureMusitResult(fPersonName.map(MusitSuccess(_)))
+  }
+
+    val fmrConservationTypes = typeDao.allFor(maybeColl)
+
+    // Main event type is added
+    val frmMaybeMainEventType =
+      for {
+        conservationTypes <- fmrConservationTypes
+        maybeMainEventType = conservationTypes.find(t => t.id == process.eventTypeId)
+      } yield maybeMainEventType
+
     // affectedThingsDetails for main event
 
     def localFindByUUID(o: ObjectUUID) =
       FutureMusitResult(objService.findByUUID(mid, o, colId))
     val ids = process.affectedThings.getOrElse(Seq.empty)
-    val futObjectDetails = FutureMusitResult
+    val fmrObjectDetails = FutureMusitResult
       .collectAllOrFail[ObjectUUID, MusitObject](
-        ids,
-        localFindByUUID,
-        objectIds =>
-          MusitValidationError(s"Missing objects for these objectIds:$objectIds")
-      )
-      .map { o =>
-        //println("inside map " + o.toString())
-        var obj = ConservationProcessForReport(
-          id = process.id,
-          eventTypeId = process.eventTypeId,
-          eventType = None,
-          caseNumber = process.caseNumber,
-          registeredBy = process.registeredBy,
-          registeredByName = None,
-          registeredDate = process.registeredDate,
-          updatedBy = process.updatedBy,
-          updatedByName = None,
-          updatedDate = process.updatedDate,
-          partOf = process.partOf,
-          note = process.note,
-          actorsAndRoles = process.actorsAndRoles.getOrElse(Seq.empty),
-          affectedThings = process.affectedThings.getOrElse(Seq.empty),
-          events = process.events.getOrElse(Seq.empty),
-          isUpdated = process.isUpdated,
-          affectedThingsDetails = o
-        )
-        println("inside map obj " + obj.toString())
-        obj
+      ids,
+      localFindByUUID,
+      objectIds =>
+        MusitValidationError(s"Missing objects for these objectIds:$objectIds")
+    )
 
-      }
-    println("inside map futObjectDetails " + futObjectDetails.toString())
-
-    // registeredByName for main event
-
-    val FMRReport = futObjectDetails.flatMap { report =>
-      val ofoPerson: Option[Future[Option[Person]]] =
-        report.registeredBy.map(actorId => actorService.findByActorId(actorId))
-
-      val foPerson = ofoPerson.getOrElse(Future.successful(None))
-      val fPersonName =
-        foPerson.map(person => person.map(_.fn).getOrElse("(Finner ikke navnet!)"))
-      val fmrPersonName = FutureMusitResult(fPersonName.map(MusitSuccess(_)))
-      fmrPersonName.map(personName => report.copy(registeredByName = Some(personName)))
-
-    }
-
-    // updatedByName for main event
-    val FMRReport2 = FMRReport.flatMap { report =>
-      val ofoPerson: Option[Future[Option[Person]]] =
-        report.registeredBy.map(actorId => actorService.findByActorId(actorId))
-
-      val foPerson = ofoPerson.getOrElse(Future.successful(None))
-      val fPersonName =
-        foPerson.map(person => person.map(_.fn).getOrElse("(Finner ikke navnet!)"))
-      val fmrPersonName = FutureMusitResult(fPersonName.map(MusitSuccess(_)))
-      fmrPersonName.map(personName => report.copy(updatedByName = Some(personName)))
-
-    }
-
-    // Main event type is added
-    val FMRReport3 =
-      for {
-        conservationTypes <- typeDao.allFor(maybeColl)
-        report2           <- FMRReport2
-        maybeEventType = conservationTypes.find(t => t.id == report2.eventTypeId)
-        report3        = report2.copy(eventType = maybeEventType)
-      } yield report3
-
-    FMRReport3
+    for {
+      affectedThingsDetails <- fmrObjectDetails
+      maybeMainEventType <- frmMaybeMainEventType
+      updatedByName <- fmrUpdatedByName
+      registeredByName <- fmrRegisteredByName
+    } yield
+    ConservationProcessForReport(
+      id = process.id,
+      eventTypeId = process.eventTypeId,
+      eventType = maybeMainEventType,
+      caseNumber = process.caseNumber,
+      registeredBy = process.registeredBy,
+      registeredByName = registeredByName,
+      registeredDate = process.registeredDate,
+      updatedBy = process.updatedBy,
+      updatedByName = updatedByName,
+      updatedDate = process.updatedDate,
+      partOf = process.partOf,
+      note = process.note,
+      actorsAndRoles = process.actorsAndRoles.getOrElse(Seq.empty),
+      affectedThings = process.affectedThings.getOrElse(Seq.empty),
+      events = process.events.getOrElse(Seq.empty),
+      eventsDetails = Seq.empty[ConservationSubEvent],
+      isUpdated = process.isUpdated,
+      affectedThingsDetails = affectedThingsDetails
+    )
 
   }
+
 
   def getConservationReportService(
       mid: MuseumId,
