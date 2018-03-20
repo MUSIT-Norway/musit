@@ -147,11 +147,14 @@ class ConservationProcessService @Inject()(
       } yield maybeMainEventType
 
     // affectedThingsDetails for main event
-    val fmrEventsDetails =
+    val fmrEventsDetails = FutureMusitResult.sequence(
       process.events
         .getOrElse(Seq.empty)
-        .map(
-          e =>
+        .map(e => {
+
+          for {
+            registeredByName <- getPersonName(e.registeredBy)
+          } yield
             e.eventTypeId match {
               case Treatment.eventTypeId => {
                 val treatment = e.asInstanceOf[Treatment]
@@ -160,7 +163,7 @@ class ConservationProcessService @Inject()(
                   eventTypeId = e.eventTypeId,
                   eventType = None,
                   registeredBy = e.registeredBy,
-                  registeredByName = None,
+                  registeredByName = registeredByName,
                   registeredDate = e.registeredDate,
                   updatedBy = e.updatedBy,
                   updatedByName = None,
@@ -176,8 +179,9 @@ class ConservationProcessService @Inject()(
                   isUpdated = e.isUpdated
                 ).asInstanceOf[ConservationReportSubEvent]
               }
-          }
-        )
+            }
+        })
+    )
 
     def localFindByUUID(o: ObjectUUID) =
       FutureMusitResult(objService.findByUUID(mid, o, colId))
@@ -194,7 +198,7 @@ class ConservationProcessService @Inject()(
         maybeMainEventType    <- frmMaybeMainEventType
         updatedByName         <- fmrUpdatedByName
         registeredByName      <- fmrRegisteredByName
-        //eventsDetails         <- fmrEventsDetails
+        eventsDetails         <- fmrEventsDetails
       } yield
         ConservationProcessForReport(
           id = process.id,
@@ -212,7 +216,7 @@ class ConservationProcessService @Inject()(
           actorsAndRoles = process.actorsAndRoles.getOrElse(Seq.empty),
           affectedThings = process.affectedThings.getOrElse(Seq.empty),
           events = process.events.getOrElse(Seq.empty),
-          eventsDetails = fmrEventsDetails, //Seq.empty[ConservationSubEvent],
+          eventsDetails = eventsDetails, //Seq.empty[ConservationSubEvent],
           isUpdated = process.isUpdated,
           affectedThingsDetails = affectedThingsDetails
         )
