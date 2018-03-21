@@ -245,7 +245,7 @@ class ConservationProcessService @Inject()(
     obj
   }
 
-  private def getActorsAndRoles(
+  private def getSubEventDetails(
       process: ConservationProcess,
       fmrConservationTypes: FutureMusitResult[Seq[ConservationType]],
       mid: MuseumId,
