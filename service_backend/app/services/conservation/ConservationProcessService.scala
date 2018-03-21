@@ -1,5 +1,7 @@
 package services.conservation
 
+import models.conservation.TreatmentKeyword
+import models.conservation.TreatmentMaterial
 import com.google.inject.Inject
 import models.conservation.ConservationProcessKeyData
 import models.conservation.events._
@@ -45,7 +47,11 @@ class ConservationProcessService @Inject()(
     val conservationService: ConservationService,
     val ec: ExecutionContext,
     val objService: ObjectService,
-    val actorService: ActorService
+    val actorService: ActorService,
+    val treatmentService: TreatmentService,
+    val conditionAssessmentService: ConditionAssessmentService,
+    val materialDeterminationService: MaterialDeterminationService,
+    val measurementDeterminationService: MeasurementDeterminationService
 ) {
 
   val logger = Logger(classOf[ConservationProcessService])
@@ -192,6 +198,28 @@ class ConservationProcessService @Inject()(
     } yield maybeMainEventType
   }
 
+  private def getKeywordsDetails(
+      keywords: Option[scala.Seq[Int]]
+  ): FutureMusitResult[Seq[TreatmentKeyword]] = {
+    for {
+      keywordsList <- treatmentService.getKeywordList
+      keywordsDetails = keywordsList.filter(
+        t => keywords.getOrElse(Seq.empty).contains(t.id)
+      )
+    } yield keywordsDetails
+  }
+
+  private def getMaterialsDetails(
+      materials: Option[scala.Seq[Int]]
+  ): FutureMusitResult[Seq[TreatmentMaterial]] = {
+    for {
+      materialsList <- treatmentService.getMaterialList
+      materialsDetails = materialsList.filter(
+        t => materials.getOrElse(Seq.empty).contains(t.id)
+      )
+    } yield materialsDetails
+  }
+
   private def getSubEventDetails(
       process: ConservationProcess,
       fmrConservationTypes: FutureMusitResult[Seq[ConservationType]],
@@ -209,6 +237,8 @@ class ConservationProcessService @Inject()(
             registeredByName      <- getPersonName(e.registeredBy)
             updatedByName         <- getPersonName(e.updatedBy)
             affectedThingsDetails <- getObjectDetails(e.affectedThings, mid, colId)
+            keywordList           <- getKeywordsDetails(e.asInstanceOf[Treatment].keywords)
+            materialList          <- getMaterialsDetails(e.asInstanceOf[Treatment].materials)
           } yield
             e.eventTypeId match {
               case Treatment.eventTypeId => {
@@ -229,7 +259,9 @@ class ConservationProcessService @Inject()(
                   affectedThings = e.affectedThings,
                   affectedThingsDetails = affectedThingsDetails,
                   keywords = treatment.keywords,
+                  keywordsDetails = keywordList,
                   materials = treatment.materials,
+                  materialsDetails = materialList,
                   documents = e.documents,
                   isUpdated = e.isUpdated
                 ).asInstanceOf[ConservationReportSubEvent]

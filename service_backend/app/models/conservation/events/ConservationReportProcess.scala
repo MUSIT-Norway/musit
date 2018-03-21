@@ -1,5 +1,7 @@
 package models.conservation.events
 
+import models.conservation.TreatmentMaterial
+import models.conservation.TreatmentKeyword
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models._
 import org.joda.time.DateTime
@@ -195,7 +197,9 @@ case class TreatmentReport(
     affectedThings: Option[Seq[ObjectUUID]],
     affectedThingsDetails: Seq[MusitObject],
     keywords: Option[Seq[Int]],
+    keywordsDetails: Seq[TreatmentKeyword],
     materials: Option[Seq[Int]],
+    materialsDetails: Seq[TreatmentMaterial],
     documents: Option[Seq[FileId]],
     isUpdated: Option[Boolean]
 ) extends ConservationReportSubEvent {
