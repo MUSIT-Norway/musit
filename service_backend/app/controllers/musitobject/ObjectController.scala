@@ -61,7 +61,8 @@ class ObjectController @Inject()(
       museumNo: Option[String],
       subNo: Option[String],
       term: Option[String],
-      q: Option[String]
+      q: Option[String],
+      ignoreSamples: Boolean
   ) = MusitSecureAction(mid, Read).async { implicit request =>
     implicit val currUser: AuthenticatedUser = request.user
 
@@ -73,7 +74,17 @@ class ObjectController @Inject()(
         val lim = calcLimit(limit)
 
         objectSearchService
-          .restrictedObjectSearch(mid, cids, from, lim, mno, sno, term, q)
+          .restrictedObjectSearch(
+            mid,
+            cids,
+            from,
+            lim,
+            mno,
+            sno,
+            term,
+            q,
+            ignoreSamples
+          )
           .map {
             case MusitSuccess(res) =>
               Ok(res.raw)
