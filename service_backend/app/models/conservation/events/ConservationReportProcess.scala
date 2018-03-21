@@ -179,6 +179,18 @@ object ConservationReportSubEvent extends TypedConservationEvent {
  */
 }
 
+case class ActorRoleDateDetails(
+    roleId: Int,
+    role: Option[EventRole],
+    actorId: ActorId,
+    actor: Option[String],
+    date: Option[DateTime]
+)
+
+object ActorRoleDateDetails extends WithDateTimeFormatters {
+  implicit val format: Format[ActorRoleDateDetails] = Json.format[ActorRoleDateDetails]
+}
+
 case class TreatmentReport(
     id: Option[EventId],
     eventTypeId: EventTypeId,
@@ -189,11 +201,10 @@ case class TreatmentReport(
     updatedBy: Option[ActorId],
     updatedByName: Option[String],
     updatedDate: Option[DateTime],
-    //completedBy: Option[ActorId],
-    //completedDate: Option[DateTime],
     partOf: Option[EventId],
     note: Option[String],
     actorsAndRoles: Option[Seq[ActorRoleDate]],
+    actorsAndRolesDetails: Seq[ActorRoleDateDetails],
     affectedThings: Option[Seq[ObjectUUID]],
     affectedThingsDetails: Seq[MusitObject],
     keywords: Option[Seq[Int]],

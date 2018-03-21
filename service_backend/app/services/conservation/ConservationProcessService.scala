@@ -220,7 +220,32 @@ class ConservationProcessService @Inject()(
     } yield materialsDetails
   }
 
-  private def getSubEventDetails(
+  private def getActorsAndRoles(
+      actorsAndRoles: Seq[ActorRoleDate]
+  ): FutureMusitResult[Seq[ActorRoleDateDetails]] = {
+    val roleList = conservationService.getRoleList
+    val obj = FutureMusitResult.sequence(
+      actorsAndRoles.map(
+        ar =>
+          for {
+            actor <- getPersonName(Some(ar.actorId))
+            roles <- roleList
+            role = roles.find(t => t.roleId == ar.roleId)
+
+          } yield
+            ActorRoleDateDetails(
+              roleId = ar.roleId,
+              role = role,
+              actorId = ar.actorId,
+              actor = actor,
+              date = ar.date
+          )
+      )
+    )
+    obj
+  }
+
+  private def getActorsAndRoles(
       process: ConservationProcess,
       fmrConservationTypes: FutureMusitResult[Seq[ConservationType]],
       mid: MuseumId,
@@ -239,6 +264,7 @@ class ConservationProcessService @Inject()(
             affectedThingsDetails <- getObjectDetails(e.affectedThings, mid, colId)
             keywordList           <- getKeywordsDetails(e.asInstanceOf[Treatment].keywords)
             materialList          <- getMaterialsDetails(e.asInstanceOf[Treatment].materials)
+            actorsAndRoles        <- getActorsAndRoles(e.actorsAndRoles.getOrElse(Seq.empty))
           } yield
             e.eventTypeId match {
               case Treatment.eventTypeId => {
@@ -256,6 +282,7 @@ class ConservationProcessService @Inject()(
                   partOf = e.partOf,
                   note = e.note,
                   actorsAndRoles = e.actorsAndRoles,
+                  actorsAndRolesDetails = actorsAndRoles,
                   affectedThings = e.affectedThings,
                   affectedThingsDetails = affectedThingsDetails,
                   keywords = treatment.keywords,
