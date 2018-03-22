@@ -492,8 +492,8 @@ case class MaterialInfoDetails(
 )
 
 object MaterialInfoDetails {
-  implicit val format: Format[MaterialInfo] =
-    Json.format[MaterialInfo]
+  implicit val format: Format[MaterialInfoDetails] =
+    Json.format[MaterialInfoDetails]
 }
 
 case class MaterialDeterminationReport(
