@@ -1,6 +1,11 @@
 package models.conservation.events
 
-import models.conservation.{MaterialArchaeology, TreatmentKeyword, TreatmentMaterial}
+import models.conservation.{
+  ConditionCode,
+  MaterialArchaeology,
+  TreatmentKeyword,
+  TreatmentMaterial
+}
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models._
 import org.joda.time.DateTime
@@ -386,6 +391,7 @@ case class ConditionAssessmentReport(
     affectedThings: Option[Seq[ObjectUUID]],
     affectedThingsDetails: Seq[MusitObject],
     conditionCode: Option[Int],
+    conditionCodeDetails: Option[ConditionCode],
     documents: Option[Seq[FileId]],
     isUpdated: Option[Boolean]
 ) extends ConservationReportSubEvent {

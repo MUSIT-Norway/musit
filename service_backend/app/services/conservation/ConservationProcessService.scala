@@ -1,9 +1,12 @@
 package services.conservation
 
-import models.conservation.TreatmentKeyword
-import models.conservation.TreatmentMaterial
+import models.conservation.{
+  ConditionCode,
+  ConservationProcessKeyData,
+  TreatmentKeyword,
+  TreatmentMaterial
+}
 import com.google.inject.Inject
-import models.conservation.ConservationProcessKeyData
 import models.conservation.events._
 import no.uio.musit.MusitResults
 import no.uio.musit.MusitResults.{
@@ -198,6 +201,16 @@ class ConservationProcessService @Inject()(
     } yield maybeMainEventType
   }
 
+  private def getConditionCode(
+      conditionCode: Int
+  ): FutureMusitResult[Option[ConditionCode]] = {
+    val fmrConditionCodeList = conditionAssessmentService.getConditionCodeList
+    for {
+      conditionCodeList <- fmrConditionCodeList
+      conditionCodeDetail = conditionCodeList.find(t => t.conditionCode == conditionCode)
+    } yield conditionCodeDetail
+  }
+
   private def getKeywordsDetails(
       keywords: Option[scala.Seq[Int]]
   ): FutureMusitResult[Seq[TreatmentKeyword]] = {
@@ -262,12 +275,14 @@ class ConservationProcessService @Inject()(
             registeredByName      <- getPersonName(e.registeredBy)
             updatedByName         <- getPersonName(e.updatedBy)
             affectedThingsDetails <- getObjectDetails(e.affectedThings, mid, colId)
-            keywordList           <- getKeywordsDetails(e.asInstanceOf[Treatment].keywords)
-            materialList          <- getMaterialsDetails(e.asInstanceOf[Treatment].materials)
             actorsAndRoles        <- getActorsAndRoles(e.actorsAndRoles.getOrElse(Seq.empty))
           } yield
             e.eventTypeId match {
-              case Treatment.eventTypeId =>
+              case Treatment.eventTypeId => {
+                /*for {
+                  keywordList  <- getKeywordsDetails(e.asInstanceOf[Treatment].keywords)
+                  materialList <- getMaterialsDetails(e.asInstanceOf[Treatment].materials)
+                } yield*/
                 TreatmentReport(
                   id = e.id,
                   eventTypeId = e.eventTypeId,
@@ -285,12 +300,13 @@ class ConservationProcessService @Inject()(
                   affectedThings = e.affectedThings,
                   affectedThingsDetails = affectedThingsDetails,
                   keywords = e.asInstanceOf[Treatment].keywords,
-                  keywordsDetails = keywordList,
+                  keywordsDetails = Seq.empty, //keywordList,
                   materials = e.asInstanceOf[Treatment].materials,
-                  materialsDetails = materialList,
+                  materialsDetails = Seq.empty, //materialList,
                   documents = e.documents,
                   isUpdated = e.isUpdated
                 ).asInstanceOf[ConservationReportSubEvent]
+              }
               case TechnicalDescription.eventTypeId =>
                 TechnicalDescriptionReport(
                   id = e.id,
@@ -355,7 +371,14 @@ class ConservationProcessService @Inject()(
                   documents = e.documents,
                   isUpdated = e.isUpdated
                 ).asInstanceOf[ConservationReportSubEvent]
-              case ConditionAssessment.eventTypeId =>
+              case ConditionAssessment.eventTypeId => {
+                /* for {
+                  conditionCode <- getConditionCode(
+                                    e.asInstanceOf[ConditionAssessment]
+                                      .conditionCode
+                                      .getOrElse(0)
+                                  )
+                } yield*/
                 ConditionAssessmentReport(
                   id = e.id,
                   eventTypeId = e.eventTypeId,
@@ -373,9 +396,11 @@ class ConservationProcessService @Inject()(
                   affectedThings = e.affectedThings,
                   affectedThingsDetails = affectedThingsDetails,
                   conditionCode = e.asInstanceOf[ConditionAssessment].conditionCode,
+                  conditionCodeDetails = None, //conditionCode,
                   documents = e.documents,
                   isUpdated = e.isUpdated
                 ).asInstanceOf[ConservationReportSubEvent]
+              }
               case Report.eventTypeId =>
                 ReportReport(
                   id = e.id,
