@@ -302,7 +302,8 @@ class ConservationModuleEventController @Inject()(
 
       val futMrOptEvent = {
         // consService.getConservationReportService(mid, collectionId, id)
-        val res = conservationReportService.getConservationReportAsHTML(mid, collectionId, id)
+        val res =
+          conservationReportService.getConservationReportAsHTML(mid, collectionId, id)
 
         res.map(optEvent => optEvent.map(event => event))
       }

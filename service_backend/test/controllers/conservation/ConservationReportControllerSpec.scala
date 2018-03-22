@@ -106,17 +106,16 @@ class ConservationReportControllerSpec
   }
 
   def getConservationReportHTML(
-                             eventId: Long,
-                             mid: Int,
-                             collectionId: String,
-                             t: BearerToken = token
-                           ) = {
+      eventId: Long,
+      mid: Int,
+      collectionId: String,
+      t: BearerToken = token
+  ) = {
     wsUrl(conservationReportHTMLUrl(mid, collectionId, eventId))
       .withHttpHeaders(t.asHeader)
       .get()
       .futureValue
   }
-
 
   implicit val minReads = ConservationModuleEvent.reads
   implicit val cpReads  = ConservationProcess.reads
@@ -173,10 +172,10 @@ class ConservationReportControllerSpec
     wsUrl(cpsKeyDataByObjectUuid(mid)(oid)).withHttpHeaders(t.asHeader).get().futureValue
   }
 
-  val standaloneTreatmentId               = 4L
-  val compositeConservationProcessEventId = standaloneTreatmentId + 1
-  val treatmentId                         = compositeConservationProcessEventId + 2 //The second child
-  val treatmentIdWithActors               = treatmentId + 2 // one spesific treatment to check for later
+  val standaloneTreatmentId                           = 4L
+  val compositeConservationProcessEventId             = standaloneTreatmentId + 1
+  val treatmentId                                     = compositeConservationProcessEventId + 2 //The second child
+  val treatmentIdWithActors                           = treatmentId + 2 // one spesific treatment to check for later
   val compositeConservationProcessSingleObjectEventId = 8L
 
   val edate = DateTime.now
@@ -501,7 +500,8 @@ class ConservationReportControllerSpec
         val eventId = (res.json \ "id").as[EventId]
         eventId.underlying mustBe compositeConservationProcessSingleObjectEventId
 
-        val cpr = getEventObject(compositeConservationProcessSingleObjectEventId).asInstanceOf[ConservationProcess]
+        val cpr = getEventObject(compositeConservationProcessSingleObjectEventId)
+          .asInstanceOf[ConservationProcess]
         cpr.actorsAndRoles.get.length mustBe 2
         val cprActors = cpr.actorsAndRoles.get.sortBy(_.roleId)
         cprActors.head.roleId mustBe 1
@@ -570,7 +570,11 @@ class ConservationReportControllerSpec
       }
 
       "get Conservation Report HTML with single object" in {
-        val res = getConservationReportHTML(compositeConservationProcessSingleObjectEventId, 99, cid)
+        val res = getConservationReportHTML(
+          compositeConservationProcessSingleObjectEventId,
+          99,
+          cid
+        )
         res.status mustBe OK
         /*  val consProcess = res.json.validate[ConservationProcessForReport].get
         consProcess.events.get.length must be >= 2
@@ -582,7 +586,6 @@ class ConservationReportControllerSpec
           Seq(ObjectUUID.unsafeFromString("c182206b-530c-4a40-b9aa-fba044ecb953"))
         )*/
       }
-
 
     }
   }
