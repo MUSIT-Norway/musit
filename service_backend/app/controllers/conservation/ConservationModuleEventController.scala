@@ -31,6 +31,7 @@ class ConservationModuleEventController @Inject()(
     val authService: Authenticator,
     val consService: ConservationProcessService,
     val conservationService: ConservationService,
+    val conservationReportService: ConservationReportService,
     val objectEventService: ObjectEventService,
     val conservationProcessController: ConservationProcessController,
     val treatmentController: TreatmentController,
@@ -293,6 +294,28 @@ class ConservationModuleEventController @Inject()(
             BadRequest(Json.obj("message" -> s"Invalid object UUID $oid"))
           )
         }
+    }
+
+  def getConservationReportHTML(mid: MuseumId, collectionId: String, id: EventId) =
+    MusitSecureAction(mid, CollectionManagement, Read).async { implicit request =>
+      implicit val currUser = request.user
+
+      val futMrOptEvent = {
+        // consService.getConservationReportService(mid, collectionId, id)
+        val res =
+          conservationReportService.getConservationReportAsHTML(mid, collectionId, id)
+
+        res.map(optEvent => optEvent.map(event => event))
+      }
+
+      futMrOptEvent.value map {
+        case MusitSuccess(ma) =>
+          ma.map { ae =>
+            Ok(ae)
+          }.getOrElse(NotFound)
+        case err: MusitError => internalErr(err)
+      }
+
     }
 
   def getConservationReport(mid: MuseumId, collectionId: String, id: EventId) =
