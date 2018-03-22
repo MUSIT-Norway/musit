@@ -104,7 +104,7 @@ object Dependencies {
   val h2database  = "com.h2database"   % "h2"           % "1.4.194"
   val zxing       = "com.google.zxing" % "core"         % "3.3.0"
   val zxingClient = "com.google.zxing" % "javase"       % "3.3.0" % Test
-  val scalatags = "com.lihaoyi" %% "scalatags" % "0.6.7"
+  val scalatags   = "com.lihaoyi"      %% "scalatags"   % "0.6.7"
 
   // Oracle specifics
   def dir = new java.io.File(".").getCanonicalPath
