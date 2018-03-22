@@ -1,28 +1,24 @@
 package models.conservation.events
 
-import models.conservation.TreatmentMaterial
-import models.conservation.TreatmentKeyword
+import models.conservation.{MaterialArchaeology, TreatmentKeyword, TreatmentMaterial}
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models._
 import org.joda.time.DateTime
 import play.api.libs.json._
 import models.musitobject._
-import models.conservation.events.ConservationEvent.{discriminatorAttributeName, _}
 
 sealed trait ConservationReportSubEvent extends ModernMusitEvent {
-
   val eventTypeId: EventTypeId
   val partOf: Option[EventId]
   val note: Option[String]
-
   val updatedBy: Option[ActorId]
   val actorsAndRoles: Option[Seq[ActorRoleDate]]
   val affectedThings: Option[Seq[ObjectUUID]]
   val updatedDate: Option[DateTime]
   val documents: Option[Seq[FileId]]
   val isUpdated: Option[Boolean]
-  def withoutActorRoleAndDates: ConservationReportSubEvent = withActorRoleAndDates(None)
 
+  def withoutActorRoleAndDates: ConservationReportSubEvent = withActorRoleAndDates(None)
   def withActorRoleAndDates(
       actorsAndRoles: Option[Seq[ActorRoleDate]]
   ): ConservationReportSubEvent
@@ -33,7 +29,6 @@ sealed trait ConservationReportSubEvent extends ModernMusitEvent {
 
   def asPartOf(partOf: Option[EventId]): ConservationReportSubEvent
 
-  //A new copy, appropriate when adding/inserting the event in the database.
   def withRegisteredInfo(
       registeredBy: Option[ActorId],
       registeredDate: Option[DateTime]
@@ -48,135 +43,84 @@ sealed trait ConservationReportSubEvent extends ModernMusitEvent {
 
   def withDocuments(fileIds: Option[Seq[FileId]]): ConservationReportSubEvent
 
-  //def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]): ConservationReportSubEvent
-
-//  override def caseNumber = throw new IllegalStateException(
-//    "Don't use caseNumber in subEvents"
-//  )
-
   def cleanupBeforeInsertIntoDatabase: ConservationReportSubEvent
 }
 
 object ConservationReportSubEvent extends TypedConservationEvent {
-
-  /**
-   * The implicit Reads for all events in the conservation module. It ensures that
-   * the JSON message aligns with one of the types defined in
-   * eventTypes in Conservation. If not the parsing will (and should) fail.
-   */
-  /*  implicit val reads: Reads[ConservationReportSubEvent] = Reads { jsv =>
-    (jsv \ "eventTypeId").validateOpt[EventTypeId] match {
-      case JsSuccess(maybeType, path) =>
-        maybeType.map {
-          case ConservationProcess.eventTypeId =>
-            ConservationProcess.reads.reads(jsv)
-          case _ =>
-            ConservationEvent.reads.reads(jsv)
-
-        }.getOrElse {
-          JsError(path, missingEventTypeMsg)
-        }
-
-      case err: JsError =>
-        err
-    }
-  }*/
-
-  /**
-   * Implicit Writes for conservation module events. Ensures that each type
-   * is written with their specific type discriminator. This ensure that the
-   * JSON message is readable on the other end.
-   */
-  /* implicit val writes: Writes[ConservationReportSubEvent] = Writes {
-    case cpe: ConservationProcess =>
-      ConservationProcess.writes.writes(cpe).as[JsObject] ++ Json.obj(
-        discriminatorAttributeName -> ConservationProcess.eventTypeId
-      )
-
-    case te: Treatment =>
-      Treatment.writes.writes(te).as[JsObject] ++ Json.obj(
-        discriminatorAttributeName -> Treatment.eventTypeId
-      )*/
-
-  /* case tde: TechnicalDescription =>
-      TechnicalDescription.writes.writes(tde).as[JsObject] ++ Json.obj(
-        discriminatorAttributeName -> TechnicalDescription.eventTypeId
-      )
-
-    case sahe: StorageAndHandling =>
-      StorageAndHandling.writes.writes(sahe).as[JsObject] ++ Json.obj(
-        discriminatorAttributeName -> StorageAndHandling.eventTypeId
-      )
-
-    case hsera: HseRiskAssessment =>
-      HseRiskAssessment.writes.writes(hsera).as[JsObject] ++ Json.obj(
-        discriminatorAttributeName -> HseRiskAssessment.eventTypeId
-      )
-
-    case ca: ConditionAssessment =>
-      ConditionAssessment.writes.writes(ca).as[JsObject] ++ Json.obj(
-        discriminatorAttributeName -> ConditionAssessment.eventTypeId
-      )
-    case re: Report =>
-      Report.writes.writes(re).as[JsObject] ++ Json.obj(
-        discriminatorAttributeName -> Report.eventTypeId
-      )
-    case md: MaterialDetermination =>
-      MaterialDetermination.writes.writes(md).as[JsObject] ++ Json.obj(
-        discriminatorAttributeName -> MaterialDetermination.eventTypeId
-      )
-    case msmd: MeasurementDetermination =>
-      MeasurementDetermination.writes.writes(msmd).as[JsObject] ++ Json.obj(
-        discriminatorAttributeName -> MeasurementDetermination.eventTypeId
-      )
-    case note: Note =>
-      Note.writes.writes(note).as[JsObject] ++ Json.obj(
-        discriminatorAttributeName -> Note.eventTypeId
-      )*/
-  // }
 
   implicit val writes: Writes[ConservationReportSubEvent] = Writes {
     case cpe: ConservationProcessForReport =>
       ConservationProcessForReport.writes.writes(cpe).as[JsObject] ++ Json.obj(
         discriminatorAttributeName -> ConservationProcessForReport.eventTypeId
       )
-
     case te: TreatmentReport =>
       TreatmentReport.writes.writes(te).as[JsObject] ++ Json.obj(
         discriminatorAttributeName -> TreatmentReport.eventTypeId
       )
+    case tde: TechnicalDescriptionReport =>
+      TechnicalDescriptionReport.writes.writes(tde).as[JsObject] ++ Json.obj(
+        discriminatorAttributeName -> TechnicalDescriptionReport.eventTypeId
+      )
+    case sahe: StorageAndHandlingReport =>
+      StorageAndHandlingReport.writes.writes(sahe).as[JsObject] ++ Json.obj(
+        discriminatorAttributeName -> StorageAndHandlingReport.eventTypeId
+      )
+    case hsera: HseRiskAssessmentReport =>
+      HseRiskAssessmentReport.writes.writes(hsera).as[JsObject] ++ Json.obj(
+        discriminatorAttributeName -> HseRiskAssessmentReport.eventTypeId
+      )
+    case ca: ConditionAssessmentReport =>
+      ConditionAssessmentReport.writes.writes(ca).as[JsObject] ++ Json.obj(
+        discriminatorAttributeName -> ConditionAssessmentReport.eventTypeId
+      )
+    case re: ReportReport =>
+      ReportReport.writes.writes(re).as[JsObject] ++ Json.obj(
+        discriminatorAttributeName -> ReportReport.eventTypeId
+      )
+    case md: MaterialDeterminationReport =>
+      MaterialDeterminationReport.writes.writes(md).as[JsObject] ++ Json.obj(
+        discriminatorAttributeName -> MaterialDeterminationReport.eventTypeId
+      )
+    case msmd: MeasurementDeterminationReport =>
+      MeasurementDeterminationReport.writes.writes(msmd).as[JsObject] ++ Json.obj(
+        discriminatorAttributeName -> MeasurementDeterminationReport.eventTypeId
+      )
+    case note: NoteReport =>
+      NoteReport.writes.writes(note).as[JsObject] ++ Json.obj(
+        discriminatorAttributeName -> NoteReport.eventTypeId
+      )
   }
-  /*
-    implicit val writes: Writes[ConservationReportSubEvent] = Writes {
-      case pres: TreatmentReport =>
-        ConservationReportSubEvent.writes.writes(pres).as[JsObject] ++
-          Json.obj(discriminatorAttributeName -> TreatmentReport.eventTypeId)
-       case prep: TechnicalDescription =>
-        ConservationEvent.writes.writes(prep).as[JsObject] ++
-          Json.obj(discriminatorAttributeName -> TechnicalDescription.eventTypeId)
-      case sahe: StorageAndHandling =>
-        ConservationEvent.writes.writes(sahe).as[JsObject] ++
-          Json.obj(discriminatorAttributeName -> StorageAndHandling.eventTypeId)
-      case hsera: HseRiskAssessment =>
-        ConservationEvent.writes.writes(hsera).as[JsObject] ++
-          Json.obj(discriminatorAttributeName -> HseRiskAssessment.eventTypeId)
-      case ca: ConditionAssessment =>
-        ConservationEvent.writes.writes(ca).as[JsObject] ++
-          Json.obj(discriminatorAttributeName -> ConditionAssessment.eventTypeId)
-      case re: Report =>
-        ConservationEvent.writes.writes(re).as[JsObject] ++
-          Json.obj(discriminatorAttributeName -> Report.eventTypeId)
-      case md: MaterialDetermination =>
-        ConservationEvent.writes.writes(md).as[JsObject] ++
-          Json.obj(discriminatorAttributeName -> MaterialDetermination.eventTypeId)
-      case msmd: MeasurementDetermination =>
-        ConservationEvent.writes.writes(msmd).as[JsObject] ++
-          Json.obj(discriminatorAttributeName -> MeasurementDetermination.eventTypeId)
-      case note: Note =>
-        ConservationEvent.writes.writes(note).as[JsObject] ++
-          Json.obj(discriminatorAttributeName -> Note.eventTypeId)
+}
+
+sealed trait ConservationSubEventType {
+  val eventTypeId: EventTypeId
+}
+
+object ConservationSubEventType {
+  def apply(eventTypeId: EventTypeId): Option[ConservationSubEventType] = {
+    eventTypeId match {
+      case TreatmentReport.eventTypeId             => Some(TreatmentReport)
+      case TechnicalDescriptionReport.eventTypeId  => Some(TechnicalDescriptionReport)
+      case StorageAndHandlingReport.eventTypeId    => Some(StorageAndHandlingReport)
+      case HseRiskAssessmentReport.eventTypeId     => Some(HseRiskAssessmentReport)
+      case ConditionAssessmentReport.eventTypeId   => Some(ConditionAssessmentReport)
+      case ReportReport.eventTypeId                => Some(ReportReport)
+      case MaterialDeterminationReport.eventTypeId => Some(MaterialDeterminationReport)
+      case MeasurementDeterminationReport.eventTypeId =>
+        Some(MeasurementDeterminationReport)
+      case NoteReport.eventTypeId => Some(NoteReport)
+      case _                      => None
+    }
   }
- */
+  def mustFind(eventTypeId: EventTypeId): ConservationSubEventType = {
+    apply(eventTypeId) match {
+      case Some(t) => t
+      case None =>
+        throw new IllegalStateException(
+          s"Unknown/unhandled eventTypeId: $eventTypeId in ConservationProcess.ConservationProcess.subEventTypeIdToConservationEventType"
+        )
+    }
+  }
 }
 
 case class ActorRoleDateDetails(
@@ -244,42 +188,490 @@ case class TreatmentReport(
 
 }
 
-sealed trait ConservationSubEventType {
-  val eventTypeId: EventTypeId
-}
-
-object ConservationSubEventType {
-  def apply(eventTypeId: EventTypeId): Option[ConservationSubEventType] = {
-    eventTypeId match {
-      case TreatmentReport.eventTypeId => Some(TreatmentReport)
-      /*case TechnicalDescription.eventTypeId     => Some(TechnicalDescription)
-      case StorageAndHandling.eventTypeId       => Some(StorageAndHandling)
-      case HseRiskAssessment.eventTypeId        => Some(HseRiskAssessment)
-      case ConditionAssessment.eventTypeId      => Some(ConditionAssessment)
-      case Report.eventTypeId                   => Some(Report)
-      case MaterialDetermination.eventTypeId    => Some(MaterialDetermination)
-      case MeasurementDetermination.eventTypeId => Some(MeasurementDetermination)
-      case Note.eventTypeId                     => Some(Note)*/
-      case _ => None
-    }
-  }
-  def mustFind(eventTypeId: EventTypeId): ConservationSubEventType = {
-    apply(eventTypeId) match {
-      case Some(t) => t
-      case None =>
-        throw new IllegalStateException(
-          s"Unknown/unhandled eventTypeId: $eventTypeId in ConservationProcess.ConservationProcess.subEventTypeIdToConservationEventType"
-        )
-    }
-  }
-}
-
 object TreatmentReport extends WithDateTimeFormatters with ConservationSubEventType {
   val eventTypeId = EventTypeId(2)
-
   //val reads: Reads[TreatmentReport]   = Json.reads[TreatmentReport]
   val writes: Writes[TreatmentReport] = Json.writes[TreatmentReport]
+}
 
+case class TechnicalDescriptionReport(
+    id: Option[EventId],
+    eventTypeId: EventTypeId,
+    eventType: Option[ConservationType],
+    registeredBy: Option[ActorId],
+    registeredByName: Option[String],
+    registeredDate: Option[DateTime],
+    updatedBy: Option[ActorId],
+    updatedByName: Option[String],
+    updatedDate: Option[DateTime],
+    partOf: Option[EventId],
+    note: Option[String],
+    actorsAndRoles: Option[Seq[ActorRoleDate]],
+    actorsAndRolesDetails: Seq[ActorRoleDateDetails],
+    affectedThings: Option[Seq[ObjectUUID]],
+    affectedThingsDetails: Seq[MusitObject],
+    documents: Option[Seq[FileId]],
+    isUpdated: Option[Boolean]
+) extends ConservationReportSubEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
+
+  override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withUpdatedInfo(
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
+
+  override def withRegisteredInfo(
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
+
+  override def asPartOf(partOf: Option[EventId]) = copy(partOf = partOf)
+
+  override def withAffectedThings(
+      objects: Option[Seq[ObjectUUID]]
+  ): ConservationReportSubEvent =
+    copy(affectedThings = objects)
+
+  override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
+    copy(actorsAndRoles = actorsAndRoles)
+
+  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationReportSubEvent =
+    copy(documents = fileIds)
+
+}
+
+object TechnicalDescriptionReport
+    extends WithDateTimeFormatters
+    with ConservationSubEventType {
+  val eventTypeId = EventTypeId(3)
+  //val reads: Reads[TechnicalDescriptionReport]   = Json.reads[TechnicalDescriptionReport]
+  val writes: Writes[TechnicalDescriptionReport] = Json.writes[TechnicalDescriptionReport]
+}
+
+case class StorageAndHandlingReport(
+    id: Option[EventId],
+    eventTypeId: EventTypeId,
+    eventType: Option[ConservationType],
+    registeredBy: Option[ActorId],
+    registeredByName: Option[String],
+    registeredDate: Option[DateTime],
+    updatedBy: Option[ActorId],
+    updatedByName: Option[String],
+    updatedDate: Option[DateTime],
+    partOf: Option[EventId],
+    note: Option[String],
+    actorsAndRoles: Option[Seq[ActorRoleDate]],
+    actorsAndRolesDetails: Seq[ActorRoleDateDetails],
+    affectedThings: Option[Seq[ObjectUUID]],
+    affectedThingsDetails: Seq[MusitObject],
+    lightLevel: Option[String],
+    uvLevel: Option[String],
+    relativeHumidity: Option[String],
+    temperature: Option[String],
+    documents: Option[Seq[FileId]],
+    isUpdated: Option[Boolean]
+) extends ConservationReportSubEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
+
+  override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withUpdatedInfo(
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
+
+  override def withRegisteredInfo(
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
+
+  override def asPartOf(partOf: Option[EventId]) = copy(partOf = partOf)
+
+  override def withAffectedThings(
+      objects: Option[Seq[ObjectUUID]]
+  ): ConservationReportSubEvent =
+    copy(affectedThings = objects)
+
+  override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
+    copy(actorsAndRoles = actorsAndRoles)
+
+  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationReportSubEvent =
+    copy(documents = fileIds)
+
+}
+
+object StorageAndHandlingReport
+    extends WithDateTimeFormatters
+    with ConservationSubEventType {
+  val eventTypeId = EventTypeId(4)
+  //val reads: Reads[StorageAndHandlingReport]   = Json.reads[StorageAndHandlingReport]
+  val writes: Writes[StorageAndHandlingReport] = Json.writes[StorageAndHandlingReport]
+}
+
+case class HseRiskAssessmentReport(
+    id: Option[EventId],
+    eventTypeId: EventTypeId,
+    eventType: Option[ConservationType],
+    registeredBy: Option[ActorId],
+    registeredByName: Option[String],
+    registeredDate: Option[DateTime],
+    updatedBy: Option[ActorId],
+    updatedByName: Option[String],
+    updatedDate: Option[DateTime],
+    partOf: Option[EventId],
+    note: Option[String],
+    actorsAndRoles: Option[Seq[ActorRoleDate]],
+    actorsAndRolesDetails: Seq[ActorRoleDateDetails],
+    affectedThings: Option[Seq[ObjectUUID]],
+    affectedThingsDetails: Seq[MusitObject],
+    documents: Option[Seq[FileId]],
+    isUpdated: Option[Boolean]
+) extends ConservationReportSubEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
+
+  override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withUpdatedInfo(
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
+
+  override def withRegisteredInfo(
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
+
+  override def asPartOf(partOf: Option[EventId]) = copy(partOf = partOf)
+
+  override def withAffectedThings(
+      objects: Option[Seq[ObjectUUID]]
+  ): ConservationReportSubEvent =
+    copy(affectedThings = objects)
+
+  override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
+    copy(actorsAndRoles = actorsAndRoles)
+
+  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationReportSubEvent =
+    copy(documents = fileIds)
+
+}
+
+object HseRiskAssessmentReport
+    extends WithDateTimeFormatters
+    with ConservationSubEventType {
+  val eventTypeId = EventTypeId(5)
+  // val reads: Reads[HseRiskAssessmentReport]   = Json.reads[HseRiskAssessmentReport]
+  val writes: Writes[HseRiskAssessmentReport] = Json.writes[HseRiskAssessmentReport]
+}
+
+case class ConditionAssessmentReport(
+    id: Option[EventId],
+    eventTypeId: EventTypeId,
+    eventType: Option[ConservationType],
+    registeredBy: Option[ActorId],
+    registeredByName: Option[String],
+    registeredDate: Option[DateTime],
+    updatedBy: Option[ActorId],
+    updatedByName: Option[String],
+    updatedDate: Option[DateTime],
+    partOf: Option[EventId],
+    note: Option[String],
+    actorsAndRoles: Option[Seq[ActorRoleDate]],
+    actorsAndRolesDetails: Seq[ActorRoleDateDetails],
+    affectedThings: Option[Seq[ObjectUUID]],
+    affectedThingsDetails: Seq[MusitObject],
+    conditionCode: Option[Int],
+    documents: Option[Seq[FileId]],
+    isUpdated: Option[Boolean]
+) extends ConservationReportSubEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
+  override def withId(id: Option[EventId])     = copy(id = id)
+
+  override def withUpdatedInfo(
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
+
+  override def withRegisteredInfo(
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
+
+  override def asPartOf(partOf: Option[EventId]) = copy(partOf = partOf)
+
+  override def withAffectedThings(
+      objects: Option[Seq[ObjectUUID]]
+  ): ConservationReportSubEvent =
+    copy(affectedThings = objects)
+
+  override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
+    copy(actorsAndRoles = actorsAndRoles)
+
+  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationReportSubEvent =
+    copy(documents = fileIds)
+
+}
+
+object ConditionAssessmentReport
+    extends WithDateTimeFormatters
+    with ConservationSubEventType {
+  val eventTypeId = EventTypeId(6)
+  // val reads: Reads[ConditionAssessmentReport]   = Json.reads[ConditionAssessmentReport]
+  val writes: Writes[ConditionAssessmentReport] = Json.writes[ConditionAssessmentReport]
+
+}
+
+case class ReportReport(
+    id: Option[EventId],
+    eventTypeId: EventTypeId,
+    eventType: Option[ConservationType],
+    registeredBy: Option[ActorId],
+    registeredByName: Option[String],
+    registeredDate: Option[DateTime],
+    updatedBy: Option[ActorId],
+    updatedByName: Option[String],
+    updatedDate: Option[DateTime],
+    partOf: Option[EventId],
+    note: Option[String],
+    actorsAndRoles: Option[Seq[ActorRoleDate]],
+    actorsAndRolesDetails: Seq[ActorRoleDateDetails],
+    affectedThings: Option[Seq[ObjectUUID]],
+    affectedThingsDetails: Seq[MusitObject],
+    documents: Option[Seq[FileId]],
+    archiveReference: Option[String],
+    isUpdated: Option[Boolean]
+) extends ConservationReportSubEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
+
+  override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withUpdatedInfo(
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
+
+  override def withRegisteredInfo(
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
+
+  override def asPartOf(partOf: Option[EventId]) = copy(partOf = partOf)
+
+  override def withAffectedThings(
+      objects: Option[Seq[ObjectUUID]]
+  ): ConservationReportSubEvent =
+    copy(affectedThings = objects)
+
+  override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
+    copy(actorsAndRoles = actorsAndRoles)
+
+  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationReportSubEvent =
+    copy(documents = fileIds)
+
+}
+
+object ReportReport extends WithDateTimeFormatters with ConservationSubEventType {
+  val eventTypeId = EventTypeId(7)
+  //val reads: Reads[ReportReport]   = Json.reads[ReportReport]
+  val writes: Writes[ReportReport] = Json.writes[ReportReport]
+
+}
+
+case class MaterialInfoDetails(
+    materialId: Int,
+    //material: MaterialArchaeology | MaterialNumismatic | MaterialEthnography,
+    materialExtra: Option[String],
+    sorting: Option[Int]
+)
+
+object MaterialInfoDetails {
+  implicit val format: Format[MaterialInfo] =
+    Json.format[MaterialInfo]
+}
+
+case class MaterialDeterminationReport(
+    id: Option[EventId],
+    eventTypeId: EventTypeId,
+    eventType: Option[ConservationType],
+    registeredBy: Option[ActorId],
+    registeredByName: Option[String],
+    registeredDate: Option[DateTime],
+    updatedBy: Option[ActorId],
+    updatedByName: Option[String],
+    updatedDate: Option[DateTime],
+    partOf: Option[EventId],
+    note: Option[String],
+    actorsAndRoles: Option[Seq[ActorRoleDate]],
+    actorsAndRolesDetails: Seq[ActorRoleDateDetails],
+    affectedThings: Option[Seq[ObjectUUID]],
+    affectedThingsDetails: Seq[MusitObject],
+    documents: Option[Seq[FileId]],
+    materialInfo: Option[Seq[MaterialInfo]],
+    MaterialInfoDetails: Seq[MaterialInfoDetails],
+    isUpdated: Option[Boolean]
+) extends ConservationReportSubEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
+
+  override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withUpdatedInfo(
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
+
+  override def withRegisteredInfo(
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
+
+  override def asPartOf(partOf: Option[EventId]) = copy(partOf = partOf)
+
+  override def withAffectedThings(
+      objects: Option[Seq[ObjectUUID]]
+  ): ConservationReportSubEvent =
+    copy(affectedThings = objects)
+
+  override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
+    copy(actorsAndRoles = actorsAndRoles)
+
+  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationReportSubEvent =
+    copy(documents = fileIds)
+
+  def withOutSpesialMatrAndSorting: ConservationReportSubEvent =
+    withSpesialMatrAndSorting(None)
+
+  def withSpesialMatrAndSorting(materialInfo: Option[Seq[MaterialInfo]]) =
+    copy(materialInfo = materialInfo)
+}
+
+object MaterialDeterminationReport
+    extends WithDateTimeFormatters
+    with ConservationSubEventType {
+  val eventTypeId = EventTypeId(8)
+  //val reads: Reads[MaterialDeterminationReport] = Json.reads[MaterialDeterminationReport]
+  val writes: Writes[MaterialDeterminationReport] =
+    Json.writes[MaterialDeterminationReport]
+}
+
+case class MeasurementDeterminationReport(
+    id: Option[EventId],
+    eventTypeId: EventTypeId,
+    eventType: Option[ConservationType],
+    registeredBy: Option[ActorId],
+    registeredByName: Option[String],
+    registeredDate: Option[DateTime],
+    updatedBy: Option[ActorId],
+    updatedByName: Option[String],
+    updatedDate: Option[DateTime],
+    partOf: Option[EventId],
+    note: Option[String],
+    actorsAndRoles: Option[Seq[ActorRoleDate]],
+    actorsAndRolesDetails: Seq[ActorRoleDateDetails],
+    affectedThings: Option[Seq[ObjectUUID]],
+    affectedThingsDetails: Seq[MusitObject],
+    documents: Option[Seq[FileId]],
+    measurementData: Option[MeasurementData],
+    isUpdated: Option[Boolean]
+) extends ConservationReportSubEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
+
+  override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withUpdatedInfo(
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
+
+  override def withRegisteredInfo(
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
+
+  override def asPartOf(partOf: Option[EventId]) = copy(partOf = partOf)
+
+  override def withAffectedThings(
+      objects: Option[Seq[ObjectUUID]]
+  ): ConservationReportSubEvent =
+    copy(affectedThings = objects)
+
+  override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
+    copy(actorsAndRoles = actorsAndRoles)
+
+  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationReportSubEvent =
+    copy(documents = fileIds)
+
+}
+
+object MeasurementDeterminationReport
+    extends WithDateTimeFormatters
+    with ConservationSubEventType {
+  val eventTypeId = EventTypeId(9)
+  //val reads: Reads[MeasurementDeterminationReport] =
+  //Json.reads[MeasurementDeterminationReport]
+  val writes: Writes[MeasurementDeterminationReport] =
+    Json.writes[MeasurementDeterminationReport]
+}
+
+case class NoteReport(
+    id: Option[EventId],
+    eventTypeId: EventTypeId,
+    eventType: Option[ConservationType],
+    registeredBy: Option[ActorId],
+    registeredByName: Option[String],
+    registeredDate: Option[DateTime],
+    updatedBy: Option[ActorId],
+    updatedByName: Option[String],
+    updatedDate: Option[DateTime],
+    partOf: Option[EventId],
+    note: Option[String],
+    actorsAndRoles: Option[Seq[ActorRoleDate]],
+    actorsAndRolesDetails: Seq[ActorRoleDateDetails],
+    affectedThings: Option[Seq[ObjectUUID]],
+    affectedThingsDetails: Seq[MusitObject],
+    documents: Option[Seq[FileId]],
+    isUpdated: Option[Boolean]
+) extends ConservationReportSubEvent {
+
+  override def cleanupBeforeInsertIntoDatabase = copy(isUpdated = None)
+
+  override def withId(id: Option[EventId]) = copy(id = id)
+
+  override def withUpdatedInfo(
+      updatedBy: Option[ActorId],
+      updatedDate: Option[DateTime]
+  ) = copy(updatedBy = updatedBy, updatedDate = updatedDate)
+
+  override def withRegisteredInfo(
+      registeredBy: Option[ActorId],
+      registeredDate: Option[DateTime]
+  ) = copy(registeredBy = registeredBy, registeredDate = registeredDate)
+
+  override def asPartOf(partOf: Option[EventId]) = copy(partOf = partOf)
+
+  override def withAffectedThings(
+      objects: Option[Seq[ObjectUUID]]
+  ): ConservationReportSubEvent = copy(affectedThings = objects)
+
+  override def withActorRoleAndDates(actorsAndRoles: Option[Seq[ActorRoleDate]]) =
+    copy(actorsAndRoles = actorsAndRoles)
+
+  override def withDocuments(fileIds: Option[Seq[FileId]]): ConservationReportSubEvent =
+    copy(documents = fileIds)
+}
+
+object NoteReport extends WithDateTimeFormatters with ConservationSubEventType {
+  val eventTypeId = EventTypeId(10)
+  //  val reads: Reads[NoteReport] = Json.reads[NoteReport]
+  val writes: Writes[NoteReport] = Json.writes[NoteReport]
 }
 
 case class ConservationProcessForReport(
@@ -293,8 +685,6 @@ case class ConservationProcessForReport(
     updatedBy: Option[ActorId],
     updatedByName: Option[String],
     updatedDate: Option[DateTime],
-    //completedBy: Option[ActorId],
-    //completedDate: Option[DateTime],
     partOf: Option[EventId],
     note: Option[String],
     actorsAndRoles: Seq[ActorRoleDate],
@@ -306,20 +696,9 @@ case class ConservationProcessForReport(
 );
 
 object ConservationProcessForReport extends WithDateTimeFormatters {
-  implicit val writes3 = MusitObject.writes
-  val eventTypeId      = EventTypeId(1)
-
-  // implicit val reads2 = ConservationEvent.reads
-  val writes2 = ConservationReportSubEvent.writes
-  // implicit val reads: Reads[ConservationProcessForReport]   = Json.reads[ConservationProcessForReport]
+  val eventTypeId                      = EventTypeId(1)
+  implicit val writesMusitObject       = MusitObject.writes
+  val writesConservationReportSubEvent = ConservationReportSubEvent.writes
   implicit val writes: Writes[ConservationProcessForReport] =
     Json.writes[ConservationProcessForReport]
-
-  /* implicit val reads3: Reads[MusitObject]   = Json.reads[MusitObject]
-
-  implicit val reads4: Reads[NumismaticsAttribute]   = Json.reads[NumismaticsAttribute]
-  implicit val reads5: Reads[MusitObjectMaterial]   = Json.reads[MusitObjectMaterial]
-  implicit val reads6: Reads[MusitObjectLocation]   = Json.reads[MusitObjectLocation]
-  implicit val reads7: Reads[MusitObjectCoordinate]   = Json.reads[MusitObjectCoordinate]*/
-
 }
