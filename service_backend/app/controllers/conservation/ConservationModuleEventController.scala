@@ -335,9 +335,20 @@ class ConservationModuleEventController @Inject()(
       res.map(optEvent => optEvent.map(event => event))
     }
 
+    /*futMrOptEvent.map(o1 => {
+      println("futMrOptEvent 1 " + o1)
+      o1.map(o2 => {
+        println("futMrOptEvent 2 " + o2.toString)
+        println("futMrOptEvent 3 " + o2.affectedThingsDetails.toString)
+
+        //o2.map(o3 => println("obj3 " + o3))
+      })
+    })*/
+
     futMrOptEvent.value map {
       case MusitSuccess(ma) =>
         ma.map { ae =>
+          //println("futMrOptEvent ae " + ae.toString)
           Ok(Json.toJson(ae))
         }.getOrElse(NotFound)
       case err: MusitError => internalErr(err)

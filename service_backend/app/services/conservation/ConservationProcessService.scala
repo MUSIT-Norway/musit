@@ -1,5 +1,7 @@
 package services.conservation
 
+import models.conservation.TreatmentKeyword
+import models.conservation.TreatmentMaterial
 import com.google.inject.Inject
 import models.conservation.ConservationProcessKeyData
 import models.conservation.events._
@@ -33,7 +35,6 @@ import controllers._
 import models.actor.Person
 import models.musitobject.MusitObject
 import play.api.libs.json.Json
-import scalatags.Text.all._
 
 class ConservationProcessService @Inject()(
     implicit
@@ -46,7 +47,11 @@ class ConservationProcessService @Inject()(
     val conservationService: ConservationService,
     val ec: ExecutionContext,
     val objService: ObjectService,
-    val actorService: ActorService
+    val actorService: ActorService,
+    val treatmentService: TreatmentService,
+    val conditionAssessmentService: ConditionAssessmentService,
+    val materialDeterminationService: MaterialDeterminationService,
+    val measurementDeterminationService: MeasurementDeterminationService
 ) {
 
   val logger = Logger(classOf[ConservationProcessService])
@@ -108,8 +113,17 @@ class ConservationProcessService @Inject()(
   }
 
   /**
-   * Locate an event with the given EventId.
+   * Get the person name details
    */
+  def getPersonName(actor: Option[ActorId]): FutureMusitResult[Option[String]] = {
+    val ofoPerson =
+      actor.map(actorId => actorService.findByActorId(actorId))
+    val foPerson = ofoPerson.getOrElse(Future.successful(None))
+    val fPersonName =
+      foPerson.map(person => person.map(_.fn))
+    FutureMusitResult(fPersonName.map(MusitSuccess(_)))
+  }
+
   def conservationReportFromConservationProcess(
       process: ConservationProcess,
       mid: MuseumId,
@@ -119,85 +133,170 @@ class ConservationProcessService @Inject()(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[ConservationProcessForReport] = {
 
-    // affectedThingsDetails for main event
+    // get all Conservation event types
+    val fmrConservationTypes = typeDao.allFor(maybeColl)
 
-    def localFindByUUID(o: ObjectUUID) =
-      FutureMusitResult(objService.findByUUID(mid, o, colId))
-    val ids = process.affectedThings.getOrElse(Seq.empty)
-    val futObjectDetails = FutureMusitResult
-      .collectAllOrFail[ObjectUUID, MusitObject](
-        ids,
-        localFindByUUID,
-        objectIds =>
-          MusitValidationError(s"Missing objects for these objectIds:$objectIds")
-      )
-      .map { o =>
-        //println("inside map " + o.toString())
-        var obj = ConservationProcessForReport(
+    // affectedThingsDetails for main event
+    val fmrEventsDetails = getSubEventDetails(process, fmrConservationTypes, mid, colId)
+
+    val obj =
+      for {
+        affectedThingsDetails <- getObjectDetails(process.affectedThings, mid, colId)
+        maybeMainEventType    <- getEventType(fmrConservationTypes, process.eventTypeId)
+        updatedByName         <- getPersonName(process.updatedBy)
+        registeredByName      <- getPersonName(process.registeredBy)
+        eventsDetails         <- fmrEventsDetails
+      } yield
+        ConservationProcessForReport(
           id = process.id,
           eventTypeId = process.eventTypeId,
-          eventType = None,
+          eventType = maybeMainEventType,
           caseNumber = process.caseNumber,
           registeredBy = process.registeredBy,
-          registeredByName = None,
+          registeredByName = registeredByName,
           registeredDate = process.registeredDate,
           updatedBy = process.updatedBy,
-          updatedByName = None,
+          updatedByName = updatedByName,
           updatedDate = process.updatedDate,
           partOf = process.partOf,
           note = process.note,
           actorsAndRoles = process.actorsAndRoles.getOrElse(Seq.empty),
           affectedThings = process.affectedThings.getOrElse(Seq.empty),
           events = process.events.getOrElse(Seq.empty),
+          eventsDetails = eventsDetails, //Seq.empty[ConservationSubEvent],
           isUpdated = process.isUpdated,
-          affectedThingsDetails = o
+          affectedThingsDetails = affectedThingsDetails
         )
-        obj
-
-      }
-
-    // registeredByName for main event
-
-    val FMRReport = futObjectDetails.flatMap { report =>
-      val ofoPerson: Option[Future[Option[Person]]] =
-        report.registeredBy.map(actorId => actorService.findByActorId(actorId))
-
-      val foPerson = ofoPerson.getOrElse(Future.successful(None))
-      val fPersonName =
-        foPerson.map(person => person.map(_.fn).getOrElse("(Finner ikke navnet!)"))
-      val fmrPersonName = FutureMusitResult(fPersonName.map(MusitSuccess(_)))
-      fmrPersonName.map(personName => report.copy(registeredByName = Some(personName)))
-
-    }
-
-    // updatedByName for main event
-    val FMRReport2 = FMRReport.flatMap { report =>
-      val ofoPerson: Option[Future[Option[Person]]] =
-        report.registeredBy.map(actorId => actorService.findByActorId(actorId))
-
-      val foPerson = ofoPerson.getOrElse(Future.successful(None))
-      val fPersonName =
-        foPerson.map(person => person.map(_.fn).getOrElse("(Finner ikke navnet!)"))
-      val fmrPersonName = FutureMusitResult(fPersonName.map(MusitSuccess(_)))
-      fmrPersonName.map(personName => report.copy(updatedByName = Some(personName)))
-
-    }
-
-    // Main event type is added
-    val FMRReport3 =
-      for {
-        conservationTypes <- typeDao.allFor(maybeColl)
-        report2           <- FMRReport2
-        maybeEventType = conservationTypes.find(t => t.id == report2.eventTypeId)
-        report3        = report2.copy(eventType = maybeEventType)
-      } yield report3
-
-    FMRReport3
-
+    obj
   }
 
+  private def getObjectDetails(
+      affectedThings: Option[Seq[ObjectUUID]],
+      mid: MuseumId,
+      colId: Seq[MuseumCollection]
+  )(
+      implicit currUser: AuthenticatedUser
+  ): FutureMusitResult[Seq[MusitObject]] = {
+    def localFindByUUID(o: ObjectUUID) =
+      FutureMusitResult(objService.findByUUID(mid, o, colId))
 
+    val ids = affectedThings.getOrElse(Seq.empty)
+    FutureMusitResult.collectAllOrFail[ObjectUUID, MusitObject](
+      ids,
+      localFindByUUID,
+      objectIds => MusitValidationError(s"Missing objects for these objectIds:$objectIds")
+    )
+  }
 
+  private def getEventType(
+      fmrConservationTypes: FutureMusitResult[Seq[ConservationType]],
+      eventTypeId: EventTypeId
+  ): FutureMusitResult[Option[ConservationType]] = {
+    for {
+      conservationTypes <- fmrConservationTypes
+      maybeMainEventType = conservationTypes.find(t => t.id == eventTypeId)
+    } yield maybeMainEventType
+  }
+
+  private def getKeywordsDetails(
+      keywords: Option[scala.Seq[Int]]
+  ): FutureMusitResult[Seq[TreatmentKeyword]] = {
+    for {
+      keywordsList <- treatmentService.getKeywordList
+      keywordsDetails = keywordsList.filter(
+        t => keywords.getOrElse(Seq.empty).contains(t.id)
+      )
+    } yield keywordsDetails
+  }
+
+  private def getMaterialsDetails(
+      materials: Option[scala.Seq[Int]]
+  ): FutureMusitResult[Seq[TreatmentMaterial]] = {
+    for {
+      materialsList <- treatmentService.getMaterialList
+      materialsDetails = materialsList.filter(
+        t => materials.getOrElse(Seq.empty).contains(t.id)
+      )
+    } yield materialsDetails
+  }
+
+  private def getActorsAndRoles(
+      actorsAndRoles: Seq[ActorRoleDate]
+  ): FutureMusitResult[Seq[ActorRoleDateDetails]] = {
+    val roleList = conservationService.getRoleList
+    val obj = FutureMusitResult.sequence(
+      actorsAndRoles.map(
+        ar =>
+          for {
+            actor <- getPersonName(Some(ar.actorId))
+            roles <- roleList
+            role = roles.find(t => t.roleId == ar.roleId)
+
+          } yield
+            ActorRoleDateDetails(
+              roleId = ar.roleId,
+              role = role,
+              actorId = ar.actorId,
+              actor = actor,
+              date = ar.date
+          )
+      )
+    )
+    obj
+  }
+
+  private def getSubEventDetails(
+      process: ConservationProcess,
+      fmrConservationTypes: FutureMusitResult[Seq[ConservationType]],
+      mid: MuseumId,
+      colId: Seq[MuseumCollection]
+  )(
+      implicit currUser: AuthenticatedUser
+  ): FutureMusitResult[Seq[ConservationReportSubEvent]] = {
+    FutureMusitResult.sequence(
+      process.events
+        .getOrElse(Seq.empty)
+        .map(e => {
+          for {
+            subEventType          <- getEventType(fmrConservationTypes, e.eventTypeId)
+            registeredByName      <- getPersonName(e.registeredBy)
+            updatedByName         <- getPersonName(e.updatedBy)
+            affectedThingsDetails <- getObjectDetails(e.affectedThings, mid, colId)
+            keywordList           <- getKeywordsDetails(e.asInstanceOf[Treatment].keywords)
+            materialList          <- getMaterialsDetails(e.asInstanceOf[Treatment].materials)
+            actorsAndRoles        <- getActorsAndRoles(e.actorsAndRoles.getOrElse(Seq.empty))
+          } yield
+            e.eventTypeId match {
+              case Treatment.eventTypeId => {
+                val treatment = e.asInstanceOf[Treatment]
+                TreatmentReport(
+                  id = e.id,
+                  eventTypeId = e.eventTypeId,
+                  eventType = subEventType,
+                  registeredBy = e.registeredBy,
+                  registeredByName = registeredByName,
+                  registeredDate = e.registeredDate,
+                  updatedBy = e.updatedBy,
+                  updatedByName = updatedByName,
+                  updatedDate = e.updatedDate,
+                  partOf = e.partOf,
+                  note = e.note,
+                  actorsAndRoles = e.actorsAndRoles,
+                  actorsAndRolesDetails = actorsAndRoles,
+                  affectedThings = e.affectedThings,
+                  affectedThingsDetails = affectedThingsDetails,
+                  keywords = treatment.keywords,
+                  keywordsDetails = keywordList,
+                  materials = treatment.materials,
+                  materialsDetails = materialList,
+                  documents = e.documents,
+                  isUpdated = e.isUpdated
+                ).asInstanceOf[ConservationReportSubEvent]
+              }
+            }
+        })
+    )
+  }
 
   def getConservationReportService(
       mid: MuseumId,
@@ -212,6 +311,7 @@ class ConservationProcessService @Inject()(
     val colId = currUser
       .collectionsFor(mid)
       .filter(mc => mc.uuid.underlying.toString == collectionId)
+    println("colId " + colId);
 
     val conservationReportProcess =
       findConservationProcessById(mid: MuseumId, id: EventId)
@@ -219,7 +319,17 @@ class ConservationProcessService @Inject()(
     val conservationReport = conservationReportProcess.flatMapInsideOption { p =>
       conservationReportFromConservationProcess(p, mid, colId, maybeColl)
     }
+    /*
+    conservationReport.map(o1 => {
+      println("obj1 " + o1)
+      o1.map(o2 => {
+        println("obj2 " + o2.toString)
+        println("obj3 " + o2.affectedThingsDetails.toString)
+        println("registeredByName " + o2.registeredByName.toString)
 
+        //o2.map(o3 => println("obj3 " + o3))
+      })
+    })*/
 
     /*
     val conservationReport = conservationReportProcess.map(
