@@ -130,6 +130,13 @@ object FutureMusitResult {
     }
   }
 
+  def flatten[A](
+      futMrFutMr: FutureMusitResult[FutureMusitResult[A]]
+  )(implicit ec: ExecutionContext) = {
+    futMrFutMr.flatMap(identity)
+
+  }
+
   def sequence[A](seqFutMr: Seq[FutureMusitResult[A]])(
       implicit ec: ExecutionContext
   ): FutureMusitResult[Seq[A]] = {
