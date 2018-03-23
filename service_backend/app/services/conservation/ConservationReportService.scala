@@ -1,6 +1,7 @@
 package services.conservation
 
 import com.google.inject.Inject
+import models.conservation.TreatmentKeyword
 import models.conservation.events._
 import models.musitobject.MusitObject
 import no.uio.musit.MusitResults.MusitSuccess
@@ -106,87 +107,98 @@ class ConservationReportService @Inject()(
       None
   }
 
-  def getTreatmentData(event: Treatment) = {
+  def getTreatmentData(event: TreatmentReport) = {
+    def getMaterialbruk(keywords: Seq[TreatmentKeyword]): String = {
+      if (keywords.length > 0) "Materialbruk: " + keywords.mkString(",")
+      else ""
+    }
+
     div(
       h3("Behandling"),
       div("Behandling: " + event.note.getOrElse("")),
-      event.keywords.map(x => div("Materialbruk:" + x.mkString(",")))
+      event.actorsAndRolesDetails.map(
+        a => a.role.map(r => div(r.noRole + ":  " + a.actor.getOrElse("(mangler navn)")))
+      ),
+      getMaterialbruk(event.keywordsDetails)
     )
   }
-  def getMeasurementDeterminationData(event: MeasurementDetermination) = {
+  def getMeasurementDeterminationData(event: MeasurementDeterminationReport) = {
     div(
       h3("Målbestemmelse"),
-      div("Målbestemmelse...")
+      div("Målbestemmelse..."),
+      div(event.measurementData.getOrElse("").toString)
     )
   }
 
-  def getTechnicalDescriptionData(event: TechnicalDescription) = {
+  def getTechnicalDescriptionData(event: TechnicalDescriptionReport) = {
     div(
       h3("TechnicalDescription")
     )
   }
 
-  def getStorageAndHandlingData(event: StorageAndHandling) = {
+  def getStorageAndHandlingData(event: StorageAndHandlingReport) = {
     div(
       h3("StorageAndHandling")
     )
   }
-  def getHseRiskAssessmentData(event: HseRiskAssessment) = {
+  def getHseRiskAssessmentData(event: HseRiskAssessmentReport) = {
     div(
       h3("HseRiskAssessment")
     )
   }
-  def getConditionAssessmentData(event: ConditionAssessment) = {
+  def getConditionAssessmentData(event: ConditionAssessmentReport) = {
     div(
       h3("ConditionAssessment")
     )
   }
-  def getReportData(event: Report) = {
+  def getReportData(event: ReportReport) = {
     div(
       h3("Report")
     )
   }
-  def getMaterialDeterminationData(event: MaterialDetermination) = {
+  def getMaterialDeterminationData(event: MaterialDeterminationReport) = {
     div(
       h3("MaterialDetermination")
     )
   }
-  def getNoteData(event: Note) = {
+  def getNoteData(event: NoteReport) = {
     div(
       h3("Note")
     )
   }
 
-  def getEventData(event: ConservationEvent): Text.TypedTag[String] = {
+  def getEventData(event: ConservationReportSubEvent): Text.TypedTag[String] = {
     ConservationEventType(event.eventTypeId) match {
       case Some(eventType) =>
         eventType match {
           case Treatment => {
-            getTreatmentData(event.asInstanceOf[Treatment])
+            getTreatmentData(event.asInstanceOf[TreatmentReport])
           }
           case MeasurementDetermination => {
-            getMeasurementDeterminationData(event.asInstanceOf[MeasurementDetermination])
+            getMeasurementDeterminationData(
+              event.asInstanceOf[MeasurementDeterminationReport]
+            )
           }
           case TechnicalDescription => {
-            getTechnicalDescriptionData(event.asInstanceOf[TechnicalDescription])
+            getTechnicalDescriptionData(event.asInstanceOf[TechnicalDescriptionReport])
           }
           case StorageAndHandling => {
-            getStorageAndHandlingData(event.asInstanceOf[StorageAndHandling])
+            getStorageAndHandlingData(event.asInstanceOf[StorageAndHandlingReport])
           }
           case HseRiskAssessment => {
-            getHseRiskAssessmentData(event.asInstanceOf[HseRiskAssessment])
+            getHseRiskAssessmentData(event.asInstanceOf[HseRiskAssessmentReport])
           }
           case ConditionAssessment => {
-            getConditionAssessmentData(event.asInstanceOf[ConditionAssessment])
+            getConditionAssessmentData(event.asInstanceOf[ConditionAssessmentReport])
           }
           case Report => {
-            getReportData(event.asInstanceOf[Report])
+            getReportData(event.asInstanceOf[ReportReport])
           }
           case MaterialDetermination => {
-            getMaterialDeterminationData(event.asInstanceOf[MaterialDetermination])
+            getMaterialDeterminationData(event.asInstanceOf[MaterialDeterminationReport])
           }
           case Note => {
-            getNoteData(event.asInstanceOf[Note])
+            getNoteData(event.asInstanceOf[NoteReport])
           }
 
           case _ => {
@@ -205,7 +217,7 @@ class ConservationReportService @Inject()(
 //    assert(conservationReport.affectedThings.length==1)
 
     def getEvents = {
-      div(conservationReport.events.map { event =>
+      div(conservationReport.eventsDetails.map { event =>
         div(getEventData(event))
       })
     }
