@@ -279,236 +279,86 @@ class ConservationProcessService @Inject()(
               actorsAndRoles        <- getActorsAndRoles(e.actorsAndRoles.getOrElse(Seq.empty))
             } yield
               e.eventTypeId match {
-                case Treatment.eventTypeId => {
-                  //FutureMusitResult.successful(
-                  for {
-                    keywordList <- getKeywordsDetails(
-                                    e.asInstanceOf[Treatment].keywords
-                                  )
-                    materialList <- getMaterialsDetails(
-                                     e.asInstanceOf[Treatment].materials
-                                   )
-                  } yield
-                    TreatmentReport(
-                      id = e.id,
-                      eventTypeId = e.eventTypeId,
-                      eventType = subEventType,
-                      registeredBy = e.registeredBy,
-                      registeredByName = registeredByName,
-                      registeredDate = e.registeredDate,
-                      updatedBy = e.updatedBy,
-                      updatedByName = updatedByName,
-                      updatedDate = e.updatedDate,
-                      partOf = e.partOf,
-                      note = e.note,
-                      actorsAndRoles = e.actorsAndRoles,
-                      actorsAndRolesDetails = actorsAndRoles,
-                      affectedThings = e.affectedThings,
-                      affectedThingsDetails = affectedThingsDetails,
-                      keywords = e.asInstanceOf[Treatment].keywords,
-                      keywordsDetails = keywordList,
-                      materials = e.asInstanceOf[Treatment].materials,
-                      materialsDetails = materialList,
-                      documents = e.documents,
-                      isUpdated = e.isUpdated
-                    ).asInstanceOf[ConservationReportSubEvent]
-                  //)
-                }
+                case Treatment.eventTypeId =>
+                  getTreatmentReport(
+                    e,
+                    subEventType,
+                    registeredByName,
+                    updatedByName,
+                    affectedThingsDetails,
+                    actorsAndRoles
+                  )
                 case TechnicalDescription.eventTypeId =>
-                  FutureMusitResult.successful(
-                    TechnicalDescriptionReport(
-                      id = e.id,
-                      eventTypeId = e.eventTypeId,
-                      eventType = subEventType,
-                      registeredBy = e.registeredBy,
-                      registeredByName = registeredByName,
-                      registeredDate = e.registeredDate,
-                      updatedBy = e.updatedBy,
-                      updatedByName = updatedByName,
-                      updatedDate = e.updatedDate,
-                      partOf = e.partOf,
-                      note = e.note,
-                      actorsAndRoles = e.actorsAndRoles,
-                      actorsAndRolesDetails = actorsAndRoles,
-                      affectedThings = e.affectedThings,
-                      affectedThingsDetails = affectedThingsDetails,
-                      documents = e.documents,
-                      isUpdated = e.isUpdated
-                    ).asInstanceOf[ConservationReportSubEvent]
+                  getTechnicalDescriptionReport(
+                    e,
+                    subEventType,
+                    registeredByName,
+                    updatedByName,
+                    affectedThingsDetails,
+                    actorsAndRoles
                   )
                 case StorageAndHandling.eventTypeId =>
-                  FutureMusitResult.successful(
-                    StorageAndHandlingReport(
-                      id = e.id,
-                      eventTypeId = e.eventTypeId,
-                      eventType = subEventType,
-                      registeredBy = e.registeredBy,
-                      registeredByName = registeredByName,
-                      registeredDate = e.registeredDate,
-                      updatedBy = e.updatedBy,
-                      updatedByName = updatedByName,
-                      updatedDate = e.updatedDate,
-                      partOf = e.partOf,
-                      note = e.note,
-                      actorsAndRoles = e.actorsAndRoles,
-                      actorsAndRolesDetails = actorsAndRoles,
-                      affectedThings = e.affectedThings,
-                      affectedThingsDetails = affectedThingsDetails,
-                      lightLevel = e.asInstanceOf[StorageAndHandling].lightLevel,
-                      uvLevel = e.asInstanceOf[StorageAndHandling].uvLevel,
-                      relativeHumidity =
-                        e.asInstanceOf[StorageAndHandling].relativeHumidity,
-                      temperature = e.asInstanceOf[StorageAndHandling].temperature,
-                      documents = e.documents,
-                      isUpdated = e.isUpdated
-                    ).asInstanceOf[ConservationReportSubEvent]
+                  getStorageAndHandlingReport(
+                    e,
+                    subEventType,
+                    registeredByName,
+                    updatedByName,
+                    affectedThingsDetails,
+                    actorsAndRoles
                   )
                 case HseRiskAssessment.eventTypeId =>
-                  FutureMusitResult.successful(
-                    HseRiskAssessmentReport(
-                      id = e.id,
-                      eventTypeId = e.eventTypeId,
-                      eventType = subEventType,
-                      registeredBy = e.registeredBy,
-                      registeredByName = registeredByName,
-                      registeredDate = e.registeredDate,
-                      updatedBy = e.updatedBy,
-                      updatedByName = updatedByName,
-                      updatedDate = e.updatedDate,
-                      partOf = e.partOf,
-                      note = e.note,
-                      actorsAndRoles = e.actorsAndRoles,
-                      actorsAndRolesDetails = actorsAndRoles,
-                      affectedThings = e.affectedThings,
-                      affectedThingsDetails = affectedThingsDetails,
-                      documents = e.documents,
-                      isUpdated = e.isUpdated
-                    ).asInstanceOf[ConservationReportSubEvent]
+                  getHseRiskAssessmentReport(
+                    e,
+                    subEventType,
+                    registeredByName,
+                    updatedByName,
+                    affectedThingsDetails,
+                    actorsAndRoles
                   )
-                case ConditionAssessment.eventTypeId => {
-                  //FutureMusitResult.successful(
-                  for {
-                    conditionCode <- getConditionCode(
-                                      e.asInstanceOf[ConditionAssessment]
-                                        .conditionCode
-                                        .getOrElse(0)
-                                    )
-                  } yield
-                    ConditionAssessmentReport(
-                      id = e.id,
-                      eventTypeId = e.eventTypeId,
-                      eventType = subEventType,
-                      registeredBy = e.registeredBy,
-                      registeredByName = registeredByName,
-                      registeredDate = e.registeredDate,
-                      updatedBy = e.updatedBy,
-                      updatedByName = updatedByName,
-                      updatedDate = e.updatedDate,
-                      partOf = e.partOf,
-                      note = e.note,
-                      actorsAndRoles = e.actorsAndRoles,
-                      actorsAndRolesDetails = actorsAndRoles,
-                      affectedThings = e.affectedThings,
-                      affectedThingsDetails = affectedThingsDetails,
-                      conditionCode = e.asInstanceOf[ConditionAssessment].conditionCode,
-                      conditionCodeDetails = conditionCode,
-                      documents = e.documents,
-                      isUpdated = e.isUpdated
-                    ).asInstanceOf[ConservationReportSubEvent]
-                  //)
-                }
+                case ConditionAssessment.eventTypeId =>
+                  getConditionAssessmentReport(
+                    e,
+                    subEventType,
+                    registeredByName,
+                    updatedByName,
+                    affectedThingsDetails,
+                    actorsAndRoles
+                  )
                 case Report.eventTypeId =>
-                  FutureMusitResult.successful(
-                    ReportReport(
-                      id = e.id,
-                      eventTypeId = e.eventTypeId,
-                      eventType = subEventType,
-                      registeredBy = e.registeredBy,
-                      registeredByName = registeredByName,
-                      registeredDate = e.registeredDate,
-                      updatedBy = e.updatedBy,
-                      updatedByName = updatedByName,
-                      updatedDate = e.updatedDate,
-                      partOf = e.partOf,
-                      note = e.note,
-                      actorsAndRoles = e.actorsAndRoles,
-                      actorsAndRolesDetails = actorsAndRoles,
-                      affectedThings = e.affectedThings,
-                      affectedThingsDetails = affectedThingsDetails,
-                      archiveReference = e.asInstanceOf[Report].archiveReference,
-                      documents = e.documents,
-                      isUpdated = e.isUpdated
-                    ).asInstanceOf[ConservationReportSubEvent]
+                  getReportReport(
+                    e,
+                    subEventType,
+                    registeredByName,
+                    updatedByName,
+                    affectedThingsDetails,
+                    actorsAndRoles
                   )
                 case MaterialDetermination.eventTypeId =>
-                  FutureMusitResult.successful(
-                    MaterialDeterminationReport(
-                      id = e.id,
-                      eventTypeId = e.eventTypeId,
-                      eventType = subEventType,
-                      registeredBy = e.registeredBy,
-                      registeredByName = registeredByName,
-                      registeredDate = e.registeredDate,
-                      updatedBy = e.updatedBy,
-                      updatedByName = updatedByName,
-                      updatedDate = e.updatedDate,
-                      partOf = e.partOf,
-                      note = e.note,
-                      actorsAndRoles = e.actorsAndRoles,
-                      actorsAndRolesDetails = actorsAndRoles,
-                      affectedThings = e.affectedThings,
-                      affectedThingsDetails = affectedThingsDetails,
-                      materialInfo = e.asInstanceOf[MaterialDetermination].materialInfo,
-                      MaterialInfoDetails = Seq.empty,
-                      documents = e.documents,
-                      isUpdated = e.isUpdated
-                    ).asInstanceOf[ConservationReportSubEvent]
+                  getMaterialDeterminationReport(
+                    e,
+                    subEventType,
+                    registeredByName,
+                    updatedByName,
+                    affectedThingsDetails,
+                    actorsAndRoles
                   )
                 case MeasurementDetermination.eventTypeId =>
-                  FutureMusitResult.successful(
-                    MeasurementDeterminationReport(
-                      id = e.id,
-                      eventTypeId = e.eventTypeId,
-                      eventType = subEventType,
-                      registeredBy = e.registeredBy,
-                      registeredByName = registeredByName,
-                      registeredDate = e.registeredDate,
-                      updatedBy = e.updatedBy,
-                      updatedByName = updatedByName,
-                      updatedDate = e.updatedDate,
-                      partOf = e.partOf,
-                      note = e.note,
-                      actorsAndRoles = e.actorsAndRoles,
-                      actorsAndRolesDetails = actorsAndRoles,
-                      affectedThings = e.affectedThings,
-                      affectedThingsDetails = affectedThingsDetails,
-                      measurementData =
-                        e.asInstanceOf[MeasurementDetermination].measurementData,
-                      documents = e.documents,
-                      isUpdated = e.isUpdated
-                    ).asInstanceOf[ConservationReportSubEvent]
+                  getMeasurementDeterminationReport(
+                    e,
+                    subEventType,
+                    registeredByName,
+                    updatedByName,
+                    affectedThingsDetails,
+                    actorsAndRoles
                   )
                 case Note.eventTypeId =>
-                  FutureMusitResult.successful(
-                    NoteReport(
-                      id = e.id,
-                      eventTypeId = e.eventTypeId,
-                      eventType = subEventType,
-                      registeredBy = e.registeredBy,
-                      registeredByName = registeredByName,
-                      registeredDate = e.registeredDate,
-                      updatedBy = e.updatedBy,
-                      updatedByName = updatedByName,
-                      updatedDate = e.updatedDate,
-                      partOf = e.partOf,
-                      note = e.note,
-                      actorsAndRoles = e.actorsAndRoles,
-                      actorsAndRolesDetails = actorsAndRoles,
-                      affectedThings = e.affectedThings,
-                      affectedThingsDetails = affectedThingsDetails,
-                      documents = e.documents,
-                      isUpdated = e.isUpdated
-                    ).asInstanceOf[ConservationReportSubEvent]
+                  getNoteReport(
+                    e,
+                    subEventType,
+                    registeredByName,
+                    updatedByName,
+                    affectedThingsDetails,
+                    actorsAndRoles
                   )
               }
             //result.flatMap(identity)
@@ -516,6 +366,312 @@ class ConservationProcessService @Inject()(
           }
         )
     )
+  }
+
+  private def getNoteReport(
+      e: ConservationEvent,
+      subEventType: Option[ConservationType],
+      registeredByName: Option[String],
+      updatedByName: Option[String],
+      affectedThingsDetails: Seq[MusitObject],
+      actorsAndRoles: Seq[ActorRoleDateDetails]
+  ): FutureMusitResult[ConservationReportSubEvent] = {
+    FutureMusitResult.successful(
+      NoteReport(
+        id = e.id,
+        eventTypeId = e.eventTypeId,
+        eventType = subEventType,
+        registeredBy = e.registeredBy,
+        registeredByName = registeredByName,
+        registeredDate = e.registeredDate,
+        updatedBy = e.updatedBy,
+        updatedByName = updatedByName,
+        updatedDate = e.updatedDate,
+        partOf = e.partOf,
+        note = e.note,
+        actorsAndRoles = e.actorsAndRoles,
+        actorsAndRolesDetails = actorsAndRoles,
+        affectedThings = e.affectedThings,
+        affectedThingsDetails = affectedThingsDetails,
+        documents = e.documents,
+        isUpdated = e.isUpdated
+      ).asInstanceOf[ConservationReportSubEvent]
+    )
+  }
+
+  private def getMeasurementDeterminationReport(
+      e: ConservationEvent,
+      subEventType: Option[ConservationType],
+      registeredByName: Option[String],
+      updatedByName: Option[String],
+      affectedThingsDetails: Seq[MusitObject],
+      actorsAndRoles: Seq[ActorRoleDateDetails]
+  ): FutureMusitResult[ConservationReportSubEvent] = {
+    FutureMusitResult.successful(
+      MeasurementDeterminationReport(
+        id = e.id,
+        eventTypeId = e.eventTypeId,
+        eventType = subEventType,
+        registeredBy = e.registeredBy,
+        registeredByName = registeredByName,
+        registeredDate = e.registeredDate,
+        updatedBy = e.updatedBy,
+        updatedByName = updatedByName,
+        updatedDate = e.updatedDate,
+        partOf = e.partOf,
+        note = e.note,
+        actorsAndRoles = e.actorsAndRoles,
+        actorsAndRolesDetails = actorsAndRoles,
+        affectedThings = e.affectedThings,
+        affectedThingsDetails = affectedThingsDetails,
+        measurementData = e.asInstanceOf[MeasurementDetermination].measurementData,
+        documents = e.documents,
+        isUpdated = e.isUpdated
+      ).asInstanceOf[ConservationReportSubEvent]
+    )
+  }
+
+  private def getMaterialDeterminationReport(
+      e: ConservationEvent,
+      subEventType: Option[ConservationType],
+      registeredByName: Option[String],
+      updatedByName: Option[String],
+      affectedThingsDetails: Seq[MusitObject],
+      actorsAndRoles: Seq[ActorRoleDateDetails]
+  ): FutureMusitResult[ConservationReportSubEvent] = {
+    FutureMusitResult.successful(
+      MaterialDeterminationReport(
+        id = e.id,
+        eventTypeId = e.eventTypeId,
+        eventType = subEventType,
+        registeredBy = e.registeredBy,
+        registeredByName = registeredByName,
+        registeredDate = e.registeredDate,
+        updatedBy = e.updatedBy,
+        updatedByName = updatedByName,
+        updatedDate = e.updatedDate,
+        partOf = e.partOf,
+        note = e.note,
+        actorsAndRoles = e.actorsAndRoles,
+        actorsAndRolesDetails = actorsAndRoles,
+        affectedThings = e.affectedThings,
+        affectedThingsDetails = affectedThingsDetails,
+        materialInfo = e.asInstanceOf[MaterialDetermination].materialInfo,
+        MaterialInfoDetails = Seq.empty,
+        documents = e.documents,
+        isUpdated = e.isUpdated
+      ).asInstanceOf[ConservationReportSubEvent]
+    )
+  }
+
+  private def getReportReport(
+      e: ConservationEvent,
+      subEventType: Option[ConservationType],
+      registeredByName: Option[String],
+      updatedByName: Option[String],
+      affectedThingsDetails: Seq[MusitObject],
+      actorsAndRoles: Seq[ActorRoleDateDetails]
+  ): FutureMusitResult[ConservationReportSubEvent] = {
+    FutureMusitResult.successful(
+      ReportReport(
+        id = e.id,
+        eventTypeId = e.eventTypeId,
+        eventType = subEventType,
+        registeredBy = e.registeredBy,
+        registeredByName = registeredByName,
+        registeredDate = e.registeredDate,
+        updatedBy = e.updatedBy,
+        updatedByName = updatedByName,
+        updatedDate = e.updatedDate,
+        partOf = e.partOf,
+        note = e.note,
+        actorsAndRoles = e.actorsAndRoles,
+        actorsAndRolesDetails = actorsAndRoles,
+        affectedThings = e.affectedThings,
+        affectedThingsDetails = affectedThingsDetails,
+        archiveReference = e.asInstanceOf[Report].archiveReference,
+        documents = e.documents,
+        isUpdated = e.isUpdated
+      ).asInstanceOf[ConservationReportSubEvent]
+    )
+  }
+
+  private def getConditionAssessmentReport(
+      e: ConservationEvent,
+      subEventType: Option[ConservationType],
+      registeredByName: Option[String],
+      updatedByName: Option[String],
+      affectedThingsDetails: Seq[MusitObject],
+      actorsAndRoles: Seq[ActorRoleDateDetails]
+  ): FutureMusitResult[ConservationReportSubEvent] = {
+
+    for {
+      conditionCode <- getConditionCode(
+                        e.asInstanceOf[ConditionAssessment].conditionCode.getOrElse(0)
+                      )
+    } yield
+      ConditionAssessmentReport(
+        id = e.id,
+        eventTypeId = e.eventTypeId,
+        eventType = subEventType,
+        registeredBy = e.registeredBy,
+        registeredByName = registeredByName,
+        registeredDate = e.registeredDate,
+        updatedBy = e.updatedBy,
+        updatedByName = updatedByName,
+        updatedDate = e.updatedDate,
+        partOf = e.partOf,
+        note = e.note,
+        actorsAndRoles = e.actorsAndRoles,
+        actorsAndRolesDetails = actorsAndRoles,
+        affectedThings = e.affectedThings,
+        affectedThingsDetails = affectedThingsDetails,
+        conditionCode = e.asInstanceOf[ConditionAssessment].conditionCode,
+        conditionCodeDetails = conditionCode,
+        documents = e.documents,
+        isUpdated = e.isUpdated
+      ).asInstanceOf[ConservationReportSubEvent]
+
+  }
+
+  private def getHseRiskAssessmentReport(
+      e: ConservationEvent,
+      subEventType: Option[ConservationType],
+      registeredByName: Option[String],
+      updatedByName: Option[String],
+      affectedThingsDetails: Seq[MusitObject],
+      actorsAndRoles: Seq[ActorRoleDateDetails]
+  ): FutureMusitResult[ConservationReportSubEvent] = {
+    FutureMusitResult.successful(
+      HseRiskAssessmentReport(
+        id = e.id,
+        eventTypeId = e.eventTypeId,
+        eventType = subEventType,
+        registeredBy = e.registeredBy,
+        registeredByName = registeredByName,
+        registeredDate = e.registeredDate,
+        updatedBy = e.updatedBy,
+        updatedByName = updatedByName,
+        updatedDate = e.updatedDate,
+        partOf = e.partOf,
+        note = e.note,
+        actorsAndRoles = e.actorsAndRoles,
+        actorsAndRolesDetails = actorsAndRoles,
+        affectedThings = e.affectedThings,
+        affectedThingsDetails = affectedThingsDetails,
+        documents = e.documents,
+        isUpdated = e.isUpdated
+      ).asInstanceOf[ConservationReportSubEvent]
+    )
+  }
+
+  private def getStorageAndHandlingReport(
+      e: ConservationEvent,
+      subEventType: Option[ConservationType],
+      registeredByName: Option[String],
+      updatedByName: Option[String],
+      affectedThingsDetails: Seq[MusitObject],
+      actorsAndRoles: Seq[ActorRoleDateDetails]
+  ): FutureMusitResult[ConservationReportSubEvent] = {
+    FutureMusitResult.successful(
+      StorageAndHandlingReport(
+        id = e.id,
+        eventTypeId = e.eventTypeId,
+        eventType = subEventType,
+        registeredBy = e.registeredBy,
+        registeredByName = registeredByName,
+        registeredDate = e.registeredDate,
+        updatedBy = e.updatedBy,
+        updatedByName = updatedByName,
+        updatedDate = e.updatedDate,
+        partOf = e.partOf,
+        note = e.note,
+        actorsAndRoles = e.actorsAndRoles,
+        actorsAndRolesDetails = actorsAndRoles,
+        affectedThings = e.affectedThings,
+        affectedThingsDetails = affectedThingsDetails,
+        lightLevel = e.asInstanceOf[StorageAndHandling].lightLevel,
+        uvLevel = e.asInstanceOf[StorageAndHandling].uvLevel,
+        relativeHumidity = e.asInstanceOf[StorageAndHandling].relativeHumidity,
+        temperature = e.asInstanceOf[StorageAndHandling].temperature,
+        documents = e.documents,
+        isUpdated = e.isUpdated
+      ).asInstanceOf[ConservationReportSubEvent]
+    )
+  }
+
+  private def getTechnicalDescriptionReport(
+      e: ConservationEvent,
+      subEventType: Option[ConservationType],
+      registeredByName: Option[String],
+      updatedByName: Option[String],
+      affectedThingsDetails: Seq[MusitObject],
+      actorsAndRoles: Seq[ActorRoleDateDetails]
+  ): FutureMusitResult[ConservationReportSubEvent] = {
+    FutureMusitResult.successful(
+      TechnicalDescriptionReport(
+        id = e.id,
+        eventTypeId = e.eventTypeId,
+        eventType = subEventType,
+        registeredBy = e.registeredBy,
+        registeredByName = registeredByName,
+        registeredDate = e.registeredDate,
+        updatedBy = e.updatedBy,
+        updatedByName = updatedByName,
+        updatedDate = e.updatedDate,
+        partOf = e.partOf,
+        note = e.note,
+        actorsAndRoles = e.actorsAndRoles,
+        actorsAndRolesDetails = actorsAndRoles,
+        affectedThings = e.affectedThings,
+        affectedThingsDetails = affectedThingsDetails,
+        documents = e.documents,
+        isUpdated = e.isUpdated
+      ).asInstanceOf[ConservationReportSubEvent]
+    )
+  }
+
+  private def getTreatmentReport(
+      e: ConservationEvent,
+      subEventType: Option[ConservationType],
+      registeredByName: Option[String],
+      updatedByName: Option[String],
+      affectedThingsDetails: Seq[MusitObject],
+      actorsAndRoles: Seq[ActorRoleDateDetails]
+  ): FutureMusitResult[ConservationReportSubEvent] = {
+
+    for {
+      keywordList <- getKeywordsDetails(
+                      e.asInstanceOf[Treatment].keywords
+                    )
+      materialList <- getMaterialsDetails(
+                       e.asInstanceOf[Treatment].materials
+                     )
+    } yield
+      TreatmentReport(
+        id = e.id,
+        eventTypeId = e.eventTypeId,
+        eventType = subEventType,
+        registeredBy = e.registeredBy,
+        registeredByName = registeredByName,
+        registeredDate = e.registeredDate,
+        updatedBy = e.updatedBy,
+        updatedByName = updatedByName,
+        updatedDate = e.updatedDate,
+        partOf = e.partOf,
+        note = e.note,
+        actorsAndRoles = e.actorsAndRoles,
+        actorsAndRolesDetails = actorsAndRoles,
+        affectedThings = e.affectedThings,
+        affectedThingsDetails = affectedThingsDetails,
+        keywords = e.asInstanceOf[Treatment].keywords,
+        keywordsDetails = keywordList,
+        materials = e.asInstanceOf[Treatment].materials,
+        materialsDetails = materialList,
+        documents = e.documents,
+        isUpdated = e.isUpdated
+      ).asInstanceOf[ConservationReportSubEvent]
+
   }
 
   def getConservationReportService(
@@ -539,51 +695,6 @@ class ConservationProcessService @Inject()(
     val conservationReport = conservationReportProcess.flatMapInsideOption { p =>
       conservationReportFromConservationProcess(p, mid, colId, maybeColl)
     }
-    /*
-    conservationReport.map(o1 => {
-      println("obj1 " + o1)
-      o1.map(o2 => {
-        println("obj2 " + o2.toString)
-        println("obj3 " + o2.affectedThingsDetails.toString)
-        println("registeredByName " + o2.registeredByName.toString)
-
-        //o2.map(o3 => println("obj3 " + o3))
-      })
-    })*/
-
-    /*
-    val conservationReport = conservationReportProcess.map(
-      optProcess =>
-        optProcess.map(p => ConservationReportFromConservationProcess(p, mid, colId))
-    )
-
-    val objs = conservationReportProcess.map { m =>
-      m.map { n =>
-        n.affectedThings.map { os =>
-          os.map { o =>
-            {
-              println("affectedThings uuid " + o);
-              val obj = objService.findByUUID(mid, o, colId);
-
-              obj.map(o1 => {
-                println("obj1 " + o1)
-                o1.map(o2 => {
-                  println("obj2 " + o2)
-                  o2.map(o3 => println("obj3 " + o3))
-                })
-              });
-              obj
-            }
-          }
-
-        }
-      }
-    }
-     */
-    //println("RK out ");
-    //val objectUUIDs = [];
-
-    //objectUUIDs.map( u => objService.findByUUID(mid, u, colIds));
 
     //conservationProcess
     conservationReport
