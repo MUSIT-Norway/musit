@@ -149,6 +149,7 @@ class ConservationProcessService @Inject()(
         updatedByName         <- getPersonName(process.updatedBy)
         registeredByName      <- getPersonName(process.registeredBy)
         eventsDetails         <- fmrEventsDetails
+        actorsAndRoles        <- getActorsAndRoles(process.actorsAndRoles.getOrElse(Seq.empty))
       } yield
         ConservationProcessForReport(
           id = process.id,
@@ -164,11 +165,12 @@ class ConservationProcessService @Inject()(
           partOf = process.partOf,
           note = process.note,
           actorsAndRoles = process.actorsAndRoles.getOrElse(Seq.empty),
+          actorsAndRolesDetails = actorsAndRoles,
           affectedThings = process.affectedThings.getOrElse(Seq.empty),
+          affectedThingsDetails = affectedThingsDetails,
           events = process.events.getOrElse(Seq.empty),
           eventsDetails = eventsDetails, //Seq.empty[ConservationSubEvent],
-          isUpdated = process.isUpdated,
-          affectedThingsDetails = affectedThingsDetails
+          isUpdated = process.isUpdated
         )
     obj
   }

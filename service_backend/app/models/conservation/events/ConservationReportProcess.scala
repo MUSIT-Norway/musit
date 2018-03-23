@@ -2,7 +2,7 @@ package models.conservation.events
 
 import models.conservation.{
   ConditionCode,
-  MaterialArchaeology,
+  MaterialBase,
   TreatmentKeyword,
   TreatmentMaterial
 }
@@ -492,7 +492,7 @@ object ReportReport extends WithDateTimeFormatters with ConservationSubEventType
 
 case class MaterialInfoDetails(
     materialId: Int,
-    //material: MaterialArchaeology | MaterialNumismatic | MaterialEthnography,
+    // material: Option[MaterialBase],
     materialExtra: Option[String],
     sorting: Option[Int]
 )
@@ -694,11 +694,12 @@ case class ConservationProcessForReport(
     partOf: Option[EventId],
     note: Option[String],
     actorsAndRoles: Seq[ActorRoleDate],
+    actorsAndRolesDetails: Seq[ActorRoleDateDetails],
     affectedThings: Seq[ObjectUUID],
+    affectedThingsDetails: Seq[MusitObject],
     events: Seq[ConservationEvent],
     eventsDetails: Seq[ConservationReportSubEvent],
-    isUpdated: Option[Boolean],
-    affectedThingsDetails: Seq[MusitObject]
+    isUpdated: Option[Boolean]
 );
 
 object ConservationProcessForReport extends WithDateTimeFormatters {
