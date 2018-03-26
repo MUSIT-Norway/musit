@@ -1,12 +1,12 @@
 package services.conservation
 
 import com.google.inject.Inject
-import models.conservation.TreatmentKeyword
+import models.conservation.{ConditionCode, TreatmentKeyword, TreatmentMaterial}
 import models.conservation.events._
 import models.musitobject.MusitObject
 import no.uio.musit.MusitResults.MusitSuccess
 import no.uio.musit.functional.FutureMusitResult
-import no.uio.musit.models.{EventId, MuseumId}
+import no.uio.musit.models.{EventId, FileId, MuseumId}
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import services.actor.ActorService
@@ -103,19 +103,44 @@ class ConservationReportService @Inject()(
         )
       )
 
-    } else
-      None
+    } else {
+      Some(
+        table(
+          tr(
+            th("Museumsnummer"),
+            th("Antall"),
+            th("Gjenstandstype(?)")
+          ),
+          conservationReport.affectedThingsDetails.map(
+            obj =>
+              tr(
+                td(getMusno(obj.museumNo.value, obj.subNo.map(x => x.value))),
+                td("1"),
+                td(obj.term)
+            )
+          )
+        )
+      )
+
+    }
   }
 
   def getTreatmentData(event: TreatmentReport) = {
-    def getMaterialbruk(keywords: Seq[TreatmentKeyword]): String = {
-      if (keywords.length > 0) "Materialbruk: " + keywords.mkString(",")
+    def getKeywords(keywords: Seq[TreatmentKeyword]): String = {
+      if (keywords.length > 0)
+        "Stikkord: " + keywords.map(k => k.noTerm).mkString(", ")
+      else ""
+    }
+    def getMaterialsDetails(materials: Seq[TreatmentMaterial]): String = {
+      if (materials.length > 0)
+        "Materialbruk: " + materials.map(k => k.noTerm).mkString(", ")
       else ""
     }
 
     div(
       getSuvEventCommonAttributes(event),
-      getMaterialbruk(event.keywordsDetails)
+      div(getKeywords(event.keywordsDetails)),
+      div(getMaterialsDetails(event.materialsDetails))
     )
   }
 
@@ -125,11 +150,27 @@ class ConservationReportService @Inject()(
     span(
       h3(getEventTypeName(event.eventType)),
       getEventId(event),
+      getActorsAndRoles(event),
       getNote(event),
-      getActorsAndRoles(event)
+      getDocuments(event.documents),
+      getAffectedThingsDetails(event.affectedThingsDetails)
     )
   }
 
+  private def getAffectedThingsDetails(
+      affectedThingsDetails: Seq[MusitObject]
+  ): Text.TypedTag[String] = {
+    div(
+      "Objekter(id): " + affectedThingsDetails.map(m => m.id).mkString(", ")
+    )
+  }
+
+  private def getDocuments(documents: Option[Seq[FileId]]): Text.TypedTag[String] =
+    documents match {
+      case Some(documents) =>
+        div("Vedlegg: " + documents.mkString(", "))
+      case None => div("Vedlegg: ")
+    }
   private def getActorsAndRoles(
       event: ConservationReportSubEvent
   ): Text.all.SeqFrag[Option[Text.TypedTag[String]]] = {
@@ -166,9 +207,34 @@ class ConservationReportService @Inject()(
   }
 
   def getMeasurementDeterminationData(event: MeasurementDeterminationReport) = {
+
+    def getMeasurementData(
+        measurementData: Option[MeasurementData]
+    ): String = measurementData match {
+      case Some(measurementData) =>
+        ("Mål: " +
+          "vekt(gr): " + measurementData.weight.getOrElse("")
+          + ", lengde(mm): " + measurementData.length.getOrElse("")
+          + ", bredde(mm): " + measurementData.width.getOrElse("")
+          + ", tykkelse(mm): " + measurementData.thickness.getOrElse("")
+          + ", høyde(mm): " + measurementData.height.getOrElse("")
+          + ", største lengde(mm): " + measurementData.largestLength.getOrElse("")
+          + ", største bredde(mm): " + measurementData.largestWidth.getOrElse("")
+          + ", største tykkelse (mm): " + measurementData.largestThickness.getOrElse("")
+          + ", største høyde (mm): " + measurementData.largestHeight.getOrElse("")
+          + ", diameter (mm): " + measurementData.diameter.getOrElse("")
+          + ", tverrmål (mm): " + measurementData.tverrmaal.getOrElse("")
+          + ", største mål (mm): " + measurementData.largestMeasurement.getOrElse("")
+          + ", annet mål: " + measurementData.measurement.getOrElse("")
+          + ", antall: " + measurementData.quantity.getOrElse("")
+          + ", usikkerhet: " + measurementData.quantitySymbol.getOrElse("")
+          + ", antall fragment: " + measurementData.fragmentQuantity.getOrElse(""))
+      case None => ""
+    }
+
     div(
       getSuvEventCommonAttributes(event),
-      div(event.measurementData.getOrElse("").toString)
+      div(getMeasurementData(event.measurementData))
     )
   }
 
@@ -176,16 +242,34 @@ class ConservationReportService @Inject()(
     div(getSuvEventCommonAttributes(event))
 
   def getStorageAndHandlingData(event: StorageAndHandlingReport) =
-    div(getSuvEventCommonAttributes(event))
+    div(
+      getSuvEventCommonAttributes(event),
+      div("Relativ fuktighet(%): " + event.relativeHumidity),
+      div("Temperatur(°C): " + event.temperature),
+      div("Lux: " + event.lightLevel),
+      div("UVnivå(μW/lumen): " + event.uvLevel)
+    )
+
   def getHseRiskAssessmentData(event: HseRiskAssessmentReport) =
     div(getSuvEventCommonAttributes(event))
-  def getConditionAssessmentData(event: ConditionAssessmentReport) = {
-    div(getSuvEventCommonAttributes(event))
 
+  def getConditionAssessmentData(event: ConditionAssessmentReport) = {
+    def getConditionCode(
+        conditionCode: Option[ConditionCode]
+    ): String = conditionCode match {
+      case Some(conditionCode) => titleCase(conditionCode.noCondition)
+      case None                => ""
+    }
+    div(
+      getSuvEventCommonAttributes(event),
+      div("Tilstandskode: " + getConditionCode(event.conditionCodeDetails))
+    )
   }
+
   def getReportData(event: ReportReport) = div(getSuvEventCommonAttributes(event))
+
   def getMaterialDeterminationData(event: MaterialDeterminationReport) = {
-    div(getSuvEventCommonAttributes(event))
+    div(getSuvEventCommonAttributes(event)) // had to add material details later
   }
   def getNoteData(event: NoteReport) = div(getSuvEventCommonAttributes(event))
 
