@@ -114,10 +114,19 @@ class ConservationReportService @Inject()(
     }
 
     div(
-      h3(getEventTypeName(event.eventType)),
-      getNote(event),
-      getActorsAndRoles(event),
+      getSuvEventCommonAttributes(event),
       getMaterialbruk(event.keywordsDetails)
+    )
+  }
+
+  private def getSuvEventCommonAttributes(
+      event: ConservationReportSubEvent
+  ): Text.TypedTag[String] = {
+    span(
+      h3(getEventTypeName(event.eventType)),
+      getEventId(event),
+      getNote(event),
+      getActorsAndRoles(event)
     )
   }
 
@@ -130,70 +139,55 @@ class ConservationReportService @Inject()(
           if (a.date == null)
             div(r.noRole + ":  " + a.actor.getOrElse("(mangler navn)"))
           else {
-            div(
-              r.noRole + ":  " + a.actor.getOrElse("(mangler navn)"),
-              r.noRole + " dato:  " + a.date.getOrElse("(mangler dato)")
+            span(
+              div(r.noRole + ":  " + a.actor.getOrElse("(mangler navn)")),
+              div(r.noRole + " dato:  " + a.date.getOrElse("(mangler dato)"))
             )
           }
         })
     )
   }
 
+  private def getEventId(event: ConservationReportSubEvent): Text.TypedTag[String] = {
+    div("HID: " + event.id.getOrElse(""))
+  }
   private def getNote(event: ConservationReportSubEvent): Text.TypedTag[String] = {
     div("Merknad: " + event.note.getOrElse(""))
   }
 
+  private def titleCase(s: String) =
+    s.head.toUpper + s.tail.toLowerCase
+
   private def getEventTypeName(
       conservationType: Option[ConservationType]
   ): String = conservationType match {
-    case Some(conservationType) => conservationType.noName
+    case Some(conservationType) => titleCase(conservationType.noName)
     case None                   => ""
   }
 
   def getMeasurementDeterminationData(event: MeasurementDeterminationReport) = {
     div(
-      h3("Målbestemmelse"),
-      div("Målbestemmelse..."),
+      getSuvEventCommonAttributes(event),
       div(event.measurementData.getOrElse("").toString)
     )
   }
 
-  def getTechnicalDescriptionData(event: TechnicalDescriptionReport) = {
-    div(
-      h3("TechnicalDescription")
-    )
-  }
+  def getTechnicalDescriptionData(event: TechnicalDescriptionReport) =
+    div(getSuvEventCommonAttributes(event))
 
-  def getStorageAndHandlingData(event: StorageAndHandlingReport) = {
-    div(
-      h3("StorageAndHandling")
-    )
-  }
-  def getHseRiskAssessmentData(event: HseRiskAssessmentReport) = {
-    div(
-      h3("HseRiskAssessment")
-    )
-  }
+  def getStorageAndHandlingData(event: StorageAndHandlingReport) =
+    div(getSuvEventCommonAttributes(event))
+  def getHseRiskAssessmentData(event: HseRiskAssessmentReport) =
+    div(getSuvEventCommonAttributes(event))
   def getConditionAssessmentData(event: ConditionAssessmentReport) = {
-    div(
-      h3("ConditionAssessment")
-    )
+    div(getSuvEventCommonAttributes(event))
+
   }
-  def getReportData(event: ReportReport) = {
-    div(
-      h3("Report")
-    )
-  }
+  def getReportData(event: ReportReport) = div(getSuvEventCommonAttributes(event))
   def getMaterialDeterminationData(event: MaterialDeterminationReport) = {
-    div(
-      h3("MaterialDetermination")
-    )
+    div(getSuvEventCommonAttributes(event))
   }
-  def getNoteData(event: NoteReport) = {
-    div(
-      h3("Note")
-    )
-  }
+  def getNoteData(event: NoteReport) = div(getSuvEventCommonAttributes(event))
 
   def getEventData(event: ConservationReportSubEvent): Text.TypedTag[String] = {
     ConservationEventType(event.eventTypeId) match {
