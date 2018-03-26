@@ -23,6 +23,16 @@ sealed trait ConservationReportSubEvent extends ModernMusitEvent {
   val documents: Option[Seq[FileId]]
   val isUpdated: Option[Boolean]
 
+  val eventType: Option[ConservationType]
+
+  val registeredByName: Option[String]
+
+  val updatedByName: Option[String]
+
+  val actorsAndRolesDetails: Seq[ActorRoleDateDetails]
+
+  val affectedThingsDetails: Seq[MusitObject]
+
   def withoutActorRoleAndDates: ConservationReportSubEvent = withActorRoleAndDates(None)
   def withActorRoleAndDates(
       actorsAndRoles: Option[Seq[ActorRoleDate]]

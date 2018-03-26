@@ -114,14 +114,42 @@ class ConservationReportService @Inject()(
     }
 
     div(
-      h3("Behandling"),
-      div("Behandling: " + event.note.getOrElse("")),
-      event.actorsAndRolesDetails.map(
-        a => a.role.map(r => div(r.noRole + ":  " + a.actor.getOrElse("(mangler navn)")))
-      ),
+      h3(getEventTypeName(event.eventType)),
+      getNote(event),
+      getActorsAndRoles(event),
       getMaterialbruk(event.keywordsDetails)
     )
   }
+
+  private def getActorsAndRoles(
+      event: ConservationReportSubEvent
+  ): Text.all.SeqFrag[Option[Text.TypedTag[String]]] = {
+    event.actorsAndRolesDetails.map(
+      a =>
+        a.role.map(r => {
+          if (a.date == null)
+            div(r.noRole + ":  " + a.actor.getOrElse("(mangler navn)"))
+          else {
+            div(
+              r.noRole + ":  " + a.actor.getOrElse("(mangler navn)"),
+              r.noRole + " dato:  " + a.date.getOrElse("(mangler dato)")
+            )
+          }
+        })
+    )
+  }
+
+  private def getNote(event: ConservationReportSubEvent): Text.TypedTag[String] = {
+    div("Merknad: " + event.note.getOrElse(""))
+  }
+
+  private def getEventTypeName(
+      conservationType: Option[ConservationType]
+  ): String = conservationType match {
+    case Some(conservationType) => conservationType.noName
+    case None                   => ""
+  }
+
   def getMeasurementDeterminationData(event: MeasurementDeterminationReport) = {
     div(
       h3("Målbestemmelse"),
