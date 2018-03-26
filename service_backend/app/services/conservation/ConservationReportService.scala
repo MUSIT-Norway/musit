@@ -161,7 +161,9 @@ class ConservationReportService @Inject()(
       affectedThingsDetails: Seq[MusitObject]
   ): Text.TypedTag[String] = {
     div(
-      "Objekter(id): " + affectedThingsDetails.map(m => m.id).mkString(", ")
+      "Objekter(id): " + affectedThingsDetails
+        .map(obj => getMusno(obj.museumNo.value, obj.subNo.map(x => x.value)))
+        .mkString(", ")
     )
   }
 
