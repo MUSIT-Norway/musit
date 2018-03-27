@@ -9,12 +9,7 @@ import models.conservation.{
 import com.google.inject.Inject
 import models.conservation.events._
 import no.uio.musit.MusitResults
-import no.uio.musit.MusitResults.{
-  MusitError,
-  MusitResult,
-  MusitSuccess,
-  MusitValidationError
-}
+import no.uio.musit.MusitResults._
 import no.uio.musit.functional.Extensions._
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models._
@@ -38,6 +33,8 @@ import controllers._
 import models.actor.Person
 import models.musitobject.MusitObject
 import play.api.libs.json.Json
+//import DocumentArchiveService
+//import net.scalytica.symbiotic.core.DocManagementService
 
 class ConservationProcessService @Inject()(
     implicit
@@ -55,6 +52,7 @@ class ConservationProcessService @Inject()(
     val conditionAssessmentService: ConditionAssessmentService,
     val materialDeterminationService: MaterialDeterminationService,
     val measurementDeterminationService: MeasurementDeterminationService
+    //  val dmService: DocManagementService
 ) {
 
   val logger = Logger(classOf[ConservationProcessService])
@@ -273,6 +271,12 @@ class ConservationProcessService @Inject()(
         .getOrElse(Seq.empty)
         .map(
           e => {
+
+            /* val documentsDetails = dmService.file(e.documents).map {
+              case Some(ad) => MusitSuccess(ad)
+              case None     => MusitNotFound(s"Could not find ArchiveDocument $fileId")
+            }*/
+
             val result = for {
               subEventType          <- getEventType(fmrConservationTypes, e.eventTypeId)
               registeredByName      <- getPersonName(e.registeredBy)

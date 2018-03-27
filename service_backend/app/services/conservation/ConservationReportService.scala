@@ -17,6 +17,10 @@ import no.uio.musit.functional.FutureMusitResult
 import scala.concurrent.{ExecutionContext, Future}
 import scalatags.Text
 import scalatags.Text.all._ //{body, div, h1, html, p}
+import org.joda.time.DateTime
+
+import org.joda.time.format.{DateTimeFormat}
+import org.joda.time.DateTime.parse
 
 class ConservationReportService @Inject()(
     implicit
@@ -176,6 +180,9 @@ class ConservationReportService @Inject()(
   private def getActorsAndRoles(
       event: ConservationReportSubEvent
   ): Text.all.SeqFrag[Option[Text.TypedTag[String]]] = {
+
+    val dateFormatter = DateTimeFormat.forPattern("dd.mm.yyyy");
+
     event.actorsAndRolesDetails.map(
       a =>
         a.role.map(r => {
@@ -184,11 +191,24 @@ class ConservationReportService @Inject()(
           else {
             span(
               div(r.noRole + ":  " + a.actor.getOrElse("(mangler navn)")),
-              div(r.noRole + " dato:  " + a.date.getOrElse("(mangler dato)"))
+              div(
+                r.noRole + " dato:  " +
+                  getFormattedDate(a.date)
+              )
             )
           }
         })
     )
+  }
+
+  private def getFormattedDate(
+      date: Option[DateTime]
+  ): String = date match {
+    case Some(date) =>
+      date.getDayOfMonth().toString + "." + date.getMonthOfYear().toString + "." + date
+        .getYear()
+        .toString
+    case None => "(mangler dato)"
   }
 
   private def getEventId(event: ConservationReportSubEvent): Text.TypedTag[String] = {
