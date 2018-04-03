@@ -137,7 +137,7 @@ class ConservationReportService @Inject()(
     span(
       h3(getEventTypeName(event.eventType)),
       if (addObjectTable) getAffectedThingsDetails(event.affectedThingsDetails) else "",
-      div(),
+      br(),
       getEventId(event),
       getActorsAndRoles(event),
       getNote(event) //,
