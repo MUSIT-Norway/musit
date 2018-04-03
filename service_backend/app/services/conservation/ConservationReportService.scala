@@ -107,68 +107,48 @@ class ConservationReportService @Inject()(
         )
       )
 
-    } else {
-      Some(
-        table(
-          tr(
-            th("Museumsnummer"),
-            th("Antall"),
-            th("Gjenstandstype(?)")
-          ),
-          conservationReport.affectedThingsDetails.map(
-            obj =>
-              tr(
-                td(getMusno(obj.museumNo.value, obj.subNo.map(x => x.value))),
-                td("1"),
-                td(obj.term)
-            )
-          )
-        )
-      )
-
-    }
+    } else None
   }
 
-  def getTreatmentData(event: TreatmentReport) = {
-    def getKeywords(keywords: Seq[TreatmentKeyword]): String = {
-      if (keywords.length > 0)
-        "Stikkord: " + keywords.map(k => k.noTerm).mkString(", ")
-      else ""
-    }
-    def getMaterialsDetails(materials: Seq[TreatmentMaterial]): String = {
-      if (materials.length > 0)
-        "Materialbruk: " + materials.map(k => k.noTerm).mkString(", ")
-      else ""
-    }
-
-    div(
-      getSuvEventCommonAttributes(event),
-      div(getKeywords(event.keywordsDetails)),
-      div(getMaterialsDetails(event.materialsDetails))
+  private def createTableOfObjects(
+      affectedThingsDetails: Seq[MusitObject]
+  ): Text.TypedTag[String] = {
+    table(
+      tr(
+        th("Museumsnummer"),
+        th("Antall"),
+        th("Gjenstandstype(?)")
+      ),
+      affectedThingsDetails.map(
+        obj =>
+          tr(
+            td(getMusno(obj.museumNo.value, obj.subNo.map(x => x.value))),
+            td("1"),
+            td(obj.term)
+        )
+      )
     )
   }
 
   private def getSuvEventCommonAttributes(
-      event: ConservationReportSubEvent
+      event: ConservationReportSubEvent,
+      addObjectTable: Boolean
   ): Text.TypedTag[String] = {
     span(
       h3(getEventTypeName(event.eventType)),
+      if (addObjectTable) getAffectedThingsDetails(event.affectedThingsDetails) else "",
+      div(),
       getEventId(event),
       getActorsAndRoles(event),
-      getNote(event),
-      getDocuments(event.documents),
-      getAffectedThingsDetails(event.affectedThingsDetails)
+      getNote(event) //,
+      //getDocuments(event.documents)
     )
   }
 
   private def getAffectedThingsDetails(
       affectedThingsDetails: Seq[MusitObject]
   ): Text.TypedTag[String] = {
-    div(
-      "Objekter(id): " + affectedThingsDetails
-        .map(obj => getMusno(obj.museumNo.value, obj.subNo.map(x => x.value)))
-        .mkString(", ")
-    )
+    createTableOfObjects(affectedThingsDetails)
   }
 
   private def getDocuments(documents: Option[Seq[FileId]]): Text.TypedTag[String] =
@@ -228,54 +208,93 @@ class ConservationReportService @Inject()(
     case None                   => ""
   }
 
-  def getMeasurementDeterminationData(event: MeasurementDeterminationReport) = {
-
-    def getMeasurementData(
-        measurementData: Option[MeasurementData]
-    ): String = measurementData match {
-      case Some(measurementData) =>
-        ("Mål: " +
-          "vekt(gr): " + measurementData.weight.getOrElse("")
-          + ", lengde(mm): " + measurementData.length.getOrElse("")
-          + ", bredde(mm): " + measurementData.width.getOrElse("")
-          + ", tykkelse(mm): " + measurementData.thickness.getOrElse("")
-          + ", høyde(mm): " + measurementData.height.getOrElse("")
-          + ", største lengde(mm): " + measurementData.largestLength.getOrElse("")
-          + ", største bredde(mm): " + measurementData.largestWidth.getOrElse("")
-          + ", største tykkelse (mm): " + measurementData.largestThickness.getOrElse("")
-          + ", største høyde (mm): " + measurementData.largestHeight.getOrElse("")
-          + ", diameter (mm): " + measurementData.diameter.getOrElse("")
-          + ", tverrmål (mm): " + measurementData.tverrmaal.getOrElse("")
-          + ", største mål (mm): " + measurementData.largestMeasurement.getOrElse("")
-          + ", annet mål: " + measurementData.measurement.getOrElse("")
-          + ", antall: " + measurementData.quantity.getOrElse("")
-          + ", usikkerhet: " + measurementData.quantitySymbol.getOrElse("")
-          + ", antall fragment: " + measurementData.fragmentQuantity.getOrElse(""))
-      case None => ""
+  def getTreatmentData(event: TreatmentReport, addObjectTable: Boolean) = {
+    def getKeywords(keywords: Seq[TreatmentKeyword]): String = {
+      if (keywords.length > 0)
+        "Stikkord: " + keywords.map(k => k.noTerm).mkString(", ")
+      else ""
+    }
+    def getMaterialsDetails(materials: Seq[TreatmentMaterial]): String = {
+      if (materials.length > 0)
+        "Materialbruk: " + materials.map(k => k.noTerm).mkString(", ")
+      else ""
     }
 
     div(
-      getSuvEventCommonAttributes(event),
+      getSuvEventCommonAttributes(event, addObjectTable),
+      div(getKeywords(event.keywordsDetails)),
+      div(getMaterialsDetails(event.materialsDetails))
+    )
+  }
+
+  def getMeasurementDeterminationData(
+      event: MeasurementDeterminationReport,
+      addObjectTable: Boolean
+  ) = {
+
+    def getMeasurementData(
+        measurementData: Option[MeasurementData]
+    ): String = {
+      def nvl(key: String, value: Option[Any]) = {
+        value match {
+          case Some(v) => ", " + key + ": " + v
+          case None    => ""
+        }
+      }
+      measurementData match {
+        case Some(measurementData) =>
+          ("Mål: " +
+            nvl("vekt(gr)", measurementData.weight)
+            + nvl("lengde(mm)", measurementData.length)
+            + nvl("bredde(mm)", measurementData.width)
+            + nvl("tykkelse(mm)", measurementData.thickness)
+            + nvl("høyde(mm)", measurementData.height)
+            + nvl("største lengde(mm)", measurementData.largestLength)
+            + nvl("største bredde(mm)", measurementData.largestWidth)
+            + nvl("største tykkelse (mm)", measurementData.largestThickness)
+            + nvl("største høyde (mm)", measurementData.largestHeight)
+            + nvl("diameter (mm)", measurementData.diameter)
+            + nvl("tverrmål (mm)", measurementData.tverrmaal)
+            + nvl("største mål (mm)", measurementData.largestMeasurement)
+            + nvl("annet mål", measurementData.measurement)
+            + nvl("antall", measurementData.quantity)
+            + nvl("usikkerhet", measurementData.quantitySymbol)
+            + nvl("antall fragment", measurementData.fragmentQuantity))
+        case None => ""
+      }
+    }
+
+    div(
+      getSuvEventCommonAttributes(event, addObjectTable),
       div(getMeasurementData(event.measurementData))
     )
   }
 
-  def getTechnicalDescriptionData(event: TechnicalDescriptionReport) =
-    div(getSuvEventCommonAttributes(event))
+  def getTechnicalDescriptionData(
+      event: TechnicalDescriptionReport,
+      addObjectTable: Boolean
+  ) =
+    div(getSuvEventCommonAttributes(event, addObjectTable))
 
-  def getStorageAndHandlingData(event: StorageAndHandlingReport) =
+  def getStorageAndHandlingData(
+      event: StorageAndHandlingReport,
+      addObjectTable: Boolean
+  ) =
     div(
-      getSuvEventCommonAttributes(event),
+      getSuvEventCommonAttributes(event, addObjectTable),
       div("Relativ fuktighet(%): " + event.relativeHumidity),
       div("Temperatur(°C): " + event.temperature),
       div("Lux: " + event.lightLevel),
       div("UVnivå(μW/lumen): " + event.uvLevel)
     )
 
-  def getHseRiskAssessmentData(event: HseRiskAssessmentReport) =
-    div(getSuvEventCommonAttributes(event))
+  def getHseRiskAssessmentData(event: HseRiskAssessmentReport, addObjectTable: Boolean) =
+    div(getSuvEventCommonAttributes(event, addObjectTable))
 
-  def getConditionAssessmentData(event: ConditionAssessmentReport) = {
+  def getConditionAssessmentData(
+      event: ConditionAssessmentReport,
+      addObjectTable: Boolean
+  ) = {
     def getConditionCode(
         conditionCode: Option[ConditionCode]
     ): String = conditionCode match {
@@ -283,50 +302,74 @@ class ConservationReportService @Inject()(
       case None                => ""
     }
     div(
-      getSuvEventCommonAttributes(event),
+      getSuvEventCommonAttributes(event, addObjectTable),
       div("Tilstandskode: " + getConditionCode(event.conditionCodeDetails))
     )
   }
 
-  def getReportData(event: ReportReport) = div(getSuvEventCommonAttributes(event))
+  def getReportData(event: ReportReport, addObjectTable: Boolean) =
+    div(getSuvEventCommonAttributes(event, addObjectTable))
 
-  def getMaterialDeterminationData(event: MaterialDeterminationReport) = {
-    div(getSuvEventCommonAttributes(event)) // had to add material details later
+  def getMaterialDeterminationData(
+      event: MaterialDeterminationReport,
+      addObjectTable: Boolean
+  ) = {
+    div(getSuvEventCommonAttributes(event, addObjectTable)) // had to add material details later
   }
-  def getNoteData(event: NoteReport) = div(getSuvEventCommonAttributes(event))
+  def getNoteData(event: NoteReport, addObjectTable: Boolean) =
+    div(getSuvEventCommonAttributes(event, addObjectTable))
 
-  def getEventData(event: ConservationReportSubEvent): Text.TypedTag[String] = {
+  def getEventData(
+      event: ConservationReportSubEvent,
+      addObjectTable: Boolean
+  ): Text.TypedTag[String] = {
     ConservationEventType(event.eventTypeId) match {
       case Some(eventType) =>
         eventType match {
           case Treatment => {
-            getTreatmentData(event.asInstanceOf[TreatmentReport])
+            getTreatmentData(event.asInstanceOf[TreatmentReport], addObjectTable)
           }
           case MeasurementDetermination => {
             getMeasurementDeterminationData(
-              event.asInstanceOf[MeasurementDeterminationReport]
+              event.asInstanceOf[MeasurementDeterminationReport],
+              addObjectTable
             )
           }
           case TechnicalDescription => {
-            getTechnicalDescriptionData(event.asInstanceOf[TechnicalDescriptionReport])
+            getTechnicalDescriptionData(
+              event.asInstanceOf[TechnicalDescriptionReport],
+              addObjectTable
+            )
           }
           case StorageAndHandling => {
-            getStorageAndHandlingData(event.asInstanceOf[StorageAndHandlingReport])
+            getStorageAndHandlingData(
+              event.asInstanceOf[StorageAndHandlingReport],
+              addObjectTable
+            )
           }
           case HseRiskAssessment => {
-            getHseRiskAssessmentData(event.asInstanceOf[HseRiskAssessmentReport])
+            getHseRiskAssessmentData(
+              event.asInstanceOf[HseRiskAssessmentReport],
+              addObjectTable
+            )
           }
           case ConditionAssessment => {
-            getConditionAssessmentData(event.asInstanceOf[ConditionAssessmentReport])
+            getConditionAssessmentData(
+              event.asInstanceOf[ConditionAssessmentReport],
+              addObjectTable
+            )
           }
           case Report => {
-            getReportData(event.asInstanceOf[ReportReport])
+            getReportData(event.asInstanceOf[ReportReport], addObjectTable)
           }
           case MaterialDetermination => {
-            getMaterialDeterminationData(event.asInstanceOf[MaterialDeterminationReport])
+            getMaterialDeterminationData(
+              event.asInstanceOf[MaterialDeterminationReport],
+              addObjectTable
+            )
           }
           case Note => {
-            getNoteData(event.asInstanceOf[NoteReport])
+            getNoteData(event.asInstanceOf[NoteReport], addObjectTable)
           }
 
           case _ => {
@@ -346,7 +389,7 @@ class ConservationReportService @Inject()(
 
     def getEvents = {
       div(conservationReport.eventsDetails.map { event =>
-        div(getEventData(event))
+        div(getEventData(event, conservationReport.affectedThings.length == 1))
       })
     }
 
