@@ -389,8 +389,7 @@ class ConservationReportService @Inject()(
 
     def getEvents = {
       div(conservationReport.eventsDetails.map { event =>
-        div(getEventData(event, conservationReport.affectedThings.length > 1))
-        hr()
+        div(div(getEventData(event, conservationReport.affectedThings.length > 1)), hr())
       })
     }
 
