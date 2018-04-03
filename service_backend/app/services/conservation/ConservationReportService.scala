@@ -101,7 +101,7 @@ class ConservationReportService @Inject()(
         table(
           getRow("Museumsnummer", getMusno(obj.museumNo.value, sub)),
           getRow("Antall", "1"),
-          getRow("Gjenstandstype(?)", obj.term),
+          getRow("Gjenstandstype", obj.term),
           getMeasurements,
           getTreatments
         )
@@ -117,7 +117,7 @@ class ConservationReportService @Inject()(
       tr(
         th("Museumsnummer"),
         th("Antall"),
-        th("Gjenstandstype(?)")
+        th("Gjenstandstype")
       ),
       affectedThingsDetails.map(
         obj =>
@@ -167,19 +167,21 @@ class ConservationReportService @Inject()(
       a =>
         a.role.map(r => {
           if (a.date == null)
-            div(r.noRole + ":  " + a.actor.getOrElse("(mangler navn)"))
+            div(formatKeyValue(r.noRole, a.actor.getOrElse("(mangler navn)")))
           else {
             span(
-              div(r.noRole + ":  " + a.actor.getOrElse("(mangler navn)")),
+              div(formatKeyValue(r.noRole, a.actor.getOrElse("(mangler navn)"))),
               div(
-                r.noRole + " dato:  " +
-                  getFormattedDate(a.date)
+                formatKeyValue(r.noRole + " dato", getFormattedDate(a.date))
               )
             )
           }
         })
     )
   }
+
+  def formatKeyValue(key: String, value: String): Text.TypedTag[String] =
+    div(b(key + ": "), span(value))
 
   private def getFormattedDate(
       date: Option[DateTime]
@@ -192,10 +194,10 @@ class ConservationReportService @Inject()(
   }
 
   private def getEventId(event: ConservationReportSubEvent): Text.TypedTag[String] = {
-    div("HID: " + event.id.getOrElse(""))
+    formatKeyValue("HID", event.id.getOrElse("").toString)
   }
   private def getNote(event: ConservationReportSubEvent): Text.TypedTag[String] = {
-    div("Merknad: " + event.note.getOrElse(""))
+    formatKeyValue("Merknad", event.note.getOrElse("").toString)
   }
 
   private def titleCase(s: String) =
@@ -211,19 +213,19 @@ class ConservationReportService @Inject()(
   def getTreatmentData(event: TreatmentReport, addObjectTable: Boolean) = {
     def getKeywords(keywords: Seq[TreatmentKeyword]): String = {
       if (keywords.length > 0)
-        "Stikkord: " + keywords.map(k => k.noTerm).mkString(", ")
+        keywords.map(k => k.noTerm).mkString(", ")
       else ""
     }
     def getMaterialsDetails(materials: Seq[TreatmentMaterial]): String = {
       if (materials.length > 0)
-        "Materialbruk: " + materials.map(k => k.noTerm).mkString(", ")
+        materials.map(k => k.noTerm).mkString(", ")
       else ""
     }
 
     div(
       getSuvEventCommonAttributes(event, addObjectTable),
-      div(getKeywords(event.keywordsDetails)),
-      div(getMaterialsDetails(event.materialsDetails))
+      formatKeyValue("Stikkord", getKeywords(event.keywordsDetails)),
+      formatKeyValue("Materialbruk", getMaterialsDetails(event.materialsDetails))
     )
   }
 
@@ -234,39 +236,59 @@ class ConservationReportService @Inject()(
 
     def getMeasurementData(
         measurementData: Option[MeasurementData]
-    ): String = {
-      def nvl(key: String, value: Option[Any]) = {
-        value match {
-          case Some(v) => ", " + key + ": " + v
-          case None    => ""
-        }
+    ) = {
+      def nvl(key: String, value: Option[Any]) = value match {
+        case Some(v) => span(b(key), span(": " + value + ", "))
+        case None    => span()
       }
       measurementData match {
         case Some(measurementData) =>
-          ("Mål: " +
-            nvl("vekt(gr)", measurementData.weight)
-            + nvl("lengde(mm)", measurementData.length)
-            + nvl("bredde(mm)", measurementData.width)
-            + nvl("tykkelse(mm)", measurementData.thickness)
-            + nvl("høyde(mm)", measurementData.height)
-            + nvl("største lengde(mm)", measurementData.largestLength)
-            + nvl("største bredde(mm)", measurementData.largestWidth)
-            + nvl("største tykkelse (mm)", measurementData.largestThickness)
-            + nvl("største høyde (mm)", measurementData.largestHeight)
-            + nvl("diameter (mm)", measurementData.diameter)
-            + nvl("tverrmål (mm)", measurementData.tverrmaal)
-            + nvl("største mål (mm)", measurementData.largestMeasurement)
-            + nvl("annet mål", measurementData.measurement)
-            + nvl("antall", measurementData.quantity)
-            + nvl("usikkerhet", measurementData.quantitySymbol)
-            + nvl("antall fragment", measurementData.fragmentQuantity))
-        case None => ""
+          (
+            div(
+              b("Mål: "),
+              nvl("vekt(gr)", measurementData.weight),
+              nvl("lengde(mm)", measurementData.length),
+              nvl("bredde(mm)", measurementData.width),
+              nvl("tykkelse(mm)", measurementData.thickness),
+              nvl("høyde(mm)", measurementData.height),
+              nvl(
+                "største lengde(mm)",
+                measurementData.largestLength
+              ),
+              nvl(
+                "største bredde(mm)",
+                measurementData.largestWidth
+              ),
+              nvl(
+                "største tykkelse (mm)",
+                measurementData.largestThickness
+              ),
+              nvl(
+                "største høyde (mm)",
+                measurementData.largestHeight
+              ),
+              nvl("diameter (mm)", measurementData.diameter),
+              nvl("tverrmål (mm)", measurementData.tverrmaal),
+              nvl(
+                "største mål (mm)",
+                measurementData.largestMeasurement
+              ),
+              nvl("annet mål", measurementData.measurement),
+              nvl("antall", measurementData.quantity),
+              nvl("usikkerhet", measurementData.quantitySymbol),
+              nvl(
+                "antall fragment",
+                measurementData.fragmentQuantity
+              )
+            )
+          )
+        case None => div()
       }
     }
 
     div(
       getSuvEventCommonAttributes(event, addObjectTable),
-      div(getMeasurementData(event.measurementData))
+      getMeasurementData(event.measurementData)
     )
   }
 
@@ -282,10 +304,10 @@ class ConservationReportService @Inject()(
   ) =
     div(
       getSuvEventCommonAttributes(event, addObjectTable),
-      div("Relativ fuktighet(%): " + event.relativeHumidity),
-      div("Temperatur(°C): " + event.temperature),
-      div("Lux: " + event.lightLevel),
-      div("UVnivå(μW/lumen): " + event.uvLevel)
+      formatKeyValue("Relativ fuktighet(%)", event.relativeHumidity.toString),
+      formatKeyValue("Temperatur(°C)", event.temperature.toString),
+      formatKeyValue("Lux", event.lightLevel.toString),
+      formatKeyValue("UVnivå(μW/lumen)", event.uvLevel.toString)
     )
 
   def getHseRiskAssessmentData(event: HseRiskAssessmentReport, addObjectTable: Boolean) =
@@ -303,7 +325,7 @@ class ConservationReportService @Inject()(
     }
     div(
       getSuvEventCommonAttributes(event, addObjectTable),
-      div("Tilstandskode: " + getConditionCode(event.conditionCodeDetails))
+      formatKeyValue("Tilstandskode", getConditionCode(event.conditionCodeDetails))
     )
   }
 
