@@ -238,7 +238,7 @@ class ConservationReportService @Inject()(
         measurementData: Option[MeasurementData]
     ) = {
       def nvl(key: String, value: Option[Any]) = value match {
-        case Some(v) => span(b(key), span(": " + value + ", "))
+        case Some(v) => span(b(key), span(": " + value.getOrElse("").toString + ", "))
         case None    => span()
       }
       measurementData match {
