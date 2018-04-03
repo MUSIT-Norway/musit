@@ -140,8 +140,9 @@ class ConservationReportService @Inject()(
       br(),
       getEventId(event),
       getActorsAndRoles(event),
-      getNote(event) //,
-      //getDocuments(event.documents)
+      getNote(event),
+      //getDocuments(event.documents),
+      hr()
     )
   }
 
