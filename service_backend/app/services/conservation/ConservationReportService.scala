@@ -140,9 +140,8 @@ class ConservationReportService @Inject()(
       br(),
       getEventId(event),
       getActorsAndRoles(event),
-      getNote(event),
+      getNote(event) //,
       //getDocuments(event.documents),
-      hr()
     )
   }
 
@@ -391,6 +390,7 @@ class ConservationReportService @Inject()(
     def getEvents = {
       div(conservationReport.eventsDetails.map { event =>
         div(getEventData(event, conservationReport.affectedThings.length > 1))
+        hr()
       })
     }
 
