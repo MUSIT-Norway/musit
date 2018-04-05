@@ -304,10 +304,13 @@ class ConservationReportService @Inject()(
   ) =
     div(
       getSuvEventCommonAttributes(event, addObjectTable),
-      formatKeyValue("Relativ fuktighet(%)", event.relativeHumidity.toString),
-      formatKeyValue("Temperatur(°C)", event.temperature.toString),
-      formatKeyValue("Lux", event.lightLevel.toString),
-      formatKeyValue("UVnivå(μW/lumen)", event.uvLevel.toString)
+      formatKeyValue(
+        "Relativ fuktighet(%)",
+        event.relativeHumidity.getOrElse("").toString
+      ),
+      formatKeyValue("Temperatur(°C)", event.temperature.getOrElse("").toString),
+      formatKeyValue("Lux", event.lightLevel.getOrElse("").toString),
+      formatKeyValue("UVnivå(μW/lumen)", event.uvLevel.getOrElse("").toString)
     )
 
   def getHseRiskAssessmentData(event: HseRiskAssessmentReport, addObjectTable: Boolean) =
