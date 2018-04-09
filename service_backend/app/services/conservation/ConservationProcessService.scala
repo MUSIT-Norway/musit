@@ -262,29 +262,19 @@ class ConservationProcessService @Inject()(
     obj
   }
 
-  private def getDocumentsFilenames(
-      actorsAndRoles: Seq[ActorRoleDate]
-  ): FutureMusitResult[Seq[ActorRoleDateDetails]] = {
-    val roleList = conservationService.getRoleList
-    val obj = FutureMusitResult.sequence(
-      actorsAndRoles.map(
-        ar =>
-          for {
-            actor <- getPersonName(Some(ar.actorId))
-            roles <- roleList
-            role = roles.find(t => t.roleId == ar.roleId)
+  private def getDocumentsDetails(
+      documents: Seq[FileId],
+      mid: MuseumId
+  )(
+      implicit currUser: AuthenticatedUser
+  ): FutureMusitResult[Seq[String]] = {
 
-          } yield
-            ActorRoleDateDetails(
-              roleId = ar.roleId,
-              role = role,
-              actorId = ar.actorId,
-              actor = actor,
-              date = ar.date
-          )
+    val filenames = documents.map { fileId =>
+      FutureMusitResult(
+        documentMetadataService.getFilename(mid, fileId.underlying.toString, currUser)
       )
-    )
-    obj
+    }
+    FutureMusitResult.sequence(filenames)
   }
 
   private def getSubEventDetails(
@@ -312,6 +302,10 @@ class ConservationProcessService @Inject()(
               updatedByName         <- getPersonName(e.updatedBy)
               affectedThingsDetails <- getObjectDetails(e.affectedThings, mid, colId)
               actorsAndRoles        <- getActorsAndRoles(e.actorsAndRoles.getOrElse(Seq.empty))
+              documentsDetails <- getDocumentsDetails(
+                                   e.documents.getOrElse(Seq.empty),
+                                   mid
+                                 )
             } yield
               e.eventTypeId match {
                 case Treatment.eventTypeId =>
@@ -321,7 +315,8 @@ class ConservationProcessService @Inject()(
                     registeredByName,
                     updatedByName,
                     affectedThingsDetails,
-                    actorsAndRoles
+                    actorsAndRoles,
+                    documentsDetails
                   )
                 case TechnicalDescription.eventTypeId =>
                   getTechnicalDescriptionReport(
@@ -330,7 +325,8 @@ class ConservationProcessService @Inject()(
                     registeredByName,
                     updatedByName,
                     affectedThingsDetails,
-                    actorsAndRoles
+                    actorsAndRoles,
+                    documentsDetails
                   )
                 case StorageAndHandling.eventTypeId =>
                   getStorageAndHandlingReport(
@@ -339,7 +335,8 @@ class ConservationProcessService @Inject()(
                     registeredByName,
                     updatedByName,
                     affectedThingsDetails,
-                    actorsAndRoles
+                    actorsAndRoles,
+                    documentsDetails
                   )
                 case HseRiskAssessment.eventTypeId =>
                   getHseRiskAssessmentReport(
@@ -348,7 +345,8 @@ class ConservationProcessService @Inject()(
                     registeredByName,
                     updatedByName,
                     affectedThingsDetails,
-                    actorsAndRoles
+                    actorsAndRoles,
+                    documentsDetails
                   )
                 case ConditionAssessment.eventTypeId =>
                   getConditionAssessmentReport(
@@ -357,7 +355,8 @@ class ConservationProcessService @Inject()(
                     registeredByName,
                     updatedByName,
                     affectedThingsDetails,
-                    actorsAndRoles
+                    actorsAndRoles,
+                    documentsDetails
                   )
                 case Report.eventTypeId =>
                   getReportReport(
@@ -366,7 +365,8 @@ class ConservationProcessService @Inject()(
                     registeredByName,
                     updatedByName,
                     affectedThingsDetails,
-                    actorsAndRoles
+                    actorsAndRoles,
+                    documentsDetails
                   )
                 case MaterialDetermination.eventTypeId =>
                   getMaterialDeterminationReport(
@@ -375,7 +375,8 @@ class ConservationProcessService @Inject()(
                     registeredByName,
                     updatedByName,
                     affectedThingsDetails,
-                    actorsAndRoles
+                    actorsAndRoles,
+                    documentsDetails
                   )
                 case MeasurementDetermination.eventTypeId =>
                   getMeasurementDeterminationReport(
@@ -384,7 +385,8 @@ class ConservationProcessService @Inject()(
                     registeredByName,
                     updatedByName,
                     affectedThingsDetails,
-                    actorsAndRoles
+                    actorsAndRoles,
+                    documentsDetails
                   )
                 case Note.eventTypeId =>
                   getNoteReport(
@@ -393,7 +395,8 @@ class ConservationProcessService @Inject()(
                     registeredByName,
                     updatedByName,
                     affectedThingsDetails,
-                    actorsAndRoles
+                    actorsAndRoles,
+                    documentsDetails
                   )
               }
             //result.flatMap(identity)
@@ -409,7 +412,8 @@ class ConservationProcessService @Inject()(
       registeredByName: Option[String],
       updatedByName: Option[String],
       affectedThingsDetails: Seq[MusitObject],
-      actorsAndRoles: Seq[ActorRoleDateDetails]
+      actorsAndRoles: Seq[ActorRoleDateDetails],
+      documentsDetails: Seq[String]
   ): FutureMusitResult[ConservationReportSubEvent] = {
     FutureMusitResult.successful(
       NoteReport(
@@ -429,6 +433,7 @@ class ConservationProcessService @Inject()(
         affectedThings = e.affectedThings,
         affectedThingsDetails = affectedThingsDetails,
         documents = e.documents,
+        documentsDetails = documentsDetails,
         isUpdated = e.isUpdated
       ).asInstanceOf[ConservationReportSubEvent]
     )
@@ -440,7 +445,8 @@ class ConservationProcessService @Inject()(
       registeredByName: Option[String],
       updatedByName: Option[String],
       affectedThingsDetails: Seq[MusitObject],
-      actorsAndRoles: Seq[ActorRoleDateDetails]
+      actorsAndRoles: Seq[ActorRoleDateDetails],
+      documentsDetails: Seq[String]
   ): FutureMusitResult[ConservationReportSubEvent] = {
     FutureMusitResult.successful(
       MeasurementDeterminationReport(
@@ -461,6 +467,7 @@ class ConservationProcessService @Inject()(
         affectedThingsDetails = affectedThingsDetails,
         measurementData = e.asInstanceOf[MeasurementDetermination].measurementData,
         documents = e.documents,
+        documentsDetails = documentsDetails,
         isUpdated = e.isUpdated
       ).asInstanceOf[ConservationReportSubEvent]
     )
@@ -472,7 +479,8 @@ class ConservationProcessService @Inject()(
       registeredByName: Option[String],
       updatedByName: Option[String],
       affectedThingsDetails: Seq[MusitObject],
-      actorsAndRoles: Seq[ActorRoleDateDetails]
+      actorsAndRoles: Seq[ActorRoleDateDetails],
+      documentsDetails: Seq[String]
   ): FutureMusitResult[ConservationReportSubEvent] = {
     FutureMusitResult.successful(
       MaterialDeterminationReport(
@@ -494,6 +502,7 @@ class ConservationProcessService @Inject()(
         materialInfo = e.asInstanceOf[MaterialDetermination].materialInfo,
         MaterialInfoDetails = Seq.empty,
         documents = e.documents,
+        documentsDetails = documentsDetails,
         isUpdated = e.isUpdated
       ).asInstanceOf[ConservationReportSubEvent]
     )
@@ -505,7 +514,8 @@ class ConservationProcessService @Inject()(
       registeredByName: Option[String],
       updatedByName: Option[String],
       affectedThingsDetails: Seq[MusitObject],
-      actorsAndRoles: Seq[ActorRoleDateDetails]
+      actorsAndRoles: Seq[ActorRoleDateDetails],
+      documentsDetails: Seq[String]
   ): FutureMusitResult[ConservationReportSubEvent] = {
     FutureMusitResult.successful(
       ReportReport(
@@ -526,6 +536,7 @@ class ConservationProcessService @Inject()(
         affectedThingsDetails = affectedThingsDetails,
         archiveReference = e.asInstanceOf[Report].archiveReference,
         documents = e.documents,
+        documentsDetails = documentsDetails,
         isUpdated = e.isUpdated
       ).asInstanceOf[ConservationReportSubEvent]
     )
@@ -537,7 +548,8 @@ class ConservationProcessService @Inject()(
       registeredByName: Option[String],
       updatedByName: Option[String],
       affectedThingsDetails: Seq[MusitObject],
-      actorsAndRoles: Seq[ActorRoleDateDetails]
+      actorsAndRoles: Seq[ActorRoleDateDetails],
+      documentsDetails: Seq[String]
   ): FutureMusitResult[ConservationReportSubEvent] = {
 
     for {
@@ -564,6 +576,7 @@ class ConservationProcessService @Inject()(
         conditionCode = e.asInstanceOf[ConditionAssessment].conditionCode,
         conditionCodeDetails = conditionCode,
         documents = e.documents,
+        documentsDetails = documentsDetails,
         isUpdated = e.isUpdated
       ).asInstanceOf[ConservationReportSubEvent]
 
@@ -575,7 +588,8 @@ class ConservationProcessService @Inject()(
       registeredByName: Option[String],
       updatedByName: Option[String],
       affectedThingsDetails: Seq[MusitObject],
-      actorsAndRoles: Seq[ActorRoleDateDetails]
+      actorsAndRoles: Seq[ActorRoleDateDetails],
+      documentsDetails: Seq[String]
   ): FutureMusitResult[ConservationReportSubEvent] = {
     FutureMusitResult.successful(
       HseRiskAssessmentReport(
@@ -595,6 +609,7 @@ class ConservationProcessService @Inject()(
         affectedThings = e.affectedThings,
         affectedThingsDetails = affectedThingsDetails,
         documents = e.documents,
+        documentsDetails = documentsDetails,
         isUpdated = e.isUpdated
       ).asInstanceOf[ConservationReportSubEvent]
     )
@@ -606,7 +621,8 @@ class ConservationProcessService @Inject()(
       registeredByName: Option[String],
       updatedByName: Option[String],
       affectedThingsDetails: Seq[MusitObject],
-      actorsAndRoles: Seq[ActorRoleDateDetails]
+      actorsAndRoles: Seq[ActorRoleDateDetails],
+      documentsDetails: Seq[String]
   ): FutureMusitResult[ConservationReportSubEvent] = {
     FutureMusitResult.successful(
       StorageAndHandlingReport(
@@ -630,6 +646,7 @@ class ConservationProcessService @Inject()(
         relativeHumidity = e.asInstanceOf[StorageAndHandling].relativeHumidity,
         temperature = e.asInstanceOf[StorageAndHandling].temperature,
         documents = e.documents,
+        documentsDetails = documentsDetails,
         isUpdated = e.isUpdated
       ).asInstanceOf[ConservationReportSubEvent]
     )
@@ -641,7 +658,8 @@ class ConservationProcessService @Inject()(
       registeredByName: Option[String],
       updatedByName: Option[String],
       affectedThingsDetails: Seq[MusitObject],
-      actorsAndRoles: Seq[ActorRoleDateDetails]
+      actorsAndRoles: Seq[ActorRoleDateDetails],
+      documentsDetails: Seq[String]
   ): FutureMusitResult[ConservationReportSubEvent] = {
     FutureMusitResult.successful(
       TechnicalDescriptionReport(
@@ -661,6 +679,7 @@ class ConservationProcessService @Inject()(
         affectedThings = e.affectedThings,
         affectedThingsDetails = affectedThingsDetails,
         documents = e.documents,
+        documentsDetails = documentsDetails,
         isUpdated = e.isUpdated
       ).asInstanceOf[ConservationReportSubEvent]
     )
@@ -672,7 +691,8 @@ class ConservationProcessService @Inject()(
       registeredByName: Option[String],
       updatedByName: Option[String],
       affectedThingsDetails: Seq[MusitObject],
-      actorsAndRoles: Seq[ActorRoleDateDetails]
+      actorsAndRoles: Seq[ActorRoleDateDetails],
+      documentsDetails: Seq[String]
   ): FutureMusitResult[ConservationReportSubEvent] = {
 
     for {
@@ -704,6 +724,7 @@ class ConservationProcessService @Inject()(
         materials = e.asInstanceOf[Treatment].materials,
         materialsDetails = materialList,
         documents = e.documents,
+        documentsDetails = documentsDetails,
         isUpdated = e.isUpdated
       ).asInstanceOf[ConservationReportSubEvent]
 

@@ -171,6 +171,7 @@ case class TreatmentReport(
     materials: Option[Seq[Int]],
     materialsDetails: Seq[TreatmentMaterial],
     documents: Option[Seq[FileId]],
+    documentsDetails: Seq[String],
     isUpdated: Option[Boolean]
 ) extends ConservationReportSubEvent {
 
@@ -226,6 +227,7 @@ case class TechnicalDescriptionReport(
     affectedThings: Option[Seq[ObjectUUID]],
     affectedThingsDetails: Seq[MusitObject],
     documents: Option[Seq[FileId]],
+    documentsDetails: Seq[String],
     isUpdated: Option[Boolean]
 ) extends ConservationReportSubEvent {
 
@@ -287,6 +289,7 @@ case class StorageAndHandlingReport(
     relativeHumidity: Option[String],
     temperature: Option[String],
     documents: Option[Seq[FileId]],
+    documentsDetails: Seq[String],
     isUpdated: Option[Boolean]
 ) extends ConservationReportSubEvent {
 
@@ -344,6 +347,7 @@ case class HseRiskAssessmentReport(
     affectedThings: Option[Seq[ObjectUUID]],
     affectedThingsDetails: Seq[MusitObject],
     documents: Option[Seq[FileId]],
+    documentsDetails: Seq[String],
     isUpdated: Option[Boolean]
 ) extends ConservationReportSubEvent {
 
@@ -403,6 +407,7 @@ case class ConditionAssessmentReport(
     conditionCode: Option[Int],
     conditionCodeDetails: Option[ConditionCode],
     documents: Option[Seq[FileId]],
+    documentsDetails: Seq[String],
     isUpdated: Option[Boolean]
 ) extends ConservationReportSubEvent {
 
@@ -460,6 +465,7 @@ case class ReportReport(
     affectedThings: Option[Seq[ObjectUUID]],
     affectedThingsDetails: Seq[MusitObject],
     documents: Option[Seq[FileId]],
+    documentsDetails: Seq[String],
     archiveReference: Option[String],
     isUpdated: Option[Boolean]
 ) extends ConservationReportSubEvent {
@@ -529,6 +535,7 @@ case class MaterialDeterminationReport(
     affectedThings: Option[Seq[ObjectUUID]],
     affectedThingsDetails: Seq[MusitObject],
     documents: Option[Seq[FileId]],
+    documentsDetails: Seq[String],
     materialInfo: Option[Seq[MaterialInfo]],
     MaterialInfoDetails: Seq[MaterialInfoDetails],
     isUpdated: Option[Boolean]
@@ -594,6 +601,7 @@ case class MeasurementDeterminationReport(
     affectedThings: Option[Seq[ObjectUUID]],
     affectedThingsDetails: Seq[MusitObject],
     documents: Option[Seq[FileId]],
+    documentsDetails: Seq[String],
     measurementData: Option[MeasurementData],
     isUpdated: Option[Boolean]
 ) extends ConservationReportSubEvent {
@@ -654,6 +662,7 @@ case class NoteReport(
     affectedThings: Option[Seq[ObjectUUID]],
     affectedThingsDetails: Seq[MusitObject],
     documents: Option[Seq[FileId]],
+    documentsDetails: Seq[String],
     isUpdated: Option[Boolean]
 ) extends ConservationReportSubEvent {
 
