@@ -8,6 +8,7 @@ import no.uio.musit.test.matchers.DateTimeMatchers
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import no.uio.musit.time
 import org.joda.time.DateTime
+import play.api.http.Status
 import play.api.libs.json._
 import play.api.test.Helpers._
 
@@ -589,5 +590,20 @@ class ConservationReportControllerSpec
       }
 
     }
+
+//    "searching for filenames" should {
+//      "return a list of results matching the query paramter" in {
+//        val queryParam =
+//          (fileId: String) => s"/99/conservation/conservationReport/files/$fileId"
+//
+//        val fakeToken = BearerToken(FakeUsers.testReadToken)
+//
+//        val res = wsUrl(queryParam("096b554a-a3e6-439c-b46d-638021cb9aee"))
+//          .withHttpHeaders(fakeToken.asHeader)
+//          .get()
+//          .futureValue
+//        res.status mustBe Status.OK
+//      }
+//    }
   }
 }

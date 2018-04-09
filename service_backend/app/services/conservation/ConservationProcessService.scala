@@ -35,9 +35,11 @@ import scala.concurrent.{ExecutionContext, Future}
 import services.musitobject.ObjectService
 import services.actor.ActorService
 import controllers._
+import controllers.conservation.DocumentMetadataController
 import models.actor.Person
 import models.musitobject.MusitObject
 import play.api.libs.json.Json
+import play.api.Configuration
 
 class ConservationProcessService @Inject()(
     implicit
@@ -49,12 +51,14 @@ class ConservationProcessService @Inject()(
     //Should have been ConservationModuleEventDao (TODO: Make this split)
     val conservationService: ConservationService,
     val ec: ExecutionContext,
+    val configuration: Configuration,
     val objService: ObjectService,
     val actorService: ActorService,
     val treatmentService: TreatmentService,
     val conditionAssessmentService: ConditionAssessmentService,
     val materialDeterminationService: MaterialDeterminationService,
-    val measurementDeterminationService: MeasurementDeterminationService
+    val measurementDeterminationService: MeasurementDeterminationService,
+    val documentMetadataService: DocumentMetadataService
 ) {
 
   val logger = Logger(classOf[ConservationProcessService])
@@ -236,6 +240,31 @@ class ConservationProcessService @Inject()(
   }
 
   private def getActorsAndRoles(
+      actorsAndRoles: Seq[ActorRoleDate]
+  ): FutureMusitResult[Seq[ActorRoleDateDetails]] = {
+    val roleList = conservationService.getRoleList
+    val obj = FutureMusitResult.sequence(
+      actorsAndRoles.map(
+        ar =>
+          for {
+            actor <- getPersonName(Some(ar.actorId))
+            roles <- roleList
+            role = roles.find(t => t.roleId == ar.roleId)
+
+          } yield
+            ActorRoleDateDetails(
+              roleId = ar.roleId,
+              role = role,
+              actorId = ar.actorId,
+              actor = actor,
+              date = ar.date
+          )
+      )
+    )
+    obj
+  }
+
+  private def getDocumentsFilenames(
       actorsAndRoles: Seq[ActorRoleDate]
   ): FutureMusitResult[Seq[ActorRoleDateDetails]] = {
     val roleList = conservationService.getRoleList
