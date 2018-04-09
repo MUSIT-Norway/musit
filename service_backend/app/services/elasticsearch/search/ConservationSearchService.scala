@@ -36,7 +36,6 @@ class ConservationSearchService @Inject()(
       implicit currUsr: AuthenticatedUser
   ): Future[MusitResult[MusitESResponse[SearchResponse]]] = {
     val qry: QueryDefinition = createQuery(mid, collectionIds, queryStr.getOrElse("*"))
-
     client
       .execute(
         search(

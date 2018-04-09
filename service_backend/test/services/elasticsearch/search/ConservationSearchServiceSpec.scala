@@ -73,6 +73,7 @@ class ConservationSearchServiceSpec
   "ConservationEventSearchService" should {
 
     "only return documents with the right museums id and collection" taggedAs ElasticsearchContainer in {
+
       val res = service
         .restrictedConservationSearch(
           mid = museum1,
@@ -84,14 +85,13 @@ class ConservationSearchServiceSpec
         .futureValue
         .successValue
         .response
-
       res.hits.hits.map(toEventId) must contain only (evtId_11, evtId_12)
     }
 
     "search should return a subset" taggedAs ElasticsearchContainer in {
       val res = service
         .restrictedConservationSearch(
-          mid = museum1,
+          mid = museum1.underlying,
           collectionIds = Seq(MuseumCollection(collection1.uuid, None, Seq())),
           from = 0,
           limit = 10,

@@ -693,7 +693,6 @@ class ConservationProcessService @Inject()(
     val colId = currUser
       .collectionsFor(mid)
       .filter(mc => mc.uuid.underlying.toString == collectionId)
-    println("colId " + colId);
 
     val conservationReportProcess =
       findConservationProcessById(mid: MuseumId, id: EventId)
