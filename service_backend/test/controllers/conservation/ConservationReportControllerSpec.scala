@@ -559,7 +559,7 @@ class ConservationReportControllerSpec
       "get Conservation Report HTML" in {
         val res = getConservationReportHTML(compositeConservationProcessEventId, 99, cid)
         res.status mustBe OK
-        println(res.body)
+//        println(res.body)
         /*  val consProcess = res.json.validate[ConservationProcessForReport].get
         consProcess.events.get.length must be >= 2
         consProcess.registeredBy must not be None
