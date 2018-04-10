@@ -31,11 +31,11 @@ class DocumentMetadataController @Inject()(
   val logger = Logger(classOf[DocumentMetadataController])
 
   def getFilename(mid: MuseumId, fileId: String) = {
-    println("Reached DocumentMetadataController.getFilename")
+    logger.debug("Reached DocumentMetadataController.getFilename")
     MusitSecureAction(mid, DocumentArchive, Read).async { implicit request =>
-      println("DocumentMetadataController request.token: " + request.token)
+      logger.debug("DocumentMetadataController request.token: " + request.token)
       implicit val currUser = request.user
-      println("Reached DocumentMetadataController.getFilename implicit request... ")
+      logger.debug("Reached DocumentMetadataController.getFilename implicit request... ")
       documentMetadataService
         .getFilename(mid, fileId, currUser)
         .map {

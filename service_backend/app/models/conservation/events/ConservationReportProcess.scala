@@ -33,6 +33,8 @@ sealed trait ConservationReportSubEvent extends ModernMusitEvent {
 
   val affectedThingsDetails: Seq[MusitObject]
 
+  val documentsDetails: Seq[String]
+
   def withoutActorRoleAndDates: ConservationReportSubEvent = withActorRoleAndDates(None)
   def withActorRoleAndDates(
       actorsAndRoles: Option[Seq[ActorRoleDate]]
