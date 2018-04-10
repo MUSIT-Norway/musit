@@ -51,8 +51,9 @@ case class AuthenticatedUser(
       logger.debug(s"User with GodMode accessing system.")
       MusitSuccess(())
     } else if (isAuthorizedFor(museum)) {
-      val isPermitted      = permissionsFor(museum).exists(_.priority >= lowest.priority)
-      val allowedForModule = module.forall(m => groups.exists(_.module == m))
+      val isPermitted = permissionsFor(museum).exists(_.priority >= lowest.priority)
+      val allowedForModule =
+        module.forall(m => groups.exists(e => e.module == m && e.museumId == museum.id))
       if (isPermitted && allowedForModule) MusitSuccess(())
       else MusitNotAuthorized()
     } else {
@@ -82,8 +83,10 @@ case class AuthenticatedUser(
   }
 
   def canAccess(mid: MuseumId, collectionUUID: Option[CollectionUUID]): Boolean = {
-    hasGodMode || collectionUUID.forall { id =>
-      groups.exists(_.collections.exists(_.uuid == id))
+    hasGodMode || groups.exists { g =>
+      g.museumId == mid && collectionUUID.forall { id =>
+        g.collections.exists(_.uuid == id)
+      }
     }
   }
 
