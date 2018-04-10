@@ -11,7 +11,7 @@ object MusitObjectsIndexConfig {
     createIndex(indexName) mappings (
       mapping(objectType) as (
         uuid("id"),
-        textField("museumId"),
+        intField("museumId"),
         textField("museumNo"),
         textField("subNo"),
         textField("term"),
@@ -28,11 +28,11 @@ object MusitObjectsIndexConfig {
         uuid("objectId"),
         uuid("originatedObjectUuid"),
         objectField("parentObject") fields (
-          textField("objectId"),
+          uuid("objectId"),
           textField("objectType")
         ),
         booleanField("isExtracted"),
-        textField("museumId"),
+        intField("museumId"),
         intField("status"),
         actorStamp("responsible"),
         actorSearchStamp("doneByStamp"),

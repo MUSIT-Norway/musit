@@ -6,7 +6,8 @@ import com.sksamuel.elastic4s.http.ElasticDsl.{
   doubleField,
   intField,
   objectField,
-  textField
+  textField,
+  keywordField
 }
 
 object FieldConfig {
@@ -32,7 +33,8 @@ object FieldConfig {
   }
 
   def uuid(name: String) =
-    textField("uuid") analyzer KeywordAnalyzer
+    keywordField(name)
+  //WTF? textField("uuid") analyzer KeywordAnalyzer
 
   def collection =
     objectField("collection") fields (

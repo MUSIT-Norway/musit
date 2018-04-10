@@ -13,15 +13,15 @@ package object search {
       collectionUuidFieldName: String = "collection.uuid"
   )(implicit currUsr: AuthenticatedUser): BoolQueryDefinition = {
     if (currUsr.hasGodMode)
-      must(matchQuery("museumId", mid.underlying))
+      must(termQuery("museumId", mid.underlying))
     else
       must(
         should(
           collectionIds.map { c =>
-            matchQuery(collectionUuidFieldName, c.uuid.underlying.toString)
+            termQuery(collectionUuidFieldName, c.uuid.underlying.toString)
           }
         ),
-        matchQuery("museumId", mid.underlying)
+        termQuery("museumId", mid.underlying)
       )
   }
 

@@ -17,6 +17,7 @@ object ConservationIndexConfig {
         intField("partOf"),
         textField("note"),
         textField("caseNumber"),
+        uuid("collectionUuid"),
         jsonExtraAttributes
       )
     )
