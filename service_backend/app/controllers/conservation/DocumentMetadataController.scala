@@ -30,6 +30,35 @@ class DocumentMetadataController @Inject()(
 
   val logger = Logger(classOf[DocumentMetadataController])
 
+  def getFilenames(mid: MuseumId, fileIds: String) = {
+    logger.debug("Reached DocumentMetadataController.getFilenames")
+    MusitSecureAction(mid, DocumentArchive, Read).async { implicit request =>
+      //logger.debug("DocumentMetadataController request.token: " + request.token)
+      implicit val currUser = request.user
+      logger.debug("Reached DocumentMetadataController.getFilename implicit request... ")
+      println(fileIds)
+      documentMetadataService
+        .getFilenames(mid, fileIds.split(",").toSeq, currUser)
+        .map {
+          case MusitSuccess(locations) =>
+            Ok(Json.toJson(locations))
+
+          case MusitHttpError(status, msg) =>
+            Status(status)
+
+          case err: MusitError =>
+            logger.error("InternalServerError: " + s"${err.message}")
+            InternalServerError(Json.obj("message" -> err.message))
+        }
+        .recover {
+          case NonFatal(ex) =>
+            val msg = "An error occurred when searching for filename"
+            logger.error(msg, ex)
+            InternalServerError(Json.obj("message" -> msg))
+        }
+    }
+  }
+
   def getFilename(mid: MuseumId, fileId: String) = {
     logger.debug("Reached DocumentMetadataController.getFilename")
     MusitSecureAction(mid, DocumentArchive, Read).async { implicit request =>
@@ -57,4 +86,5 @@ class DocumentMetadataController @Inject()(
         }
     }
   }
+
 }
