@@ -31,8 +31,7 @@ class DocumentMetadataService @Inject()(
   ): Future[MusitResult[Seq[String]]] = {
 
     val logger = Logger(classOf[DocumentMetadataService], "musit")
-//    println("DocumentMetadataService.getFilenames")
-    val env = config.getOptional[String]("musit.env")
+    val env    = config.getOptional[String]("musit.env")
     val baseUrl = env match {
       case Some("dev") => "http://localhost"
       case _           => config.get[String]("musit.baseUrl")
@@ -43,9 +42,7 @@ class DocumentMetadataService @Inject()(
 
     logger.debug("getFilenames: endpoint: " + endpoint)
 
-//    println("files: " + fileIds.mkString(","))
     val bearerToken = currUser.session.uuid.asBearerToken
-//    println(bearerToken.asHeader.toString())
 
     val req = ws
       .url(endpoint)
@@ -59,21 +56,15 @@ class DocumentMetadataService @Inject()(
     val res = req.get()
 
     logger.debug("getFilenames: got request")
-//    println("getFilenames: got request")
 
     res.map(r => {
       logger.debug("getFilenames: working with request")
-//      println(s"getFilenames: Status: ${r.status}")
       val v = r.status match {
         case 200 => {
           logger.debug(s"getFilenames: Status: 200")
-//          println(s"getFilenames: Status: 200")
           val filenamesArr = (r.json).as[JsArray].value
           val filenames    = filenamesArr.map(x => (x \ "title").as[String]).toSeq
-
           logger.debug(s"Read filenames from document: ${filenames.mkString(",")}")
-//          println(s"Read filenames from document: ${filenames.mkString(",")}")
-
           MusitSuccess(filenames)
         }
         case NOT_FOUND => {
@@ -81,19 +72,14 @@ class DocumentMetadataService @Inject()(
           MusitSuccess(Seq("(filename not found)"))
         }
         case _ => {
-          logger.debug(s"getFilename: Status: ${r.status}")
-          MusitHttpError(
-            status = r.status,
-            message = Option(r.body).getOrElse(r.statusText)
-          )
+          logger.error(s"Couldn't get filename. Status: ${r.status}")
+          MusitSuccess(Seq("(filename not found)"))
         }
       }
       v
     })
 
   }
-
-//
 
   def getFilename(
       mid: MuseumId,
@@ -139,11 +125,12 @@ class DocumentMetadataService @Inject()(
           MusitSuccess("not found")
         }
         case _ => {
-          logger.debug(s"getFilename: Status: ${r.status}")
-          MusitHttpError(
-            status = r.status,
-            message = Option(r.body).getOrElse(r.statusText)
-          )
+          logger.error(s"Couldn't get filename. Status: ${r.status}")
+          MusitSuccess("not found")
+//          MusitHttpError(
+//            status = r.status,
+//            message = Option(r.body).getOrElse(r.statusText)
+//          )
         }
       }
       v

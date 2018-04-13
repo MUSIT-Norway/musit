@@ -268,25 +268,29 @@ class ConservationProcessService @Inject()(
   )(
       implicit currUser: AuthenticatedUser
   ): FutureMusitResult[Seq[String]] = {
-    logger.debug("ConservationProcessService.getDocumentsDetails")
-    println("ConservationProcessService.getDocumentsDetails")
-    val fileIds = documents.map(x => x.underlying.toString)
-    logger.debug(
-      "ConservationProcessService.getDocumentsDetails.fileIds: " + fileIds.mkString(",")
-    )
+    val futMsSeqFileIds = Future(MusitSuccess(documents.map(x => x.underlying.toString)))
+    FutureMusitResult(futMsSeqFileIds)
 
-    val filenames =
-      if (fileIds.length > 0) {
-        FutureMusitResult(
-          documentMetadataService.getFilenames(mid, fileIds, currUser)
-        )
-      } else {
-        FutureMusitResult(Future(MusitSuccess(Seq(""))))
-      }
+//    logger.debug("ConservationProcessService.getDocumentsDetails")
+//    println("ConservationProcessService.getDocumentsDetails")
+//    val fileIds = documents.map(x => x.underlying.toString)
+//    logger.debug(
+//      "ConservationProcessService.getDocumentsDetails.fileIds: " + fileIds.mkString(",")
+//    )
+//
+//    val filenames =
+//      if (fileIds.length > 0) {
+//        FutureMusitResult(
+//          documentMetadataService.getFilenames(mid, fileIds, currUser)
+//        )
+//      } else {
+//        FutureMusitResult(Future(MusitSuccess(Seq(""))))
+//      }
+//
+//    println("getDocumentsDetails after filenames")
+//    filenames
 
-    println("getDocumentsDetails after filenames")
-    filenames
-//    val filenames = documents.map { fileId =>
+    //    val filenames = documents.map { fileId =>
 //      FutureMusitResult(
 //        documentMetadataService.getFilename(mid, fileId.underlying.toString, currUser)
 //      )
