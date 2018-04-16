@@ -153,7 +153,7 @@ class ConservationReportService @Inject()(
 
   private def getDocuments(event: ConservationReportSubEvent): Text.TypedTag[String] = {
     if (event.documentsDetails.length > 0) {
-      div("Vedlegg: " + event.documentsDetails.mkString(", "))
+      div(formatKeyValue("Vedlegg", event.documentsDetails.length.toString))
     } else span()
   }
 

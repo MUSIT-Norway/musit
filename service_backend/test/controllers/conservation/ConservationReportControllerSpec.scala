@@ -594,14 +594,13 @@ class ConservationReportControllerSpec
 //    "searching for filenames" should {
 //      "return a list of results matching the query paramter" in {
 //        val queryParam =
-//          (fileId: String) => s"/99/conservation/conservationReport/files/$fileId"
+//          (fileIds: String) => s"/99/conservation/conservationReport/attachments/$fileIds"
 //
 //        val fakeToken = BearerToken(FakeUsers.testReadToken)
+//        val myurl     = queryParam("096b554a-a3e6-439c-b46d-638021cb9aee")
+//        println("myurl: " + myurl)
 //
-//        val res = wsUrl(queryParam("096b554a-a3e6-439c-b46d-638021cb9aee"))
-//          .withHttpHeaders(fakeToken.asHeader)
-//          .get()
-//          .futureValue
+//        val res = wsUrl(myurl).withHttpHeaders(fakeToken.asHeader).get().futureValue
 //        res.status mustBe Status.OK
 //      }
 //    }
