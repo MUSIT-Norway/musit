@@ -311,12 +311,6 @@ class ConservationProcessService @Inject()(
         .getOrElse(Seq.empty)
         .map(
           e => {
-
-            /* val documentsDetails = dmService.file(e.documents).map {
-              case Some(ad) => MusitSuccess(ad)
-              case None     => MusitNotFound(s"Could not find ArchiveDocument $fileId")
-            }*/
-
             val result = for {
               subEventType          <- getEventType(fmrConservationTypes, e.eventTypeId)
               registeredByName      <- getPersonName(e.registeredBy)
