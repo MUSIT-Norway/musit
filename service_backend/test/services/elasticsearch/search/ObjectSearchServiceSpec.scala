@@ -273,11 +273,47 @@ class ObjectSearchServiceSpec
 
       res.hits.hits.map(toObjectUUID) must contain only obj5inCol1
     }
+    "search on aggregated taxon/class with the result of one object" taggedAs ElasticsearchContainer in {
+      val res = service
+        .restrictedObjectSearch(
+          mid = MuseumId(2),
+          collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
+          limit = 10,
+          from = 0,
+          museumNo = None,
+          subNo = None,
+          term = None,
+          queryStr = Some("taxontull")
+        )(dummyUser)
+        .futureValue
+        .successValue
+        .response
+
+      res.hits.hits.map(toObjectUUID) must contain only obj3inCol2
+    }
+    "search on aggregated taxon/class and museumno and subno with the result of one object" taggedAs ElasticsearchContainer in {
+      val res = service
+        .restrictedObjectSearch(
+          mid = MuseumId(2),
+          collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
+          limit = 10,
+          from = 0,
+          museumNo = Some(MuseumNo("c1610")),
+          subNo = Some(SubNo("b")),
+          term = None,
+          queryStr = Some("taxontull")
+        )(dummyUser)
+        .futureValue
+        .successValue
+        .response
+
+      res.hits.hits.map(toObjectUUID) must contain only obj3inCol2
+    }
 
   }
 
   def toObjectUUID(s: SearchHit) = {
-    println("OBJEKTER " + s)
+    //println("OBJEKTER " + s)
     ObjectUUID(UUID.fromString(s.id))
   }
 
@@ -325,7 +361,8 @@ class ObjectSearchServiceSpec
                   MuseumId(2),
                   Ethnography,
                   MuseumNo("c1610"),
-                  Some(SubNo("b"))
+                  Some(SubNo("b")),
+                  aggregatedClassData = Some("taxontull")
                 ),
                 //obj
                 indexMusitObjectDoc(
