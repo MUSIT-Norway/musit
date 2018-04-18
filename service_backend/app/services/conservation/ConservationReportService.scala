@@ -140,8 +140,8 @@ class ConservationReportService @Inject()(
       br(),
       getEventId(event),
       getActorsAndRoles(event),
-      getNote(event) //,
-      //getDocuments(event.documents),
+      getNote(event),
+      getDocuments(event)
     )
   }
 
@@ -151,12 +151,12 @@ class ConservationReportService @Inject()(
     createTableOfObjects(affectedThingsDetails)
   }
 
-  private def getDocuments(documents: Option[Seq[FileId]]): Text.TypedTag[String] =
-    documents match {
-      case Some(documents) =>
-        div("Vedlegg: " + documents.mkString(", "))
-      case None => div("Vedlegg: ")
-    }
+  private def getDocuments(event: ConservationReportSubEvent): Text.TypedTag[String] = {
+    if (event.documentsDetails.length > 0) {
+      div(formatKeyValue("Vedlegg", event.documentsDetails.length.toString))
+    } else span()
+  }
+
   private def getActorsAndRoles(
       event: ConservationReportSubEvent
   ): Text.all.SeqFrag[Option[Text.TypedTag[String]]] = {

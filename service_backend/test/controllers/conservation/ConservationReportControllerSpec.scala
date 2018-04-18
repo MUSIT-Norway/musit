@@ -8,6 +8,7 @@ import no.uio.musit.test.matchers.DateTimeMatchers
 import no.uio.musit.test.{FakeUsers, MusitSpecWithServerPerSuite}
 import no.uio.musit.time
 import org.joda.time.DateTime
+import play.api.http.Status
 import play.api.libs.json._
 import play.api.test.Helpers._
 
@@ -558,7 +559,7 @@ class ConservationReportControllerSpec
       "get Conservation Report HTML" in {
         val res = getConservationReportHTML(compositeConservationProcessEventId, 99, cid)
         res.status mustBe OK
-        println(res.body)
+//        println(res.body)
         /*  val consProcess = res.json.validate[ConservationProcessForReport].get
         consProcess.events.get.length must be >= 2
         consProcess.registeredBy must not be None
@@ -589,5 +590,19 @@ class ConservationReportControllerSpec
       }
 
     }
+
+//    "searching for filenames" should {
+//      "return a list of results matching the query paramter" in {
+//        val queryParam =
+//          (fileIds: String) => s"/99/conservation/conservationReport/attachments/$fileIds"
+//
+//        val fakeToken = BearerToken(FakeUsers.testReadToken)
+//        val myurl     = queryParam("096b554a-a3e6-439c-b46d-638021cb9aee")
+//        println("myurl: " + myurl)
+//
+//        val res = wsUrl(myurl).withHttpHeaders(fakeToken.asHeader).get().futureValue
+//        res.status mustBe Status.OK
+//      }
+//    }
   }
 }

@@ -171,8 +171,13 @@ GET           /:mid/conservation/events/:id                 controllers.conserva
 # Reports for Conservation module
 GET           /:mid/conservation/conservationReport/:id     controllers.conservation.ConservationModuleEventController.getConservationReport(mid: Int, collectionId: String, id: Long)
 GET           /:mid/conservation/conservationReportHTML/:id     controllers.conservation.ConservationModuleEventController.getConservationReportHTML(mid: Int, collectionId: String, id: Long)
+# For testing calling service_document for report
+#GET           /:mid/conservation/conservationReport/files/:fileId     controllers.conservation.DocumentMetadataController.getFilename(mid: Int, fileId: String)
+GET           /:mid/conservation/conservationReport/attachments/:fileIds     controllers.conservation.DocumentMetadataController.getFilenames(mid: Int, fileIds: String)
 
 # Returns _all_ conservation events
 GET           /:mid/conservation/events/object/:id          controllers.conservation.ConservationModuleEventController.getEventsForObject(mid: Int, id: String)
 GET           /:mid/conservation/conservations/object/:id   controllers.conservation.ConservationModuleEventController.getConservationWithKeyDataForObject(mid: Int, id: String)
 DELETE        /:mid/conservation/events                     controllers.conservation.ConservationModuleEventController.deleteSubEvents(mid: Int, eventIds: String)
+
+
