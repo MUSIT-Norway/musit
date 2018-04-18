@@ -27,10 +27,14 @@ class ConservationProcessControllerSpec
     with DateTimeMatchers
     with ConservationJsonGenerators
     with ConservationJsonValidators {
-  val mid       = MuseumId(99)
-  val token     = BearerToken(FakeUsers.testAdminToken)
-  val tokenRead = BearerToken(FakeUsers.testReadToken)
-  val tokenTest = BearerToken(FakeUsers.testUserToken)
+  val mid          = MuseumId(99)
+  val token        = BearerToken(FakeUsers.testAdminToken)
+  val tokenRead    = BearerToken(FakeUsers.testReadToken)
+  val tokenTest    = BearerToken(FakeUsers.testUserToken)
+  val tokenNhmRead = BearerToken(FakeUsers.nhmReadToken)
+
+  /*val (nhmReadId, nhmReadToken) =
+    ("ddb4dc62-8c14-4bac-aafd-0401f619b0ac", "54aa85c8-6212-4381-8d22-1d342cd8a26e")*/
 
   val baseUrl      = (mid: Int) => s"/$mid/conservation"
   val baseEventUrl = (mid: Int) => s"/$mid/conservation/events"

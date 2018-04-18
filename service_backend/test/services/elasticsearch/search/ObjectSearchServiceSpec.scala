@@ -159,13 +159,14 @@ class ObjectSearchServiceSpec
     }
 
     "search on MuseumNo with the result of one object and one sample " taggedAs ElasticsearchContainer in {
+      Thread.sleep(1005)
       val res = service
         .restrictedObjectSearch(
           mid = MuseumId(2),
           collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
           limit = 10,
           from = 0,
-          museumNo = Some(MuseumNo("C402")),
+          museumNo = Some(MuseumNo("c-402")),
           subNo = None,
           term = None,
           queryStr = None
@@ -184,7 +185,7 @@ class ObjectSearchServiceSpec
           collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
           limit = 10,
           from = 0,
-          museumNo = Some(MuseumNo("C1610")),
+          museumNo = Some(MuseumNo("c1610")),
           subNo = Some(SubNo("b")),
           term = None,
           queryStr = None
@@ -197,6 +198,7 @@ class ObjectSearchServiceSpec
     }
 
     "search where q has no restrictions" taggedAs ElasticsearchContainer in {
+      //Thread.sleep(1005)
       val res = service
         .restrictedObjectSearch(
           mid = MuseumId(2),
@@ -206,13 +208,14 @@ class ObjectSearchServiceSpec
           museumNo = None,
           subNo = None,
           term = None,
-          queryStr = Some("C402")
+          queryStr = Some("c-402")
         )(dummyUser)
         .futureValue
         .successValue
         .response
-
-      res.hits.hits.map(toObjectUUID) must contain only (obj2inCol2, sam2FromObj2inCol2)
+      res.hits.hits
+        .map(toObjectUUID) must contain only (obj2inCol2, sam2FromObj2inCol2, obj4inCol2)
+      //search for both c and 402
     }
 
     "search where q has restrictions on subNo" taggedAs ElasticsearchContainer in {
@@ -252,10 +255,31 @@ class ObjectSearchServiceSpec
 
       res.hits.hits.map(toObjectUUID) must contain only obj3inCol2
     }
+    "search on MuseumNo and subNo(with space) with the result of one object" taggedAs ElasticsearchContainer in {
+      val res = service
+        .restrictedObjectSearch(
+          mid = MuseumId(1),
+          collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
+          limit = 10,
+          from = 0,
+          museumNo = Some(MuseumNo("c-602")),
+          subNo = Some(SubNo("b d")),
+          term = None,
+          queryStr = None
+        )(dummyUser)
+        .futureValue
+        .successValue
+        .response
+
+      res.hits.hits.map(toObjectUUID) must contain only obj5inCol1
+    }
 
   }
 
-  def toObjectUUID(s: SearchHit) = ObjectUUID(UUID.fromString(s.id))
+  def toObjectUUID(s: SearchHit) = {
+    println("OBJEKTER " + s)
+    ObjectUUID(UUID.fromString(s.id))
+  }
 
   override def beforeAll(): Unit = {
     val setup = for {
@@ -279,13 +303,20 @@ class ObjectSearchServiceSpec
                   Ethnography,
                   MuseumNo("C1378")
                 ),
+                indexMusitObjectDoc(
+                  obj5inCol1,
+                  MuseumId(1),
+                  Ethnography,
+                  MuseumNo("c-602"),
+                  Some(SubNo("b d"))
+                ),
                 // Museum 2
                 // obj with sample
                 indexMusitObjectDoc(
                   obj2inCol2,
                   MuseumId(2),
                   Ethnography,
-                  MuseumNo("C402")
+                  MuseumNo("c-402")
                 ),
                 indexSampleDoc(obj2inCol2, sam2FromObj2inCol2, MuseumId(2)),
                 // obj
@@ -293,7 +324,7 @@ class ObjectSearchServiceSpec
                   obj3inCol2,
                   MuseumId(2),
                   Ethnography,
-                  MuseumNo("C1610"),
+                  MuseumNo("c1610"),
                   Some(SubNo("b"))
                 ),
                 //obj
@@ -308,7 +339,7 @@ class ObjectSearchServiceSpec
                   obj6inCol2,
                   MuseumId(2),
                   Ethnography,
-                  MuseumNo("C402"),
+                  MuseumNo("c-402"),
                   isDeleted = true
                 ),
                 indexSampleDoc(
@@ -321,7 +352,6 @@ class ObjectSearchServiceSpec
             )
       _ <- indexMaintainer.activateIndex(indexName, objects.indexAlias)
     } yield res
-
     setup.futureValue
   }
 
