@@ -250,6 +250,7 @@ CREATE TABLE MUSIT_MAPPING.MUSITTHING (
   num_valor         VARCHAR2(100),
   num_date          VARCHAR2(50),
   num_weight        VARCHAR2(100),
+  aggregated_class_data VARCHAR2(500),
   PRIMARY KEY (object_id)
 );
 
