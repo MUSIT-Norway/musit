@@ -336,7 +336,8 @@ class ObjectSearchServiceSpec
       museumNo: MuseumNo,
       subNo: Option[SubNo] = None,
       term: String = "maske",
-      isDeleted: Boolean = false
+      isDeleted: Boolean = false,
+      aggregatedClassData: Option[String] = Some("FullTaxonPath")
   ) = {
     val d = MusitObjectSearch(
       id = id,
@@ -351,7 +352,8 @@ class ObjectSearchServiceSpec
       natStage = None,
       natGender = None,
       natLegDate = None,
-      isDeleted = isDeleted
+      isDeleted = isDeleted,
+      aggregatedClassData = aggregatedClassData
     )
     indexInto(indexName, objects.objectType) id id.underlying.toString doc d
   }

@@ -22,7 +22,8 @@ object MusitObjectsIndexConfig {
         textField("natStage"),
         textField("natGender"),
         textField("natLegDate"),
-        booleanField("isDeleted")
+        booleanField("isDeleted"),
+        textField("aggregatedClassData")
       ),
       mapping(sampleType) as (
         uuid("objectId"),

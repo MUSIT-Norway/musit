@@ -44,6 +44,7 @@ CREATE TABLE MUSIT_MAPPING.MUSITTHING (
   num_valor         VARCHAR2(100),
   num_date          VARCHAR2(50),
   num_weight        VARCHAR2(100),
+  aggregated_class_data VARCHAR2(500),
   PRIMARY KEY (object_id)
 );
 
@@ -801,9 +802,9 @@ INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, mu
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, updated_date, mainobject_id) VALUES ('331d8174-dfdb-47ae-8dc0-5aa7be59fe09', 'K123', '', 'Drakt', 99, 123, 'USD_ARK_GJENSTAND_O', 147, 1, current_timestamp, 12);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, updated_date, mainobject_id) VALUES ('6e7b9387-5f89-4388-8bbb-7eb727e58f09', 'K123', '', 'Skjorte', 99, 123, 'USD_ARK_GJENSTAND_O', 148, 1, current_timestamp, 12);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, updated_date, mainobject_id) VALUES ('2ce90a19-e190-4738-a344-42741f471cdc', 'K123', '', 'Kjole', 99, 123, 'USD_ARK_GJENSTAND_O', 149, 1, current_timestamp, 12);
-INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, updated_date) VALUES ('dcd37cb7-34ae-484e-a2c0-a1b1925e9b68', 'L234', '', 'Kartlav', 99, 234, 'MUSIT_BOTANIKK_LAV', 150, 4, current_timestamp);
-INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, updated_date) VALUES ('3fd8d3f9-ebb1-4447-8959-8e91ca2693fb', 'L234', '', 'Fokklav', 99, 234, 'MUSIT_BOTANIKK_LAV', 151, 4, current_timestamp);
-INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, updated_date) VALUES ('564fade0-4a41-47cc-8c26-3b8f048aa191', 'L234', '', 'Grønnever', 99, 234, 'MUSIT_BOTANIKK_LAV', 152, 4, current_timestamp);
+INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, updated_date,aggregated_class_data) VALUES ('dcd37cb7-34ae-484e-a2c0-a1b1925e9b68', 'L234', '', 'Kartlav', 99, 234, 'MUSIT_BOTANIKK_LAV', 150, 4, current_timestamp,'Lav/Kartlav');
+INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, updated_date,aggregated_class_data) VALUES ('3fd8d3f9-ebb1-4447-8959-8e91ca2693fb', 'L234', '', 'Fokklav', 99, 234, 'MUSIT_BOTANIKK_LAV', 151, 4, current_timestamp,'Lav/Fokklav');
+INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, updated_date,aggregated_class_data) VALUES ('564fade0-4a41-47cc-8c26-3b8f048aa191', 'L234', '', 'Grønnever', 99, 234, 'MUSIT_BOTANIKK_LAV', 152, 4, current_timestamp,'Never/Grønnever');
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, updated_date) VALUES ('a738e36d-8683-44ac-9dda-67ff5a5851d5', 'L234', '', 'Islandslav', 99, 234, 'MUSIT_BOTANIKK_LAV', 153, 4, current_timestamp);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, updated_date) VALUES ('addcbabc-7499-4368-807a-b44c1af5c949', 'E235', '', 'drakt', 99, 235, 'USD_ETNO_GJENSTAND_O', 154, 2, current_timestamp);
 INSERT INTO MUSIT_MAPPING.MUSITTHING (musitthing_uuid, museumNo, subNo, term, museumId, museumNoAsNumber, old_schemaname, lokal_pk, new_collection_id, updated_date) VALUES ('85ed8525-e1b6-4929-8ecb-11384bc57ae9', 'E236', '', 'maske', 99, 236, 'USD_ETNO_GJENSTAND_B', 155, 2, current_timestamp);

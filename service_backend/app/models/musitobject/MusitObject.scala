@@ -27,7 +27,8 @@ case class MusitObject(
     materials: Option[Seq[MusitObjectMaterial]],
     locations: Option[Seq[MusitObjectLocation]],
     coordinates: Option[Seq[MusitObjectCoordinate]],
-    isDeleted: Boolean
+    isDeleted: Boolean,
+    aggregatedClassData: Option[String]
 )
 
 case class NumismaticsAttribute(
@@ -69,7 +70,8 @@ object MusitObject {
           Option[String],
           Option[String],
           (Option[String], Option[String], Option[String], Option[String]),
-          DateTime
+          DateTime,
+          Option[String]
       )
   ) // scalastyle:ignore
 
@@ -105,7 +107,8 @@ object MusitObject {
       materials = None,
       locations = None,
       coordinates = None,
-      isDeleted = t._9
+      isDeleted = t._9,
+      aggregatedClassData = t._21
     )
   }
 

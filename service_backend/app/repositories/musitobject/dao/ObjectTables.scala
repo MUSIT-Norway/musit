@@ -14,7 +14,7 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTyp
   // Type aliases representing rows for the different tables
   // format: off
   // scalastyle:off line.size.limit
-  type ObjectRow = ((Option[ObjectId], Option[ObjectUUID], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Collection], Option[String], Option[String], Option[String], Option[String], Option[String], (Option[String], Option[String], Option[String], Option[String]), DateTime))
+  type ObjectRow = ((Option[ObjectId], Option[ObjectUUID], MuseumId, String, Option[Long], Option[String], Option[Long], Option[Long], Boolean, String, Option[String], Option[Long], Option[Collection], Option[String], Option[String], Option[String], Option[String], Option[String], (Option[String], Option[String], Option[String], Option[String]), DateTime,Option[String]))
   type MaterialRow = ((Option[Int], Option[Long], Option[String], Option[String], Option[String], Option[Int], Option[String], Option[String], Option[Int], Option[Long], Option[String], Option[Int]))
   type LocationRow = ((Option[Int], Option[Long], Option[String], Option[Int], Option[String], Option[Int], Option[String], Option[String],Option[String], Option[String],Option[String], Option[String],Option[String],Option[String], Option[String],Option[String], Option[String],Option[String],Option[Int], Option[Int]))
   type CoordinateRow = ((Option[Int], Option[Long], Option[String], Option[String], Option[String], Option[String]))
@@ -54,35 +54,37 @@ trait ObjectTables extends HasDatabaseConfigProvider[JdbcProfile] with ColumnTyp
       natGender,
       natLegDate,
       (numDenotation, numValor, numDate, numWeight),
-      updatedDate
+      updatedDate,
+      aggregatedClassData
     )
 
     // scalastyle:on method.name
 
-    val id               = column[ObjectId]("OBJECT_ID", O.PrimaryKey, O.AutoInc)
-    val uuid             = column[Option[ObjectUUID]]("MUSITTHING_UUID")
-    val museumId         = column[MuseumId]("MUSEUMID")
-    val museumNo         = column[String]("MUSEUMNO")
-    val museumNoAsNumber = column[Option[Long]]("MUSEUMNOASNUMBER")
-    val subNo            = column[Option[String]]("SUBNO")
-    val subNoAsNumber    = column[Option[Long]]("SUBNOASNUMBER")
-    val mainObjectId     = column[Option[Long]]("MAINOBJECT_ID")
-    val isDeleted        = column[Boolean]("IS_DELETED")
-    val term             = column[String]("TERM")
-    val oldSchema        = column[Option[String]]("OLD_SCHEMANAME")
-    val oldObjId         = column[Option[Long]]("LOKAL_PK")
-    val oldBarcode       = column[Option[Long]]("OLD_BARCODE")
-    val newCollectionId  = column[Option[Collection]]("NEW_COLLECTION_ID")
-    val arkForm          = column[Option[String]]("ARK_FORM")
-    val arkFindingNo     = column[Option[String]]("ARK_FUNN_NR")
-    val natStage         = column[Option[String]]("NAT_STAGE")
-    val natGender        = column[Option[String]]("NAT_GENDER")
-    val natLegDate       = column[Option[String]]("NAT_LEGDATO")
-    val numDenotation    = column[Option[String]]("NUM_DENOTATION")
-    val numValor         = column[Option[String]]("NUM_VALOR")
-    val numDate          = column[Option[String]]("NUM_DATE")
-    val numWeight        = column[Option[String]]("NUM_WEIGHT")
-    val updatedDate      = column[DateTime]("UPDATED_DATE")
+    val id                  = column[ObjectId]("OBJECT_ID", O.PrimaryKey, O.AutoInc)
+    val uuid                = column[Option[ObjectUUID]]("MUSITTHING_UUID")
+    val museumId            = column[MuseumId]("MUSEUMID")
+    val museumNo            = column[String]("MUSEUMNO")
+    val museumNoAsNumber    = column[Option[Long]]("MUSEUMNOASNUMBER")
+    val subNo               = column[Option[String]]("SUBNO")
+    val subNoAsNumber       = column[Option[Long]]("SUBNOASNUMBER")
+    val mainObjectId        = column[Option[Long]]("MAINOBJECT_ID")
+    val isDeleted           = column[Boolean]("IS_DELETED")
+    val term                = column[String]("TERM")
+    val oldSchema           = column[Option[String]]("OLD_SCHEMANAME")
+    val oldObjId            = column[Option[Long]]("LOKAL_PK")
+    val oldBarcode          = column[Option[Long]]("OLD_BARCODE")
+    val newCollectionId     = column[Option[Collection]]("NEW_COLLECTION_ID")
+    val arkForm             = column[Option[String]]("ARK_FORM")
+    val arkFindingNo        = column[Option[String]]("ARK_FUNN_NR")
+    val natStage            = column[Option[String]]("NAT_STAGE")
+    val natGender           = column[Option[String]]("NAT_GENDER")
+    val natLegDate          = column[Option[String]]("NAT_LEGDATO")
+    val numDenotation       = column[Option[String]]("NUM_DENOTATION")
+    val numValor            = column[Option[String]]("NUM_VALOR")
+    val numDate             = column[Option[String]]("NUM_DATE")
+    val numWeight           = column[Option[String]]("NUM_WEIGHT")
+    val updatedDate         = column[DateTime]("UPDATED_DATE")
+    val aggregatedClassData = column[Option[String]]("AGGREGATED_CLASS_DATA")
   }
 
   /**
