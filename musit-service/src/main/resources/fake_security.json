@@ -445,6 +445,17 @@
       "museumId": 7,
       "description": "Admin access to storage facility for KMN",
       "collections": []
+    },
+    {
+      "id": "6acd3954-27c3-450a-bebe-ffcfd783e05c",
+      "name": "NhmCmRead",
+      "module": 2,
+      "permission": 10,
+      "museumId": 4,
+      "description": "Read access to collection management for NHM",
+      "collections": [
+        "7352794d-4973-447b-b84e-2635cafe910a"
+      ]
     }
   ],
 
@@ -517,7 +528,8 @@
       "userid": "ddb4dc62-8c14-4bac-aafd-0401f619b0ac",
       "name": "Fake Musit Test User NHM Read",
       "email": "foo@bar.bas",
-      "groups": ["92e3b487-c962-43d9-a2ea-b8a7bed1b67a", "dc8f342f-4d3b-4dcb-9d33-9870f7a795de"],
+      "groups": ["92e3b487-c962-43d9-a2ea-b8a7bed1b67a", "dc8f342f-4d3b-4dcb-9d33-9870f7a795de",
+        "7352794d-4973-447b-b84e-2635cafe910a"],
       "accessToken": "54aa85c8-6212-4381-8d22-1d342cd8a26e"
     },
     {

@@ -12,8 +12,8 @@ object MusitObjectsIndexConfig {
       mapping(objectType) as (
         uuid("id"),
         intField("museumId"),
-        textField("museumNo"),
-        textField("subNo"),
+        keywordField("museumNo"),
+        keywordField("subNo"),
         textField("term"),
         longField("mainObjectId"),
         collection,

@@ -34,6 +34,7 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
       implicit currUsr: AuthenticatedUser
   ): Future[MusitResult[MusitESResponse[SearchResponse]]] = {
     val qry = createSearchQuery(mid, collectionIds, museumNo, subNo, term, queryStr)
+    println("etter qry  mnr " + museumNo + " subno " + subNo)
     val searchInTypes =
       if (ignoreSamples) Seq(objectType) else Seq(objectType, sampleType)
     client
@@ -61,8 +62,10 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
       q: Option[String]
   )(implicit currUsr: AuthenticatedUser) = {
     val objectTypeFilter = Seq(
-      museumNo.map(v => wildcardQuery("museumNo", v.value.toLowerCase)),
-      subNo.map(v => wildcardQuery("subNo", v.value.toLowerCase)),
+      //museumNo.map(v => wildcardQuery("museumNo", v.value.toLowerCase)),
+      museumNo.map(v => wildcardQuery("museumNo", v.value)),
+      //subNo.map(v => wildcardQuery("subNo", v.value.toLowerCase)),
+      subNo.map(v => wildcardQuery("subNo", v.value)),
       term.map(wildcardQuery("term", _))
     ).flatten
 
@@ -80,7 +83,7 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
           )
         else None
       val freeQuery =
-        if (sampleTypeFilter.nonEmpty)
+        if (sampleTypeFilter.nonEmpty) {
           Some(
             should(
               hasParentQuery(objectType, must(sampleTypeFilter), score = true) innerHit
@@ -88,8 +91,8 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
               must(sampleTypeFilter)
             )
           )
-        else None
 
+        } else None
       Some(must(List(obj, freeQuery).flatten))
     } else {
       None
