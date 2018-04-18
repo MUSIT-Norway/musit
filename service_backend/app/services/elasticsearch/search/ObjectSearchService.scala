@@ -34,7 +34,6 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
       implicit currUsr: AuthenticatedUser
   ): Future[MusitResult[MusitESResponse[SearchResponse]]] = {
     val qry = createSearchQuery(mid, collectionIds, museumNo, subNo, term, queryStr)
-    println("etter qry  mnr " + museumNo + " subno " + subNo)
     val searchInTypes =
       if (ignoreSamples) Seq(objectType) else Seq(objectType, sampleType)
     client
