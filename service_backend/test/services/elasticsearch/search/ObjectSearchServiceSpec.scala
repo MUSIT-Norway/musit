@@ -309,6 +309,24 @@ class ObjectSearchServiceSpec
 
       res.hits.hits.map(toObjectUUID) must contain only obj3inCol2
     }
+    "search on term on lowercase/uppercase with the result of one object" taggedAs ElasticsearchContainer in {
+      val res = service
+        .restrictedObjectSearch(
+          mid = MuseumId(2),
+          collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
+          limit = 10,
+          from = 0,
+          museumNo = Some(MuseumNo("C1610")),
+          subNo = Some(SubNo("c")),
+          term = Some("TUSENBEN"),
+          queryStr = None
+        )(dummyUser)
+        .futureValue
+        .successValue
+        .response
+
+      res.hits.hits.map(toObjectUUID) must contain only obj4inCol2
+    }
 
   }
 
@@ -370,7 +388,8 @@ class ObjectSearchServiceSpec
                   MuseumId(2),
                   Ethnography,
                   MuseumNo("C1610"),
-                  Some(SubNo("c"))
+                  Some(SubNo("c")),
+                  term = "Tusenben"
                 ),
                 indexMusitObjectDoc(
                   obj6inCol2,

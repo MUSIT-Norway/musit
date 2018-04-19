@@ -65,7 +65,7 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
       museumNo.map(v => wildcardQuery("museumNo", v.value)),
       //subNo.map(v => wildcardQuery("subNo", v.value.toLowerCase)),
       subNo.map(v => wildcardQuery("subNo", v.value)),
-      term.map(wildcardQuery("term", _))
+      term.map(v => wildcardQuery("term", v.toLowerCase))
     ).flatten
 
     val sampleTypeFilter = Seq(q.map(query)).flatten
