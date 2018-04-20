@@ -62,6 +62,7 @@ class ObjectSearchServiceSpec
   val obj4inCol2 = ObjectUUID.fromString("409d83ec-d561-4811-adb3-a0000000a004").value
   val obj5inCol1 = ObjectUUID.fromString("409d83ec-d561-4811-adb3-a0000000a005").value
   val obj6inCol2 = ObjectUUID.fromString("409d83ec-d561-4811-adb3-a0000000a006").value
+  val obj7inCol2 = ObjectUUID.fromString("409d83ec-d561-4811-adb3-a0000000a007").value
 
   val sam1FromObj1inCol1 =
     ObjectUUID.fromString("145164cb-1699-4c15-aab5-b0000000b001").value
@@ -89,7 +90,7 @@ class ObjectSearchServiceSpec
         .response
 
       res.hits.hits.map(toObjectUUID) must contain only (
-        obj2inCol2, sam2FromObj2inCol2, obj3inCol2, obj4inCol2
+        obj2inCol2, sam2FromObj2inCol2, obj3inCol2, obj4inCol2, obj7inCol2
         //, obj6inCol2, sam3FromObj6inCol2 // deleted
       )
     }
@@ -327,6 +328,26 @@ class ObjectSearchServiceSpec
 
       res.hits.hits.map(toObjectUUID) must contain only obj4inCol2
     }
+    "search on museumNo with the result sorted by museumNo and SubNo" taggedAs ElasticsearchContainer in {
+      val res = service
+        .restrictedObjectSearch(
+          mid = MuseumId(2),
+          collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
+          limit = 10,
+          from = 0,
+          museumNo = Some(MuseumNo("C1610")),
+          subNo = None,
+          term = None,
+          queryStr = None
+        )(dummyUser)
+        .futureValue
+        .successValue
+        .response
+
+      res.hits.hits.map(toObjectUUID) must contain only (obj4inCol2, obj7inCol2)
+      res.hits.hits.headOption.get.id mustBe obj7inCol2.underlying.toString
+
+    }
 
   }
 
@@ -390,6 +411,13 @@ class ObjectSearchServiceSpec
                   MuseumNo("C1610"),
                   Some(SubNo("c")),
                   term = "Tusenben"
+                ),
+                indexMusitObjectDoc(
+                  obj7inCol2,
+                  MuseumId(2),
+                  Ethnography,
+                  MuseumNo("C1610"),
+                  Some(SubNo("a"))
                 ),
                 indexMusitObjectDoc(
                   obj6inCol2,

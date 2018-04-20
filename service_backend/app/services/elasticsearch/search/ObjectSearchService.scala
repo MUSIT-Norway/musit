@@ -5,6 +5,7 @@ import com.sksamuel.elastic4s.IndexAndTypes
 import com.sksamuel.elastic4s.http.ElasticDsl.{termQuery, _}
 import com.sksamuel.elastic4s.http.HttpClient
 import com.sksamuel.elastic4s.http.search.SearchResponse
+import com.sksamuel.elastic4s.searches.sort._
 import no.uio.musit.MusitResults._
 import no.uio.musit.models.{MuseumCollection, MuseumId, MuseumNo, SubNo}
 import no.uio.musit.security.AuthenticatedUser
@@ -39,7 +40,10 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
     client
       .execute(
         search(IndexAndTypes(indexAlias, searchInTypes))
-          query qry
+          query qry sortBy Seq(
+          FieldSortDefinition("museumNo"),
+          FieldSortDefinition("subNo")
+        )
           limit limit
           from from
       )(MusitSearchHttpExecutable.musitSearchHttpExecutable)
