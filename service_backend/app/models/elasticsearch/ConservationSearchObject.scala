@@ -1,5 +1,6 @@
 package models.elasticsearch
 
+import com.sksamuel.elastic4s.Indexable
 import models.conservation.events._
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.models._
@@ -13,6 +14,7 @@ object Constants {
   val eventTypeEn    = "eventTypeEn"
   val eventTypeNo    = "eventTypeNo"
   val actors         = "actors"
+  val isDeleted      = "isDeleted"
 }
 
 case class ActorRoleDateName(
@@ -27,17 +29,68 @@ object ActorRoleDateName extends WithDateTimeFormatters {
   implicit val writes: Writes[ActorRoleDateName] = Json.writes[ActorRoleDateName]
 }
 
+/**Represents a conservation object as indexed into ElasticSearch.
+ * The name is a bit weird/long, but on the other hand, since we currently index both existing and deleted objects, it's perhaps
+ * ok with this long name as it is easy to forget that we index both existing and deleted objects.
+ * We may perhaps remove the need to index deleted objects in the future, but a mechanism to switch the status from existing to deleted
+ * will still be needed.
+ *
+ */
+trait DeletedOrExistingConservationSearchObject {
+
+  def collectMentionedActorIds(): Set[ActorId]
+
+  def withActorNames(
+      actorNames: ActorNames,
+      allEventRoles: Seq[EventRole]
+  ): DeletedOrExistingConservationSearchObject
+
+  def eventId: EventId
+
+  /**Returns the json-representation (which gets written to ES) of this object.
+   * Could/should probably use some magic to get an implicit evidence of this object as an Indexable,
+   * but I'm not good enough at Scala to try to make that work, so I did it in this more "manual"/explicit way instead.
+
+   */
+  def toJson(): String
+}
+
 /* This is the object which gets written to ES. At the moment we just embed the event directly.
  (But for ConservationProcesses we ignore the children and assume they have already been removed)
  */
 
-case class ConservationSearch(
+/*For conservation events which has been deleted */
+case class DeletedConservationSearchObject(
+    eventId: EventId,
+    museumId: MuseumId,
+    collectionUuid: Option[CollectionUUID]
+) extends DeletedOrExistingConservationSearchObject {
+
+  def collectMentionedActorIds(): Set[ActorId] = Set.empty
+
+  def withActorNames(
+      actorNames: ActorNames,
+      allEventRoles: Seq[EventRole]
+  ): DeletedOrExistingConservationSearchObject = this
+  DeletedConservationSearchObject
+
+  def toJson =
+    DeletedConservationSearchObject.json(
+      this.asInstanceOf[DeletedConservationSearchObject]
+    )
+
+}
+
+/*For non-deleted conservation events*/
+case class ExistingConservationSearchObject(
     museumId: MuseumId,
     collectionUuid: Option[CollectionUUID],
     event: ConservationModuleEvent,
     eventType: ConservationType,
     actors: Option[Seq[ActorRoleDateName]]
-) {
+) extends DeletedOrExistingConservationSearchObject {
+
+  def eventId: EventId = event.id.get
 
   def collectMentionedActorIds() = {
     val innerActors = event.actorsAndRoles.map(_.map(_.actorId))
@@ -80,7 +133,7 @@ case class ConservationSearch(
           eventRole.noRole
         )
       case None =>
-        ConservationSearch.logger.error(s"Unknown event role id: $roleId")
+        ExistingConservationSearchObject.logger.error(s"Unknown event role id: $roleId")
         None
     }
   }
@@ -88,7 +141,7 @@ case class ConservationSearch(
   def withActorNames(
       actorNames: ActorNames,
       allEventRoles: Seq[EventRole]
-  ): ConservationSearch = {
+  ): DeletedOrExistingConservationSearchObject = {
     val actorsAndRolesSeq = event.actorsAndRoles
       .map(
         _.map(
@@ -118,19 +171,49 @@ case class ConservationSearch(
 
     copy(actors = res)
   }
+
+  def toJson =
+    ExistingConservationSearchObject.json(
+      this.asInstanceOf[ExistingConservationSearchObject]
+    )
+
 }
 
-object ConservationSearch {
+/*For conservation events which has been deleted */
+object DeletedConservationSearchObject {
+
+  val logger = Logger(classOf[DeletedConservationSearchObject])
+
+  implicit val deletedConservationSearchWrites =
+    new Writes[DeletedConservationSearchObject] {
+      def writes(deletedConservationSearch: DeletedConservationSearchObject) = {
+        val jsObj = Json.obj(
+          Constants.museumId       -> deletedConservationSearch.museumId,
+          Constants.collectionUuid -> deletedConservationSearch.collectionUuid,
+          "id"                     -> deletedConservationSearch.eventId,
+          Constants.isDeleted      -> true
+        )
+        jsObj
+      }
+    }
+
+  def json(t: DeletedConservationSearchObject): String = {
+    //Json.stringify(Json.toJson(t)(deletedConservationSearchWrites))
+    Json.stringify(this.deletedConservationSearchWrites.writes(t))
+  }
+}
+
+object ExistingConservationSearchObject {
   def apply(
       museumId: MuseumId,
       collectionUuid: Option[CollectionUUID],
       event: ConservationModuleEvent,
       eventType: ConservationType
-  ): ConservationSearch = {
-    ConservationSearch(museumId, collectionUuid, event, eventType, None)
+  ): ExistingConservationSearchObject = {
+    ExistingConservationSearchObject(museumId, collectionUuid, event, eventType, None)
   }
 
-  val logger = Logger(classOf[ConservationSearch])
+  val logger = Logger(classOf[ExistingConservationSearchObject])
 
   implicit val readsEvent = models.conservation.events.ConservationModuleEvent.reads
 
@@ -138,21 +221,28 @@ object ConservationSearch {
   (But it can be argued that this isn't necessary, so please feel free to rewrote this to use a standard writer.)
    */
 
-  implicit val conservationSearchWrites = new Writes[ConservationSearch] {
-    def writes(conservationSearch: ConservationSearch) = {
+  implicit val conservationSearchWrites = new Writes[ExistingConservationSearchObject] {
+    def writes(conservationSearch: ExistingConservationSearchObject) = {
       val eventType = conservationSearch.eventType
       val jsObj = Json.obj(
         Constants.museumId       -> conservationSearch.museumId,
         Constants.collectionUuid -> conservationSearch.collectionUuid,
         Constants.eventTypeEn    -> eventType.enName,
         Constants.eventTypeNo    -> eventType.noName,
-        Constants.actors         -> conservationSearch.actors
+        Constants.actors         -> conservationSearch.actors,
+        Constants.isDeleted      -> false
       )
 
       val jsObj2 = Json.toJson(conservationSearch.event).as[JsObject]
       jsObj ++ jsObj2
     }
   }
+
+  def json(t: ExistingConservationSearchObject): String = {
+    //Json.stringify(Json.toJson(t)(deletedConservationSearchWrites))
+    Json.stringify(this.conservationSearchWrites.writes(t))
+  }
+
   /* At the moment we don't need to read in ConservationSearch objects. This code can likely be deleted.
   implicit val conservationSearchReads: Reads[ConservationSearch] =
     new Reads[ConservationSearch] {
