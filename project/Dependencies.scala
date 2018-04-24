@@ -119,7 +119,7 @@ object Dependencies {
     )
   }
 
-  val elastic4sVersion: String = "5.5.3"
+  val elastic4sVersion: String = "5.5.10"
   val elastic4s: Seq[ModuleID] = Seq(
     "com.sksamuel.elastic4s" %% "elastic4s-core"         % elastic4sVersion,
     "com.sksamuel.elastic4s" %% "elastic4s-http-streams" % elastic4sVersion,

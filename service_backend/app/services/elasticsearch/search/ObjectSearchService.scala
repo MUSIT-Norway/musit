@@ -1,10 +1,12 @@
 package services.elasticsearch.search
 
 import com.google.inject.Inject
+
 import com.sksamuel.elastic4s.IndexAndTypes
 import com.sksamuel.elastic4s.http.ElasticDsl.{termQuery, _}
 import com.sksamuel.elastic4s.http.HttpClient
 import com.sksamuel.elastic4s.http.search.SearchResponse
+import com.sksamuel.elastic4s.searches.SearchDefinition
 import com.sksamuel.elastic4s.searches.sort._
 import no.uio.musit.MusitResults._
 import no.uio.musit.models.{MuseumCollection, MuseumId, MuseumNo, SubNo}
@@ -35,18 +37,25 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
       implicit currUsr: AuthenticatedUser
   ): Future[MusitResult[MusitESResponse[SearchResponse]]] = {
     val qry = createSearchQuery(mid, collectionIds, museumNo, subNo, term, queryStr)
+
     val searchInTypes =
       if (ignoreSamples) Seq(objectType) else Seq(objectType, sampleType)
-    client
-      .execute(
-        search(IndexAndTypes(indexAlias, searchInTypes))
-          query qry sortBy Seq(
-          FieldSortDefinition("museumNo"),
-          FieldSortDefinition("subNo")
+
+    val searchDef =
+      search(IndexAndTypes(indexAlias, searchInTypes)).query(qry).limit(limit).from(from)
+
+    val finalSearchDef =
+      if (from < 10000) {
+        searchDef.sortBy(
+          Seq(
+            FieldSortDefinition("museumNo"),
+            FieldSortDefinition("subNo")
+          )
         )
-          limit limit
-          from from
-      )(MusitSearchHttpExecutable.musitSearchHttpExecutable)
+      } else searchDef
+
+    client
+      .execute(finalSearchDef)(MusitSearchHttpExecutable.musitSearchHttpExecutable)
       .map(MusitSuccess.apply)
       .recover {
         case NonFatal(err) =>
