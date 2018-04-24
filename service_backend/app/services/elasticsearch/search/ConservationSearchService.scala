@@ -15,6 +15,7 @@ import org.apache.lucene.search.join.ScoreMode
 import play.api.Logger
 import services.elasticsearch.elastic4s.{MusitESResponse, MusitSearchHttpExecutable}
 import services.elasticsearch.index.conservation._
+import services.elasticsearch.index.objects.objectType
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
@@ -64,6 +65,16 @@ class ConservationSearchService @Inject()(
 
     val baseQuery = query(queryStr)
 
+    /*
+    val isNotDeleted = should(
+      termQuery("isDeleted", false)
+    )
+     */
+
+    val isNotDeleted = not(
+      termQuery(Constants.isDeleted, true)
+    )
+
     val onlyAllowedConservationQuery = must(
       restrictToCollectionAndMuseumQuery(mid, collectionIds, Constants.collectionUuid),
       termQuery("_type" -> conservationType)
@@ -72,7 +83,8 @@ class ConservationSearchService @Inject()(
     must(
       should(
         onlyAllowedConservationQuery
-      )
+      ),
+      isNotDeleted
     ).appendMust(baseQuery)
 
   }

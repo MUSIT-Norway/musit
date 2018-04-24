@@ -68,7 +68,7 @@ class IndexConservation @Inject()(
    * elasticsearch sink
    */
   private def createFlow(
-      in: Source[MusitResult[ConservationSearch], NotUsed],
+      in: Source[MusitResult[DeletedOrExistingConservationSearchObject], NotUsed],
       allEventRoles: Seq[EventRole],
       config: IndexConfig,
       actorService: ActorService

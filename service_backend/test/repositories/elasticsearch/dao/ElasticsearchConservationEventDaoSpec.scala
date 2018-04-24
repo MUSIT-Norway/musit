@@ -4,6 +4,7 @@ import java.util.UUID
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
+import models.elasticsearch.ExistingConservationSearchObject
 import no.uio.musit.MusitResults.MusitResult
 import no.uio.musit.models.{CollectionUUID, EventId, MuseumId, ObjectUUID}
 import no.uio.musit.test.MusitSpecWithAppPerSuite
@@ -81,7 +82,7 @@ class ElasticsearchConservationEventDaoSpec
       val resSeqMr = source.runWith(Sink.seq).futureValue
       val res      = MusitResult.sequence(resSeqMr).successValue
       val objectUuids = res
-        .map(_.event.affectedThings)
+        .map(_.asInstanceOf[ExistingConservationSearchObject].event.affectedThings)
         .collect {
           case Some(seq) => seq
         }

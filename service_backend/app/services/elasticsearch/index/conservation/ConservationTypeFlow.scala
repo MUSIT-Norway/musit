@@ -33,10 +33,10 @@ class ConservationTypeFlow(
   val logger = Logger(classOf[ConservationTypeFlow])
 
   val logAndRemoveErrorsFlow
-    : Flow[MusitResult[ConservationSearch], ConservationSearch, NotUsed] =
-    Flow[MusitResult[ConservationSearch]].map { element =>
+    : Flow[MusitResult[DeletedOrExistingConservationSearchObject], DeletedOrExistingConservationSearchObject, NotUsed] =
+    Flow[MusitResult[DeletedOrExistingConservationSearchObject]].map { element =>
       val res = element match {
-        case x: MusitSuccess[ConservationSearch] =>
+        case x: MusitSuccess[DeletedOrExistingConservationSearchObject] =>
           x
         case err: MusitError =>
           logger.error(s"ES indexing error: ${err.message}")
@@ -44,33 +44,44 @@ class ConservationTypeFlow(
       }
       res
     }.collect {
-      case mr: MusitSuccess[ConservationSearch] => mr.value
+      case mr: MusitSuccess[DeletedOrExistingConservationSearchObject] => mr.value
     }
 
-  val withActorNamesFlow: Flow[ConservationSearch, ConservationSearch, NotUsed] =
-    new ActorEnrichFlow[ConservationSearch, ConservationSearch] {
-      override def extractActorsId(a: ConservationSearch): Set[ActorId] = {
+  val withActorNamesFlow: Flow[
+    DeletedOrExistingConservationSearchObject,
+    DeletedOrExistingConservationSearchObject,
+    NotUsed
+  ] =
+    new ActorEnrichFlow[
+      DeletedOrExistingConservationSearchObject,
+      DeletedOrExistingConservationSearchObject
+    ] {
+      override def extractActorsId(
+          a: DeletedOrExistingConservationSearchObject
+      ): Set[ActorId] = {
         a.collectMentionedActorIds()
       }
 
       override def mergeWithActors(
-          a: ConservationSearch,
+          a: DeletedOrExistingConservationSearchObject,
           actors: Set[(ActorId, String)]
-      ): ConservationSearch = a.withActorNames(ActorNames(actors), allEventRoles)
+      ): DeletedOrExistingConservationSearchObject =
+        a.withActorNames(ActorNames(actors), allEventRoles)
 
     }.flow(actorService, ec)
 
   //This one will eventually flow into ElasticSearch
-  val intoEsFlow: Flow[ConservationSearch, BulkCompatibleDefinition, NotUsed] =
-    Flow[ConservationSearch].map { thing =>
+  val intoEsFlow
+    : Flow[DeletedOrExistingConservationSearchObject, BulkCompatibleDefinition, NotUsed] =
+    Flow[DeletedOrExistingConservationSearchObject].map { thing =>
       val res =
-        indexInto(config.name, conservationType).id(thing.event.id.get).doc(thing)
+        indexInto(config.name, conservationType).id(thing.eventId).doc(thing.toJson())
       res
     }
 
   ///Creates a flow which logs and removes errors and puts the successful events into ES
   def createFlow(
-      in: Source[MusitResult[ConservationSearch], NotUsed]
+      in: Source[MusitResult[DeletedOrExistingConservationSearchObject], NotUsed]
   ) /*: Flow[MusitResult[ConservationEvent], BulkCompatibleDefinition, NotUsed]*/ = {
 
     in.via(logAndRemoveErrorsFlow).via(withActorNamesFlow).via(intoEsFlow)

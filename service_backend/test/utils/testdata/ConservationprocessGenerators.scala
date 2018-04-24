@@ -62,7 +62,8 @@ trait ConservationprocessGenerators {
   def dummyMaterialDetermination(
       oids: Option[Seq[ObjectUUID]] = Some(
         Seq(ObjectUUID.unsafeFromString("35522dc6-d246-4c7b-a23d-501bb34034f7"))
-      )
+      ),
+      inputNote: Option[String] = Some("hurra note")
   ): MaterialDetermination = {
     val now = Some(dateTimeNow)
     MaterialDetermination(
@@ -76,7 +77,7 @@ trait ConservationprocessGenerators {
       /* completedBy = None,
       completedDate = None,*/
       partOf = None,
-      note = Some("hurra note"),
+      note = inputNote, //("hurra note"),
       actorsAndRoles = Some(
         Seq(
           ActorRoleDate(
@@ -98,6 +99,17 @@ trait ConservationprocessGenerators {
       materialInfo = Some(Seq(MaterialInfo(1, Some("veldig spes materiale"), Some(1)))),
       isUpdated = Some(false)
     )
+  }
+
+  def dummyMaterialDeterminationWithNote(
+      inputNote: String,
+      oids: Option[Seq[ObjectUUID]] = Some(
+        Seq(ObjectUUID.unsafeFromString("35522dc6-d246-4c7b-a23d-501bb34034f7"))
+      )
+  ) = {
+
+    dummyMaterialDetermination(oids, Some(inputNote))
+
   }
 
 }

@@ -53,6 +53,8 @@ class ConservationSearchServiceSpec
   val evtId_11 = EventId(11)
   val evtId_12 = EventId(12)
 
+  val evtId_deleted1 = EventId(13)
+
   val evtId_20 = EventId(20)
   val evtId_21 = EventId(21)
   val evtId_22 = EventId(22)
@@ -72,7 +74,7 @@ class ConservationSearchServiceSpec
 
   "ConservationEventSearchService" should {
 
-    "only return documents with the right museums id and collection" taggedAs ElasticsearchContainer in {
+    "only return documents with the right museums id and collection (and not for deleted events)" taggedAs ElasticsearchContainer in {
 
       val res = service
         .restrictedConservationSearch(
@@ -136,6 +138,11 @@ class ConservationSearchServiceSpec
                 indexConservationEventDoc(evtId_10, museum1, None),
                 indexConservationEventDoc(evtId_11, museum1, Some(collection1)),
                 indexConservationEventDoc(evtId_12, museum1, Some(collection1)),
+                indexDeletedConservationEventDoc(
+                  evtId_deleted1,
+                  museum1,
+                  Some(collection1)
+                ),
                 // case 2
                 indexConservationEventDoc(evtId_21, museum2, Some(collection2)),
                 indexConservationEventDoc(evtId_22, museum2, Some(collection2)),
@@ -161,7 +168,7 @@ class ConservationSearchServiceSpec
       optCol: Option[Collection]
   ) = {
     val event = dummyMaterialDetermination(id)
-    val d = ConservationSearch(
+    val d = ExistingConservationSearchObject(
       mid,
       optCol.map(_.uuid),
       event,
@@ -169,6 +176,17 @@ class ConservationSearchServiceSpec
       None
     )
     val dId = id.underlying.toString
+    indexInto(indexName, conservation.conservationType) id dId doc d
+  }
+
+  private def indexDeletedConservationEventDoc(
+      id: EventId,
+      mid: MuseumId,
+      optCol: Option[Collection]
+  ) = {
+    val event = dummyMaterialDetermination(id)
+    val d     = DeletedConservationSearchObject(id, mid, optCol.map(_.uuid))
+    val dId   = id.underlying.toString
     indexInto(indexName, conservation.conservationType) id dId doc d
   }
 
