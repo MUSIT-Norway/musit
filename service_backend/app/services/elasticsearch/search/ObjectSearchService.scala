@@ -1,14 +1,14 @@
 package services.elasticsearch.search
 
 import com.google.inject.Inject
-
 import com.sksamuel.elastic4s.IndexAndTypes
 import com.sksamuel.elastic4s.http.ElasticDsl.{termQuery, _}
 import com.sksamuel.elastic4s.http.HttpClient
 import com.sksamuel.elastic4s.http.search.SearchResponse
-import com.sksamuel.elastic4s.searches.SearchDefinition
+import com.sksamuel.elastic4s.searches.queries.QueryDefinition
 import com.sksamuel.elastic4s.searches.sort._
 import no.uio.musit.MusitResults._
+import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models.{MuseumCollection, MuseumId, MuseumNo, SubNo}
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
@@ -22,6 +22,57 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
 
   private[this] val logger = Logger(classOf[ObjectSearchService])
 
+  def restrictedObjectSearchAsMusitResult(
+      mid: MuseumId,
+      collectionIds: Seq[MuseumCollection],
+      from: Int,
+      limit: Int,
+      // query stuff
+      museumNo: Option[MuseumNo],
+      subNo: Option[SubNo],
+      term: Option[String],
+      queryStr: Option[String],
+      ignoreSamples: Boolean = false,
+      maxSortCount: Int
+  )(
+      implicit currUsr: AuthenticatedUser
+  ): FutureMusitResult[MusitESResponse[SearchResponse]] = {
+    val qry = createSearchQuery(mid, collectionIds, museumNo, subNo, term, queryStr)
+
+    val countRes = resultCount(qry, ignoreSamples)
+
+    countRes.flatMap { resultCount =>
+      val searchInTypes =
+        if (ignoreSamples) Seq(objectType) else Seq(objectType, sampleType)
+      var tempQry = search(IndexAndTypes(indexAlias, searchInTypes))
+        .query(qry)
+        .limit(limit)
+        .from(from)
+
+      if (resultCount < maxSortCount) {
+        tempQry = tempQry.sortBy(
+          Seq(
+            FieldSortDefinition("museumNo"),
+            FieldSortDefinition("subNo")
+          )
+        )
+      }
+
+      val res = FutureMusitResult(
+        client
+          .execute(tempQry)(MusitSearchHttpExecutable.musitSearchHttpExecutable)
+          .map(MusitSuccess.apply)
+          .recover {
+            case NonFatal(err) =>
+              val msg = s"Unable to execute search: ${err.getMessage}"
+              logger.warn(msg, err)
+              MusitGeneralError(msg)
+          }
+      )
+      res
+    }
+  }
+
   def restrictedObjectSearch(
       mid: MuseumId,
       collectionIds: Seq[MuseumCollection],
@@ -32,30 +83,41 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
       subNo: Option[SubNo],
       term: Option[String],
       queryStr: Option[String],
-      ignoreSamples: Boolean = false
+      ignoreSamples: Boolean = false,
+      maxSortCount: Int = 10000
+      //The number 10 000 is a current ES-limitation, ES cannot sort past 10 000 objects, so we
+      // do not sort at all if we have more than 10 000 objects as it would be extremely confusing paging between sorted and usorted objects
+      // search for: index.max_result_window
   )(
       implicit currUsr: AuthenticatedUser
   ): Future[MusitResult[MusitESResponse[SearchResponse]]] = {
-    val qry = createSearchQuery(mid, collectionIds, museumNo, subNo, term, queryStr)
+
+    restrictedObjectSearchAsMusitResult(
+      mid,
+      collectionIds,
+      from,
+      limit,
+      museumNo,
+      subNo,
+      term,
+      queryStr,
+      ignoreSamples,
+      maxSortCount
+    ).value
+  }
+
+  /**Number of objects/documents returned by this query */
+  private def resultCount(
+      qry: QueryDefinition,
+      ignoreSamples: Boolean = false
+  ): FutureMusitResult[Int] = {
 
     val searchInTypes =
       if (ignoreSamples) Seq(objectType) else Seq(objectType, sampleType)
-
-    val searchDef =
-      search(IndexAndTypes(indexAlias, searchInTypes)).query(qry).limit(limit).from(from)
-
-    val finalSearchDef =
-      if (from < 10000) {
-        searchDef.sortBy(
-          Seq(
-            FieldSortDefinition("museumNo"),
-            FieldSortDefinition("subNo")
-          )
-        )
-      } else searchDef
-
-    client
-      .execute(finalSearchDef)(MusitSearchHttpExecutable.musitSearchHttpExecutable)
+    val res = client
+      .execute(
+        search(IndexAndTypes(indexAlias, searchInTypes)).query(qry).size(0)
+      )(MusitSearchHttpExecutable.musitSearchHttpExecutable)
       .map(MusitSuccess.apply)
       .recover {
         case NonFatal(err) =>
@@ -63,6 +125,7 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
           logger.warn(msg, err)
           MusitGeneralError(msg)
       }
+    FutureMusitResult(res).map(esResponse => esResponse.response.hits.total)
   }
 
   private def createSearchQuery(
