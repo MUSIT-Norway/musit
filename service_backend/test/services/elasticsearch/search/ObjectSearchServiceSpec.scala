@@ -204,7 +204,7 @@ class ObjectSearchServiceSpec
         .restrictedObjectSearch(
           mid = MuseumId(2),
           collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
-          limit = 10,
+          limit = 20,
           from = 0,
           museumNo = None,
           subNo = None,
@@ -344,7 +344,8 @@ class ObjectSearchServiceSpec
         .successValue
         .response
 
-      res.hits.hits.map(toObjectUUID) must contain only (obj4inCol2, obj7inCol2)
+      res.hits.hits
+        .map(toObjectUUID) must contain only (obj4inCol2, obj7inCol2, obj3inCol2)
       res.hits.hits.headOption.get.id mustBe obj7inCol2.underlying.toString
 
     }
@@ -352,8 +353,10 @@ class ObjectSearchServiceSpec
   }
 
   def toObjectUUID(s: SearchHit) = {
-    //println("OBJEKTER " + s)
+    println("")
+    println("OBJEKTER " + s)
     ObjectUUID(UUID.fromString(s.id))
+
   }
 
   override def beforeAll(): Unit = {
@@ -467,7 +470,12 @@ class ObjectSearchServiceSpec
       natGender = None,
       natLegDate = None,
       isDeleted = isDeleted,
-      aggregatedClassData = aggregatedClassData
+      aggregatedClassData = aggregatedClassData,
+      // museumNoPrefix = museumNo.prefix.map(_.toLowerCase),
+      museumNoAsANumber = museumNo.asNumber,
+      subNoAsANumber = subNo.flatMap(_.asNumber),
+      museumNoAsLowerCase = Some(MuseumNo(museumNo.value.toLowerCase)),
+      subNoAsLowerCase = subNo.map(s => SubNo(s.value.toLowerCase))
     )
     indexInto(indexName, objects.objectType) id id.underlying.toString doc d
   }

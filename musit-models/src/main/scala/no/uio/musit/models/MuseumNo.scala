@@ -32,6 +32,24 @@ trait MuseumNumber {
       m.group(1).toLong
     }
   }
+
+  val prefixRegExp = """\A(\D*)(?:\d+)(?:\D.*)?\z""".r
+
+  def prefix: Option[String] = {
+    val optM = prefixRegExp.findFirstMatchIn(value)
+
+    // This regular expression is designed to only return one group. Per def of
+    // this re, this should always be possible (within reasonable length of
+    // museumNo!) and never throw any exceptions.
+    optM.flatMap { m =>
+      if (m.groupCount == 0) None
+      else {
+        assert(m.groupCount == 1) // TODO: Don't throw Exception here!
+        val trimmed = m.group(1).trim()
+        if (trimmed.isEmpty) None else Some(trimmed)
+      }
+    }
+  }
 }
 
 case class MuseumNo(value: String) extends MuseumNumber

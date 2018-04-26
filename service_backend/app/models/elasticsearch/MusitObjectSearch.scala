@@ -22,7 +22,12 @@ case class MusitObjectSearch(
     natGender: Option[String],
     natLegDate: Option[String],
     isDeleted: Boolean,
-    aggregatedClassData: Option[String]
+    aggregatedClassData: Option[String],
+    // museumNoPrefix: Option[String],
+    museumNoAsANumber: Option[Long],
+    subNoAsANumber: Option[Long],
+    museumNoAsLowerCase: Option[MuseumNo],
+    subNoAsLowerCase: Option[SubNo]
 ) extends Searchable {
   override val docId       = id.underlying.toString
   override val docParentId = None
@@ -57,6 +62,11 @@ object MusitObjectSearch {
     mo.natGender,
     mo.natLegDate,
     mo.isDeleted,
-    mo.aggregatedClassData
+    mo.aggregatedClassData,
+    //mo.museumNo.prefix.map(_.toLowerCase),
+    mo.museumNo.asNumber,
+    mo.subNo.flatMap(_.asNumber),
+    Some(MuseumNo(mo.museumNo.value.toLowerCase)),
+    mo.subNo.map(s => SubNo(s.value.toLowerCase))
   )
 }

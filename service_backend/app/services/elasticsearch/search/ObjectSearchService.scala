@@ -52,8 +52,8 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
       if (resultCount < maxSortCount) {
         tempQry = tempQry.sortBy(
           Seq(
-            FieldSortDefinition("museumNo"),
-            FieldSortDefinition("subNo")
+            FieldSortDefinition("museumNoAsLowerCase"),
+            FieldSortDefinition("subNoAsLowerCase")
           )
         )
       }
@@ -137,10 +137,10 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
       q: Option[String]
   )(implicit currUsr: AuthenticatedUser) = {
     val objectTypeFilter = Seq(
-      //museumNo.map(v => wildcardQuery("museumNo", v.value.toLowerCase)),
-      museumNo.map(v => wildcardQuery("museumNo", v.value)),
-      //subNo.map(v => wildcardQuery("subNo", v.value.toLowerCase)),
-      subNo.map(v => wildcardQuery("subNo", v.value)),
+      museumNo.map(
+        v => wildcardQuery("museumNoAsLowerCase", v.value.toLowerCase)
+      ),
+      subNo.map(v => wildcardQuery("subNoAsLowerCase", v.value.toLowerCase)),
       term.map(v => wildcardQuery("term", v.toLowerCase))
     ).flatten
 

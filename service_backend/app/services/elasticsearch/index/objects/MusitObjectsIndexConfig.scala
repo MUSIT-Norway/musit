@@ -1,5 +1,6 @@
 package services.elasticsearch.index.objects
 
+import com.sksamuel.elastic4s.analyzers
 import com.sksamuel.elastic4s.analyzers.{KeywordAnalyzer, StandardAnalyzer}
 import com.sksamuel.elastic4s.http.ElasticDsl.createIndex
 import com.sksamuel.elastic4s.indexes.CreateIndexDefinition
@@ -24,7 +25,12 @@ object MusitObjectsIndexConfig {
         textField("natGender"),
         textField("natLegDate"),
         booleanField("isDeleted"),
-        textField("aggregatedClassData")
+        textField("aggregatedClassData"),
+        //keywordField("museumNoPrefix"),
+        intField("museumNoAsANumber"),
+        intField("subNoAsANumber"),
+        keywordField("museumNoAsLowerCase"),
+        keywordField("subNoAsLowerCase")
       ),
       mapping(sampleType) as (
         uuid("objectId"),
