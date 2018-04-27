@@ -353,8 +353,6 @@ class ObjectSearchServiceSpec
   }
 
   def toObjectUUID(s: SearchHit) = {
-    println("")
-    println("OBJEKTER " + s)
     ObjectUUID(UUID.fromString(s.id))
 
   }
