@@ -29,6 +29,7 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
       limit: Int,
       // query stuff
       museumNo: Option[MuseumNo],
+      museumNoAsANumber: Option[String],
       subNo: Option[SubNo],
       term: Option[String],
       queryStr: Option[String],
@@ -37,7 +38,15 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
   )(
       implicit currUsr: AuthenticatedUser
   ): FutureMusitResult[MusitESResponse[SearchResponse]] = {
-    val qry = createSearchQuery(mid, collectionIds, museumNo, subNo, term, queryStr)
+    val qry = createSearchQuery(
+      mid,
+      collectionIds,
+      museumNo,
+      museumNoAsANumber,
+      subNo,
+      term,
+      queryStr
+    )
 
     val countRes = resultCount(qry, ignoreSamples)
 
@@ -52,6 +61,7 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
       if (resultCount < maxSortCount) {
         tempQry = tempQry.sortBy(
           Seq(
+            FieldSortDefinition("museumNoAsANumber"),
             FieldSortDefinition("museumNoAsLowerCase"),
             FieldSortDefinition("subNoAsLowerCase")
           )
@@ -80,6 +90,7 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
       limit: Int,
       // query stuff
       museumNo: Option[MuseumNo],
+      museumNoAsANumber: Option[String],
       subNo: Option[SubNo],
       term: Option[String],
       queryStr: Option[String],
@@ -98,6 +109,7 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
       from,
       limit,
       museumNo,
+      museumNoAsANumber,
       subNo,
       term,
       queryStr,
@@ -128,20 +140,33 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
     FutureMusitResult(res).map(esResponse => esResponse.response.hits.total)
   }
 
+  def isAllDigits(x: String) = x forall Character.isDigit
+
   private def createSearchQuery(
       mid: MuseumId,
       collectionIds: Seq[MuseumCollection],
       museumNo: Option[MuseumNo],
+      museumNoAsANumber: Option[String],
       subNo: Option[SubNo],
       term: Option[String],
       q: Option[String]
   )(implicit currUsr: AuthenticatedUser) = {
+
+    def museumNoAsANumberQuery(mnrAsANumber: String): QueryDefinition = {
+      val pattern = "(\\d*)\\.\\.(\\d*)".r
+      mnrAsANumber match {
+        case pattern(from, to) => rangeQuery("museumNoAsANumber").gte(from).lte(to)
+        case other             => termQuery("museumNoAsANumber", other)
+      }
+    }
+
     val objectTypeFilter = Seq(
       museumNo.map(
         v => wildcardQuery("museumNoAsLowerCase", v.value.toLowerCase)
       ),
       subNo.map(v => wildcardQuery("subNoAsLowerCase", v.value.toLowerCase)),
-      term.map(v => wildcardQuery("term", v.toLowerCase))
+      term.map(v => wildcardQuery("term", v.toLowerCase)),
+      museumNoAsANumber.map(v => museumNoAsANumberQuery(v))
     ).flatten
 
     val sampleTypeFilter = Seq(q.map(query)).flatten

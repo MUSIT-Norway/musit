@@ -81,6 +81,7 @@ class ObjectSearchServiceSpec
           limit = 10,
           from = 0,
           museumNo = None,
+          museumNoAsANumber = None,
           subNo = None,
           term = None,
           queryStr = None
@@ -103,6 +104,7 @@ class ObjectSearchServiceSpec
           limit = 10,
           from = 0,
           museumNo = None,
+          museumNoAsANumber = None,
           subNo = None,
           term = None,
           queryStr = None
@@ -122,6 +124,7 @@ class ObjectSearchServiceSpec
           limit = 10,
           from = 0,
           museumNo = None,
+          museumNoAsANumber = None,
           subNo = None,
           term = None,
           queryStr = None
@@ -148,6 +151,7 @@ class ObjectSearchServiceSpec
           limit = 10,
           from = 0,
           museumNo = None,
+          museumNoAsANumber = None,
           subNo = None,
           term = None,
           queryStr = None
@@ -168,6 +172,7 @@ class ObjectSearchServiceSpec
           limit = 10,
           from = 0,
           museumNo = Some(MuseumNo("c-402")),
+          museumNoAsANumber = None,
           subNo = None,
           term = None,
           queryStr = None
@@ -187,6 +192,7 @@ class ObjectSearchServiceSpec
           limit = 10,
           from = 0,
           museumNo = Some(MuseumNo("c1610")),
+          museumNoAsANumber = None,
           subNo = Some(SubNo("b")),
           term = None,
           queryStr = None
@@ -207,6 +213,7 @@ class ObjectSearchServiceSpec
           limit = 20,
           from = 0,
           museumNo = None,
+          museumNoAsANumber = None,
           subNo = None,
           term = None,
           queryStr = Some("c-402")
@@ -227,6 +234,7 @@ class ObjectSearchServiceSpec
           limit = 10,
           from = 0,
           museumNo = None,
+          museumNoAsANumber = None,
           subNo = None,
           term = None,
           queryStr = Some("C1610 AND subNo: b")
@@ -246,6 +254,7 @@ class ObjectSearchServiceSpec
           limit = 10,
           from = 0,
           museumNo = None,
+          museumNoAsANumber = None,
           subNo = Some(SubNo("b")),
           term = None,
           queryStr = Some("C1610")
@@ -264,6 +273,7 @@ class ObjectSearchServiceSpec
           limit = 10,
           from = 0,
           museumNo = Some(MuseumNo("c-602")),
+          museumNoAsANumber = None,
           subNo = Some(SubNo("b d")),
           term = None,
           queryStr = None
@@ -282,6 +292,7 @@ class ObjectSearchServiceSpec
           limit = 10,
           from = 0,
           museumNo = None,
+          museumNoAsANumber = None,
           subNo = None,
           term = None,
           queryStr = Some("taxontull")
@@ -300,6 +311,7 @@ class ObjectSearchServiceSpec
           limit = 10,
           from = 0,
           museumNo = Some(MuseumNo("c1610")),
+          museumNoAsANumber = None,
           subNo = Some(SubNo("b")),
           term = None,
           queryStr = Some("taxontull")
@@ -318,6 +330,7 @@ class ObjectSearchServiceSpec
           limit = 10,
           from = 0,
           museumNo = Some(MuseumNo("C1610")),
+          museumNoAsANumber = None,
           subNo = Some(SubNo("c")),
           term = Some("TUSENBEN"),
           queryStr = None
@@ -336,6 +349,7 @@ class ObjectSearchServiceSpec
           limit = 10,
           from = 0,
           museumNo = Some(MuseumNo("C1610")),
+          museumNoAsANumber = None,
           subNo = None,
           term = None,
           queryStr = None
@@ -347,6 +361,47 @@ class ObjectSearchServiceSpec
       res.hits.hits
         .map(toObjectUUID) must contain only (obj4inCol2, obj7inCol2, obj3inCol2)
       res.hits.hits.headOption.get.id mustBe obj7inCol2.underlying.toString
+
+    }
+    "search on museumNoAsANumber with three result " taggedAs ElasticsearchContainer in {
+      val res = service
+        .restrictedObjectSearch(
+          mid = MuseumId(2),
+          collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
+          limit = 10,
+          from = 0,
+          museumNo = None,
+          museumNoAsANumber = Some("1610"),
+          subNo = None,
+          term = None,
+          queryStr = None
+        )(dummyUser)
+        .futureValue
+        .successValue
+        .response
+
+      res.hits.hits
+        .map(toObjectUUID) must contain only (obj3inCol2, obj7inCol2, obj4inCol2)
+
+    }
+    "search on museumNoAsANumber with two result " taggedAs ElasticsearchContainer in {
+      val res = service
+        .restrictedObjectSearch(
+          mid = MuseumId(2),
+          collectionIds = Seq(MuseumCollection(Ethnography.uuid, None, Seq())),
+          limit = 10,
+          from = 0,
+          museumNo = None,
+          museumNoAsANumber = Some("400..410"),
+          subNo = None,
+          term = None,
+          queryStr = None
+        )(dummyUser)
+        .futureValue
+        .successValue
+        .response
+
+      res.hits.hits.map(toObjectUUID) must contain only (obj2inCol2, sam2FromObj2inCol2)
 
     }
 
