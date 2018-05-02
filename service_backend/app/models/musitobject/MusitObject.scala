@@ -5,6 +5,7 @@ import no.uio.musit.models.ObjectTypes.CollectionObjectType
 import no.uio.musit.models._
 import org.joda.time.DateTime
 import play.api.libs.json.{Json, Writes}
+import play.api.Logger
 
 case class MusitObject(
     id: ObjectId,
@@ -49,6 +50,8 @@ object MusitObject {
     baseWrites.writes(mo) ++ Json.obj("objectType" -> CollectionObjectType.name)
   }
 
+  private[this] val logger = Logger(classOf[MusitObject])
+
   type ObjSearchTuple = (
       (
           Option[ObjectId],
@@ -76,6 +79,7 @@ object MusitObject {
   ) // scalastyle:ignore
 
   def fromSearchTuple(t: ObjSearchTuple): MusitObject = {
+    logger.info(s"fromSearcTuple: id = ${t._1} uuid: ${t._2}")
     MusitObject(
       id = t._1.get, // scalastyle:ignore
       uuid = t._2,

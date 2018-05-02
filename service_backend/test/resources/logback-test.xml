@@ -19,7 +19,7 @@
   <logger name="no.uio.musit" level="ERROR"/>
   <logger name="controllers" level="OFF"/>
   <logger name="services" level="OFF"/>
-  <logger name="models" level="OFF"/>
+  <logger name="models" level="INFO"/>
   <logger name="repositories" level="ERROR"/>
 
 
