@@ -44,29 +44,40 @@ class ElasticsearchObjectsDao @Inject()(
       ElasticsearchObjectsDao.indexRanges(streams, maxId.get.underlying).map {
         case (from, to) =>
           val query = objTable.filter(row => (row.id >= from) && (row.id <= to))
-          Source.fromPublisher(
-            db.stream(
-                query.result
-                  .withStatementParameters(
-                    rsType = ResultSetType.ForwardOnly,
-                    rsConcurrency = ResultSetConcurrency.ReadOnly,
-                    fetchSize = fetchSize
-                  )
-                  .transactionally
-              )
-              .mapResult { x =>
-                var res: Option[MusitObject] = None
-                try {
-                  res = Some(MusitObject.fromSearchTuple(x))
-                } catch {
-                  case e: Exception => {
-                    logger.error(s"objectId ${x._1}")
-                    throw (e)
+          Source.fromPublisher {
+
+            try {
+
+              db.stream(
+                  query.result
+                    .withStatementParameters(
+                      rsType = ResultSetType.ForwardOnly,
+                      rsConcurrency = ResultSetConcurrency.ReadOnly,
+                      fetchSize = fetchSize
+                    )
+                    .transactionally
+                )
+                .mapResult { x =>
+                  try {
+                    MusitObject.fromSearchTuple(x)
+                  } catch {
+                    case e: Exception => {
+                      logger.error(s"objectId ${x._1}")
+                      throw (e)
+                    }
                   }
                 }
-                res.get
+
+            } catch {
+
+              case e: Exception => {
+                logger.error(s"shit: fra: $from til: $to")
+                throw e
+
               }
-          )
+            }
+
+          }
       }
     }
   }
@@ -87,7 +98,16 @@ class ElasticsearchObjectsDao @Inject()(
             )
             .transactionally
         )
-        .mapResult(MusitObject.fromSearchTuple)
+        .mapResult { x =>
+          try {
+            MusitObject.fromSearchTuple(x)
+          } catch {
+            case e: Exception => {
+              logger.error(s"ObjectChangeAfterTimes objectid:  ${x._1}")
+              throw (e)
+            }
+          }
+        }
     )
   }
 
@@ -112,7 +132,16 @@ class ElasticsearchObjectsDao @Inject()(
             )
             .transactionally
         )
-        .mapResult(fromSampleObjectRow)
+        .mapResult { x =>
+          try {
+            fromSampleObjectRow(x)
+          } catch {
+            case e: Exception => {
+              logger.error(s"SampleObjectId ${x._1}")
+              throw (e)
+            }
+          }
+        }
     )
   }
 

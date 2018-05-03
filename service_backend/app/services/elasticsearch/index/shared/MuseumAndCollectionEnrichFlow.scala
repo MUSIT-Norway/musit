@@ -4,6 +4,7 @@ import akka.NotUsed
 import akka.stream.scaladsl.Flow
 import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.models.{MuseumId, ObjectUUID}
+import play.api.Logger
 import repositories.elasticsearch.dao.ElasticsearchObjectsDao
 
 import scala.concurrent.ExecutionContext
@@ -33,6 +34,8 @@ trait MuseumAndCollectionEnrichFlow[In, Out] {
    */
   val groupedInputMsgSize: Int = 100
 
+  private[this] val logger = Logger(classOf[MuseumAndCollectionEnrichFlow[In, Out]])
+
   def flow(
       implicit objectDao: ElasticsearchObjectsDao,
       ec: ExecutionContext
@@ -40,13 +43,23 @@ trait MuseumAndCollectionEnrichFlow[In, Out] {
     Flow[In]
       .grouped(groupedInputMsgSize)
       .mapAsync(asyncFetch) { inputs =>
-        val set = inputs.flatMap(extractObjectUUID).toSet
-        objectDao.findObjectsMidAndCollection(set).map { items =>
-          inputs.map(input => {
-            val inputId   = extractObjectUUID(input)
-            val midAndCol = items.find(i => inputId.contains(i._1)).map(r => (r._2, r._3))
-            mergeToOutput(input, midAndCol)
-          })
+        val ouuids: Set[ObjectUUID] = inputs.flatMap(extractObjectUUID).toSet
+        try {
+          val set = ouuids
+          objectDao.findObjectsMidAndCollection(set).map { items =>
+            inputs.map(input => {
+              val inputId = extractObjectUUID(input)
+              val midAndCol =
+                items.find(i => inputId.contains(i._1)).map(r => (r._2, r._3))
+              mergeToOutput(input, midAndCol)
+            })
+          }
+        } catch {
+          case e: Exception => {
+            logger.error(s" inni FLOW ")
+            logger.error(s" flow UUIDs: ${ouuids}")
+            throw (e)
+          }
         }
       }
       .mapConcat(identity)
