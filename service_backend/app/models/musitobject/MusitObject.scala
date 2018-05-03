@@ -79,7 +79,7 @@ object MusitObject {
   ) // scalastyle:ignore
 
   def fromSearchTuple(t: ObjSearchTuple): MusitObject = {
-    logger.info(s"fromSearcTuple: id = ${t._1} uuid: ${t._2}")
+    //logger.info(s"fromSearcTuple: id = ${t._1} uuid: ${t._2}")
     MusitObject(
       id = t._1.get, // scalastyle:ignore
       uuid = t._2,

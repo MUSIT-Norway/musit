@@ -8,6 +8,7 @@ import models.musitobject.MusitObject
 import no.uio.musit.models.MuseumCollections.Collection
 import no.uio.musit.models.{MuseumId, ObjectId, ObjectUUID}
 import org.joda.time.DateTime
+import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import repositories.analysis.dao.AnalysisTables
 import repositories.musitobject.dao.ObjectTables
@@ -30,6 +31,8 @@ class ElasticsearchObjectsDao @Inject()(
   implicit def longToObjectId(n: Long): Rep[ObjectId] =
     LiteralColumn(ObjectId.fromLong(n))
 
+  private[this] val logger = Logger(classOf[ElasticsearchObjectsDao])
+
   def objectStreams(
       streams: Int,
       fetchSize: Int
@@ -51,7 +54,18 @@ class ElasticsearchObjectsDao @Inject()(
                   )
                   .transactionally
               )
-              .mapResult(MusitObject.fromSearchTuple)
+              .mapResult { x =>
+                var res: Option[MusitObject] = None
+                try {
+                  res = Some(MusitObject.fromSearchTuple(x))
+                } catch {
+                  case e: Exception => {
+                    logger.error(s"objectId ${x._1}")
+                    throw (e)
+                  }
+                }
+                res.get
+              }
           )
       }
     }
