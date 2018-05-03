@@ -46,37 +46,16 @@ class ElasticsearchObjectsDao @Inject()(
           val query = objTable.filter(row => (row.id >= from) && (row.id <= to))
           Source.fromPublisher {
 
-            try {
-
-              db.stream(
-                  query.result
-                    .withStatementParameters(
-                      rsType = ResultSetType.ForwardOnly,
-                      rsConcurrency = ResultSetConcurrency.ReadOnly,
-                      fetchSize = fetchSize
-                    )
-                    .transactionally
-                )
-                .mapResult { x =>
-                  try {
-                    MusitObject.fromSearchTuple(x)
-                  } catch {
-                    case e: Exception => {
-                      logger.error(s"objectId ${x._1}")
-                      throw (e)
-                    }
-                  }
-                }
-
-            } catch {
-
-              case e: Exception => {
-                logger.error(s"shit: fra: $from til: $to")
-                throw e
-
-              }
-            }
-
+            db.stream(
+                query.result
+                  .withStatementParameters(
+                    rsType = ResultSetType.ForwardOnly,
+                    rsConcurrency = ResultSetConcurrency.ReadOnly,
+                    fetchSize = fetchSize
+                  )
+                  .transactionally
+              )
+              .mapResult(MusitObject.fromSearchTuple)
           }
       }
     }
@@ -98,16 +77,7 @@ class ElasticsearchObjectsDao @Inject()(
             )
             .transactionally
         )
-        .mapResult { x =>
-          try {
-            MusitObject.fromSearchTuple(x)
-          } catch {
-            case e: Exception => {
-              logger.error(s"ObjectChangeAfterTimes objectid:  ${x._1}")
-              throw (e)
-            }
-          }
-        }
+        .mapResult(MusitObject.fromSearchTuple)
     )
   }
 
@@ -132,16 +102,7 @@ class ElasticsearchObjectsDao @Inject()(
             )
             .transactionally
         )
-        .mapResult { x =>
-          try {
-            fromSampleObjectRow(x)
-          } catch {
-            case e: Exception => {
-              logger.error(s"SampleObjectId ${x._1}")
-              throw (e)
-            }
-          }
-        }
+        .mapResult(fromSampleObjectRow)
     )
   }
 

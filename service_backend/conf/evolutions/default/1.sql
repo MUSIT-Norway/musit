@@ -646,3 +646,31 @@ object_uuid varchar2(36)NOT NULL,
 event_id number(20) NOT NULL,
 PRIMARY KEY (object_uuid,event_id)
 );
+
+
+-------------------------------------------------------------------------------
+-- MUSARK_THING MODULE FOR SEARCH IN OBJECTS FOR MORE THAN 10 000 ROWS
+--------------------------------------------------------------------------------
+CREATE TABLE MUSARK_THING.MUSITTHING_SEARCH
+(
+ objectuuid            VARCHAR2(36) not null,
+ museumno              VARCHAR2(1000),
+ subno                 VARCHAR2(500),
+ term                  VARCHAR2(500),
+ mainobject_id         INTEGER,
+ new_collection_id     INTEGER,
+ ark_form              VARCHAR2(2000),
+ ark_funn_nr           VARCHAR2(500 CHAR),
+ nat_stage             VARCHAR2(256),
+ nat_gender            VARCHAR2(256),
+ nat_legdato           VARCHAR2(64),
+ is_deleted            INTEGER default 0,
+ aggregated_class_data VARCHAR2(4000),
+ updated_date          TIMESTAMP(6) not null,
+ museumno_prefix       VARCHAR2(20),
+ museumno_number       INTEGER,
+ subno_number          INTEGER,
+ document_json         CLOB,
+ museumid              INTEGER,
+  PRIMARY KEY (objectuuid)
+);

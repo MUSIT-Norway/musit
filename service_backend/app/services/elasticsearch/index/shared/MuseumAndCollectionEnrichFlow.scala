@@ -43,24 +43,16 @@ trait MuseumAndCollectionEnrichFlow[In, Out] {
     Flow[In]
       .grouped(groupedInputMsgSize)
       .mapAsync(asyncFetch) { inputs =>
-        val ouuids: Set[ObjectUUID] = inputs.flatMap(extractObjectUUID).toSet
-        try {
-          val set = ouuids
-          objectDao.findObjectsMidAndCollection(set).map { items =>
-            inputs.map(input => {
-              val inputId = extractObjectUUID(input)
-              val midAndCol =
-                items.find(i => inputId.contains(i._1)).map(r => (r._2, r._3))
-              mergeToOutput(input, midAndCol)
-            })
-          }
-        } catch {
-          case e: Exception => {
-            logger.error(s" inni FLOW ")
-            logger.error(s" flow UUIDs: ${ouuids}")
-            throw (e)
-          }
+        val set = inputs.flatMap(extractObjectUUID).toSet
+        objectDao.findObjectsMidAndCollection(set).map { items =>
+          inputs.map(input => {
+            val inputId = extractObjectUUID(input)
+            val midAndCol =
+              items.find(i => inputId.contains(i._1)).map(r => (r._2, r._3))
+            mergeToOutput(input, midAndCol)
+          })
         }
+
       }
       .mapConcat(identity)
 }

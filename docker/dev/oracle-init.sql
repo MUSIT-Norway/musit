@@ -11,6 +11,7 @@ CREATE USER musark_analysis IDENTIFIED BY musit DEFAULT TABLESPACE USERS PROFILE
 CREATE USER musark_loan IDENTIFIED BY musit DEFAULT TABLESPACE USERS PROFILE DEFAULT ACCOUNT UNLOCK;
 CREATE USER musit_mapping IDENTIFIED BY musit DEFAULT TABLESPACE USERS PROFILE DEFAULT ACCOUNT UNLOCK;
 CREATE USER musark_conservation IDENTIFIED BY musit DEFAULT TABLESPACE USERS PROFILE DEFAULT ACCOUNT UNLOCK;
+CREATE USER musark_thing IDENTIFIED BY musit DEFAULT TABLESPACE USERS PROFILE DEFAULT ACCOUNT UNLOCK;
 
 ALTER USER musark_auth QUOTA UNLIMITED ON USERS;
 ALTER USER musark_core QUOTA UNLIMITED ON USERS;
@@ -20,6 +21,7 @@ ALTER USER musark_analysis QUOTA UNLIMITED ON USERS;
 ALTER USER musark_loan QUOTA UNLIMITED ON USERS;
 ALTER USER musit_mapping QUOTA UNLIMITED ON USERS;
 ALTER USER musark_conservation QUOTA UNLIMITED ON USERS;
+ALTER USER musark_thing QUOTA UNLIMITED ON USERS;
 
 -- Create Auth tables
 CREATE TABLE MUSARK_AUTH.AUTH_GROUP (
@@ -254,6 +256,7 @@ CREATE TABLE MUSIT_MAPPING.MUSITTHING (
   PRIMARY KEY (object_id)
 );
 
+
 -- ===========================================================================
 -- Temporary mapping table for museum object's material.
 -- ===========================================================================
@@ -315,6 +318,35 @@ CREATE TABLE MUSIT_MAPPING.THING_COORDINATE
   ark_ost            VARCHAR2(50),
   ark_localksettid   INTEGER
 );
+
+-- ===========================================================================
+-- Temporary mapping table for museum object's coordinate.
+-- ===========================================================================
+
+CREATE TABLE MUSARK_THING.MUSITTHING_SEARCH
+(
+  objectuuid            VARCHAR2(36) not null,
+  museumno              VARCHAR2(1000),
+  subno                 VARCHAR2(500),
+  term                  VARCHAR2(500),
+  mainobject_id         INTEGER,
+  new_collection_id     INTEGER,
+  ark_form              VARCHAR2(2000),
+  ark_funn_nr           VARCHAR2(500 CHAR),
+  nat_stage             VARCHAR2(256),
+  nat_gender            VARCHAR2(256),
+  nat_legdato           VARCHAR2(64),
+  is_deleted            INTEGER default 0,
+  aggregated_class_data VARCHAR2(4000),
+  updated_date          TIMESTAMP(6) not null,
+  museumno_prefix       VARCHAR2(20),
+  museumno_number       INTEGER,
+  subno_number          INTEGER,
+  document_json         CLOB,
+  museumid              INTEGER,
+   PRIMARY KEY (objectuuid)
+);
+
 
 -- ===========================================================================
 -- Tables for Analysis and SampleObject management
@@ -474,29 +506,6 @@ CREATE TABLE MUSARK_LOAN.LENT_OBJECT (
   PRIMARY KEY (lent_object_id)
 );
 
-CREATE TABLE MUSARK_CONSERVATION.MUSITTHING_SEARCH
-(
-  objectuuid            VARCHAR2(36) not null,
-  museumno              VARCHAR2(1000),
-  subno                 VARCHAR2(500),
-  term                  VARCHAR2(500),
-  mainobject_id         INTEGER,
-  new_collection_id     INTEGER,
-  ark_form              VARCHAR2(2000),
-  ark_funn_nr           VARCHAR2(500 CHAR),
-  nat_stage             VARCHAR2(256),
-  nat_gender            VARCHAR2(256),
-  nat_legdato           VARCHAR2(64),
-  is_deleted            INTEGER default 0,
-  aggregated_class_data VARCHAR2(4000),
-  updated_date          TIMESTAMP(6) not null,
-  museumno_prefix       VARCHAR2(20),
-  museumno_number       INTEGER,
-  subno_number          INTEGER,
-  document_json         CLOB,
-  museumid              INTEGER,
-   PRIMARY KEY (objectuuid)
-);
 
 CREATE SEQUENCE MUSARK_CONSERVATION.event_eventid_seq
 INCREMENT BY 1
