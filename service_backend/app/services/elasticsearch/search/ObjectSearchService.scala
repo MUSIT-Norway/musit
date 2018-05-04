@@ -48,39 +48,37 @@ class ObjectSearchService @Inject()(implicit client: HttpClient, ex: ExecutionCo
       queryStr
     )
 
-    val countRes = resultCount(qry, ignoreSamples)
+    // val countRes = resultCount(qry, ignoreSamples)
 
-    countRes.flatMap { resultCount =>
-      val searchInTypes =
-        if (ignoreSamples) Seq(objectType) else Seq(objectType, sampleType)
-      var tempQry = search(IndexAndTypes(indexAlias, searchInTypes))
-        .query(qry)
-        .limit(limit)
-        .from(from)
+    //countRes.flatMap { resultCount =>
+    val searchInTypes =
+      if (ignoreSamples) Seq(objectType) else Seq(objectType, sampleType)
+    var tempQry =
+      search(IndexAndTypes(indexAlias, searchInTypes)).query(qry).limit(limit).from(from)
 
-      if (resultCount < maxSortCount) {
-        tempQry = tempQry.sortBy(
-          Seq(
-            FieldSortDefinition("museumNoAsANumber"),
-            FieldSortDefinition("museumNoAsLowerCase"),
-            FieldSortDefinition("subNoAsLowerCase")
-          )
-        )
-      }
-
-      val res = FutureMusitResult(
-        client
-          .execute(tempQry)(MusitSearchHttpExecutable.musitSearchHttpExecutable)
-          .map(MusitSuccess.apply)
-          .recover {
-            case NonFatal(err) =>
-              val msg = s"Unable to execute search: ${err.getMessage}"
-              logger.warn(msg, err)
-              MusitGeneralError(msg)
-          }
+    // if (resultCount < maxSortCount) {
+    tempQry = tempQry.sortBy(
+      Seq(
+        FieldSortDefinition("museumNoAsANumber"),
+        FieldSortDefinition("museumNoAsLowerCase"),
+        FieldSortDefinition("subNoAsLowerCase")
       )
-      res
-    }
+    )
+    //}
+
+    val res = FutureMusitResult(
+      client
+        .execute(tempQry)(MusitSearchHttpExecutable.musitSearchHttpExecutable)
+        .map(MusitSuccess.apply)
+        .recover {
+          case NonFatal(err) =>
+            val msg = s"Unable to execute search: ${err.getMessage}"
+            logger.warn(msg, err)
+            MusitGeneralError(msg)
+        }
+    )
+    res
+    //  }
   }
 
   def restrictedObjectSearch(
