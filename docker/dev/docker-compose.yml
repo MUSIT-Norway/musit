@@ -32,6 +32,17 @@ services:
     ports:
       - "5432:5432"
 
+  postgres_db_person:
+    image: harbor.uio.no/library/postgres
+    #    build: postgres/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+
+    ports:
+      - "5433:5432"
+
   backend:
     image: service_backend:0.1-SNAPSHOT
     ports:
