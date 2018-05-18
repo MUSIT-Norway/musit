@@ -67,11 +67,39 @@ class IndexObjects @Inject()(
     MusitObjectsIndexConfig.config(indexName)
 
   override def maybeUpdateDbSearchTable(dt: DateTime): Future[Unit] = {
-    searchObjectDao.updateSearchTable(dt)
+    logger.info("<maybeUpdateDbSearchTable>")
+
+    val res =
+      try {
+        searchObjectDao.updateSearchTable(dt).recover {
+          case err: Throwable =>
+            logger.error(s"updating of search table failed: ${err.getMessage()}")
+            ()
+        }
+      } catch {
+        case err: Exception => {
+          logger.error(
+            s"Exception: updating of search table (maybeUpdateDbSearchTable) failed: ${err.getMessage()}"
+          )
+
+        }
+        Future.successful(())
+
+      }
+
+    res.onComplete(_ => logger.info("</maybeUpdateDbSearchTable>"))
+    res
+
   }
 
   override def maybeRecreateDbSearchTable(): Future[Unit] = {
-    val res = searchObjectDao.recreateSearchTable()
+    var res = searchObjectDao.recreateSearchTable().recover {
+      case err: Throwable =>
+        logger.error(s"recreating of search table failed: ${err.getMessage()}")
+        ()
+    }
+
+    //val res = searchObjectDao.recreateSearchTable()
 
     /*Todo: Samples?
     val sampleSource =
