@@ -39,7 +39,7 @@ class IndexObjects @Inject()(
     override val indexMaintainer: IndexMaintainer,
     val dbConfigProvider: DatabaseConfigProvider
 
-//val searchObjectDao: MusitSearchObjectDao
+    //val searchObjectDao: MusitSearchObjectDao
 )(implicit ec: ExecutionContext, mat: Materializer)
     extends Indexer
     /*with MusitSearchObjectDao*/ {
