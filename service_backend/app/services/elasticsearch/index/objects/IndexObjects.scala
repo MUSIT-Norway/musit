@@ -79,7 +79,9 @@ class IndexObjects @Inject()(
       } catch {
         case err: Exception => {
           logger.error(
-            s"Exception: updating of search table (maybeUpdateDbSearchTable) failed: ${err.getMessage()}"
+            s"Exception: updating of search table (maybeUpdateDbSearchTable) failed: ${err
+              .getClass()
+              .getCanonicalName()} ${err.getMessage()}"
           )
 
         }

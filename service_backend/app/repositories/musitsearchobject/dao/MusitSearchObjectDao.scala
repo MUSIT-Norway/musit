@@ -23,10 +23,9 @@ import repositories.musitobject.dao.SearchFieldValues.{
 }
 import repositories.shared.dao.{ColumnTypeMappers, SharedTables}
 import slick.jdbc.{ResultSetConcurrency, ResultSetType}
-
-import scala.concurrent.Future
-
-import scala.concurrent.ExecutionContext
+import slick.sql.SqlAction
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 class MusitSearchObjectDao @Inject()(
     implicit
@@ -204,19 +203,22 @@ class MusitSearchObjectDao @Inject()(
       .transactionally
     logger.info("setCalculatedValuesForAllRowsInQueryResult-SQL:" + q.result.statements)
     db.stream(qResult).foreach { r =>
-      val ac = updateJsonColumn(table, r)
-      dbRunAndLogProblems(ac, s"update for $r")
+      val ac  = updateJsonColumn(table, r)
+      val fut = dbRunAndLogProblems(ac, s"update for $r")
+      Await.result(fut, 10 seconds) //I think we need to do await here, because after the db.stream.foreach, we rename the table, so these must be completed by then.
 
     }
   }
 
   def updateSearchTable(afterDate: DateTime)(implicit ec: ExecutionContext) = {
+
     logger.info(s"updateSearchTable afterDate=$afterDate")
 
     val updatedRows = objTable.filter(_.updatedDate > afterDate)
 
     val rowsToDelete =
-      searchObjectTable.filter(so => so.objectuuid in (updatedRows.map(t => t.uuid.get)))
+      searchObjectTable.filter(so => so.objectuuid in (updatedRows.map(t => t.uuid)))
+
     val deleteAction = rowsToDelete.delete
 
     logger.info("updateSearchTable: delete sql: " + deleteAction.statements)
@@ -248,25 +250,27 @@ class MusitSearchObjectDao @Inject()(
       DBIO.seq(deleteAction, insertAction),
       s"when deleting and inserting into ${schemaPrefixedSearchObjectTableName}" /*, actions*/
     )
-    //Note that we assumen the objTable.uuid columns is not null (in practice, even though at the moment there's no explicit constraint)
+    //Note that we assume the objTable.uuid columns is not null (in practice, even though at the moment there's no explicit constraint)
 
     val nonDeletedUuidsQ = nonDeletedUpdatedRows.map(r => r.uuid.get)
     setCalculatedValuesForAllRowsInQueryResult(searchObjectTable, nonDeletedUuidsQ)
   }
 
   private def renameTables(): Future[Unit] = {
-    val tempTableName = s"$schemaName.TempTable1"
+    val tempTableName               = "TempTable1"
+    val schemaPrefixedTempTableName = s"$schemaName.$tempTableName"
 
     val actions = Seq(
       sqlu"alter table #${schemaPrefixSearchObjectPopulatingTableName} rename to #${tempTableName}",
-      sqlu"alter table #${schemaPrefixedSearchObjectTableName} rename to #${schemaPrefixSearchObjectPopulatingTableName}",
-      sqlu"alter table #${tempTableName} rename to #${schemaPrefixedSearchObjectTableName}",
+      sqlu"alter table #${schemaPrefixedSearchObjectTableName} rename to #${searchObjectPopulatingTableName}",
+      sqlu"alter table #${schemaPrefixedTempTableName} rename to #${searchObjectTableName}",
       sqlu"truncate table #${schemaPrefixSearchObjectPopulatingTableName}"
     )
     actions.foreach(ac => logger.info(ac.statements.toString()))
 
     dbRunAndLogProblems(DBIO.sequence(actions), "alter table stuff...")
-      .map(_ => ()) //The last map is there just to ignore the result
+      .map(_ => ()) //The last map is there just to ignore the result, mapping it to Unit
+
   }
 
   def recreateSearchTable()(implicit ec: ExecutionContext) = {

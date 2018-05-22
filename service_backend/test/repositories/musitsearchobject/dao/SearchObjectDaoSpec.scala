@@ -6,6 +6,7 @@ import no.uio.musit.models._
 import no.uio.musit.security._
 import no.uio.musit.test.MusitSpecWithServerPerSuite
 import no.uio.musit.test.matchers.MusitResultValues
+import org.joda.time._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -209,6 +210,10 @@ class SearchObjectDaoSpec
 
       "recreateSearchTable" in {
         val res = dao.recreateSearchTable().futureValue
+      }
+      "updateSearchTable" in {
+        val res =
+          dao.updateSearchTable(new org.joda.time.DateTime(1990, 1, 1, 0, 0)).futureValue
       }
     }
   }
