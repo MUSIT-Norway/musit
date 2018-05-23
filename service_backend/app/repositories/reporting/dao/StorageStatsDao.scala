@@ -106,4 +106,24 @@ class StorageStatsDao @Inject()(
       }
       .recover(nonFatal(s"An error occurred counting number direct objects in $nodeId"))
   }
+
+  def numSamplesInNode(nodeId: StorageNodeId): Future[MusitResult[Int]] = {
+    val query = {
+      val idAsString = nodeId.asString
+      sql"""
+            select count(1) from
+            musark_analysis.sample_object mt,
+            musark_storage.new_local_object lo
+            where mt.is_deleted = 0
+            and lo.current_location_id = ${idAsString}
+            and lo.object_uuid = mt.sample_uuid
+        """.as[Int].head
+    }
+    db.run(query)
+      .map { count =>
+        logger.debug(s"$count samples are in node $nodeId")
+        MusitSuccess.apply(count)
+      }
+      .recover(nonFatal(s"An error occurred counting the samples in $nodeId"))
+  }
 }
