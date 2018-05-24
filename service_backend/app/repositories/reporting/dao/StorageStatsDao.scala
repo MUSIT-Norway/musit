@@ -58,7 +58,7 @@ class StorageStatsDao @Inject()(
 
     val query =
       sql"""
-        SELECT /*+DRIVING_SITE(mt)*/ COUNT(1) FROM
+        SELECT /*+DRIVING_SITE(mt)*/ COUNT(*) FROM
           "MUSARK_STORAGE"."STORAGE_NODE" sn,
           "MUSARK_STORAGE"."NEW_LOCAL_OBJECT" lo,
           "MUSIT_MAPPING"."MUSITTHING" mt
@@ -90,7 +90,7 @@ class StorageStatsDao @Inject()(
     val query = {
       val idAsString = nodeId.asString
       sql"""
-        SELECT /*+DRIVING_SITE(mt)*/ COUNT(1) FROM
+        SELECT /*+DRIVING_SITE(mt)*/ COUNT(*) FROM
           "MUSIT_MAPPING"."MUSITTHING" mt,
           "MUSARK_STORAGE"."NEW_LOCAL_OBJECT" lo
         WHERE mt."IS_DELETED" = 0
@@ -149,7 +149,7 @@ class StorageStatsDao @Inject()(
 
     val query =
       sql"""
-        select count(1) from
+        select count(*) from
           musark_storage.storage_node sn,
           musark_storage.new_local_object lo,
           musark_analysis.sample_object so
