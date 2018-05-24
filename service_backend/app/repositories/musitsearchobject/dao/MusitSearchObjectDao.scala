@@ -176,12 +176,12 @@ class MusitSearchObjectDao @Inject()(
   )(
       implicit ec: ExecutionContext
   ): DBIO[Int] = {
-    val currentTable = table // searchObjectPopulatingTable
+
     for {
-      existing <- currentTable.filter(_.objectuuid === id).result.headOption
+      existing <- table.filter(_.objectuuid === id).result.headOption
       row             = existing.get.copy(document_json = None)
       rowAsJsonString = writes.writes(row).toString()
-      result <- currentTable
+      result <- table
                  .filter(_.objectuuid === id)
                  .map(_.document_json)
                  .update(Some(rowAsJsonString))
@@ -189,7 +189,6 @@ class MusitSearchObjectDao @Inject()(
 
   }
 
-  //Copy+paste from above, using updateJsonColumn2 instead of updateJsonColumn1... :(
   private def setCalculatedValuesForAllRowsInQueryResult(
       table: slick.lifted.TableQuery[SearchObjectTable],
       q: Query[Rep[ObjectUUID], ObjectUUID, scala.Seq]
@@ -205,7 +204,7 @@ class MusitSearchObjectDao @Inject()(
     db.stream(qResult).foreach { r =>
       val ac  = updateJsonColumn(table, r)
       val fut = dbRunAndLogProblems(ac, s"update for $r")
-      Await.result(fut, 10 seconds) //I think we need to do await here, because after the db.stream.foreach, we rename the table, so these must be completed by then.
+      Await.result(fut, 120 seconds) //I think we need to do await here, because after the db.stream.foreach, we rename the table, so these must be completed by then.
 
     }
   }
@@ -299,6 +298,15 @@ class MusitSearchObjectDao @Inject()(
         updatedDate
       )
     })
+
+    /*
+    val insertAction = sqlu(
+      """insert into MUSARK_THING.MUSITTHING_SEARCH_POPULATING (OBJECTUUID,MUSEUMID, MUSEUMNO, SUBNO,TERM,NEW_COLLECTION_ID,MUSEUMNO_NUMBER,
+      SUBNO_NUMBER,DOCUMENT_JSON,UPDATED_DATE)
+    select MUSITTHING_UUID, MUSEUMID, MUSEUMNO, SUBNO, TERM, NEW_COLLECTION_ID, MUSEUMNOASNUMBER, SUBNOASNUMBER, null, {ts '2018-05-23 11:45:53.564'} from "MUSIT_MAPPING"."MUSITTHING" where not ("IS_DELETED" = 1)
+    """
+    )
+     */
 
     logger.info("recreateSearchTable, insert sql: " + insertAction.statements)
     dbRunAndLogProblems(
