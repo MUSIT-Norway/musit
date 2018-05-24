@@ -261,6 +261,7 @@ class MusitSearchObjectDao @Inject()(
   }
 
   private def renameTables(): Future[Unit] = {
+    logger.info("Renaming tables")
     val tempTableName               = "TempTable1"
     val schemaPrefixedTempTableName = s"$schemaName.$tempTableName"
 
@@ -284,7 +285,6 @@ class MusitSearchObjectDao @Inject()(
     //    .asInstanceOf[slick.lifted.TableQuery[MusitSearchObjectDao.this.SearchObjectTable]]
 
     val deleteAction = tableToWorkWith.delete
-    println(s"sql delete populating table:${deleteAction.statements}")
 
     val updatedDate = dateTimeNow
 
@@ -314,6 +314,7 @@ class MusitSearchObjectDao @Inject()(
     )
      */
 
+    logger.info("recreateSearchTable, delete sql: " + deleteAction.statements)
     logger.info("recreateSearchTable, insert sql: " + insertAction.statements)
     dbRunAndLogProblems(
       DBIO.seq(deleteAction, insertAction),
