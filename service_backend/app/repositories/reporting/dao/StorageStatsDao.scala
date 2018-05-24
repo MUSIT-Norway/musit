@@ -107,11 +107,19 @@ class StorageStatsDao @Inject()(
       .recover(nonFatal(s"An error occurred counting number direct objects in $nodeId"))
   }
 
+  /**
+   * The number of museum samples directly at the given node.
+   * To calculate the total number of samples for nodes in the tree,
+   * use the {{{totalSampleCount}}} method.
+   *
+   * @param nodeId StorageNodeId to count samples for.
+   * @return Future[Int] with the number of samples directly on the provided nodeId
+   */
   def numSamplesInNode(nodeId: StorageNodeId): Future[MusitResult[Int]] = {
     val query = {
       val idAsString = nodeId.asString
       sql"""
-            select count(1) from
+            select count(*) from
             musark_analysis.sample_object mt,
             musark_storage.new_local_object lo
             where mt.is_deleted = 0
