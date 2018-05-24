@@ -120,11 +120,11 @@ class StorageStatsDao @Inject()(
       val idAsString = nodeId.asString
       sql"""
             select count(*) from
-            musark_analysis.sample_object mt,
+            musark_analysis.sample_object so,
             musark_storage.new_local_object lo
-            where mt.is_deleted = 0
+            where so.is_deleted = 0
             and lo.current_location_id = ${idAsString}
-            and lo.object_uuid = mt.sample_uuid
+            and lo.object_uuid = so.sample_uuid
         """.as[Int].head
     }
     db.run(query)
@@ -133,5 +133,39 @@ class StorageStatsDao @Inject()(
         MusitSuccess.apply(count)
       }
       .recover(nonFatal(s"An error occurred counting the samples in $nodeId"))
+  }
+
+  /**
+   * The total number of museum samples at node or any of its child nodes.
+   *
+   * @param path NodePath to count total sample count for.
+   * @return Future[Int] with total number of samples under the provided node
+   *         and all its child nodes.
+   */
+  def numSamplesInPath(path: NodePath): Future[MusitResult[Int]] = {
+    val nodeFilter = s"${path.path}%"
+
+    logger.debug(s"Using node filter: $nodeFilter")
+
+    val query =
+      sql"""
+        select count(1) from
+          musark_storage.storage_node sn,
+          musark_storage.new_local_object lo,
+          musark_analysis.sample_object so
+        where sn.node_path like '#${nodeFilter}'
+        and sn.storage_node_uuid = lo.current_location_id
+        and so.is_deleted = 0
+        and lo.object_uuid = so.sample_uuid
+      """.as[Int].head
+
+    db.run(query)
+      .map { count =>
+        logger.debug(s"$count samples are in node $path")
+        MusitSuccess.apply(count)
+      }
+      .recover(
+        nonFatal(s"An error occurred counting total samples for nodes in path $path")
+      )
   }
 }

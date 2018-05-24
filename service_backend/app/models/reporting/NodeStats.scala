@@ -13,7 +13,8 @@ case class NodeStats(
     numNodes: Int = 0,
     numObjects: Int = 0,
     totalObjects: Int = 0,
-    numSamples: Int = 0
+    numSamples: Int = 0,
+    totalSamples: Int = 0
 )
 
 object NodeStats {
