@@ -193,6 +193,7 @@ class MusitSearchObjectDao @Inject()(
       table: slick.lifted.TableQuery[SearchObjectTable],
       q: Query[Rep[ObjectUUID], ObjectUUID, scala.Seq]
   )(implicit ec: ExecutionContext): Future[Unit] = {
+    var rowNum = 0
     val qResult = q.result
       .withStatementParameters(
         rsType = ResultSetType.ForwardOnly,
@@ -204,7 +205,11 @@ class MusitSearchObjectDao @Inject()(
     db.stream(qResult).foreach { r =>
       val ac  = updateJsonColumn(table, r)
       val fut = dbRunAndLogProblems(ac, s"update for $r")
-      Await.result(fut, 120 seconds) //I think we need to do await here, because after the db.stream.foreach, we rename the table, so these must be completed by then.
+      Await.result(fut, 10 minutes) //I think we need to do await here, because after the db.stream.foreach, we rename the table, so these must be completed by then.
+      rowNum = rowNum + 1
+      if (rowNum % 1000 == 0) {
+        logger.info(s"setCalculatedValuesForAllRowsInQueryResult -- RowNum: $rowNum")
+      }
 
     }
   }
@@ -279,6 +284,7 @@ class MusitSearchObjectDao @Inject()(
     //    .asInstanceOf[slick.lifted.TableQuery[MusitSearchObjectDao.this.SearchObjectTable]]
 
     val deleteAction = tableToWorkWith.delete
+    println(s"sql delete populating table:${deleteAction.statements}")
 
     val updatedDate = dateTimeNow
 
