@@ -24,10 +24,16 @@ class StorageStatsDaoSpec extends MusitSpecWithAppPerSuite with NodeTestData {
     "return the number of objects on a node" in {
       statsDao.numObjectsInNode(nodeId6).futureValue mustBe MusitSuccess(34)
     }
-
+    "return the number of samples on a node" in {
+      statsDao.numSamplesInNode(nodeId5).futureValue mustBe MusitSuccess(1)
+    }
     "return the total number of objects i a node hierarchy" in {
       val path = NodePath(",1,")
       statsDao.numObjectsInPath(path).futureValue mustBe MusitSuccess(52)
+    }
+    "return the total number of samples i a node hierarchy" in {
+      val path = NodePath(",1,")
+      statsDao.numSamplesInPath(path).futureValue mustBe MusitSuccess(1)
     }
 
   }
