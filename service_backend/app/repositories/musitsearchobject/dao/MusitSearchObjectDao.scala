@@ -177,19 +177,11 @@ class MusitSearchObjectDao @Inject()(
       implicit ec: ExecutionContext
   ): DBIO[Int] = {
 
-    val sql =
-      table
-        .filter(_.objectuuid === id)
-        .map(_.document_json)
-        .update(Some("hallo"))
-        .statements
-
-    val currentTable = table // searchObjectPopulatingTable
     for {
-      existing <- currentTable.filter(_.objectuuid === id).result.headOption
+      existing <- table.filter(_.objectuuid === id).result.headOption
       row             = existing.get.copy(document_json = None)
       rowAsJsonString = writes.writes(row).toString()
-      result <- currentTable
+      result <- table
                  .filter(_.objectuuid === id)
                  .map(_.document_json)
                  .update(Some(rowAsJsonString))
