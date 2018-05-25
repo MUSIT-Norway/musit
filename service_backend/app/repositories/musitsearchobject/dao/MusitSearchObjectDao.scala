@@ -24,8 +24,10 @@ import repositories.musitobject.dao.SearchFieldValues.{
 import repositories.shared.dao.{ColumnTypeMappers, SharedTables}
 import slick.jdbc.{ResultSetConcurrency, ResultSetType}
 import slick.sql.SqlAction
+
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class MusitSearchObjectDao @Inject()(
     implicit
@@ -73,7 +75,7 @@ class MusitSearchObjectDao @Inject()(
       museumNo: Rep[String],
       subNo: Rep[Option[String]],
       term: Rep[String],
-//TODO?      museumNo_Prefix: Rep[Option[String]],
+      //TODO?      museumNo_Prefix: Rep[Option[String]],
       collection: Rep[Option[Collection]],
       museumNo_Number: Rep[Option[Long]], //Long instead of Int because it is Int in objTable
       subNo_Number: Rep[Option[Long]], //Long instead of Int because it is Int in objTable
@@ -88,7 +90,7 @@ class MusitSearchObjectDao @Inject()(
       museumNo: String,
       subNo: Option[String],
       term: String,
-//TODO?      museumNo_Prefix: Option[String],
+      //TODO?      museumNo_Prefix: Option[String],
       collection: Option[Collection],
       museumNo_Number: Option[Long], //Long instead of Int because it is Int in objTable
       subNo_Number: Option[Long], //Long instead of Int because it is Int in objTable
@@ -119,6 +121,7 @@ class MusitSearchObjectDao @Inject()(
     val museumNo_Number = column[Option[Long]]("MUSEUMNO_NUMBER") //Long instead of Int because it is Int in objTable
     val subNo_Number    = column[Option[Long]]("SUBNO_NUMBER") //--||--
     val document_json   = column[Option[String]]("DOCUMENT_JSON")
+
     def * =
       LiftedSearchObjectRow(
         objectuuid,
@@ -175,6 +178,31 @@ class MusitSearchObjectDao @Inject()(
       id: ObjectUUID
   )(
       implicit ec: ExecutionContext
+  ): Future[Int] = {
+    val ac                = table.filter(_.objectuuid === id).result.headOption
+    val futOptExistingRow = dbRunAndLogProblems(ac, "get row to update document_json")
+    futOptExistingRow.flatMap {
+      case Some(row) =>
+        val rowWithBlankDocumentJson = row.copy(document_json = None)
+
+        val rowAsJson = writes.writes(rowWithBlankDocumentJson).toString()
+
+        val updateAc =
+          table.filter(_.objectuuid === id).map(_.document_json).update(Some(rowAsJson))
+
+        val res = dbRunAndLogProblems(updateAc, s"update document_json for row $id")
+        res
+
+      case None =>
+        Future.successful(0)
+    }
+  }
+  /*
+  def updateJsonColumn(
+      table: slick.lifted.TableQuery[SearchObjectTable],
+      id: ObjectUUID
+  )(
+      implicit ec: ExecutionContext
   ): DBIO[Int] = {
 
     for {
@@ -186,14 +214,15 @@ class MusitSearchObjectDao @Inject()(
                  .map(_.document_json)
                  .update(Some(rowAsJsonString))
     } yield result
-
-  }
+}
+   */
 
   private def setCalculatedValuesForAllRowsInQueryResult(
       table: slick.lifted.TableQuery[SearchObjectTable],
       q: Query[Rep[ObjectUUID], ObjectUUID, scala.Seq]
   )(implicit ec: ExecutionContext): Future[Unit] = {
-    var rowNum = 0
+    var rowNum     = 0
+    var errorCount = 0
     val qResult = q.result
       .withStatementParameters(
         rsType = ResultSetType.ForwardOnly,
@@ -202,18 +231,31 @@ class MusitSearchObjectDao @Inject()(
       )
       .transactionally
     logger.info("setCalculatedValuesForAllRowsInQueryResult-SQL:" + q.result.statements)
-    db.stream(qResult).foreach { r =>
-      val ac  = updateJsonColumn(table, r)
-      val fut = dbRunAndLogProblems(ac, s"update for $r")
-      Await.result(fut, 10 minutes) //I think we need to do await here, because after the db.stream.foreach, we rename the table, so these must be completed by then.
-      rowNum = rowNum + 1
-      if (rowNum % 1000 == 0) {
-        logger.info(s"setCalculatedValuesForAllRowsInQueryResult -- RowNum: $rowNum")
+    val res = db.stream(qResult).foreach { r =>
+      val futRes = updateJsonColumn(table, r)
+      //val fut = dbRunAndLogProblems(ac, s"update for $r")
+      val res = Await.ready(futRes, 10 minutes) //I think we need to do await here, because after the db.stream.foreach, we rename the table, so these must be completed by then.
+      res.value.map { x =>
+        x match {
+          case Success(_) => ()
+          case Failure(s) =>
+            errorCount = errorCount + 1
+            logger.error(
+              s"setCalculatedValuesForAllRowsInQueryResult, problem with updating row $r: ${s.getMessage}"
+            )
+
+        }
+        rowNum = rowNum + 1
+        if (rowNum % 1000 == 0) {
+          logger.info(s"setCalculatedValuesForAllRowsInQueryResult -- RowNum: $rowNum")
+        }
+
       }
 
     }
+    logger.info(s"---- Rows attempted updated: ${rowNum} Errors: $errorCount")
+    res
   }
-
   def updateSearchTable(afterDate: DateTime)(implicit ec: ExecutionContext) = {
 
     logger.info(s"updateSearchTable afterDate=$afterDate")
@@ -322,9 +364,10 @@ class MusitSearchObjectDao @Inject()(
     )
 
     //Note that we assume the objTable.uuid columns is not null (in practice, even though at the moment there's no explicit constraint)
-    val nonDeletedUuidsQ = nonDeletedSourceRows.map(r => r.uuid.get)
+    //val nonDeletedUuidsQ = nonDeletedSourceRows.map(r => r.uuid.get)
+    val uuidsToUpdate = tableToWorkWith.map(r => r.objectuuid)
 
-    setCalculatedValuesForAllRowsInQueryResult(tableToWorkWith, nonDeletedUuidsQ).flatMap(
+    setCalculatedValuesForAllRowsInQueryResult(tableToWorkWith, uuidsToUpdate).flatMap(
       _ => renameTables()
     )
 
