@@ -1,0 +1,63 @@
+-- default museum collections
+INSERT INTO musit_event.collection VALUES (1,'2e4f2455-1b3b-4a04-80a1-ba92715ff613', 'Arkeologi' );
+INSERT INTO musit_event.collection VALUES (2,'88b35138-24b5-4e62-bae4-de80fae7df82', 'Etnografi' );
+INSERT INTO musit_event.collection VALUES (3,'8bbdf9b3-56d1-479a-9509-2ea82842e8f8', 'Numismatikk');
+INSERT INTO musit_event.collection VALUES (4,'fcb4c598-8b05-4095-ac00-ce66247be38a', 'Lav');
+INSERT INTO musit_event.collection VALUES (5,'d0dd5ad3-c22f-4ea0-8b52-dc5b0e17aa24', 'Mose');
+INSERT INTO musit_event.collection VALUES (6,'23ca0166-5f9e-44c2-ab0d-b4cdd704af07', 'Sopp');
+INSERT INTO musit_event.collection VALUES (7,'1d8dd4e6-1527-439c-ac86-fc315e0ce852', 'Alger');
+INSERT INTO musit_event.collection VALUES (8,'7352794d-4973-447b-b84e-2635cafe910a', 'Karplanter'); 
+INSERT INTO musit_event.collection VALUES (9,'ba3d4d30-810b-4c07-81b3-37751f2196f0', 'Entomologi');
+INSERT INTO musit_event.collection VALUES (10,'ef4dc066-b6f8-4155-89f8-7aa9aeeb2dc4', 'Marine evertebrater');
+
+INSERT INTO musit_event.museum(museum_id,museum_name,abbr)VALUES(1, 'Arkeologisk Museum', 'AM');
+INSERT INTO musit_event.museum(museum_id,museum_name,abbr)VALUES(2, 'Bergen Universitetsmuseum','UM');
+INSERT INTO musit_event.museum(museum_id,museum_name,abbr)VALUES(3, 'Kulturhistorisk Museum', 'KHM');
+INSERT INTO musit_event.museum(museum_id,museum_name,abbr)VALUES(4, 'Naturhistorisk Museum','NHM');
+INSERT INTO musit_event.museum(museum_id,museum_name,abbr)VALUES(5, 'NTNU Vitenskapsmuseet', 'VM');
+INSERT INTO musit_event.museum(museum_id,museum_name,abbr)VALUES(6, 'Tromsø Museum','TMU');
+INSERT INTO musit_event.museum(museum_id,museum_name,abbr)VALUES(7, 'Kristiansand Naturmuseum','KMN');
+
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (1,1);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (1,3);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (2,1);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (2,2);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (2,3);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (2,4);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (2,5);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (2,6);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (2,8);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (2,9);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (2,10);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (3,1);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (3,2);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (3,3);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (4,4);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (4,5);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (4,6);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (4,7);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (4,8);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (4,9);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (4,10);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (5,1);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (5,4);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (5,5);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (5,6);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (5,7);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (5,8);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (5,9);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (5,10);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (6,1);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (6,2);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (6,3);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (6,4);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (6,5);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (6,6);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (6,7);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (6,8);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (6,9);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (6,10);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (7,5);
+INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (7,8);
+
+
