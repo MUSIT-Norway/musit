@@ -1,6 +1,5 @@
-package controllers.conservation
+package controllers
 
-import controllers._
 import no.uio.musit.MusitResults._
 import no.uio.musit.functional.FutureMusitResult
 import play.api.libs.json.{Json, Writes}

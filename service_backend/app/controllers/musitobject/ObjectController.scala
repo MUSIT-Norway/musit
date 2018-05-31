@@ -30,13 +30,13 @@ class ObjectController @Inject()(
 
   val logger = Logger(classOf[ObjectController])
 
-  private val maxLimit     = conf.getOptional[Int](maxLimitConfKey).getOrElse(100)
+  private val maxLimit     = conf.getOptional[Int](maxLimitConfKey).getOrElse(10000)
   private val defaultLimit = conf.getOptional[Int](defaultLimitConfKey).getOrElse(25)
 
   private def calcLimit(l: Int): Int = l match {
-    //case lim: Int if lim > maxLimit => maxLimit
-    case lim: Int if lim < 0 => defaultLimit
-    case lim: Int            => lim
+    case lim: Int if lim > maxLimit => maxLimit
+    case lim: Int if lim < 0        => defaultLimit
+    case lim: Int                   => lim
   }
 
   /**

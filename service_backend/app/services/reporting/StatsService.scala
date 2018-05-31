@@ -28,16 +28,28 @@ class StatsService @Inject()(
   )(implicit currUsr: AuthenticatedUser): Future[MusitResult[Option[NodeStats]]] = {
     MusitResultT(nodeDao.getPathById(mid, nodeId)).flatMap { maybeNodePath =>
       maybeNodePath.map { path =>
-        val totalF     = MusitResultT(statsDao.numObjectsInPath(path))
-        val directF    = MusitResultT(statsDao.numObjectsInNode(nodeId))
-        val nodeCountF = MusitResultT(statsDao.numChildren(nodeId))
+        val totalF                  = MusitResultT(statsDao.numObjectsInPath(path))
+        val directF                 = MusitResultT(statsDao.numObjectsInNode(nodeId))
+        val nodeCountF              = MusitResultT(statsDao.numChildren(nodeId))
+        val samplesInCurrentNodeF   = MusitResultT(statsDao.numSamplesInNode(nodeId))
+        val totalSamplesInNodePathF = MusitResultT(statsDao.numSamplesInPath(path))
 
         for {
-          total     <- totalF
-          direct    <- directF
-          nodeCount <- nodeCountF
+          total                  <- totalF
+          direct                 <- directF
+          nodeCount              <- nodeCountF
+          samplesInCurrentNode   <- samplesInCurrentNodeF
+          totalSamplesInNodePath <- totalSamplesInNodePathF
         } yield {
-          Option(NodeStats(nodeCount, direct, total))
+          Option(
+            NodeStats(
+              nodeCount,
+              direct,
+              total,
+              samplesInCurrentNode,
+              totalSamplesInNodePath
+            )
+          )
         }
       }.getOrElse {
         MusitResultT[Future, Option[NodeStats]](Future.successful(MusitSuccess(None)))

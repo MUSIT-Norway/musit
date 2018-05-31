@@ -121,6 +121,9 @@ object FutureMusitResult {
 
   def from[A](mr: MusitResult[A]) = FutureMusitResult(Future.successful(mr))
   def from[A](a: A)               = successful(a)
+  def from[A](futA: Future[A])(implicit ec: ExecutionContext) =
+    FutureMusitResult(futA.map(a => MusitSuccess(a))) //Is this correct
+  // or should we also do some recover and if fails return something else than MusitSuccess?
 
   def requireFromClient(test: Boolean, errorMsg: String): FutureMusitResult[Unit] = {
     if (test) {

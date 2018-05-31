@@ -1,10 +1,9 @@
 package controllers.conservation
 
 import com.google.inject.{Inject, Singleton}
-import controllers.conservation.MusitResultUtils._
+import controllers.MusitResultUtils._
 import controllers.{internalErr, parseCollectionIdsParam}
 import no.uio.musit.MusitResults.{MusitError, MusitSuccess, MusitValidationError}
-import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models.MuseumCollections.{
   Archeology,
   Collection,
@@ -20,9 +19,9 @@ import no.uio.musit.security.{
   CollectionManagement
 }
 import no.uio.musit.service.MusitController
-import play.api.{Configuration, Logger}
 import play.api.libs.json.Json
 import play.api.mvc.ControllerComponents
+import play.api.{Configuration, Logger}
 import services.conservation._
 import services.elasticsearch.search.ConservationSearchService
 

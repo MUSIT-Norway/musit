@@ -85,6 +85,16 @@ trait Indexer {
   }
 
   /**
+   * Updates (if applicable) a db-version of the search data
+   */
+  def maybeUpdateDbSearchTable(dt: DateTime): Future[Unit] = { Future.successful(()) }
+
+  /**
+   * Creates (if applicable) a db-version of the search data
+   */
+  def maybeRecreateDbSearchTable(): Future[Unit] = { Future.successful(()) }
+
+  /**
    * Reindex all documents
    */
   def reindexDocuments(indexConfig: IndexConfig, indexCallback: IndexCallback)(
@@ -92,6 +102,13 @@ trait Indexer {
       mat: Materializer,
       as: ActorSystem
   ): Unit = {
+
+    /*At the moment we don't recreate the searchdbtable automatically when reindexing the objects.
+    (In case it will take a lot of resources*)
+    We have a separate endpoint for recreating/repopulating the searchdbtable.
+    If we later want to do it automatically along the ES full reindexing, comment in the below line:
+     */
+    //maybeRecreateDbSearchTable()
 
     val futEsBulkSource = createElasticSearchBulkSource(indexConfig, None)
 
@@ -108,7 +125,7 @@ trait Indexer {
   }
 
   /**
-   * Update the existing index with updated and new documents
+   * Update the existing index (and cached searchtable) with updated and new documents
    */
   def updateExistingIndex(indexConfig: IndexConfig, indexCallback: IndexCallback)(
       implicit ec: ExecutionContext,
@@ -118,6 +135,7 @@ trait Indexer {
 
     findLastIndexDateTime().map {
       _.map { dt =>
+        maybeUpdateDbSearchTable(dt)
         val futEsBulkSource = createElasticSearchBulkSource(indexConfig, Some(dt))
         futEsBulkSource.map { esBulkSource =>
           val es = new DatabaseMaintainedElasticSearchUpdateIndexSink(
@@ -151,6 +169,7 @@ trait Indexer {
       mat: Materializer,
       as: ActorSystem
   ): Unit = {
+
     createIndex().map(reindexDocuments(_, indexCallback)).recover {
       case NonFatal(t) => indexCallback.onFailure(t)
     }
