@@ -60,4 +60,27 @@ INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (6,10)
 INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (7,5);
 INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (7,8);
 
+INSERT INTO musit_event.event_type(event_type,event_type_for) VALUES ('Rediger navn','person');
+INSERT INTO musit_event.event_type(event_type,event_type_for) VALUES ('Synonymtilordning','person');
+INSERT INTO musit_event.event_type(event_type,event_type_for) VALUES ('Rediger personAttributt','person');
+INSERT INTO musit_event.event_type(event_type,event_type_for) VALUES ('Slå sammen personObjekte','person');
 
+INSERT INTO musit_event.role(role_text, type_for) VALUES ('ble redigert','person_as_object');
+INSERT INTO musit_event.role(role_text, type_for) VALUES ('redigert av','person');
+INSERT INTO musit_event.role(role_text, type_for) VALUES ('gitt synonym','person_as_object');
+INSERT INTO musit_event.role(role_text, type_for) VALUES ('gitt synonym av','person');
+INSERT INTO musit_event.role(role_text, type_for) VALUES ('gitt personattributt','person_as_object');
+INSERT INTO musit_event.role(role_text, type_for) VALUES ('gitt personattributt av','person');
+INSERT INTO musit_event.role(role_text, type_for) VALUES ('ble slått sammen med/fra','person_as_object');
+INSERT INTO musit_event.role(role_text, type_for) VALUES ('ble slått sammen med/til','person_as_object');
+INSERT INTO musit_event.role(role_text, type_for) VALUES ('slått sammen av','person');
+
+INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (1,1);
+INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (2,1);
+INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (3,2);
+INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (4,2);
+INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (5,3);
+INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (6,3);
+INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (7,4);
+INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (8,4);
+INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (9,4);

@@ -39,8 +39,33 @@ CREATE TABLE MUSARK_THING.MUSITTHING_SEARCH
   museumno_prefix       TEXT,
   museumno_number       INTEGER,
   subno_number          INTEGER,
-  document_json         TEXT,
   museumid              INTEGER,
+  document_json         TEXT,
+   PRIMARY KEY (objectuuid)
+);
+
+drop table IF EXISTS MUSARK_THING.MUSITTHING_SEARCH_POPULATING;
+CREATE TABLE MUSARK_THING.MUSITTHING_SEARCH_POPULATING
+(
+  objectuuid            UUID not null,
+  museumno              TEXT,
+  subno                 TEXT,
+  term                  TEXT,
+  mainobject_id         BIGINT,
+  new_collection_id     INTEGER,
+  ark_form              TEXT,
+  ark_funn_nr           TEXT,
+  nat_stage             TEXT,
+  nat_gender            TEXT,
+  nat_legdato           TEXT,
+  is_deleted            BOOLEAN default false,
+  aggregated_class_data TEXT,
+  updated_date          TIMESTAMP(6) not null,
+  museumno_prefix       TEXT,
+  museumno_number       INTEGER,
+  subno_number          INTEGER,
+  museumid              INTEGER,
+  document_json         TEXT,
    PRIMARY KEY (objectuuid)
 );
 
@@ -55,20 +80,7 @@ CREATE TABLE MUSARK_THING.MUSITTHING_SEARCH
 --PRIMARY KEY (person_name_uuid)
 --);
 
-drop table if exists MUSIT_PERSON.PERSON;
-CREATE TABLE MUSIT_PERSON.PERSON(
-person_uuid UUID NOT NULL,
-legal_entity_type TEXT NOT NULL,
-first_name TEXT,
-last_name TEXT,
-title TEXT,
-name TEXT,
-date_birth date,
-date_dead date,
-display_name TEXT,
-url TEXT,
-PRIMARY KEY (person_uuid)
-);
+drop table if exists MUSIT_EVENT.EVENT_ROLE_PERSON;
 
 drop table if exists MUSIT_EVENT.ROLE;
 CREATE TABLE MUSIT_EVENT.ROLE(
@@ -87,6 +99,7 @@ drop table if exists MUSIT_EVENT.EVENT_TYPE;
 CREATE TABLE MUSIT_EVENT.EVENT_TYPE(
 event_type_id SERIAL PRIMARY KEY,
 event_type TEXT NOT NULL,
+event_type_for TEXT,
 default_object_role INTEGER,
 default_person_role INTEGER,
 display_name TEXT
@@ -99,6 +112,31 @@ EVENT_TYPE_ID INTEGER NOT NULL,
 PRIMARY KEY (ROLE_ID,EVENT_TYPE_ID),
 FOREIGN KEY(ROLE_ID) REFERENCES MUSIT_EVENT.ROLE(ROLE_ID),
 FOREIGN KEY(EVENT_TYPE_ID) REFERENCES MUSIT_EVENT.EVENT_TYPE(EVENT_TYPE_ID)
+);
+
+
+drop table if exists MUSIT_PERSON.ATTRIBUTE;
+CREATE TABLE MUSIT_PERSON.ATTRIBUTE(
+attribute_uuid UUID NOT NULL,
+title TEXT,
+legal_entity_type TEXT NOT NULL,
+date_birth date,
+date_dead date,
+url TEXT,
+is_deleted BOOLEAN DEFAULT FALSE,
+PRIMARY KEY (attribute_uuid)
+);
+
+
+drop table if exists MUSIT_PERSON.APPELLATION_PERSON_NAME;
+CREATE TABLE MUSIT_PERSON.APPELLATION_PERSON_NAME(
+person_name_uuid UUID NOT NULL,
+first_name TEXT,
+last_name TEXT,
+name TEXT,
+display_name TEXT,
+is_deleted BOOLEAN DEFAULT FALSE,
+PRIMARY KEY (person_name_uuid)
 );
 
 drop table if exists MUSIT_EVENT.EVENT;
@@ -118,8 +156,38 @@ event_json JSONB,
 event_date_from date,
 event_date_to date,
 event_date_verbatim text,
-FOREIGN KEY (event_type_id) REFERENCES MUSIT_EVENT.EVENT_TYPE (event_type_id)
+person_attribute_uuid uuid,
+person_name_uuid uuid,
+FOREIGN KEY (event_type_id) REFERENCES MUSIT_EVENT.EVENT_TYPE (event_type_id),
+FOREIGN KEY (person_attribute_uuid) REFERENCES MUSIT_PERSON.ATTRIBUTE(attribute_uuid),
+FOREIGN KEY (person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid)
 );
+
+
+
+drop table if exists MUSIT_PERSON.PERSON;
+CREATE TABLE MUSIT_PERSON.PERSON(
+person_uuid UUID NOT NULL,
+display_name TEXT,
+latest_appellation_event_uuid UUID,
+latest_attribute_event_uuid UUID,
+current_person_uuid UUID,
+is_deleted BOOLEAN DEFAULT FALSE,
+PRIMARY KEY (person_uuid),
+FOREIGN KEY (latest_appellation_event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
+FOREIGN KEY (latest_attribute_event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid)
+);
+
+drop table if exists MUSIT_PERSON.BRUKER;
+CREATE TABLE MUSIT_PERSON.BRUKER(
+feide_uuid UUID NOT NULL,
+user_name TEXT,
+current_person_uuid UUID NOT NULL,
+is_deleted BOOLEAN DEFAULT FALSE,
+PRIMARY KEY (feide_uuid),
+FOREIGN KEY (current_person_uuid) REFERENCES MUSIT_PERSON.PERSON(person_uuid)
+);
+
 
 drop table if exists MUSIT_EVENT.EVENT_ROLE_PERSON_NAME;
 CREATE TABLE MUSIT_EVENT.EVENT_ROLE_PERSON_NAME(
@@ -127,7 +195,8 @@ event_uuid UUID NOT NULL,
 role_id INTEGER NOT NULL,
 name TEXT NOT NULL,
 person_uuid UUID,
-PRIMARY KEY (event_uuid,role_id,name),
+is_deleted BOOLEAN DEFAULT FALSE,
+PRIMARY KEY (event_uuid,role_id, name),
 FOREIGN KEY (person_uuid) REFERENCES MUSIT_PERSON.PERSON (person_uuid),
 FOREIGN KEY (event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
 FOREIGN KEY (role_id) REFERENCES MUSIT_EVENT.ROLE(role_id)
@@ -135,10 +204,10 @@ FOREIGN KEY (role_id) REFERENCES MUSIT_EVENT.ROLE(role_id)
 
 drop table if exists MUSIT_EVENT.EVENT_ROLE_OBJECT;
 CREATE TABLE MUSIT_EVENT.EVENT_ROLE_OBJECT(
-object_uuid UUID NOT NULL,
 event_uuid UUID NOT NULL,
 role_id INTEGER NOT NULL,
-PRIMARY KEY (object_uuid, event_uuid,role_id),
+object_uuid UUID NOT NULL,
+PRIMARY KEY (event_uuid,role_id, object_uuid),
 --FOREIGN KEY (object_uuid) REFERENCES MUSIT_THING.OBJECT (object_uuid),
 FOREIGN KEY (event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
 FOREIGN KEY (role_id) REFERENCES MUSIT_EVENT.ROLE(role_id)
@@ -146,14 +215,15 @@ FOREIGN KEY (role_id) REFERENCES MUSIT_EVENT.ROLE(role_id)
 
 drop table if exists MUSIT_EVENT.EVENT_ROLE_PLACE;
 CREATE TABLE MUSIT_EVENT.EVENT_ROLE_PLACE(
-place_uuid UUID NOT NULL,
 event_uuid UUID NOT NULL,
 role_id INTEGER NOT NULL,
+place_uuid UUID NOT NULL,
 PRIMARY KEY (place_uuid, event_uuid,role_id),
 FOREIGN KEY (place_uuid) REFERENCES MUSIT_PLACE.PLACE(place_uuid),
 FOREIGN KEY (event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
 FOREIGN KEY (role_id) REFERENCES MUSIT_EVENT.ROLE(role_id)
 );
+
 
 
 drop table if exists MUSIT_EVENT.MUSEUM;
