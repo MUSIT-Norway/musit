@@ -64,6 +64,7 @@ INSERT INTO musit_event.event_type(event_type,event_type_for) VALUES ('Rediger n
 INSERT INTO musit_event.event_type(event_type,event_type_for) VALUES ('Synonymtilordning','person');
 INSERT INTO musit_event.event_type(event_type,event_type_for) VALUES ('Rediger personAttributt','person');
 INSERT INTO musit_event.event_type(event_type,event_type_for) VALUES ('Slå sammen personObjekte','person');
+INSERT INTO musit_event.event_type(event_type,event_type_for) VALUES ('Opprett person','person');
 
 INSERT INTO musit_event.role(role_text, type_for) VALUES ('ble redigert','person_as_object');
 INSERT INTO musit_event.role(role_text, type_for) VALUES ('redigert av','person');
@@ -74,6 +75,7 @@ INSERT INTO musit_event.role(role_text, type_for) VALUES ('gitt personattributt 
 INSERT INTO musit_event.role(role_text, type_for) VALUES ('ble slått sammen med/fra','person_as_object');
 INSERT INTO musit_event.role(role_text, type_for) VALUES ('ble slått sammen med/til','person_as_object');
 INSERT INTO musit_event.role(role_text, type_for) VALUES ('slått sammen av','person');
+INSERT INTO musit_event.role(role_text, type_for) VALUES ('opprettet av','person');
 
 INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (1,1);
 INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (2,1);
@@ -84,3 +86,4 @@ INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (6,3);
 INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (7,4);
 INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (8,4);
 INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (9,4);
+INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (10,5);

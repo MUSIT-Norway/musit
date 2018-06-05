@@ -193,11 +193,13 @@ drop table if exists MUSIT_EVENT.EVENT_ROLE_PERSON_NAME;
 CREATE TABLE MUSIT_EVENT.EVENT_ROLE_PERSON_NAME(
 event_uuid UUID NOT NULL,
 role_id INTEGER NOT NULL,
+person_name_uuid UUID NOT NULL,
 name TEXT NOT NULL,
 person_uuid UUID,
 is_deleted BOOLEAN DEFAULT FALSE,
-PRIMARY KEY (event_uuid,role_id, name),
+PRIMARY KEY (event_uuid,role_id, person_name_uuid),
 FOREIGN KEY (person_uuid) REFERENCES MUSIT_PERSON.PERSON (person_uuid),
+FOREIGN KEY (person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid),
 FOREIGN KEY (event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
 FOREIGN KEY (role_id) REFERENCES MUSIT_EVENT.ROLE(role_id)
 );
