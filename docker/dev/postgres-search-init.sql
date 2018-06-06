@@ -178,8 +178,8 @@ FOREIGN KEY (latest_appellation_event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_u
 FOREIGN KEY (latest_attribute_event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid)
 );
 
-drop table if exists MUSIT_PERSON.BRUKER;
-CREATE TABLE MUSIT_PERSON.BRUKER(
+drop table if exists MUSIT_PERSON.USERS;
+CREATE TABLE MUSIT_PERSON.USERS(
 feide_uuid UUID NOT NULL,
 user_name TEXT,
 current_person_uuid UUID NOT NULL,
