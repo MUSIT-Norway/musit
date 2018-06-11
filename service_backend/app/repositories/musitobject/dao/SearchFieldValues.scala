@@ -34,7 +34,7 @@ object SearchFieldValues {
 
   case class IntervalValue(from: IntervalBoundary, to: IntervalBoundary)
       extends FieldValue {
-    override val v: String = boundaryAsString(from) + "..." + boundaryAsString(to)
+    override val v: String = boundaryAsString(from) + ".." + boundaryAsString(to)
 
   }
 
