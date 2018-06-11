@@ -13,12 +13,7 @@ import no.uio.musit.repositories.DbErrorHandlers
 import no.uio.musit.security.AuthenticatedUser
 import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
-import repositories.musitobject.dao.SearchFieldValues.{
-  EmptyValue,
-  FieldValue,
-  LiteralValue,
-  WildcardValue
-}
+import repositories.musitobject.dao.SearchFieldValues._
 import repositories.shared.dao.SharedTables
 import no.uio.musit.time.Implicits.jSqlTimestampToDateTime
 
@@ -101,6 +96,11 @@ class ObjectDao @Inject()(
       case WildcardValue(value, esc) =>
         logger.debug("Using wildcard value for subNo filter")
         q.filter(_.subNo.toUpperCase like (value.toUpperCase, esc))
+      case IntervalValue(from: IntervalBoundary, to: IntervalBoundary) => {
+        val s = "Didn't expect IntervalValue in subNoFilter in ObjectDao.scala"
+        logger.error(s)
+        throw new IllegalArgumentException(s)
+      }
     }
   }
 
@@ -126,6 +126,13 @@ class ObjectDao @Inject()(
       case WildcardValue(value, esc) =>
         logger.debug("Using wildcard value for term filter")
         q.filter(_.term.toUpperCase like (value.toUpperCase, esc))
+
+      case IntervalValue(from: IntervalBoundary, to: IntervalBoundary) => {
+        val s = "Didn't expect IntervalValue in termFilter in ObjectDao.scala"
+        logger.error(s)
+        throw new IllegalArgumentException(s)
+      }
+
     }
   }
 
@@ -150,6 +157,12 @@ class ObjectDao @Inject()(
       case WildcardValue(value, esc) =>
         logger.debug("Using wildcard value for museumNo filter")
         q.filter(_.museumNo.toUpperCase like (value.toUpperCase, esc))
+
+      case IntervalValue(from: IntervalBoundary, to: IntervalBoundary) => {
+        val s = "Didn't expect IntervalValue in museumNoFilter in ObjectDao.scala"
+        logger.error(s)
+        throw new IllegalArgumentException(s)
+      }
     }
   }
 

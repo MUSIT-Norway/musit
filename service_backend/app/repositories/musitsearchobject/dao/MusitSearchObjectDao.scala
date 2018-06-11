@@ -2,6 +2,7 @@ package repositories.musitsearchobject.dao
 
 import com.google.inject.Inject
 import models.musitsearchobject.SearchObjectResult
+import no.uio.musit.MusitResults.{MusitResult, MusitSuccess, MusitValidationError}
 import no.uio.musit.formatters.WithDateTimeFormatters
 import no.uio.musit.functional.FutureMusitResult
 import no.uio.musit.models.MuseumCollections._
@@ -14,20 +15,15 @@ import play.api.Logger
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.json.Json
 import repositories.conservation.DaoUtils
-import repositories.musitobject.dao.ObjectTables
-import repositories.musitobject.dao.SearchFieldValues.{
-  EmptyValue,
-  FieldValue,
-  LiteralValue,
-  WildcardValue
-}
+import repositories.musitobject.dao.{ObjectTables, SearchFieldValues}
+import repositories.musitobject.dao.SearchFieldValues.{IntervalBoundary, _}
 import repositories.shared.dao.{ColumnTypeMappers, SharedTables}
 import slick.jdbc.{ResultSetConcurrency, ResultSetType}
 import slick.sql.SqlAction
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 class MusitSearchObjectDao @Inject()(
     implicit
@@ -373,6 +369,41 @@ class MusitSearchObjectDao @Inject()(
 
   }
 
+  //private[dao] def separatorDef():String = ".."
+  private[dao] val intervalSeparator = ".."
+
+  /**Parses a string of the form "number...number" or "...number" or "number..." to an interval value */
+  private[dao] def intervalFromString(rawValue: String): MusitResult[IntervalValue] = {
+    def strToLong(str: String): MusitResult[Long] = {
+      MusitResult.fromTry(
+        Try { str.toLong },
+        ex =>
+          MusitValidationError(
+            s"Expected number in interval, but got: $str (Exception: ${ex.getMessage()}"
+        )
+      )
+    }
+
+    def strOrEmptyStringToLong(str: String): MusitResult[IntervalBoundary] = {
+      if (str.isEmpty) MusitSuccess(Infinite()) else strToLong(str).map(Value(_))
+    }
+
+    require(rawValue.contains(intervalSeparator))
+
+    val pos = rawValue.indexOf(intervalSeparator)
+    assert(pos >= 0)
+
+    //Both of the below can be empty, which is ok
+    val leftStr  = rawValue.substring(0, pos)
+    val rightStr = rawValue.substring(pos + intervalSeparator.length())
+
+    for {
+      left  <- strOrEmptyStringToLong(leftStr)
+      right <- strOrEmptyStringToLong(rightStr)
+
+    } yield IntervalValue(left, right)
+  }
+
   /* Searching. Some of this code is copied from the old db search code. */
 
   /**
@@ -386,9 +417,11 @@ class MusitSearchObjectDao @Inject()(
    * @return A classified instance of FieldValue
    */
   private[dao] def classifyValue(rawValue: Option[String]): Option[FieldValue] = {
-    rawValue.map { raw =>
+    rawValue.flatMap { raw =>
       if (raw.isEmpty) {
-        EmptyValue()
+        Some(EmptyValue())
+      } else if (raw.contains(intervalSeparator)) {
+        intervalFromString(raw).toOption //TODO! This function ought to return MusitResult[FieldValue], not Option!
       } else if (raw.contains('*')) {
         // Note that in the below expression, order is vital! It is essential that
         // the escapeChar -> escapeChar+escapeChar is done before the replacements
@@ -401,9 +434,9 @@ class MusitSearchObjectDao @Inject()(
           .replace('*', '%')
 
         val esc = if (wValue.contains(escapeChar)) escapeChar else noEscapeChar
-        WildcardValue(wValue, esc)
+        Some(WildcardValue(wValue, esc))
       } else {
-        LiteralValue(raw)
+        Some(LiteralValue(raw))
       }
     }
   }
@@ -423,6 +456,18 @@ class MusitSearchObjectDao @Inject()(
       case WildcardValue(value, esc) =>
         logger.debug("Using wildcard value for subNo filter")
         q.filter(_.subNo.toUpperCase like (value.toUpperCase, esc))
+
+      case IntervalValue(from: IntervalBoundary, to: IntervalBoundary) => {
+        val q1 = from match {
+          case Value(v)   => q.filter(_.subNo_Number >= v)
+          case Infinite() => q
+        }
+        to match {
+          case Value(v)   => q1.filter(_.subNo_Number <= v)
+          case Infinite() => q1
+        }
+      }
+
     }
   }
 
@@ -443,6 +488,13 @@ class MusitSearchObjectDao @Inject()(
       case WildcardValue(value, esc) =>
         logger.debug("Using wildcard value for term filter")
         q.filter(_.term.toUpperCase like (value.toUpperCase, esc))
+
+      case IntervalValue(from: IntervalBoundary, to: IntervalBoundary) => {
+        val s = "Didn't expect IntervalValue in termFilter in MusitSearchObjectDao.scala"
+        logger.error(s)
+        throw new IllegalArgumentException(s)
+      }
+
     }
   }
 
@@ -461,12 +513,56 @@ class MusitSearchObjectDao @Inject()(
       case WildcardValue(value, esc) =>
         logger.debug("Using wildcard value for museumNo filter")
         q.filter(_.museumNo.toUpperCase like (value.toUpperCase, esc))
+
+      case IntervalValue(from: IntervalBoundary, to: IntervalBoundary) => {
+        val q1 = from match {
+          case Value(v)   => q.filter(_.museumNo_Number >= v)
+          case Infinite() => q
+        }
+        to match {
+          case Value(v)   => q1.filter(_.museumNo_Number <= v)
+          case Infinite() => q1
+        }
+      }
+    }
+  }
+
+  private def museumNoAsNumberFilter(
+      q: QSearchObjectTable,
+      v: FieldValue
+  ): QSearchObjectTable = {
+    v match {
+      case EmptyValue() =>
+        logger.debug("Using empty value for museumNo filter")
+        q
+
+      case LiteralValue(value) =>
+        logger.debug("Using literal value for museumNo filter")
+        val digitsOnly = value.forall(Character.isDigit)
+        if (digitsOnly) q.filter(_.museumNo_Number === value.toLong)
+        else q.filter(_.museumNo.toUpperCase === value.toUpperCase)
+
+      case WildcardValue(value, esc) =>
+        logger.debug("Using wildcard value for museumNo filter")
+        q.filter(_.museumNo.toUpperCase like (value.toUpperCase, esc))
+
+      case IntervalValue(from: IntervalBoundary, to: IntervalBoundary) => {
+        val q1 = from match {
+          case Value(v)   => q.filter(_.museumNo_Number >= v)
+          case Infinite() => q
+        }
+        to match {
+          case Value(v)   => q1.filter(_.museumNo_Number <= v)
+          case Infinite() => q1
+        }
+      }
     }
   }
 
   private[dao] def searchQueryWithoutSorting(
       mid: MuseumId,
       museumNo: Option[MuseumNo],
+      museumNoAsANumber: Option[String],
       subNo: Option[SubNo],
       term: Option[String],
       collections: Seq[MuseumCollection]
@@ -476,16 +572,15 @@ class MusitSearchObjectDao @Inject()(
     val mno = museumNo.map(_.value)
 
     val q1 = classifyValue(mno)
-      .map(
-        f => museumNoFilter(searchObjectTable, f)
-      )
+      .map(f => museumNoFilter(searchObjectTable, f))
       .getOrElse(searchObjectTable)
     val q2 = classifyValue(subNo.map(_.value)).map(f => subNoFilter(q1, f)).getOrElse(q1)
     val q3 = classifyValue(term).map(f => termFilter(q2, f)).getOrElse(q2)
     val q4 = q3.filter(_.museumId === mid)
-    if (currUsr.hasGodMode) q4
-    // Filter on collection access if the user doesn't have GodMode
-    else q4.filter(_.collection inSet collections.map(_.collection).distinct)
+    val q5 = q4.filter(_.collection inSet collections.map(_.collection).distinct)
+    classifyValue(museumNoAsANumber.map(_.value))
+      .map(f => museumNoAsNumberFilter(q5, f))
+      .getOrElse(q5)
 
   }
 
@@ -548,6 +643,7 @@ class MusitSearchObjectDao @Inject()(
   def executeSearch(
       mid: MuseumId,
       museumNo: Option[MuseumNo],
+      museumNoAsANumber: Option[String],
       subNo: Option[SubNo],
       term: Option[String],
       collections: Seq[MuseumCollection],
@@ -557,7 +653,14 @@ class MusitSearchObjectDao @Inject()(
       implicit currUsr: AuthenticatedUser
   ): FutureMusitResult[PagedResult[SearchObjectResult]] = {
 
-    val searchQ            = searchQueryWithoutSorting(mid, museumNo, subNo, term, collections)
+    val searchQ = searchQueryWithoutSorting(
+      mid,
+      museumNo,
+      museumNoAsANumber,
+      subNo,
+      term,
+      collections
+    )
     val searchQWithSorting = addSorting(searchQ)
     runAndCreatePagedResult(
       searchQ,

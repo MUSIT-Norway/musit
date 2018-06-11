@@ -24,6 +24,7 @@ class SearchObjectService @Inject()(
   def findObjects(
       mid: MuseumId,
       museumNo: Option[MuseumNo],
+      museumNoAsANumber: Option[String],
       subNo: Option[SubNo],
       term: Option[String],
       collectionIds: Seq[MuseumCollection],
@@ -32,7 +33,16 @@ class SearchObjectService @Inject()(
   )(
       implicit currUsr: AuthenticatedUser
   ): FutureMusitResult[PagedResult[SearchObjectResult]] = {
-    searchObjDao.executeSearch(mid, museumNo, subNo, term, collectionIds, page, pageSize)
+    searchObjDao.executeSearch(
+      mid,
+      museumNo,
+      museumNoAsANumber,
+      subNo,
+      term,
+      collectionIds,
+      page,
+      pageSize
+    )
   }
 
   def recreateSearchTable()(implicit ec: ExecutionContext) = {
