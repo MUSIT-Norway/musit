@@ -69,6 +69,21 @@ CREATE TABLE MUSARK_THING.MUSITTHING_SEARCH_POPULATING
    PRIMARY KEY (objectuuid)
 );
 
+
+drop table if exists MUSIT_EVENT.MUSEUM;
+CREATE TABLE MUSIT_EVENT.MUSEUM(
+museum_id INTEGER PRIMARY KEY,
+museum_name TEXT NOT NULL,
+abbreviation TEXT
+);
+
+drop table if exists MUSIT_EVENT.COLLECTION;
+CREATE TABLE MUSIT_EVENT.COLLECTION(
+collection_id INTEGER PRIMARY KEY,
+collection_uuid UUID,
+collection_name TEXT NOT NULL
+);
+
 --drop table if exists MUSIT_PERSON.PERSON_NAME;
 --CREATE TABLE MUSIT_PERSON.PERSON_NAME(
 --person_name_uuid UUID NOT NULL,
@@ -115,26 +130,14 @@ FOREIGN KEY(EVENT_TYPE_ID) REFERENCES MUSIT_EVENT.EVENT_TYPE(EVENT_TYPE_ID)
 );
 
 
-drop table if exists MUSIT_PERSON.ATTRIBUTE;
-CREATE TABLE MUSIT_PERSON.ATTRIBUTE(
-attribute_uuid UUID NOT NULL,
-title TEXT,
-legal_entity_type TEXT NOT NULL,
-date_birth date,
-date_dead date,
-url TEXT,
-is_deleted BOOLEAN DEFAULT FALSE,
-PRIMARY KEY (attribute_uuid)
-);
-
-
+/*denne tabellen ses på som en referansetabell over navn vi har i systemet. Det linkes opp
+til personer via eventer som sier noe om navnet knyttet til person*/
 drop table if exists MUSIT_PERSON.APPELLATION_PERSON_NAME;
 CREATE TABLE MUSIT_PERSON.APPELLATION_PERSON_NAME(
 person_name_uuid UUID NOT NULL,
 first_name TEXT,
 last_name TEXT,
 name TEXT,
-display_name TEXT,
 is_deleted BOOLEAN DEFAULT FALSE,
 PRIMARY KEY (person_name_uuid)
 );
@@ -145,6 +148,7 @@ event_id BIGSERIAL NOT NULL,
 event_uuid UUID PRIMARY KEY,
 event_type_id INTEGER,
 museum_id INTEGER,
+collection_id INTEGER,
 note TEXT,
 part_of UUID,
 is_deleted BOOLEAN DEFAULT FALSE,
@@ -156,26 +160,51 @@ event_json JSONB,
 event_date_from date,
 event_date_to date,
 event_date_verbatim text,
-person_attribute_uuid uuid,
-person_name_uuid uuid,
 FOREIGN KEY (event_type_id) REFERENCES MUSIT_EVENT.EVENT_TYPE (event_type_id),
-FOREIGN KEY (person_attribute_uuid) REFERENCES MUSIT_PERSON.ATTRIBUTE(attribute_uuid),
-FOREIGN KEY (person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid)
+FOREIGN KEY (museum_id) REFERENCES MUSIT_EVENT.MUSEUM (museum_id),
+FOREIGN KEY (collection_id) REFERENCES MUSIT_EVENT.COLLECTION (collection_id)
 );
 
+/*denne tabellen er en sub-type av event for person_navn*/
+drop table if exists MUSIT_PERSON.EVENT_PERSON_NAME;
+CREATE TABLE MUSIT_PERSON.EVENT_PERSON_NAME(
+event_uuid UUID NOT NULL,
+person_name_uuid UUID,
+is_deleted BOOLEAN DEFAULT FALSE,
+PRIMARY KEY (event_uuid,person_name_uuid),
+ FOREIGN KEY(EVENT_UUID) REFERENCES MUSIT_EVENT.EVENT(EVENT_UUID),
+ FOREIGN KEY(person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid)
+);
+
+drop table if exists MUSIT_PERSON.ATTRIBUTE;
+CREATE TABLE MUSIT_PERSON.ATTRIBUTE(
+event_uuid UUID NOT NULL,
+title TEXT,
+legal_entity_type TEXT NOT NULL,
+date_birth date,
+date_dead date,
+url TEXT,
+is_deleted BOOLEAN DEFAULT FALSE,
+PRIMARY KEY (event_uuid),
+FOREIGN KEY(EVENT_UUID) REFERENCES MUSIT_EVENT.EVENT(EVENT_UUID)
+);
 
 
 drop table if exists MUSIT_PERSON.PERSON;
 CREATE TABLE MUSIT_PERSON.PERSON(
 person_uuid UUID NOT NULL,
 display_name TEXT,
-latest_appellation_event_uuid UUID,
+display_name_appellation_event_uuid UUID,
+museum_id INTEGER,
+collection_id INTEGER,
 latest_attribute_event_uuid UUID,
 current_person_uuid UUID,
 is_deleted BOOLEAN DEFAULT FALSE,
 PRIMARY KEY (person_uuid),
-FOREIGN KEY (latest_appellation_event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
-FOREIGN KEY (latest_attribute_event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid)
+FOREIGN KEY (display_name_appellation_event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
+FOREIGN KEY (latest_attribute_event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
+FOREIGN KEY (museum_id) REFERENCES MUSIT_EVENT.MUSEUM (museum_id),
+FOREIGN KEY (collection_id) REFERENCES MUSIT_EVENT.COLLECTION (collection_id)
 );
 
 drop table if exists MUSIT_PERSON.USERS;
@@ -228,19 +257,6 @@ FOREIGN KEY (role_id) REFERENCES MUSIT_EVENT.ROLE(role_id)
 
 
 
-drop table if exists MUSIT_EVENT.MUSEUM;
-CREATE TABLE MUSIT_EVENT.MUSEUM(
-museum_id INTEGER PRIMARY KEY,
-museum_name TEXT NOT NULL,
-abbr TEXT
-);
-
-drop table if exists MUSIT_EVENT.COLLECTION;
-CREATE TABLE MUSIT_EVENT.COLLECTION(
-collection_id INTEGER PRIMARY KEY,
-collection_uuid UUID,
-collection_name TEXT NOT NULL
-);
 
 drop table if exists MUSIT_EVENT.MUSEUM_COLLECTION;
 CREATE TABLE MUSIT_EVENT.MUSEUM_COLLECTION(

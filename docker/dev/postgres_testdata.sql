@@ -10,13 +10,13 @@ INSERT INTO musit_event.collection VALUES (8,'7352794d-4973-447b-b84e-2635cafe91
 INSERT INTO musit_event.collection VALUES (9,'ba3d4d30-810b-4c07-81b3-37751f2196f0', 'Entomologi');
 INSERT INTO musit_event.collection VALUES (10,'ef4dc066-b6f8-4155-89f8-7aa9aeeb2dc4', 'Marine evertebrater');
 
-INSERT INTO musit_event.museum(museum_id,museum_name,abbr)VALUES(1, 'Arkeologisk Museum', 'AM');
-INSERT INTO musit_event.museum(museum_id,museum_name,abbr)VALUES(2, 'Bergen Universitetsmuseum','UM');
-INSERT INTO musit_event.museum(museum_id,museum_name,abbr)VALUES(3, 'Kulturhistorisk Museum', 'KHM');
-INSERT INTO musit_event.museum(museum_id,museum_name,abbr)VALUES(4, 'Naturhistorisk Museum','NHM');
-INSERT INTO musit_event.museum(museum_id,museum_name,abbr)VALUES(5, 'NTNU Vitenskapsmuseet', 'VM');
-INSERT INTO musit_event.museum(museum_id,museum_name,abbr)VALUES(6, 'Tromsø Museum','TMU');
-INSERT INTO musit_event.museum(museum_id,museum_name,abbr)VALUES(7, 'Kristiansand Naturmuseum','KMN');
+INSERT INTO musit_event.museum(museum_id,museum_name,abbreviation)VALUES(1, 'Arkeologisk Museum', 'AM');
+INSERT INTO musit_event.museum(museum_id,museum_name,abbreviation)VALUES(2, 'Bergen Universitetsmuseum','UM');
+INSERT INTO musit_event.museum(museum_id,museum_name,abbreviation)VALUES(3, 'Kulturhistorisk Museum', 'KHM');
+INSERT INTO musit_event.museum(museum_id,museum_name,abbreviation)VALUES(4, 'Naturhistorisk Museum','NHM');
+INSERT INTO musit_event.museum(museum_id,museum_name,abbreviation)VALUES(5, 'NTNU Vitenskapsmuseet', 'VM');
+INSERT INTO musit_event.museum(museum_id,museum_name,abbreviation)VALUES(6, 'Tromsø Museum','TMU');
+INSERT INTO musit_event.museum(museum_id,museum_name,abbreviation)VALUES(7, 'Kristiansand Naturmuseum','KMN');
 
 INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (1,1);
 INSERT INTO musit_event.museum_collection(museum_id,collection_id) VALUES (1,3);
