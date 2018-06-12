@@ -2,6 +2,19 @@ package repositories.musitobject.dao
 
 object SearchFieldValues {
 
+  sealed trait IntervalBoundary {}
+  case class Value(v: Long) extends IntervalBoundary
+  case class Infinite()     extends IntervalBoundary
+
+  def boundaryAsString(intervalBoundary: IntervalBoundary) = {
+    intervalBoundary match {
+      case Value(v)   => v.toString()
+      case Infinite() => ""
+    }
+  }
+
+  //case class IntervalValue(from: IntervalBoundary, to: IntervalBoundary)
+
   sealed trait FieldValue {
     val v: String
   }
@@ -18,5 +31,11 @@ object SearchFieldValues {
    * escaped with the given escapeChar.
    */
   case class WildcardValue(v: String, escapeChar: Char) extends FieldValue
+
+  case class IntervalValue(from: IntervalBoundary, to: IntervalBoundary)
+      extends FieldValue {
+    override val v: String = boundaryAsString(from) + ".." + boundaryAsString(to)
+
+  }
 
 }

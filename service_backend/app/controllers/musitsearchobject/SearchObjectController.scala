@@ -44,6 +44,7 @@ class SearchObjectController @Inject()(
       from: Int,
       limit: Int = defaultLimit,
       museumNo: Option[String],
+      museumNoAsANumber: Option[String],
       subNo: Option[String],
       term: Option[String],
       q: Option[String],
@@ -62,6 +63,7 @@ class SearchObjectController @Inject()(
           searchService.findObjects(
             mid,
             mno,
+            museumNoAsANumber,
             sno,
             term,
 // add later? q,

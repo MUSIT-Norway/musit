@@ -76,6 +76,47 @@ class SearchObjectControllerSpec extends MusitSpecWithServerPerSuite {
         (third \ "term").as[String] mustBe "Sommerfugl"
       }
 
+      "find objects in the archeology collection with a specific museumNoAsNumber" in {
+
+        val res = wsUrl(url(99))
+          .withHttpHeaders(fakeToken.asHeader)
+          .withQueryStringParameters(
+            "collectionIds"     -> archeologyCollection,
+            "museumNoAsANumber" -> "666",
+            "subNo"             -> "",
+            "term"              -> "",
+            "from"              -> "0",
+            "limit"             -> "3"
+          )
+          .get()
+          .futureValue
+
+        //        print(s"res:${res.body}")
+        res.status mustBe OK
+
+        val json       = res.json
+        val totalCount = (json \ "totalMatches").as[JsNumber].value.intValue()
+
+        totalCount must be > 0
+
+        val entries = (json \ "matches").as[JsArray].value
+
+        entries.size mustBe 3
+
+        val first = entries.head
+        (first \ "museumNo").as[String] mustBe "C666"
+        (first \ "subNo").as[String] mustBe "31"
+        (first \ "term").as[String] mustBe "Sverd"
+        val second = entries.tail.head
+        (second \ "museumNo").as[String] mustBe "C666"
+        (second \ "subNo").as[String] mustBe "34"
+        (second \ "term").as[String] mustBe "Øks"
+        val third = entries.last
+        (third \ "museumNo").as[String] mustBe "C666"
+        (third \ "subNo").as[String] mustBe "38"
+        (third \ "term").as[String] mustBe "Sommerfugl"
+      }
+
       "find objects for archeology and numismatics with a similar museumNo" in {
         val res = wsUrl(url(99))
           .withHttpHeaders(fakeToken.asHeader)

@@ -38,7 +38,7 @@ DELETE        /organisation/:orgId/address/:id                               con
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Object search, searching against cached object tables in the database (not using ES)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-GET           /museum/:mid/objects/searchDb                                    controllers.musitsearchobject.SearchObjectController.search(mid: Int, collectionIds: String, from: Int ?=0, limit: Int ?=25, museumNo: Option[String] ?= None, subNo: Option[String] ?= None, term: Option[String] ?= None, q: Option[String] ?= None, ignoreSamples:Boolean ?=false)
+GET           /museum/:mid/objects/searchDb                                    controllers.musitsearchobject.SearchObjectController.search(mid: Int, collectionIds: String, from: Int ?=0, limit: Int ?=25, museumNo: Option[String] ?= None, museumNoAsANumber: Option[String] ?= None, subNo: Option[String] ?= None, term: Option[String] ?= None, q: Option[String] ?= None, ignoreSamples:Boolean ?=false)
 
 POST           /admin/reindex/searchDb                                    controllers.musitsearchobject.SearchObjectController.reindexSearchDb()
 
