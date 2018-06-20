@@ -217,6 +217,20 @@ PRIMARY KEY (feide_uuid),
 FOREIGN KEY (current_person_uuid) REFERENCES MUSIT_PERSON.PERSON(person_uuid)
 );
 
+drop table if exists MUSIT_PERSON.AGGREGATION_SEARCH;
+CREATE TABLE MUSIT_PERSON.AGGREGATION_SEARCH(
+person_name_uuid UUID NOT NULL,
+person_name TEXT,
+person_uuid UUID,
+title TEXT,
+legal_entity_type TEXT NOT NULL,
+date_birth date,
+date_dead date,
+url TEXT,
+PRIMARY KEY (person_name_uuid),
+FOREIGN KEY (person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid)
+);
+
 
 drop table if exists MUSIT_EVENT.EVENT_ROLE_PERSON_NAME;
 CREATE TABLE MUSIT_EVENT.EVENT_ROLE_PERSON_NAME(
