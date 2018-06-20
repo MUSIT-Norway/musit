@@ -227,6 +227,7 @@ legal_entity_type TEXT NOT NULL,
 date_birth date,
 date_dead date,
 url TEXT,
+display_name_appellation_person_uuid UUID,
 PRIMARY KEY (person_name_uuid),
 FOREIGN KEY (person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid)
 );
