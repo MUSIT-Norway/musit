@@ -189,7 +189,7 @@ PRIMARY KEY (event_uuid),
 FOREIGN KEY(EVENT_UUID) REFERENCES MUSIT_EVENT.EVENT(EVENT_UUID)
 );
 
-COMMENT ON COLUMN CREATE TABLE MUSIT_PERSON.ATTRIBUTE.legal_entity_type
+COMMENT ON COLUMN MUSIT_PERSON.ATTRIBUTE.legal_entity_type
 IS 'which type of person is this, person, organization, institution etc';
 
 
@@ -211,13 +211,13 @@ FOREIGN KEY (collection_id) REFERENCES MUSIT_EVENT.COLLECTION (collection_id)
 );
 
 
-COMMENT ON COLUMN CREATE TABLE MUSIT_PERSON.PERSON.display_name
+COMMENT ON COLUMN MUSIT_PERSON.PERSON.display_name
 IS 'display name for this person';
-COMMENT ON COLUMN CREATE TABLE MUSIT_PERSON.PERSON.display_name_appellation_event_uuid
+COMMENT ON COLUMN  MUSIT_PERSON.PERSON.display_name_appellation_event_uuid
 IS 'the eventUuid for the latest event that set the display name';
-COMMENT ON COLUMN CREATE TABLE MUSIT_PERSON.PERSON.latest_attribute_event_uuid
+COMMENT ON COLUMN MUSIT_PERSON.PERSON.latest_attribute_event_uuid
 IS 'the eventUuid for the latest event that changed some of the attributes for this person';
-COMMENT ON COLUMN CREATE TABLE MUSIT_PERSON.PERSON.current_person_uuid
+COMMENT ON COLUMN  MUSIT_PERSON.PERSON.current_person_uuid
 IS 'personUuid for the person that is the current person if two or more persons are merged';
 
 drop table if exists MUSIT_PERSON.USERS;
@@ -246,7 +246,7 @@ PRIMARY KEY (aggSearch_id),
 FOREIGN KEY (person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid)
 );
 
-COMMENT ON COLUMN CREATE TABLE MUSIT_PERSON.AGGREGATION_SEARCH.display_name_appellation_person_uuid
+COMMENT ON COLUMN  MUSIT_PERSON.AGGREGATION_SEARCH.display_name_appellation_person_uuid
 IS 'cant remember why I made this column';
 
 
@@ -266,7 +266,7 @@ FOREIGN KEY (role_id) REFERENCES MUSIT_EVENT.ROLE(role_id)
 );
 
 
-COMMENT ON COLUMN CREATE TABLE MUSIT_EVENT.EVENT_ROLE_PERSON_NAME.name
+COMMENT ON COLUMN  MUSIT_EVENT.EVENT_ROLE_PERSON_NAME.name
 IS 'the original name(the right synonym) of the person. Cashed data for the personUuid';
 
 drop table if exists MUSIT_EVENT.EVENT_ROLE_OBJECT;
