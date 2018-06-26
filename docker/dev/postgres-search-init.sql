@@ -234,7 +234,10 @@ drop table if exists MUSIT_PERSON.AGGREGATION_SEARCH;
 CREATE TABLE MUSIT_PERSON.AGGREGATION_SEARCH(
 aggSearch_id BIGSERIAL NOT NULL,
 person_name_uuid UUID NOT NULL,
-person_name TEXT,
+first_name TEXT,
+last_name TEXT,
+name TEXT,
+conkat_person_name TEXT,
 title TEXT,
 person_uuid UUID,
 legal_entity_type TEXT NOT NULL,
