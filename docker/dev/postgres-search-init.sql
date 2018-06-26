@@ -138,6 +138,7 @@ person_name_uuid UUID NOT NULL,
 first_name TEXT,
 last_name TEXT,
 name TEXT,
+title TEXT,
 is_deleted BOOLEAN DEFAULT FALSE,
 PRIMARY KEY (person_name_uuid)
 );
@@ -179,7 +180,6 @@ PRIMARY KEY (event_uuid,person_name_uuid),
 drop table if exists MUSIT_PERSON.ATTRIBUTE;
 CREATE TABLE MUSIT_PERSON.ATTRIBUTE(
 event_uuid UUID NOT NULL,
-title TEXT,
 legal_entity_type TEXT NOT NULL,
 date_birth date,
 date_dead date,
@@ -241,13 +241,14 @@ legal_entity_type TEXT NOT NULL,
 date_birth date,
 date_dead date,
 url TEXT,
-display_name_appellation_person_uuid UUID,
+display_name_person_name_uuid UUID,
 PRIMARY KEY (aggSearch_id),
-FOREIGN KEY (person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid)
+FOREIGN KEY (person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid),
+FOREIGN KEY (display_name_person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid)
 );
 
-COMMENT ON COLUMN  MUSIT_PERSON.AGGREGATION_SEARCH.display_name_appellation_person_uuid
-IS 'cant remember why I made this column';
+COMMENT ON COLUMN  MUSIT_PERSON.AGGREGATION_SEARCH.display_name_person_name_uuid
+IS 'which person_name-row that shows the display_name for a person';
 
 
 drop table if exists MUSIT_EVENT.EVENT_ROLE_PERSON_NAME;
