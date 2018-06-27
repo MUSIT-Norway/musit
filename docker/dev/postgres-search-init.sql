@@ -84,17 +84,6 @@ collection_uuid UUID,
 collection_name TEXT NOT NULL
 );
 
---drop table if exists MUSIT_PERSON.PERSON_NAME;
---CREATE TABLE MUSIT_PERSON.PERSON_NAME(
---person_name_uuid UUID NOT NULL,
---first_name TEXT,
---last_name TEXT,
---title TEXT,
---name TEXT,
---display_name TEXT,
---PRIMARY KEY (person_name_uuid)
---);
-
 drop table if exists MUSIT_EVENT.EVENT_ROLE_PERSON;
 
 drop table if exists MUSIT_EVENT.ROLE;
@@ -183,6 +172,7 @@ event_uuid UUID NOT NULL,
 legal_entity_type TEXT NOT NULL,
 date_birth date,
 date_dead date,
+date_verbatim TEXT,
 url TEXT,
 is_deleted BOOLEAN DEFAULT FALSE,
 PRIMARY KEY (event_uuid),
@@ -244,13 +234,13 @@ person_uuid UUID,
 legal_entity_type TEXT NOT NULL,
 date_birth date,
 date_dead date,
+date_verbatim TEXT,
 url TEXT,
 display_name_person_name_uuid UUID,
 PRIMARY KEY (aggSearch_id),
 FOREIGN KEY (person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid),
 FOREIGN KEY (display_name_person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid)
 );
-
 COMMENT ON COLUMN  MUSIT_PERSON.AGGREGATION_SEARCH.display_name_person_name_uuid
 IS 'which person_name-row that shows the display_name for a person';
 
@@ -269,8 +259,6 @@ FOREIGN KEY (person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(p
 FOREIGN KEY (event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
 FOREIGN KEY (role_id) REFERENCES MUSIT_EVENT.ROLE(role_id)
 );
-
-
 COMMENT ON COLUMN  MUSIT_EVENT.EVENT_ROLE_PERSON_NAME.name
 IS 'the original name(the right synonym) of the person. Cashed data for the personUuid';
 
