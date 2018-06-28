@@ -129,6 +129,7 @@ last_name TEXT,
 name TEXT,
 title TEXT,
 is_deleted BOOLEAN DEFAULT FALSE,
+concat_person_name TEXT,
 PRIMARY KEY (person_name_uuid)
 );
 
