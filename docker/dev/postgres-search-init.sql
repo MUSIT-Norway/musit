@@ -126,12 +126,14 @@ CREATE TABLE MUSIT_PERSON.APPELLATION_PERSON_NAME(
 person_name_uuid UUID NOT NULL,
 first_name TEXT,
 last_name TEXT,
-name TEXT,
+name TEXT NOT NULL,
 title TEXT,
 is_deleted BOOLEAN DEFAULT FALSE,
 concat_person_name TEXT,
 PRIMARY KEY (person_name_uuid)
 );
+COMMENT ON COLUMN MUSIT_PERSON.APPELLATION_PERSON_NAME.name
+IS 'aggregated like this: lastname, title firstname or just name if there is no firstname and lastname';
 
 drop table if exists MUSIT_EVENT.EVENT;
 CREATE TABLE MUSIT_EVENT.EVENT(
@@ -188,14 +190,14 @@ drop table if exists MUSIT_PERSON.PERSON;
 CREATE TABLE MUSIT_PERSON.PERSON(
 person_uuid UUID NOT NULL,
 display_name TEXT,
-display_name_appellation_event_uuid UUID,
+latest_edit_event_uuid UUID,
 museum_id INTEGER,
 collection_id INTEGER,
 latest_attribute_event_uuid UUID,
 current_person_uuid UUID,
 is_deleted BOOLEAN DEFAULT FALSE,
 PRIMARY KEY (person_uuid),
-FOREIGN KEY (display_name_appellation_event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
+FOREIGN KEY (latest_edit_event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
 FOREIGN KEY (latest_attribute_event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
 FOREIGN KEY (museum_id) REFERENCES MUSIT_EVENT.MUSEUM (museum_id),
 FOREIGN KEY (collection_id) REFERENCES MUSIT_EVENT.COLLECTION (collection_id)
@@ -204,8 +206,8 @@ FOREIGN KEY (collection_id) REFERENCES MUSIT_EVENT.COLLECTION (collection_id)
 
 COMMENT ON COLUMN MUSIT_PERSON.PERSON.display_name
 IS 'display name for this person';
-COMMENT ON COLUMN  MUSIT_PERSON.PERSON.display_name_appellation_event_uuid
-IS 'the eventUuid for the latest event that set the display name';
+COMMENT ON COLUMN  MUSIT_PERSON.PERSON.latest_edit_event_uuid
+IS 'the eventUuid for the latest event for editing the persons name';
 COMMENT ON COLUMN MUSIT_PERSON.PERSON.latest_attribute_event_uuid
 IS 'the eventUuid for the latest event that changed some of the attributes for this person';
 COMMENT ON COLUMN  MUSIT_PERSON.PERSON.current_person_uuid
@@ -237,13 +239,13 @@ date_birth date,
 date_dead date,
 date_verbatim TEXT,
 url TEXT,
-display_name_person_name_uuid UUID,
+latest_edited_name_uuid UUID,
 PRIMARY KEY (aggSearch_id),
 FOREIGN KEY (person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid),
-FOREIGN KEY (display_name_person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid)
+FOREIGN KEY (latest_edited_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid)
 );
-COMMENT ON COLUMN  MUSIT_PERSON.AGGREGATION_SEARCH.display_name_person_name_uuid
-IS 'which person_name-row that shows the display_name for a person';
+COMMENT ON COLUMN  MUSIT_PERSON.AGGREGATION_SEARCH.latest_edited_name_uuid
+IS 'which person_name-row that shows the latest edited name for a person';
 
 
 drop table if exists MUSIT_EVENT.EVENT_ROLE_PERSON_NAME;
