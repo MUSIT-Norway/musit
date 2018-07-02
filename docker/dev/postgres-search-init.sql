@@ -250,13 +250,14 @@ IS 'which person_name-row that shows the latest edited name for a person';
 
 drop table if exists MUSIT_EVENT.EVENT_ROLE_PERSON_NAME;
 CREATE TABLE MUSIT_EVENT.EVENT_ROLE_PERSON_NAME(
+erp_id BIGSERIAL NOT NULL,
 event_uuid UUID NOT NULL,
 role_id INTEGER NOT NULL,
 person_name_uuid UUID NOT NULL,
 name TEXT NOT NULL,
 person_uuid UUID,
 is_deleted BOOLEAN DEFAULT FALSE,
-PRIMARY KEY (event_uuid,role_id, person_name_uuid),
+PRIMARY KEY (erp_id),
 FOREIGN KEY (person_uuid) REFERENCES MUSIT_PERSON.PERSON (person_uuid),
 FOREIGN KEY (person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid),
 FOREIGN KEY (event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
@@ -264,6 +265,8 @@ FOREIGN KEY (role_id) REFERENCES MUSIT_EVENT.ROLE(role_id)
 );
 COMMENT ON COLUMN  MUSIT_EVENT.EVENT_ROLE_PERSON_NAME.name
 IS 'the original name(the right synonym) of the person. Cashed data for the personUuid';
+COMMENT ON COLUMN  MUSIT_EVENT.EVENT_ROLE_PERSON_NAME.erp_id
+IS 'a sequence since we have several versions of the same relation, so problem with PK';
 
 drop table if exists MUSIT_EVENT.EVENT_ROLE_OBJECT;
 CREATE TABLE MUSIT_EVENT.EVENT_ROLE_OBJECT(
