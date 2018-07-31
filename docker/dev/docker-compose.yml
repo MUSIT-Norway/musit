@@ -22,7 +22,7 @@ services:
     ports:
       - 9200:9200
 
-  postgres_db:
+  postgres_db_document:
     build: postgres/
     environment:
       - POSTGRES_USER=postgres
@@ -32,7 +32,7 @@ services:
     ports:
       - "5432:5432"
 
-  postgres_db_person:
+  postgres_db_backend:
     image: harbor.uio.no/library/postgres
     #    build: postgres/
     environment:
@@ -133,4 +133,4 @@ services:
       - SYMBIOTIC_FS_ROOT_DIR
     links:
       - db
-      - postgres_db
+      - postgres_db_document
