@@ -69,3 +69,29 @@ echo "MUSARK: sbt clean docker:publishLocal ." && sbt clean docker:publishLocal 
 cd ${STARTDIR}
 
 echo "MUSARK: docker-compose up ." && docker-compose up -d --build --remove-orphans > /dev/null
+
+docker cp postgres-search-init.sql dev_postgres_db_backend_1:/.
+docker exec -it dev_postgres_db_backend_1 psql -U postgres -d postgres -f postgres-search-init.sql
+
+docker cp postgres_testdata.sql dev_postgres_db_backend_1:/.
+docker exec -it dev_postgres_db_backend_1 psql -U postgres -d postgres -f postgres_testdata.sql
+
+echo "migrerer person"
+
+
+cd ../../../dsmusit/musit-object-module/marine_evertebrater/person
+
+if [ ! -f person.csv ]; then
+    echo "Finner ikke fila $(pwd)/person.csv, få den i mail fra Ellen!"
+    exit 1
+fi
+
+tsc
+npm run start_migration
+
+echo "starter person backend"
+
+cd ${STARTDIR}
+cd ../../../dsmusit-backend
+npm run start:dev
+
