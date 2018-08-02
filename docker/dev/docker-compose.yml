@@ -10,6 +10,7 @@ services:
       - auth
       - barcode
       - document
+      - nodebackend
 
   db:
     image: registry.gitlab.com/musit-norway/docker-oracle-12c:testdata
@@ -134,3 +135,14 @@ services:
     links:
       - db
       - postgres_db_document
+  nodebackend:
+    build:
+      context: "../../../dsmusit-backend"
+    ports:
+      - "3002:3001"
+    environment: 
+      - DBBACKEND_POSTGRES_HOST
+    links:
+      - postgres_db_backend
+    volumes: # For webpack dev server to use our local files
+      - "./../../../dsmusit-backend:/usr/src/app"

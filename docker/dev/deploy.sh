@@ -54,6 +54,10 @@ export DATAPORTEN_CLIENT_SECRET=$CLIENT_SECRET
 export DATAPORTEN_SESSION_TIMEOUT="4 hours"
 
 
+
+export DBBACKEND_POSTGRES_HOST=postgres_db_backend
+
+
 # ------------------------------------------------------------------------
 # Start the deployment process...
 # ------------------------------------------------------------------------
@@ -91,7 +95,8 @@ npm run start_migration
 
 echo "starter person backend"
 
-cd ${STARTDIR}
-cd ../../../dsmusit-backend
-npm run start:dev
+
+#cd ${STARTDIR}
+#cd ../../../dsmusit-backend
+#npm run start:dev
 
