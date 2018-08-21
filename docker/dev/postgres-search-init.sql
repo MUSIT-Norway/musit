@@ -194,11 +194,13 @@ latest_edit_event_uuid UUID,
 museum_id INTEGER,
 collection_id INTEGER,
 latest_attribute_event_uuid UUID,
+latest_synonym_event_uuid UUID,
 current_person_uuid UUID,
 is_deleted BOOLEAN DEFAULT FALSE,
 PRIMARY KEY (person_uuid),
 FOREIGN KEY (latest_edit_event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
 FOREIGN KEY (latest_attribute_event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
+FOREIGN KEY (latest_synonym_event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
 FOREIGN KEY (museum_id) REFERENCES MUSIT_EVENT.MUSEUM (museum_id),
 FOREIGN KEY (collection_id) REFERENCES MUSIT_EVENT.COLLECTION (collection_id)
 );
@@ -210,6 +212,8 @@ COMMENT ON COLUMN  MUSIT_PERSON.PERSON.latest_edit_event_uuid
 IS 'the eventUuid for the latest event for editing the persons name';
 COMMENT ON COLUMN MUSIT_PERSON.PERSON.latest_attribute_event_uuid
 IS 'the eventUuid for the latest event that changed some of the attributes for this person';
+COMMENT ON COLUMN  MUSIT_PERSON.PERSON.latest_synonym_event_uuid
+IS 'the eventUuid for the latest event for editing synonyms';
 COMMENT ON COLUMN  MUSIT_PERSON.PERSON.current_person_uuid
 IS 'personUuid for the person that is the current person if two or more persons are merged';
 
