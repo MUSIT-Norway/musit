@@ -177,6 +177,7 @@ date_birth date,
 date_dead date,
 date_verbatim TEXT,
 url TEXT,
+externalIds TEXT,
 is_deleted BOOLEAN DEFAULT FALSE,
 PRIMARY KEY (event_uuid),
 FOREIGN KEY(EVENT_UUID) REFERENCES MUSIT_EVENT.EVENT(EVENT_UUID)
@@ -184,6 +185,8 @@ FOREIGN KEY(EVENT_UUID) REFERENCES MUSIT_EVENT.EVENT(EVENT_UUID)
 
 COMMENT ON COLUMN MUSIT_PERSON.ATTRIBUTE.legal_entity_type
 IS 'which type of person is this, person, organization, institution etc';
+COMMENT ON COLUMN MUSIT_PERSON.ATTRIBUTE.externalIds
+IS 'external IDs to other datatbases. It is JSON in this column for avoiding another table for it';
 
 
 drop table if exists MUSIT_PERSON.PERSON;
@@ -243,6 +246,7 @@ date_birth date,
 date_dead date,
 date_verbatim TEXT,
 url TEXT,
+externalIds TEXT,
 latest_edited_name_uuid UUID,
 PRIMARY KEY (aggSearch_id),
 FOREIGN KEY (person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid),
