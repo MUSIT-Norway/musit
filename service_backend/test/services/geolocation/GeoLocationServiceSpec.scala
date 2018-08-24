@@ -27,7 +27,7 @@ class GeoLocationServiceSpec
 
     "searching for addresses" should {
 
-      "return a list of results that match the query" in {
+      "return a list of results that match the query" ignore {
         val res = service.searchGeoNorway("paal bergs vei 56, RYKKINN").futureValue
         res.isSuccess mustBe true
         res.successValue.toList match {
@@ -43,7 +43,7 @@ class GeoLocationServiceSpec
 
       }
 
-      "return a list of results that contains street number with house letter" in {
+      "return a list of results that contains street number with house letter" ignore {
         val res = service.searchGeoNorway("Kirkegata 11, Hønefoss").futureValue
 
         res.isSuccess mustBe true
