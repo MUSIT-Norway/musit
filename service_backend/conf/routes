@@ -190,4 +190,7 @@ GET           /:mid/conservation/events/object/:id          controllers.conserva
 GET           /:mid/conservation/conservations/object/:id   controllers.conservation.ConservationModuleEventController.getConservationWithKeyDataForObject(mid: Int, id: String)
 DELETE        /:mid/conservation/events                     controllers.conservation.ConservationModuleEventController.deleteSubEvents(mid: Int, eventIds: String)
 
+# --------------------------------------
+# REST authorization endpoint meant for being called from the node-based backends
+GET /authorize controllers.NodeAuthController.authorize(museumId: Option[Int], moduleConstraintId: Option[Int], permissions: Seq[Int])
 

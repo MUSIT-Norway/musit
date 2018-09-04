@@ -38,6 +38,5 @@ GET         /rest/groups/:feideEmail               controllers.rest.GroupControl
 GET         /rest/:mid/roles/:feideEmail           controllers.rest.GroupController.rolesForUser(feideEmail: String,mid: Int, collectionId:String)
 # TODO: Add the remaining REST endpoings
 
-
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                          controllers.Assets.at(path="/public", file)

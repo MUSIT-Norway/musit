@@ -1,12 +1,21 @@
 package controllers.rest
 
 import com.google.inject.Inject
-import no.uio.musit.MusitResults.{MusitError, MusitSuccess}
-import no.uio.musit.security.Authenticator
+import no.uio.musit.MusitResults.{
+  MusitError,
+  MusitResult,
+  MusitSuccess,
+  MusitValidationError
+}
+import no.uio.musit.models.{Email, MuseumId, Museums}
+import no.uio.musit.security.{Authenticator, ModuleConstraint}
+import no.uio.musit.security.Permissions.Permission
 import no.uio.musit.service.MusitController
 import play.api.libs.json.Json
-import play.api.mvc.ControllerComponents
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import play.api.{Configuration, Logger}
+
+import scala.concurrent.Future
 
 /**
  * This controller will expose login and logout functionality for the MUSIT

@@ -42,6 +42,12 @@ object MusitResultUtils {
     }
   }
 
+  def musitErrorToPlayResult(musitError: MusitError)(
+      ): Result = {
+    defaultErrorTranslator(musitError)
+
+  }
+
   def musitResultUnitToPlayResult(musitResult: MusitResult[Unit]): Result = {
     musitResult match {
       case MusitSuccess(_) => Results.NoContent
