@@ -1,10 +1,5 @@
 package controllers
 
-import no.uio.musit.MusitResults._
-import no.uio.musit.functional.FutureMusitResult
-import play.api.libs.json.{Json, Writes}
-import play.api.mvc.{Result, Results}
-
 import no.uio.musit.MusitResults.{
   MusitError,
   MusitResult,
