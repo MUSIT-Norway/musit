@@ -18,7 +18,7 @@ class GeoLocationControllerIntegrationSpec
 
   "Using the GeoLocation API" when {
     "searching for addresses" should {
-      "return a list of results matching the query paramter" in {
+      "return a list of results matching the query paramter" ignore {
         val res = wsUrl(queryParam("Paal Bergsvei 56, Rykkinn"))
           .withHttpHeaders(fakeToken.asHeader)
           .get()

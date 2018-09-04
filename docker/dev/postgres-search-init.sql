@@ -177,6 +177,7 @@ date_birth date,
 date_dead date,
 date_verbatim TEXT,
 url TEXT,
+external_Ids JSON,
 is_deleted BOOLEAN DEFAULT FALSE,
 PRIMARY KEY (event_uuid),
 FOREIGN KEY(EVENT_UUID) REFERENCES MUSIT_EVENT.EVENT(EVENT_UUID)
@@ -184,6 +185,8 @@ FOREIGN KEY(EVENT_UUID) REFERENCES MUSIT_EVENT.EVENT(EVENT_UUID)
 
 COMMENT ON COLUMN MUSIT_PERSON.ATTRIBUTE.legal_entity_type
 IS 'which type of person is this, person, organization, institution etc';
+COMMENT ON COLUMN MUSIT_PERSON.ATTRIBUTE.external_Ids
+IS 'external IDs to other datatbases. It is JSON in this column for avoiding another table for it';
 
 
 drop table if exists MUSIT_PERSON.PERSON;
@@ -243,6 +246,7 @@ date_birth date,
 date_dead date,
 date_verbatim TEXT,
 url TEXT,
+external_Ids JSON,
 latest_edited_name_uuid UUID,
 PRIMARY KEY (aggSearch_id),
 FOREIGN KEY (person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid),
@@ -265,12 +269,14 @@ PRIMARY KEY (erp_id),
 FOREIGN KEY (person_uuid) REFERENCES MUSIT_PERSON.PERSON (person_uuid),
 FOREIGN KEY (person_name_uuid) REFERENCES MUSIT_PERSON.APPELLATION_PERSON_NAME(person_name_uuid),
 FOREIGN KEY (event_uuid) REFERENCES MUSIT_EVENT.EVENT(event_uuid),
-FOREIGN KEY (role_id) REFERENCES MUSIT_EVENT.ROLE(role_id)
+FOREIGN KEY (role_id) REFERENCES MUSIT_EVENT.ROLE(role_id),
+UNIQUE (event_uuid, role_id, person_Name_uuid)
 );
 COMMENT ON COLUMN  MUSIT_EVENT.EVENT_ROLE_PERSON_NAME.name
 IS 'the original name(the right synonym) of the person. Cashed data for the personUuid';
 COMMENT ON COLUMN  MUSIT_EVENT.EVENT_ROLE_PERSON_NAME.erp_id
 IS 'a sequence since we have several versions of the same relation, so problem with PK';
+
 
 drop table if exists MUSIT_EVENT.EVENT_ROLE_OBJECT;
 CREATE TABLE MUSIT_EVENT.EVENT_ROLE_OBJECT(
