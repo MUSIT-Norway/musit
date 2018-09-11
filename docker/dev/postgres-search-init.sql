@@ -158,6 +158,22 @@ FOREIGN KEY (museum_id) REFERENCES MUSIT_EVENT.MUSEUM (museum_id),
 FOREIGN KEY (collection_id) REFERENCES MUSIT_EVENT.COLLECTION (collection_id)
 );
 
+drop table if exists MUSIT_EVENT.EVENT_ROLE_EVENT;
+CREATE TABLE MUSIT_EVENT.EVENT_ROLE_EVENT(
+event_Uuid UUID,
+role_id  INTEGER NOT NULL,
+to_event_uuid UUID NOT NULL,
+PRIMARY KEY (EVENT_UUID,ROLE_ID, TO_EVENT_UUID),
+FOREIGN KEY(ROLE_ID) REFERENCES MUSIT_EVENT.ROLE(ROLE_ID),
+FOREIGN KEY(EVENT_UUID) REFERENCES MUSIT_EVENT.EVENT(EVENT_UUID),
+FOREIGN KEY(TO_EVENT_UUID) REFERENCES MUSIT_EVENT.EVENT(EVENT_UUID)
+);
+
+COMMENT ON COLUMN MUSIT_EVENT.EVENT_ROLE_EVENT.EVENT_UUID
+IS 'this is the current event that owns the relation to the to_event_uuid. eventUuid is subevent to to_event_uuid,
+or eventUuid has deleted_synonym on to_event_uuid';
+
+
 /*denne tabellen er en sub-type av event for person_navn (rediger_navn_eventtype)*/
 drop table if exists MUSIT_PERSON.EVENT_PERSON_NAME;
 CREATE TABLE MUSIT_PERSON.EVENT_PERSON_NAME(
