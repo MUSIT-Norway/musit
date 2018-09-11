@@ -55,7 +55,7 @@ export DATAPORTEN_SESSION_TIMEOUT="4 hours"
 
 
 
-export DBBACKEND_POSTGRES_HOST=postgres_db_backend
+#export DBBACKEND_POSTGRES_HOST=postgres_db_backend
 
 
 # ------------------------------------------------------------------------
@@ -92,10 +92,11 @@ fi
 
 tsc
 npm run start_migration
+echo "Deploy finished."
 
-echo "starter person backend"
-
-
+# Disse nedenfor behøves ikke lenger fordi nå kjører dsmusit-backend i sin egen
+# docker container (og mapper til lokal harddisk når vi kjører dev)
+#echo "starter person backend"
 #cd ${STARTDIR}
 #cd ../../../dsmusit-backend
 #npm run start:dev

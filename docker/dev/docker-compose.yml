@@ -137,11 +137,18 @@ services:
       - postgres_db_document
   nodebackend:
     build:
-      context: "../../../dsmusit-backend"
+      context: ../../../dsmusit-backend
+      dockerfile: Dockerfile-dev
     ports:
       - "3002:3001"
-    environment: 
-      - DBBACKEND_POSTGRES_HOST
+    environment:
+      - MUSIT_BASE_URL
+      - POSTGRES_HOST=postgres_db_backend
+      - POSTGRES_PORT=5432
+      - POSTGRES_USE_SSL=false
+      - POSTGRES_DB_NAME=postgres
+      - POSTGRES_DB_USER=postgres
+      - POSTGRES_DB_PASSWORD=postgres
     links:
       - postgres_db_backend
     volumes: # For webpack dev server to use our local files
