@@ -78,6 +78,9 @@ INSERT INTO musit_event.role(role_text, type_for) VALUES ('ble slått sammen med
 INSERT INTO musit_event.role(role_text, type_for) VALUES ('slått sammen av','person');
 INSERT INTO musit_event.role(role_text, type_for) VALUES ('opprettet av','person');
 INSERT INTO musit_event.role(role_text, type_for) VALUES ('samlet av','person');
+INSERT INTO musit_event.role(role_text, type_for) VALUES ('ble fjernet','person_as_object');
+INSERT INTO musit_event.role(role_text, type_for) VALUES ('fjernet av','person');
+INSERT INTO musit_event.role(role_text, type_for) VALUES ('fjernet synonym','event');
 
 INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (1,1);
 INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (2,1);
@@ -89,3 +92,7 @@ INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (7,4);
 INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (8,4);
 INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (9,4);
 INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (10,5);
+INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (11,6);
+INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (12,2);
+INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (13,2);
+INSERT INTO musit_event.role_for_eventtype(role_id,event_type_id) VALUES (14,2);
