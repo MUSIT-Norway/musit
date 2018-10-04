@@ -68,7 +68,7 @@ echo "MUSARK: docker-compose stop ." && docker-compose stop > /dev/null
 
 cd ../..
 
-echo "MUSARK: sbt clean docker:publishLocal ." && sbt clean docker:publishLocal > /dev/null
+#echo "MUSARK: sbt clean docker:publishLocal ." && sbt clean docker:publishLocal > /dev/null
 
 cd ${STARTDIR}
 
