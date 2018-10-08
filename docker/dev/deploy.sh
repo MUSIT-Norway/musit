@@ -1,6 +1,13 @@
 #!/bin/bash
 
 # ------------------------------------------------------------------------
+# THIS FILE IS NOW RETIRED, PLEASE SEE SIMILAR FILE IN dsmusit-backend!
+# ------------------------------------------------------------------------
+echo "The deployment has been moved to dsmusit-backend, please use that project to deploy."
+exit 1;
+
+
+# ------------------------------------------------------------------------
 # Include secrets that can't be in this script
 # ------------------------------------------------------------------------
 source secrets.sh
@@ -56,6 +63,8 @@ export DATAPORTEN_SESSION_TIMEOUT="4 hours"
 
 
 #export DBBACKEND_POSTGRES_HOST=postgres_db_backend
+
+
 
 
 # ------------------------------------------------------------------------
