@@ -6,7 +6,7 @@ import no.uio.musit.MusitResults.{
   MusitSuccess,
   MusitValidationError
 }
-import no.uio.musit.models.{MuseumId, Museums}
+import no.uio.musit.models.{ActorId, Email, MuseumId, Museums}
 import no.uio.musit.security.ModuleConstraint
 import no.uio.musit.security.Permissions.Permission
 import play.api.mvc.{Action, AnyContent}
@@ -16,7 +16,16 @@ import com.google.inject.{Inject, Singleton}
 import no.uio.musit.security.Authenticator
 import no.uio.musit.service.MusitController
 import play.api.mvc.ControllerComponents
+import no.uio.musit.security._
+import play.api.libs.json._
 
+object UserInfoCustomWriter {
+
+  def customWriter: Writes[UserInfo] = Writes { userInfo: UserInfo =>
+    Json.obj("id" -> userInfo.id, "name" -> userInfo.name, "email" -> userInfo.email)
+
+  }
+}
 @Singleton
 class NodeAuthController @Inject()(
     implicit
@@ -76,7 +85,9 @@ class NodeAuthController @Inject()(
     } yield
       MusitSecureAction(optMuseum.map(_.id), optModule, permissions: _*).async {
         implicit request =>
-          Future.successful(Ok)
+          Future.successful(
+            Ok(UserInfoCustomWriter.customWriter.writes(request.user.userInfo))
+          )
       }
     val result = res match {
       case MusitSuccess(x: Action[AnyContent]) => x
